@@ -3,11 +3,13 @@ package com.homi.admin.config;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
+import com.homi.admin.auth.vo.UserLoginVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysUser;
-import lombok.RequiredArgsConstructor;
+import com.homi.utils.BeanCopyUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 /**
  * 拦截后台请求
@@ -15,10 +17,11 @@ import org.springframework.context.annotation.Configuration;
  * {@code @author} tk
  * {@code @date} 2025/4/17 12:16
  */
-@Configuration
-@RequiredArgsConstructor
 @Slf4j
 public class LoginManager {
+    private LoginManager() {
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * 获取当前登录用户 ID（Long 类型）
@@ -37,12 +40,34 @@ public class LoginManager {
     /**
      * 获取当前登录的用户对象（登录时需手动 set 进去）
      */
-    public static SysUser getCurrentUser() {
-        Object user = StpUtil.getSession().get(SaSession.USER);
+    public static UserLoginVO getCurrentUser() {
+        SysUser user = (SysUser) StpUtil.getSession().get(SaSession.USER);
         if (user == null) {
             throw new BizException("未找到当前登录用户信息");
         }
-        return (SysUser) user;
+
+        UserLoginVO userLoginVO = BeanCopyUtils.copyBean(user, UserLoginVO.class);
+        userLoginVO.setRoles(getCurrentRoles());
+        userLoginVO.setPermissions(getCurrentPermissions());
+
+        userLoginVO.setToken(getTokenInfo().getTokenValue());
+
+        return userLoginVO;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<String> getCurrentRoles() {
+        return (List<String>) StpUtil.getSession().get(SaSession.ROLE_LIST);
+    }
+
+    public static boolean hasRole(String role) {
+        List<String> roles = getCurrentRoles();
+        return roles != null && roles.contains(role);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<String> getCurrentPermissions() {
+        return (List<String>) StpUtil.getSession().get(SaSession.PERMISSION_LIST);
     }
 
     /**

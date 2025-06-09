@@ -1,10 +1,10 @@
 package com.homi.admin.auth.controller;
 
 import com.homi.admin.auth.service.AuthService;
+import com.homi.admin.auth.vo.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.annotation.LoginLog;
 import com.homi.domain.base.ResponseResult;
-import com.homi.model.entity.SysUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +27,7 @@ public class UserController {
 
     @LoginLog
     @PostMapping("/admin/user/get")
-    public ResponseResult<SysUser> getUser() {
+    public ResponseResult<UserLoginVO> getUser() {
         return ResponseResult.ok(LoginManager.getCurrentUser());
     }
 

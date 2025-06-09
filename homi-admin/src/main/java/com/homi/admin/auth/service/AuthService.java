@@ -3,6 +3,7 @@ package com.homi.admin.auth.service;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.lang.Pair;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.UserLoginDTO;
 import com.homi.admin.auth.vo.UserLoginVO;
@@ -75,24 +76,9 @@ public class AuthService {
         }
 
         // 查询用户角色
-        List<SysUserRole> userRoleList = sysUserRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, sysUser.getId()));
-        List<Long> roleIdList = userRoleList.stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
-        List<SysRole> sysRoles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRole>().in(SysRole::getId, roleIdList));
-        ArrayList<String> roleCodeList = new ArrayList<>();
-        boolean existDisable = false;
-        boolean hasSuperAdmin = false;
-        for (SysRole role : sysRoles) {
-            roleCodeList.add(role.getRoleCode());
-            if (role.getStatus() == BizStatusEnum.DISABLED.getValue()) {
-                existDisable = true;
-            }
-            if (role.getId().equals(RoleDefaultEnum.SUPERADMIN.getId())) {
-                hasSuperAdmin = true;
-            }
-        }
-        if (existDisable && !hasSuperAdmin) {
-            throw new BizException(ResponseCodeEnum.ROLE_FREEZE);
-        }
+        Pair<List<Long>, ArrayList<String>> roleList = getRoleList(sysUser.getId());
+        List<Long> roleIdList = roleList.getKey();
+        ArrayList<String> roleCodeList = roleList.getValue();
 
         // 构建菜单树
         List<AsyncRoutesVO> asyncRoutesVOList = sysMenuService.buildMenuTreeByRoles(roleIdList);
@@ -118,5 +104,37 @@ public class AuthService {
         userLoginVO.setPermissions(menuPermissionByRoles);
         userLoginVO.setAsyncRoutesVOList(asyncRoutesVOList);
         return userLoginVO;
+    }
+
+    /**
+     * 获取用户的角色id列表和角色code列表
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/6/9 13:40
+     *
+     * @param userId 参数说明
+     * @return cn.hutool.core.lang.Pair<java.util.List < java.lang.Long>,java.util.ArrayList<java.lang.String>>
+     */
+    public Pair<List<Long>, ArrayList<String>> getRoleList(Long userId) {
+        List<SysUserRole> userRoleList = sysUserRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, userId));
+        List<Long> roleIdList = userRoleList.stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
+        List<SysRole> sysRoles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRole>().in(SysRole::getId, roleIdList));
+        ArrayList<String> roleCodeList = new ArrayList<>();
+        boolean existDisable = false;
+        boolean hasSuperAdmin = false;
+        for (SysRole role : sysRoles) {
+            roleCodeList.add(role.getRoleCode());
+            if (role.getStatus() == BizStatusEnum.DISABLED.getValue()) {
+                existDisable = true;
+            }
+            if (role.getId().equals(RoleDefaultEnum.SUPERADMIN.getId())) {
+                hasSuperAdmin = true;
+            }
+        }
+        if (existDisable && !hasSuperAdmin) {
+            throw new BizException(ResponseCodeEnum.ROLE_FREEZE);
+        }
+
+        return Pair.of(roleIdList, roleCodeList);
     }
 }

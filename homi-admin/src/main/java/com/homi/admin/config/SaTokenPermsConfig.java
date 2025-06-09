@@ -1,22 +1,30 @@
 package com.homi.admin.config;
 
-import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpInterface;
-import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.lang.Pair;
+import com.homi.admin.auth.service.AuthService;
+import com.homi.service.system.SysPermissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class SaTokenPermsConfig implements StpInterface {
+    private final AuthService authService;
+
+    private final SysPermissionService sysPermissionService;
+
     /**
      * 返回一个账号所拥有的权限码集合
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        return (List<String>) StpUtil.getTokenSession().get(SaSession.PERMISSION_LIST);
+        Pair<List<Long>, ArrayList<String>> roleList = authService.getRoleList(Long.valueOf(loginId.toString()));
+
+        return sysPermissionService.getMenuPermissionByRoles(roleList.getKey());
     }
 
     /**
@@ -24,7 +32,7 @@ public class SaTokenPermsConfig implements StpInterface {
      */
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        return (List<String>) StpUtil.getTokenSession().get(SaSession.ROLE_LIST);
+        return authService.getRoleList(Long.valueOf(loginId.toString())).getValue();
 
     }
 }
