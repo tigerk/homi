@@ -37,8 +37,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
         // 注册路由拦截器，自定义认证规则
         registry.addInterceptor(new SaInterceptor(handler -> {
             // 后台登录校验以及角色校验
-            SaRouter.match(ADMIN_PREFIX.concat("/**"))
-                    .notMatch(ADMIN_PREFIX.concat("/login"),
+            SaRouter.notMatch(ADMIN_PREFIX.concat("/login"),
                             ADMIN_PREFIX.concat("/register"),
                             ADMIN_PREFIX.concat("/sysFile/check-file/**")
                     ).check(r -> {
@@ -80,6 +79,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
                     SaRouter.match(SaHttpMethod.OPTIONS).free(r -> log.info("--------OPTIONS预检请求，不做处理")).back();
                 });
     }
+
 //    @Bean
 //    public SaTokenDao saTokenDao(RedisConnectionFactory redisConnectionFactory) {
 //        SaTokenDao dao = new SaTokenDao();

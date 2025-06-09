@@ -5,6 +5,7 @@ server:
       # 上传文件大小限制
       max-file-size: 10MB
       max-request-size: 25MB
+
 --- #---------------------数据库配置---------------------------
 spring:
   web:
@@ -61,4 +62,4 @@ spring:
 
 --- #---------------------日志配置---------------------------
 log:
-  path: /Users/tigerkim/Projects/tigerk/homi/homi-boot/logs
+  path: /Users/tigerkim/Projects/homi/logs
