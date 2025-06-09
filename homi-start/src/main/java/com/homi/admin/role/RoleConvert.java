@@ -1,4 +1,4 @@
-package com.homi.admin.convert.role;
+package com.homi.admin.role;
 
 import com.homi.admin.auth.vo.account.AccountRoleVO;
 import com.homi.domain.vo.role.RoleSimpleVO;

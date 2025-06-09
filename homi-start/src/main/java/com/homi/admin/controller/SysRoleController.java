@@ -3,7 +3,7 @@ package com.homi.admin.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.homi.admin.convert.role.RoleConvert;
+import com.homi.admin.role.RoleConvert;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.role.RoleQueryDTO;
 import com.homi.domain.dto.role.SysRoleCreateDTO;
