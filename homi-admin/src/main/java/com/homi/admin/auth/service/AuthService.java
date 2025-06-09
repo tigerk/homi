@@ -5,7 +5,7 @@ import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Pair;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.admin.auth.dto.UserLoginDTO;
+import com.homi.admin.auth.dto.login.UserLoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.domain.enums.common.BizStatusEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;

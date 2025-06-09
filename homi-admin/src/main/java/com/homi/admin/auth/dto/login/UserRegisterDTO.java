@@ -1,4 +1,4 @@
-package com.homi.admin.auth.dto;
+package com.homi.admin.auth.dto.login;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
