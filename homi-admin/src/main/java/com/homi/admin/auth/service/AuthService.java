@@ -60,6 +60,7 @@ public class AuthService {
      */
     @Transactional(rollbackFor = Exception.class)
     public UserLoginVO login(UserLoginDTO userLoginDTO) {
+        // 校验用户是否存在
         SysUser sysUser = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, userLoginDTO.getUsername()).or().eq(SysUser::getEmail, userLoginDTO.getUsername()));
         if (Objects.isNull(sysUser)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
@@ -104,8 +105,8 @@ public class AuthService {
         // 验证成功后的登录处理
         StpUtil.login(sysUser.getId());
         // 用户角色code与权限,用户名存入缓存
-        SaSession currentSession = StpUtil.getTokenSession();
-        currentSession.set(SaSession.USER, sysUser.getUsername());
+        SaSession currentSession = StpUtil.getSession();
+        currentSession.set(SaSession.USER, sysUser);
         currentSession.set(SaSession.ROLE_LIST, roleCodeList);
         currentSession.set(SaSession.PERMISSION_LIST, menuPermissionByRoles);
 
