@@ -3,7 +3,7 @@ package com.homi.admin.config;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
-import com.homi.admin.auth.vo.UserLoginVO;
+import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysUser;
 import com.homi.utils.BeanCopyUtils;

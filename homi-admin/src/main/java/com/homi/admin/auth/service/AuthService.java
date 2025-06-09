@@ -6,7 +6,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Pair;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.UserLoginDTO;
-import com.homi.admin.auth.vo.UserLoginVO;
+import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.domain.enums.common.BizStatusEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
@@ -57,7 +57,7 @@ public class AuthService {
      * {@code @date} 2025/4/19 23:43
      *
      * @param userLoginDTO 参数说明
-     * @return com.homi.admin.auth.vo.UserLoginVO
+     * @return com.homi.admin.auth.vo.login.UserLoginVO
      */
     @Transactional(rollbackFor = Exception.class)
     public UserLoginVO login(UserLoginDTO userLoginDTO) {

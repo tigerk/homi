@@ -1,4 +1,4 @@
-package com.homi.admin.auth.vo;
+package com.homi.admin.auth.vo.login;
 
 import com.homi.domain.vo.menu.AsyncRoutesVO;
 import lombok.AllArgsConstructor;

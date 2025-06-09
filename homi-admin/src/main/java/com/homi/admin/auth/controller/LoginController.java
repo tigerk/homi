@@ -3,7 +3,7 @@ package com.homi.admin.auth.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.admin.auth.dto.UserLoginDTO;
 import com.homi.admin.auth.service.AuthService;
-import com.homi.admin.auth.vo.UserLoginVO;
+import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.annotation.LoginLog;
 import com.homi.domain.base.ResponseResult;
 import jakarta.validation.Valid;
