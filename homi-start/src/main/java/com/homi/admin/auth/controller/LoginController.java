@@ -7,12 +7,16 @@ import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.annotation.LoginLog;
 import com.homi.domain.base.ResponseResult;
+import com.homi.domain.vo.menu.AsyncRoutesVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 应用于 homi-boot
@@ -54,5 +58,10 @@ public class LoginController {
     @PostMapping("/admin/login/current")
     public ResponseResult<UserLoginVO> getCurrentUser() {
         return ResponseResult.ok(LoginManager.getCurrentUser());
+    }
+
+    @GetMapping("/get-async-routes")
+    public ResponseResult<List<AsyncRoutesVO>> getUserRoutes() {
+        return ResponseResult.ok(authService.getUserRoutes(LoginManager.getUserId()));
     }
 }

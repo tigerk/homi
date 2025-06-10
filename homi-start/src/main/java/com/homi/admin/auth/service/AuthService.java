@@ -138,4 +138,12 @@ public class AuthService {
 
         return Pair.of(roleIdList, roleCodeList);
     }
+
+    public List<AsyncRoutesVO> getUserRoutes(Long userId) {
+
+        Pair<List<Long>, ArrayList<String>> roleList = getRoleList(userId);
+        List<Long> roleIdList = roleList.getKey();
+        // 构建菜单树
+        return sysMenuService.buildMenuTreeByRoles(roleIdList);
+    }
 }
