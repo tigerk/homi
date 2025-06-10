@@ -95,5 +95,5 @@ public class UserLoginVO {
      * 菜单列表
      */
     @Schema(description = "菜单列表")
-    private List<AsyncRoutesVO> asyncRoutesVOList;
+    private List<AsyncRoutesVO> asyncRoutes;
 }

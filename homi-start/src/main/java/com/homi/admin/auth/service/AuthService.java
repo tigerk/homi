@@ -103,7 +103,7 @@ public class AuthService {
         userLoginVO.setRoles(roleCodeList);
         userLoginVO.setAccessToken(token);
         userLoginVO.setPermissions(menuPermissionByRoles);
-        userLoginVO.setAsyncRoutesVOList(asyncRoutesVOList);
+        userLoginVO.setAsyncRoutes(asyncRoutesVOList);
         return userLoginVO;
     }
 
