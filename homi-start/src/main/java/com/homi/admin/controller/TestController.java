@@ -1,9 +1,7 @@
 package com.homi.admin.controller;
 
-import com.homi.domain.base.ResponseResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
 
 /**
  * 应用于 homi-boot
@@ -17,8 +15,4 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequiredArgsConstructor
 @Slf4j
 public class TestController {
-    @PostMapping("/test")
-    public ResponseResult<String> test() {
-        return ResponseResult.ok("test");
-    }
 }
