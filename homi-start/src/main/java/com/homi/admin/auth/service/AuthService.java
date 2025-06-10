@@ -89,7 +89,7 @@ public class AuthService {
         List<String> menuPermissionByRoles = sysPermissionService.getMenuPermissionByRoles(roleIdList);
 
         // 验证成功后的登录处理
-        StpUtil.login(sysUser.getId());
+        StpUtil.login(sysUser.getId(), "web");
 
         // 用户角色code与权限,用户名存入缓存
         SaSession currentSession = StpUtil.getSession();

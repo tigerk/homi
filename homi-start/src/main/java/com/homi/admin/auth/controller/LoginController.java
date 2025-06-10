@@ -37,7 +37,7 @@ public class LoginController {
 
     @PostMapping("/admin/logout")
     public ResponseResult<Void> logout() {
-        StpUtil.getTokenSession().clear();
+        StpUtil.getSession().clear();
         StpUtil.logout();
         return ResponseResult.ok();
     }
