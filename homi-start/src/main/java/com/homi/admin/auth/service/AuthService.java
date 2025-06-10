@@ -90,6 +90,7 @@ public class AuthService {
 
         // 验证成功后的登录处理
         StpUtil.login(sysUser.getId());
+
         // 用户角色code与权限,用户名存入缓存
         SaSession currentSession = StpUtil.getSession();
         currentSession.set(SaSession.USER, sysUser);
@@ -97,10 +98,10 @@ public class AuthService {
         currentSession.set(SaSession.PERMISSION_LIST, menuPermissionByRoles);
 
         // 获取当前回话的token
-        String token = StpUtil.getTokenInfo().getTokenValue();
+        String token = StpUtil.getTokenValue();
         UserLoginVO userLoginVO = BeanCopyUtils.copyBean(sysUser, UserLoginVO.class);
         userLoginVO.setRoles(roleCodeList);
-        userLoginVO.setToken(token);
+        userLoginVO.setAccessToken(token);
         userLoginVO.setPermissions(menuPermissionByRoles);
         userLoginVO.setAsyncRoutesVOList(asyncRoutesVOList);
         return userLoginVO;

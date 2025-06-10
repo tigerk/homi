@@ -50,7 +50,7 @@ public class LoginManager {
         userLoginVO.setRoles(getCurrentRoles());
         userLoginVO.setPermissions(getCurrentPermissions());
 
-        userLoginVO.setToken(getTokenInfo().getTokenValue());
+        userLoginVO.setAccessToken(getTokenInfo().getTokenValue());
 
         return userLoginVO;
     }

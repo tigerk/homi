@@ -1,6 +1,7 @@
 package com.homi.admin.auth.vo.login;
 
 import com.homi.domain.vo.menu.AsyncRoutesVO;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +19,7 @@ public class UserLoginVO {
     /**
      * token值
      */
-    private String token;
+    private String accessToken;
 
     /**
      * id
@@ -69,25 +70,30 @@ public class UserLoginVO {
     /**
      * IP地址
      */
+    @Schema(description = "IP地址")
     private String ipAddress;
 
     /**
      * IP来源
      */
+    @Schema(description = "IP来源")
     private String ipSource;
 
     /**
      * 角色集合
      */
+    @Schema(description = "角色集合")
     private List<String> roles;
-
-    /**
-     * 菜单列表
-     */
-    private List<AsyncRoutesVO> asyncRoutesVOList;
 
     /**
      * 按钮权限
      */
+    @Schema(description = "按钮权限")
     private List<String> permissions;
+
+    /**
+     * 菜单列表
+     */
+    @Schema(description = "菜单列表")
+    private List<AsyncRoutesVO> asyncRoutesVOList;
 }
