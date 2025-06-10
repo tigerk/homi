@@ -60,7 +60,7 @@ public class LoginController {
         return ResponseResult.ok(LoginManager.getCurrentUser());
     }
 
-    @GetMapping("/get-async-routes")
+    @GetMapping("/admin/get-async-routes")
     public ResponseResult<List<AsyncRoutesVO>> getUserRoutes() {
         return ResponseResult.ok(authService.getUserRoutes(LoginManager.getUserId()));
     }
