@@ -1,6 +1,7 @@
 package com.homi.admin.auth.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.homi.admin.auth.dto.login.TokenRefreshDTO;
 import com.homi.admin.auth.dto.login.UserLoginDTO;
 import com.homi.admin.auth.service.AuthService;
 import com.homi.admin.auth.vo.login.UserLoginVO;
@@ -37,6 +38,13 @@ public class LoginController {
     @PostMapping("/admin/login")
     public ResponseResult<UserLoginVO> login(@Valid @RequestBody UserLoginDTO user) {
         return ResponseResult.ok(authService.login(user));
+    }
+
+    @PostMapping("/admin/token/refresh")
+    public ResponseResult<UserLoginVO> refresh(@RequestBody TokenRefreshDTO req) {
+        Long userId = authService.getUserIdByToken(req.getRefreshToken());
+
+        return ResponseResult.ok(authService.loginSession(userId));
     }
 
     @PostMapping("/admin/logout")

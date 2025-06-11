@@ -3,7 +3,11 @@ package com.homi.admin.auth.service;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
+import cn.hutool.jwt.JWT;
+import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.login.UserLoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
@@ -20,12 +24,14 @@ import com.homi.model.mapper.SysUserMapper;
 import com.homi.model.mapper.SysUserRoleMapper;
 import com.homi.service.system.SysMenuService;
 import com.homi.service.system.SysPermissionService;
-import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -49,6 +55,74 @@ public class AuthService {
     private final SysMenuService sysMenuService;
 
     private final SysPermissionService sysPermissionService;
+
+    // refresh token userId 名称
+    public static final String JWT_USER_ID = "userId";
+    public static final String JWT_EXP_TIME = "exp";
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
+    // 单位 秒
+    @Value("${jwt.expiration}")
+    private long jwtExpiration;
+
+    public String generateJwtToken(Long userId) {
+        long time = DateUtil.date().offset(DateField.SECOND, (int) jwtExpiration).getTime();
+        HashMap<String, Object> stringLongHashMap = new HashMap<>();
+        stringLongHashMap.put(JWT_USER_ID, userId);
+        stringLongHashMap.put(JWT_EXP_TIME, time);
+        return JWTUtil.createToken(stringLongHashMap, jwtSecret.getBytes());
+    }
+
+    public Long getUserIdByToken(String token) {
+        // 解析Token
+        JWT jwt = JWTUtil.parseToken(token);
+
+        // 校验签名
+        boolean isValid = jwt.setKey(jwtSecret.getBytes()).verify();
+        if (!isValid) {
+            throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
+        }
+
+        // 获取过期时间字段
+        Object exp = jwt.getPayload(JWT_EXP_TIME);
+        if (exp != null) {
+            long expMillis = Long.parseLong(exp.toString());
+            boolean isExpired = System.currentTimeMillis() > expMillis;
+            if (isExpired) {
+                throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
+            }
+        } else {
+            throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
+        }
+
+        return Long.valueOf(jwt.getPayload(JWT_USER_ID).toString());
+    }
+
+    public UserLoginVO loginSession(Long userId) {
+        // 验证成功后的登录处理
+        StpUtil.login(userId, "web");
+
+        String refreshToken = generateJwtToken(userId);
+
+        SysUser sysUser = sysUserMapper.selectById(userId);
+        if (Objects.isNull(sysUser)) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
+        }
+
+        // 用户角色code与权限,用户名存入缓存
+        SaSession currentSession = StpUtil.getSession();
+        currentSession.set(SaSession.USER, sysUser);
+
+        // 获取当前回话的token
+        String token = StpUtil.getTokenValue();
+        UserLoginVO userLoginVO = new UserLoginVO();
+        userLoginVO.setAccessToken(token);
+        userLoginVO.setRefreshToken(refreshToken);
+        userLoginVO.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenTimeout()).getTime());
+        return userLoginVO;
+    }
 
     /**
      * 用户登录
@@ -88,22 +162,17 @@ public class AuthService {
 
         List<String> menuPermissionByRoles = sysPermissionService.getMenuPermissionByRoles(roleIdList);
 
-        // 验证成功后的登录处理
-        StpUtil.login(sysUser.getId(), "web");
+        UserLoginVO userLoginVO = loginSession(sysUser.getId());
+        BeanUtils.copyProperties(sysUser, userLoginVO);
+        userLoginVO.setRoles(roleCodeList);
+        userLoginVO.setPermissions(menuPermissionByRoles);
+        userLoginVO.setAsyncRoutes(asyncRoutesVOList);
 
         // 用户角色code与权限,用户名存入缓存
         SaSession currentSession = StpUtil.getSession();
-        currentSession.set(SaSession.USER, sysUser);
         currentSession.set(SaSession.ROLE_LIST, roleCodeList);
         currentSession.set(SaSession.PERMISSION_LIST, menuPermissionByRoles);
 
-        // 获取当前回话的token
-        String token = StpUtil.getTokenValue();
-        UserLoginVO userLoginVO = BeanCopyUtils.copyBean(sysUser, UserLoginVO.class);
-        userLoginVO.setRoles(roleCodeList);
-        userLoginVO.setAccessToken(token);
-        userLoginVO.setPermissions(menuPermissionByRoles);
-        userLoginVO.setAsyncRoutes(asyncRoutesVOList);
         return userLoginVO;
     }
 

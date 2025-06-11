@@ -21,6 +21,11 @@ public class UserLoginVO {
      */
     private String accessToken;
 
+    private String refreshToken;
+
+    @Schema(description = "token过期时间")
+    private Long expires;
+
     /**
      * id
      */
