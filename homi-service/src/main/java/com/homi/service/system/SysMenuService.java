@@ -55,9 +55,9 @@ public class SysMenuService {
     }
 
 
-    public List<AsyncRoutesVO> buildMenuTreeByRoles(List<Long> roleIdList, ArrayList<String> roleCodeList) {
+    public List<AsyncRoutesVO> buildMenuTreeByRoles(List<Long> roleIdList) {
         List<SysMenu> sysMenuList = sysMenuMapper.listRoleMenuByRoles(roleIdList, false);
-        return buildMenuTree(sysMenuList, roleCodeList);
+        return buildMenuTree(sysMenuList);
     }
 
     public List<SimpleMenuVO> listSimpleMenu() {
@@ -96,14 +96,13 @@ public class SysMenuService {
      * 根据菜单列表构建菜单树
      *
      * @param menuList     菜单列表
-     * @param roleCodeList 角色编码列表
      * @return 菜单树
      */
-    private List<AsyncRoutesVO> buildMenuTree(List<SysMenu> menuList, ArrayList<String> roleCodeList) {
+    private List<AsyncRoutesVO> buildMenuTree(List<SysMenu> menuList) {
         List<AsyncRoutesVO> rootNodes = new ArrayList<>();
         for (SysMenu menu : menuList) {
             if (menu.getParentId() == null || menu.getParentId() == 0) {
-                rootNodes.add(buildMenuNode(menu, menuList, roleCodeList));
+                rootNodes.add(buildMenuNode(menu, menuList));
             }
         }
         // 对根节点进行排序
@@ -111,7 +110,7 @@ public class SysMenuService {
         return rootNodes;
     }
 
-    private AsyncRoutesVO buildMenuNode(SysMenu menu, List<SysMenu> menuList, List<String> roleCodeList) {
+    private AsyncRoutesVO buildMenuNode(SysMenu menu, List<SysMenu> menuList) {
         // 前端所需字段
         AsyncRoutesVO node = new AsyncRoutesVO();
         node.setPath(menu.getPath());
@@ -131,13 +130,12 @@ public class SysMenuService {
                 .map(List::of)
                 .orElse(Collections.emptyList()));
         meta.setFrameSrc(menu.getFrameSrc());
-        meta.setRoles(roleCodeList);
         node.setMeta(meta);
         // 递归构建子节点
         List<AsyncRoutesVO> children = new ArrayList<>();
         for (SysMenu childMenu : menuList) {
             if (childMenu.getParentId() != null && childMenu.getParentId().equals(menu.getId())) {
-                children.add(buildMenuNode(childMenu, menuList, roleCodeList));
+                children.add(buildMenuNode(childMenu, menuList));
             }
         }
         children.sort(Comparator.comparingInt(o -> o.getMeta().getRank()));
