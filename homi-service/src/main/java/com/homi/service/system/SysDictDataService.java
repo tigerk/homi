@@ -88,7 +88,7 @@ public class SysDictDataService {
                 .like(CharSequenceUtil.isNotEmpty(queryDTO.getValue()), SysDictData::getValue, queryDTO.getValue())
                 .eq(Objects.nonNull(queryDTO.getStatus()), SysDictData::getStatus, queryDTO.getStatus()).orderByAsc(SysDictData::getSortOrder);
 
-        Page<SysDictData> page = new Page<>(queryDTO.getCurrent(), queryDTO.getSize());
+        Page<SysDictData> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
 
         return sysDictDataRepo.page(page, queryWrapper);
     }

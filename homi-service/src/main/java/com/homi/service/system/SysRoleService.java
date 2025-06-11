@@ -36,7 +36,7 @@ public class SysRoleService {
     private final SysRoleRepo sysRoleRepo;
 
     public IPage<SysRoleVO> listRolePage(RoleQueryDTO queryDTO) {
-        Page<SysRoleVO> page = new Page<>(queryDTO.getCurrent(), queryDTO.getSize());
+        Page<SysRoleVO> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
         return sysRoleMapper.selectRolePage(page, queryDTO);
     }
 

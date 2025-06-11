@@ -8,6 +8,7 @@ import cn.hutool.core.util.DesensitizedUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.user.UserQueryDTO;
 import com.homi.domain.enums.common.BizStatusEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
@@ -84,18 +85,25 @@ public class SysUserService {
         return sysUser.getId();
     }
 
-    public IPage<SysUserVO> getUserList(UserQueryDTO query) {
-        Page<SysUserVO> page = new Page<>(query.getCurrent(), query.getSize());
+    public PageVO<SysUserVO> getUserList(UserQueryDTO query) {
+        Page<SysUserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
         IPage<SysUserVO> sysUserVOPage = sysUserMapper.selectUserList(page, query);
         // 脱敏
         // 脱敏
         List<SysUserVO> collect = sysUserVOPage.getRecords().stream().peek(sysUserVO -> {
             Optional.ofNullable(sysUserVO.getEmail()).ifPresent(email -> sysUserVO.setEmail(DesensitizedUtil.email(email)));
             Optional.ofNullable(sysUserVO.getPhone()).ifPresent(phone -> sysUserVO.setPhone(DesensitizedUtil.mobilePhone(phone)));
-        }).collect(Collectors.toList());
-        sysUserVOPage.setRecords(collect);
 
-        return sysUserVOPage;
+        }).collect(Collectors.toList());
+
+        PageVO<SysUserVO> pageVO = new PageVO<>();
+        pageVO.setTotal(sysUserVOPage.getTotal());
+        pageVO.setList(collect);
+        pageVO.setCurrentPage(sysUserVOPage.getCurrent());
+        pageVO.setPageSize(sysUserVOPage.getSize());
+        pageVO.setPages(sysUserVOPage.getPages());
+
+        return pageVO;
     }
 
     public Integer deleteByIds(List<Long> idList) {

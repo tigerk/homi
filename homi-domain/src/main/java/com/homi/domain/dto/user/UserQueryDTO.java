@@ -1,6 +1,6 @@
 package com.homi.domain.dto.user;
 
-import com.homi.domain.base.BasePage;
+import com.homi.domain.base.BasePageDTO;
 import lombok.Data;
 
 /**
@@ -10,7 +10,7 @@ import lombok.Data;
  * @description: 用户查询对象
  */
 @Data
-public class UserQueryDTO extends BasePage {
+public class UserQueryDTO extends BasePageDTO {
 
     private String username;
 

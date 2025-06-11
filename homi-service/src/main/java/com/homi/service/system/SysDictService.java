@@ -92,7 +92,7 @@ public class SysDictService {
                 .like(CharSequenceUtil.isNotEmpty(queryDTO.getDictCode()), SysDict::getDictCode, queryDTO.getDictCode())
                 .eq(Objects.nonNull(queryDTO.getStatus()), SysDict::getStatus, queryDTO.getStatus());
 
-        Page<SysDict> page = new Page<>(queryDTO.getCurrent(), queryDTO.getSize());
+        Page<SysDict> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
 
         return sysDictRepo.page(page, queryWrapper);
     }

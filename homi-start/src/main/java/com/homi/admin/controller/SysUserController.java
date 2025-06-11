@@ -3,8 +3,8 @@ package com.homi.admin.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.annotation.RepeatSubmit;
+import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.user.*;
 import com.homi.domain.vo.user.SysUserVO;
@@ -24,7 +24,8 @@ import java.util.List;
  * @since 2024-04-25 10:36:46
  */
 
-@RequestMapping("admin/sys/user")
+@RequestMapping("/admin/sys/user")
+@RestController
 @RequiredArgsConstructor
 public class SysUserController {
     /**
@@ -37,9 +38,9 @@ public class SysUserController {
      *
      * @return 所有数据
      */
-    @GetMapping("/list")
+    @PostMapping("/list")
     @SaCheckPermission("system:user:query")
-    public ResponseResult<IPage<SysUserVO>> list(UserQueryDTO queryDTO) {
+    public ResponseResult<PageVO<SysUserVO>> list(@RequestBody UserQueryDTO queryDTO) {
         return ResponseResult.ok(sysUserService.getUserList(queryDTO));
     }
 
