@@ -4,6 +4,8 @@ import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.lang.Pair;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.login.UserLoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
@@ -81,7 +83,7 @@ public class AuthService {
         ArrayList<String> roleCodeList = roleList.getValue();
 
         // 构建菜单树
-        List<AsyncRoutesVO> asyncRoutesVOList = sysMenuService.buildMenuTreeByRoles(roleIdList);
+        List<AsyncRoutesVO> asyncRoutesVOList = sysMenuService.buildMenuTreeByRoles(roleIdList, roleCodeList);
         if (asyncRoutesVOList.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NO_ACCESS);
         }
@@ -140,10 +142,10 @@ public class AuthService {
     }
 
     public List<AsyncRoutesVO> getUserRoutes(Long userId) {
-
         Pair<List<Long>, ArrayList<String>> roleList = getRoleList(userId);
         List<Long> roleIdList = roleList.getKey();
+        ArrayList<String> roleCodeList = roleList.getValue();
         // 构建菜单树
-        return sysMenuService.buildMenuTreeByRoles(roleIdList);
+        return sysMenuService.buildMenuTreeByRoles(roleIdList, roleCodeList);
     }
 }

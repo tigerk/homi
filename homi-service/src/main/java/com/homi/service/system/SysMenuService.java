@@ -55,9 +55,9 @@ public class SysMenuService {
     }
 
 
-    public List<AsyncRoutesVO> buildMenuTreeByRoles(List<Long> roleIdList) {
+    public List<AsyncRoutesVO> buildMenuTreeByRoles(List<Long> roleIdList, ArrayList<String> roleCodeList) {
         List<SysMenu> sysMenuList = sysMenuMapper.listRoleMenuByRoles(roleIdList, false);
-        return buildMenuTree(sysMenuList);
+        return buildMenuTree(sysMenuList, roleCodeList);
     }
 
     public List<SimpleMenuVO> listSimpleMenu() {
@@ -95,22 +95,23 @@ public class SysMenuService {
     /**
      * 根据菜单列表构建菜单树
      *
-     * @param menuList 菜单列表
+     * @param menuList     菜单列表
+     * @param roleCodeList 角色编码列表
      * @return 菜单树
      */
-    private List<AsyncRoutesVO> buildMenuTree(List<SysMenu> menuList) {
+    private List<AsyncRoutesVO> buildMenuTree(List<SysMenu> menuList, ArrayList<String> roleCodeList) {
         List<AsyncRoutesVO> rootNodes = new ArrayList<>();
         for (SysMenu menu : menuList) {
             if (menu.getParentId() == null || menu.getParentId() == 0) {
-                rootNodes.add(buildMenuNode(menu, menuList));
+                rootNodes.add(buildMenuNode(menu, menuList, roleCodeList));
             }
         }
         // 对根节点进行排序
-        rootNodes.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
+        rootNodes.sort(Comparator.comparingInt(o -> o.getMeta().getRank()));
         return rootNodes;
     }
 
-    private AsyncRoutesVO buildMenuNode(SysMenu menu, List<SysMenu> menuList) {
+    private AsyncRoutesVO buildMenuNode(SysMenu menu, List<SysMenu> menuList, List<String> roleCodeList) {
         // 前端所需字段
         AsyncRoutesVO node = new AsyncRoutesVO();
         node.setPath(menu.getPath());
@@ -122,22 +123,24 @@ public class SysMenuService {
         AsyncRoutesMetaVO meta = new AsyncRoutesMetaVO();
         meta.setTitle(menu.getTitle());
         meta.setIcon(menu.getIcon());
-        meta.setSortOrder(menu.getSortOrder());
+        meta.setRank(menu.getSortOrder());
+        meta.setShowLink(Boolean.TRUE);
         meta.setKeepAlive(BooleanEnum.fromValue(menu.getCacheFlag()));
         meta.setFrameLoading(BooleanEnum.fromValue(menu.getFrameLoading()));
         meta.setAuths(Optional.ofNullable(menu.getPerms())
                 .map(List::of)
                 .orElse(Collections.emptyList()));
         meta.setFrameSrc(menu.getFrameSrc());
+        meta.setRoles(roleCodeList);
         node.setMeta(meta);
         // 递归构建子节点
         List<AsyncRoutesVO> children = new ArrayList<>();
         for (SysMenu childMenu : menuList) {
             if (childMenu.getParentId() != null && childMenu.getParentId().equals(menu.getId())) {
-                children.add(buildMenuNode(childMenu, menuList));
+                children.add(buildMenuNode(childMenu, menuList, roleCodeList));
             }
         }
-        children.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
+        children.sort(Comparator.comparingInt(o -> o.getMeta().getRank()));
         node.setChildren(children);
         return node;
     }

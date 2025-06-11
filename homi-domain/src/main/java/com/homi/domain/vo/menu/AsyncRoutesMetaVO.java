@@ -1,5 +1,6 @@
 package com.homi.domain.vo.menu;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -14,7 +15,8 @@ public class AsyncRoutesMetaVO {
 
     private Boolean showLink;
 
-    private Integer sortOrder;
+    @Schema(description = "排序")
+    private Integer rank;
 
     private List<String> roles;
 
