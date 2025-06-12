@@ -85,14 +85,14 @@ public class UserService {
 
     public PageVO<UserVO> getUserList(UserQueryDTO query) {
         Page<UserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
-        IPage<UserVO> sysUserVOPage = userMapper.selectUserList(page, query);
+        IPage<UserVO> userVOPage = userMapper.selectUserList(page, query);
 
         PageVO<UserVO> pageVO = new PageVO<>();
-        pageVO.setTotal(sysUserVOPage.getTotal());
-        pageVO.setList(sysUserVOPage.getRecords());
-        pageVO.setCurrentPage(sysUserVOPage.getCurrent());
-        pageVO.setPageSize(sysUserVOPage.getSize());
-        pageVO.setPages(sysUserVOPage.getPages());
+        pageVO.setTotal(userVOPage.getTotal());
+        pageVO.setList(userVOPage.getRecords());
+        pageVO.setCurrentPage(userVOPage.getCurrent());
+        pageVO.setPageSize(userVOPage.getSize());
+        pageVO.setPages(userVOPage.getPages());
 
         return pageVO;
     }
