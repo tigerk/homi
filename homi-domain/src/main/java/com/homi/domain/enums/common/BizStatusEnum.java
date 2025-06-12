@@ -14,7 +14,7 @@ public enum BizStatusEnum {
     /**
      * 禁用
      */
-    DISABLED(1);
+    DISABLED(-1);
 
     private final int value;
 

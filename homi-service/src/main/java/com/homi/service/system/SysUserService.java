@@ -88,17 +88,10 @@ public class SysUserService {
     public PageVO<SysUserVO> getUserList(UserQueryDTO query) {
         Page<SysUserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
         IPage<SysUserVO> sysUserVOPage = sysUserMapper.selectUserList(page, query);
-        // 脱敏
-        // 脱敏
-        List<SysUserVO> collect = sysUserVOPage.getRecords().stream().peek(sysUserVO -> {
-            Optional.ofNullable(sysUserVO.getEmail()).ifPresent(email -> sysUserVO.setEmail(DesensitizedUtil.email(email)));
-            Optional.ofNullable(sysUserVO.getPhone()).ifPresent(phone -> sysUserVO.setPhone(DesensitizedUtil.mobilePhone(phone)));
-
-        }).collect(Collectors.toList());
 
         PageVO<SysUserVO> pageVO = new PageVO<>();
         pageVO.setTotal(sysUserVOPage.getTotal());
-        pageVO.setList(collect);
+        pageVO.setList(sysUserVOPage.getRecords());
         pageVO.setCurrentPage(sysUserVOPage.getCurrent());
         pageVO.setPageSize(sysUserVOPage.getSize());
         pageVO.setPages(sysUserVOPage.getPages());
