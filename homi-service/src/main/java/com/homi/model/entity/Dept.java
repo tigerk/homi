@@ -2,7 +2,6 @@ package com.homi.model.entity;
 
     import com.baomidou.mybatisplus.annotation.IdType;
     import com.baomidou.mybatisplus.annotation.TableId;
-    import com.baomidou.mybatisplus.annotation.TableName;
     import java.io.Serializable;
     import java.util.Date;
     import lombok.Data;
@@ -14,7 +13,7 @@ import java.util.Date;
 
 /**
 * <p>
-    * 文件表
+    * 部门表
     * </p>
 *
 * @author tk
@@ -23,51 +22,40 @@ import java.util.Date;
     @EqualsAndHashCode(callSuper = false)
     @Data
     @ToString(callSuper = true)
-    @TableName("sys_file")
-    public class SysFile implements Serializable {
+    public class Dept implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
             /**
-            * 文件编号
+            * 主键
             */
             @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
             /**
-            * 配置编号
-            */
-    private Long configId;
-
-            /**
-            * 文件名
+            * 部门名称
             */
     private String name;
 
             /**
-            * 文件路径
+            * 父节点id
             */
-    private String path;
+    private Long parentId;
 
             /**
-            * 文件 URL
+            * 父节点id路径
             */
-    private String url;
+    private String treePath;
 
             /**
-            * 文件类型
+            * 显示顺序
             */
-    private String type;
+    private Integer sort;
 
             /**
-            * 文件大小
+            * 状态（0正常，-1禁用）
             */
-    private Integer size;
-
-            /**
-            * 创建者
-            */
-    private Long createBy;
+    private Integer status;
 
             /**
             * 创建时间
@@ -75,9 +63,9 @@ import java.util.Date;
     private Date createTime;
 
             /**
-            * 更新者
+            * 创建人
             */
-    private Long updateBy;
+    private Long createBy;
 
             /**
             * 更新时间
@@ -85,7 +73,12 @@ import java.util.Date;
     private Date updateTime;
 
             /**
-            * 是否删除 0否1是
+            * 更新人
+            */
+    private Long updateBy;
+
+            /**
+            * 是否删除（0否1是）
             */
     private Integer deleted;
 }

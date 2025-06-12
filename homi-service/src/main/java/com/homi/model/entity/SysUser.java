@@ -17,7 +17,7 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-04-17
+ * @since 2025-06-12
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -42,6 +42,21 @@ public class SysUser implements Serializable {
      * 密码
      */
     private String password;
+
+    /**
+     * 用户类型
+     */
+    private Integer type;
+
+    /**
+     * companyId 为空 → 平台用户
+     */
+    private Long companyId;
+
+    /**
+     * 部门id
+     */
+    private Long deptId;
 
     /**
      * 邮箱号
@@ -79,7 +94,7 @@ public class SysUser implements Serializable {
     private Date birthday;
 
     /**
-     * 状态（0正常，1禁用）
+     * 状态（0正常，-1禁用）
      */
     private Integer status;
 

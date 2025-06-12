@@ -22,6 +22,11 @@ public class SysUserVO {
      */
     private String username;
 
+    private Long companyId;
+
+    private Long deptId;
+
+    private String deptName;
 
     /**
      * 邮箱号

@@ -66,8 +66,10 @@ public class MyBatisGenerator {
                         "sys_file",
                         "sys_dict_data",
                         "sys_dict",
-                        "sys_config"))
-                .build();
+                        "sys_config",
+                        // 部门
+                        "dept"
+                )).build();
 
         myBatisGenerator.generate();
     }

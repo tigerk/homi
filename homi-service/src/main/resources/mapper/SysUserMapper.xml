@@ -17,62 +17,51 @@
         <result property="createBy" column="create_by" jdbcType="INTEGER"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
         <result property="updateBy" column="update_by" jdbcType="INTEGER"/>
-    </resultMap>
-
-    <resultMap id="SysUserVOResultMap" type="com.homi.domain.vo.user.SysUserVO">
-        <id column="id" property="id"/>
-        <result column="username" property="username"/>
-        <result column="email" property="email"/>
-        <result column="phone" property="phone"/>
-        <result column="nickname" property="nickname"/>
-        <result column="avatar" property="avatar"/>
-        <result column="intro" property="remark"/>
-        <result column="gender" property="gender"/>
-        <result column="birthday" property="birthday"/>
-        <result column="status" property="status"/>
-        <result column="create_time" property="createTime"/>
-        <result column="create_by" property="createBy"/>
+        <result column="type" property="type"/>
+        <result column="company_id" property="companyId"/>
+        <result column="dept_id" property="deptId"/>
         <result column="register_source" property="registerSource"/>
+        <result column="deleted" property="deleted"/>
     </resultMap>
-
-    <sql id="Base_VO_Column_List">
-        id,
-        username,
-        email,
-        phone,
-        nickname,
-        avatar,
-        gender,
-        birthday,
-        status,
-        remark,
-        create_time,
-        create_by,
-        register_source
-    </sql>
 
     <select id="selectUserList" resultType="com.homi.domain.vo.user.SysUserVO">
-        SELECT
-        <include refid="Base_VO_Column_List"/>
+        SELECT sys_user.id,
+               sys_user.username,
+               sys_user.email,
+               sys_user.phone,
+               sys_user.nickname,
+               sys_user.avatar,
+               sys_user.gender,
+               sys_user.birthday,
+               sys_user.status,
+               sys_user.remark,
+               sys_user.create_time,
+               sys_user.create_by,
+               sys_user.register_source,
+               d.name as dept_name,
+               sys_user.dept_id,
+               sys_user.company_id
         FROM sys_user
+                 left join homi.dept d on d.id = sys_user.dept_id
         <where>
             <if test="query.username != null and query.username != ''">
-                AND username LIKE CONCAT('%', #{query.username}, '%')
+                AND sys_user.username LIKE CONCAT('%', #{query.username}
+                , '%')
             </if>
             <if test="query.email != null and query.email != ''">
-                AND email = #{query.email}
+                AND sys_user.email = #{query.email}
             </if>
             <if test="query.phone != null and query.phone != ''">
-                AND phone = #{query.phone}
+                AND sys_user.phone = #{query.phone}
             </if>
             <if test="query.nickname != null and query.nickname != ''">
-                AND nickname LIKE CONCAT('%', #{query.nickname}, '%')
+                AND sys_user.nickname LIKE CONCAT('%', #{query.nickname}, '%')
             </if>
             <if test="query.status != null">
-                AND status = #{query.status}
+                AND sys_user.status = #{query.status}
             </if>
-            and deleted = 0
+            and sys_user.deleted = 0
         </where>
-        ORDER BY id DESC
+        ORDER BY sys_user.id DESC
     </select>
 </mapper>
