@@ -5,7 +5,7 @@ import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.SysUser;
+import com.homi.model.entity.User;
 import com.homi.utils.BeanCopyUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +41,7 @@ public class LoginManager {
      * 获取当前登录的用户对象（登录时需手动 set 进去）
      */
     public static UserLoginVO getCurrentUser() {
-        SysUser user = (SysUser) StpUtil.getSession().get(SaSession.USER);
+        User user = (User) StpUtil.getSession().get(SaSession.USER);
         if (user == null) {
             throw new BizException("未找到当前登录用户信息");
         }

@@ -1,17 +1,13 @@
 package com.homi.domain.vo.user;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
-/**
- * @author sjh
- * @version 1.0
- * @date 2024-07-12 9:33
- * @description: 用户
- */
 @Data
-public class SysUserVO {
+@Schema(description = "用户返回VO")
+public class UserVO {
     /**
      * 主键（用户id）
      */

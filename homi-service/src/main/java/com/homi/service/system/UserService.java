@@ -4,7 +4,6 @@ import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.core.util.DesensitizedUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -13,11 +12,11 @@ import com.homi.domain.dto.user.UserQueryDTO;
 import com.homi.domain.enums.common.BizStatusEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
-import com.homi.domain.vo.user.SysUserVO;
+import com.homi.domain.vo.user.UserVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.SysUser;
+import com.homi.model.entity.User;
 import com.homi.model.entity.SysUserRole;
-import com.homi.model.mapper.SysUserMapper;
+import com.homi.model.mapper.UserMapper;
 import com.homi.model.mapper.SysUserRoleMapper;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.homi.domain.constant.ConfigCacheKeyConstants.USER_DEFAULT_AVATAR;
@@ -41,8 +39,8 @@ import static com.homi.domain.constant.ConfigCacheKeyConstants.USER_DEFAULT_AVAT
 
 @Service
 @RequiredArgsConstructor
-public class SysUserService {
-    private final SysUserMapper sysUserMapper;
+public class UserService {
+    private final UserMapper userMapper;
 
     private final SysUserRoleMapper userRoleMapper;
 
@@ -51,45 +49,45 @@ public class SysUserService {
     private final SysRoleService roleService;
 
     @Transactional(rollbackFor = Exception.class)
-    public Long createUser(SysUser sysUser) {
-        validateUserUniqueness(null, sysUser.getUsername(), sysUser.getEmail(), sysUser.getPhone());
-        sysUser.setAvatar(sysConfigService.getConfigValueByKey(USER_DEFAULT_AVATAR));
+    public Long createUser(User user) {
+        validateUserUniqueness(null, user.getUsername(), user.getEmail(), user.getPhone());
+        user.setAvatar(sysConfigService.getConfigValueByKey(USER_DEFAULT_AVATAR));
         // 密码加密
-        sysUser.setPassword(SaSecureUtil.md5(sysUser.getPassword()));
-        sysUser.setCreateTime(DateUtil.date());
-        sysUserMapper.insert(sysUser);
+        user.setPassword(SaSecureUtil.md5(user.getPassword()));
+        user.setCreateTime(DateUtil.date());
+        userMapper.insert(user);
 
-        userRoleMapper.insert(SysUserRole.builder().userId(sysUser.getId()).roleId(RoleDefaultEnum.USER.getId()).build());
+        userRoleMapper.insert(SysUserRole.builder().userId(user.getId()).roleId(RoleDefaultEnum.USER.getId()).build());
 
-        return sysUser.getId();
+        return user.getId();
     }
 
-    public Long updateUser(SysUser sysUser) {
+    public Long updateUser(User user) {
         // 是否存在
-        validateUserExists(sysUser.getId());
+        validateUserExists(user.getId());
         // 有冻结的行为
-        if (sysUser.getStatus().equals(BizStatusEnum.DISABLED.getValue())) {
-            if (Long.valueOf(StpUtil.getLoginId().toString()).equals(sysUser.getId())) {
+        if (user.getStatus().equals(BizStatusEnum.DISABLED.getValue())) {
+            if (Long.valueOf(StpUtil.getLoginId().toString()).equals(user.getId())) {
                 throw new BizException("无法冻结自身");
             }
-            List<Long> roleIdList = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>().in(SysUserRole::getUserId, sysUser.getId())).stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
+            List<Long> roleIdList = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>().in(SysUserRole::getUserId, user.getId())).stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
             if (roleService.hasSuperAdmin(roleIdList)) {
                 throw new BizException("无法冻结超级管理员");
             }
         }
         // 邮箱这些是否有重复
-        validateUserUniqueness(sysUser.getId(), sysUser.getUsername(), sysUser.getEmail(), sysUser.getPhone());
+        validateUserUniqueness(user.getId(), user.getUsername(), user.getEmail(), user.getPhone());
 
-        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        sysUserMapper.updateById(sysUser);
-        return sysUser.getId();
+        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        userMapper.updateById(user);
+        return user.getId();
     }
 
-    public PageVO<SysUserVO> getUserList(UserQueryDTO query) {
-        Page<SysUserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
-        IPage<SysUserVO> sysUserVOPage = sysUserMapper.selectUserList(page, query);
+    public PageVO<UserVO> getUserList(UserQueryDTO query) {
+        Page<UserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
+        IPage<UserVO> sysUserVOPage = userMapper.selectUserList(page, query);
 
-        PageVO<SysUserVO> pageVO = new PageVO<>();
+        PageVO<UserVO> pageVO = new PageVO<>();
         pageVO.setTotal(sysUserVOPage.getTotal());
         pageVO.setList(sysUserVOPage.getRecords());
         pageVO.setCurrentPage(sysUserVOPage.getCurrent());
@@ -106,29 +104,29 @@ public class SysUserService {
                 throw new BizException("无法删除自身");
             }
         }
-        sysUserMapper.deleteBatchIds(idList);
+        userMapper.deleteBatchIds(idList);
         return idList.size();
     }
 
-    public void resetPassword(SysUser sysUser) {
+    public void resetPassword(User sysUser) {
         if (Objects.isNull(sysUser.getId()) || Objects.isNull(sysUser.getPassword())) {
             throw new BizException("参数异常");
         }
 
-        SysUser user = validateUserExists(sysUser.getId());
+        User user = validateUserExists(sysUser.getId());
         if (Objects.isNull(user)) {
             throw new BizException("用户不存在");
         }
 
         user.setPassword(SaSecureUtil.md5(sysUser.getPassword()));
-        sysUserMapper.updateById(user);
+        userMapper.updateById(user);
     }
 
-    private SysUser validateUserExists(Long id) {
+    private User validateUserExists(Long id) {
         if (id == null) {
             return null;
         }
-        SysUser user = sysUserMapper.selectById(id);
+        User user = userMapper.selectById(id);
         if (Objects.isNull(user)) {
             throw new BizException("用户不存在");
         }
@@ -142,28 +140,28 @@ public class SysUserService {
      * @param name 用户名
      */
     private void validateUserUniqueness(Long id, String name, String email, String phone) {
-        SysUser sysUserName = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, name));
-        if (sysUserName != null && !sysUserName.getId().equals(id)) {
+        User userName = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, name));
+        if (userName != null && !userName.getId().equals(id)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该用户名已存在");
         }
         if (CharSequenceUtil.isNotBlank(email)) {
-            SysUser sysUserEmail = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getEmail, email));
-            if (sysUserEmail != null && !sysUserEmail.getId().equals(id)) {
-                throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该邮箱已被用户：" + sysUserEmail.getUsername() + "绑定");
+            User userEmail = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getEmail, email));
+            if (userEmail != null && !userEmail.getId().equals(id)) {
+                throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该邮箱已被用户：" + userEmail.getUsername() + "绑定");
             }
         }
         if (CharSequenceUtil.isNotBlank((phone))) {
-            SysUser sysUserPhone = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getPhone, phone));
-            if (sysUserPhone != null && !sysUserPhone.getId().equals(id)) {
-                throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该手机号已被用户：" + sysUserPhone.getUsername() + "绑定");
+            User userPhone = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone));
+            if (userPhone != null && !userPhone.getId().equals(id)) {
+                throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该手机号已被用户：" + userPhone.getUsername() + "绑定");
             }
         }
 
     }
 
-    public SysUserVO getUserById(Long id) {
-        SysUser sysUser = sysUserMapper.selectById(id);
+    public UserVO getUserById(Long id) {
+        User user = userMapper.selectById(id);
 
-        return BeanCopyUtils.copyBean(sysUser, SysUserVO.class);
+        return BeanCopyUtils.copyBean(user, UserVO.class);
     }
 }

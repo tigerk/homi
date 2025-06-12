@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Schema (description = "用户创建对象")
-public class SysUserCreateDTO {
+public class UserCreateDTO {
 
     /**
      * 用户名（登录名）

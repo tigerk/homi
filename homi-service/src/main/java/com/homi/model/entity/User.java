@@ -22,8 +22,8 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("sys_user")
-public class SysUser implements Serializable {
+@TableName("user")
+public class User implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 

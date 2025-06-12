@@ -3,8 +3,8 @@ package com.homi.model.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.domain.dto.user.UserQueryDTO;
-import com.homi.domain.vo.user.SysUserVO;
-import com.homi.model.entity.SysUser;
+import com.homi.domain.vo.user.UserVO;
+import com.homi.model.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -17,7 +17,7 @@ import org.apache.ibatis.annotations.Param;
  * @since 2025-04-17
  */
 @Mapper
-public interface SysUserMapper extends BaseMapper<SysUser> {
+public interface UserMapper extends BaseMapper<User> {
 
     /**
      * 自定义分页查询
@@ -26,5 +26,5 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      * @param query 查询对象
      * @return 查询结果
      */
-    IPage<SysUserVO> selectUserList(IPage<SysUserVO> page, @Param("query") UserQueryDTO query);
+    IPage<UserVO> selectUserList(IPage<UserVO> page, @Param("query") UserQueryDTO query);
 }

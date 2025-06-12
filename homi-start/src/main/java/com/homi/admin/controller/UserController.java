@@ -7,9 +7,9 @@ import com.homi.annotation.RepeatSubmit;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.user.*;
-import com.homi.domain.vo.user.SysUserVO;
-import com.homi.model.entity.SysUser;
-import com.homi.service.system.SysUserService;
+import com.homi.domain.vo.user.UserVO;
+import com.homi.model.entity.User;
+import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,20 +18,20 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 用户表(SysUser)表控制层
+ * 用户表(User)表控制层
  *
  * @author sjh
  * @since 2024-04-25 10:36:46
  */
 
-@RequestMapping("/admin/sys/user")
+@RequestMapping("/admin/user")
 @RestController
 @RequiredArgsConstructor
-public class SysUserController {
+public class UserController {
     /**
      * 服务对象
      */
-    private final SysUserService sysUserService;
+    private final UserService userService;
 
     /**
      * 用户列表
@@ -40,8 +40,8 @@ public class SysUserController {
      */
     @PostMapping("/list")
     @SaCheckPermission("system:user:query")
-    public ResponseResult<PageVO<SysUserVO>> list(@RequestBody UserQueryDTO queryDTO) {
-        return ResponseResult.ok(sysUserService.getUserList(queryDTO));
+    public ResponseResult<PageVO<UserVO>> list(@RequestBody UserQueryDTO queryDTO) {
+        return ResponseResult.ok(userService.getUserList(queryDTO));
     }
 
     /**
@@ -52,8 +52,8 @@ public class SysUserController {
      */
     @GetMapping("/detail/{id}")
     @SaCheckPermission("system:user:detail")
-    public ResponseResult<SysUserVO> detail(@PathVariable("id") Long id) {
-        return ResponseResult.ok(sysUserService.getUserById(id));
+    public ResponseResult<UserVO> detail(@PathVariable("id") Long id) {
+        return ResponseResult.ok(userService.getUserById(id));
     }
 
     /**
@@ -65,10 +65,10 @@ public class SysUserController {
     @PostMapping("/create")
     @RepeatSubmit
     @SaCheckPermission("system:user:create")
-    public ResponseResult<Long> create(@Valid @RequestBody SysUserCreateDTO createDTO) {
-        SysUser sysUser = BeanCopyUtils.copyBean(createDTO, SysUser.class);
-        sysUser.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        return ResponseResult.ok(sysUserService.createUser(sysUser));
+    public ResponseResult<Long> create(@Valid @RequestBody UserCreateDTO createDTO) {
+        User user = BeanCopyUtils.copyBean(createDTO, User.class);
+        user.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        return ResponseResult.ok(userService.createUser(user));
     }
 
     /**
@@ -80,9 +80,9 @@ public class SysUserController {
     @PutMapping("/update")
     @SaCheckPermission("system:user:update")
     public ResponseResult<Long> update(@Valid @RequestBody UserUpdateDTO updateDTO) {
-        SysUser sysUser = BeanCopyUtils.copyBean(updateDTO, SysUser.class);
-        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        return ResponseResult.ok(this.sysUserService.updateUser(sysUser));
+        User user = BeanCopyUtils.copyBean(updateDTO, User.class);
+        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        return ResponseResult.ok(this.userService.updateUser(user));
     }
 
     /**
@@ -94,9 +94,9 @@ public class SysUserController {
     @PutMapping("/updateStatus")
     @SaCheckPermission("system:user:updateStatus")
     public ResponseResult<Long> updateStatus(@Valid @RequestBody UserUpdateStatusDTO updateDTO) {
-        SysUser sysUser = BeanCopyUtils.copyBean(updateDTO, SysUser.class);
-        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        return ResponseResult.ok(this.sysUserService.updateUser(sysUser));
+        User user = BeanCopyUtils.copyBean(updateDTO, User.class);
+        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        return ResponseResult.ok(this.userService.updateUser(user));
     }
 
     /**
@@ -108,7 +108,7 @@ public class SysUserController {
     @DeleteMapping("/delete")
     @SaCheckPermission("system:user:delete")
     public ResponseResult<Integer> delete(@RequestBody List<Long> idList) {
-        return ResponseResult.ok(this.sysUserService.deleteByIds(idList));
+        return ResponseResult.ok(this.userService.deleteByIds(idList));
     }
 
     /**
@@ -120,9 +120,9 @@ public class SysUserController {
     @PutMapping("/resetPassword")
     @SaCheckPermission("system:user:resetPwd")
     public ResponseResult<Boolean> resetPassword(@Valid @RequestBody UserResetPwdDTO updateDTO) {
-        SysUser sysUser = BeanCopyUtils.copyBean(updateDTO, SysUser.class);
-        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        this.sysUserService.resetPassword(sysUser);
+        User user = BeanCopyUtils.copyBean(updateDTO, User.class);
+        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        this.userService.resetPassword(user);
         return ResponseResult.ok(true);
     }
 }

@@ -17,10 +17,10 @@ import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.vo.menu.AsyncRoutesVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysRole;
-import com.homi.model.entity.SysUser;
+import com.homi.model.entity.User;
 import com.homi.model.entity.SysUserRole;
 import com.homi.model.mapper.SysRoleMapper;
-import com.homi.model.mapper.SysUserMapper;
+import com.homi.model.mapper.UserMapper;
 import com.homi.model.mapper.SysUserRoleMapper;
 import com.homi.service.system.SysMenuService;
 import com.homi.service.system.SysPermissionService;
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final SysUserMapper sysUserMapper;
+    private final UserMapper userMapper;
 
     private final SysUserRoleMapper sysUserRoleMapper;
 
@@ -106,14 +106,14 @@ public class AuthService {
 
         String refreshToken = generateJwtToken(userId);
 
-        SysUser sysUser = sysUserMapper.selectById(userId);
-        if (Objects.isNull(sysUser)) {
+        User user = userMapper.selectById(userId);
+        if (Objects.isNull(user)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
 
         // 用户角色code与权限,用户名存入缓存
         SaSession currentSession = StpUtil.getSession();
-        currentSession.set(SaSession.USER, sysUser);
+        currentSession.set(SaSession.USER, user);
 
         // 获取当前回话的token
         String token = StpUtil.getTokenValue();
@@ -136,21 +136,21 @@ public class AuthService {
     @Transactional(rollbackFor = Exception.class)
     public UserLoginVO login(UserLoginDTO userLoginDTO) {
         // 校验用户是否存在
-        SysUser sysUser = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, userLoginDTO.getUsername()).or().eq(SysUser::getEmail, userLoginDTO.getUsername()));
-        if (Objects.isNull(sysUser)) {
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, userLoginDTO.getUsername()).or().eq(User::getEmail, userLoginDTO.getUsername()));
+        if (Objects.isNull(user)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
-        if (sysUser.getStatus().equals(BizStatusEnum.DISABLED.getValue())) {
+        if (user.getStatus().equals(BizStatusEnum.DISABLED.getValue())) {
             throw new BizException(ResponseCodeEnum.USER_FREEZE);
         }
         // 密码校验
         String password = SaSecureUtil.md5(userLoginDTO.getPassword());
-        if (!sysUser.getPassword().equals(password)) {
+        if (!user.getPassword().equals(password)) {
             throw new BizException(ResponseCodeEnum.LOGIN_ERROR);
         }
 
         // 查询用户角色
-        Pair<List<Long>, ArrayList<String>> roleList = getRoleList(sysUser.getId());
+        Pair<List<Long>, ArrayList<String>> roleList = getRoleList(user.getId());
         List<Long> roleIdList = roleList.getKey();
         ArrayList<String> roleCodeList = roleList.getValue();
 
@@ -162,8 +162,8 @@ public class AuthService {
 
         List<String> menuPermissionByRoles = sysPermissionService.getMenuPermissionByRoles(roleIdList);
 
-        UserLoginVO userLoginVO = loginSession(sysUser.getId());
-        BeanUtils.copyProperties(sysUser, userLoginVO);
+        UserLoginVO userLoginVO = loginSession(user.getId());
+        BeanUtils.copyProperties(user, userLoginVO);
         userLoginVO.setRoles(roleCodeList);
         userLoginVO.setPermissions(menuPermissionByRoles);
         userLoginVO.setAsyncRoutes(asyncRoutesVOList);
