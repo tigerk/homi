@@ -66,7 +66,7 @@ public class SysUser implements Serializable {
     /**
      * 简介
      */
-    private String intro;
+    private String remark;
 
     /**
      * 性别（0未知，1男，2女）
