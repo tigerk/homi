@@ -46,7 +46,7 @@ public class User implements Serializable {
     /**
      * 用户类型
      */
-    private Integer type;
+    private Integer userType;
 
     /**
      * companyId 为空 → 平台用户
