@@ -7,7 +7,7 @@ import lombok.Getter;
 public enum BizStatusEnum {
 
     /**
-     * 正常
+     * 正常，生效中
      */
     ACTIVE(0),
 

@@ -103,7 +103,7 @@ import java.util.Date;
     <#if field.logicDeleteField>
         @TableLogic
     </#if>
-    private ${field.propertyType} ${field.propertyName};
+        private ${field.propertyType} ${field.propertyName};
 </#list>
 <#------------  END 字段循环遍历  ---------->
 <#if !entityLombokModel>
