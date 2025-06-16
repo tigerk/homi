@@ -120,8 +120,16 @@ public class CompanyPackageService {
         MenuQueryDTO queryDTO = new MenuQueryDTO();
         List<SysMenu> menuList = sysMenuService.getMenuList(queryDTO);
 
-        return menuList.stream().map(sysMenu -> {
-            return BeanCopyUtils.copyBean(sysMenu, SimpleMenuVO.class);
-        }).toList();
+        return menuList.stream().map(sysMenu -> BeanCopyUtils.copyBean(sysMenu, SimpleMenuVO.class)).toList();
+    }
+
+    public Boolean saveMenus(CompanyPackageCreateDTO createDTO) {
+        CompanyPackage companyPackage = companyPackageRepo.getBaseMapper().selectById(createDTO.getId());
+
+        companyPackage.setPackageMenus(JSONUtil.toJsonStr(createDTO.getPackageMenus()));
+
+        companyPackageRepo.getBaseMapper().updateById(companyPackage);
+
+        return true;
     }
 }

@@ -80,5 +80,10 @@ public class CompanyPackageController {
     public ResponseResult<List<SimpleMenuVO>> getMenus() {
         return ResponseResult.ok(companyPackageService.getMenuList());
     }
+
+    @PostMapping("/menus/save")
+    public ResponseResult<Boolean> saveMenus(@RequestBody CompanyPackageCreateDTO createDTO) {
+        return ResponseResult.ok(companyPackageService.saveMenus(createDTO));
+    }
 }
 

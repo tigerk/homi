@@ -7,13 +7,13 @@ import java.util.List;
 @Data
 public class PageVO<T> {
 
-    private Long currentPage = 1L;
+    private Long currentPage;
 
-    private Long pageSize = 10L;
+    private Long pageSize;
 
-    private Long total = 0L;
+    private Long total;
 
-    private Long pages = 0L;
+    private Long pages;
 
     private List<T> list;
 }
