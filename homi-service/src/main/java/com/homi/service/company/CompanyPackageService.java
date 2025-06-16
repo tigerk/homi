@@ -65,6 +65,26 @@ public class CompanyPackageService {
         return true;
     }
 
+    public Boolean updateCompanyPackage(CompanyPackageCreateDTO createDTO) {
+        boolean exists = companyPackageRepo.exists(new LambdaQueryWrapper<CompanyPackage>()
+                .eq(CompanyPackage::getName, createDTO.getName())
+                .ne(CompanyPackage::getId, createDTO.getId())
+        );
+        if (exists) {
+            throw new BizException("套餐名称已存在，不允许重复创建");
+        }
+
+        CompanyPackage companyPackage = companyPackageRepo.getBaseMapper().selectById(createDTO.getId());
+        companyPackage.setName(createDTO.getName());
+        companyPackage.setRemark(createDTO.getRemark());
+        companyPackage.setUpdateBy(createDTO.getUpdateBy());
+        companyPackage.setUpdateTime(createDTO.getUpdateTime());
+
+        companyPackageRepo.updateById(companyPackage);
+
+        return true;
+    }
+
     public Boolean changeStatus(CompanyPackageCreateDTO createDTO) {
         CompanyPackage companyPackage = companyPackageRepo.getBaseMapper().selectById(createDTO.getId());
         companyPackage.setStatus(createDTO.getStatus());

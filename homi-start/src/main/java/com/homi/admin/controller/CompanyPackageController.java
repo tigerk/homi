@@ -39,7 +39,13 @@ public class CompanyPackageController {
         createDTO.setUpdateTime(DateUtil.date());
         createDTO.setStatus(StatusEnum.ACTIVE.getValue());
 
-        return ResponseResult.ok(companyPackageService.createCompanyPackage(createDTO));
+        if (Objects.isNull(createDTO.getId())) {
+            return ResponseResult.ok(companyPackageService.createCompanyPackage(createDTO));
+        } else {
+            return ResponseResult.ok(companyPackageService.updateCompanyPackage(createDTO));
+        }
+
+
     }
 
     @PostMapping("/status/change")
