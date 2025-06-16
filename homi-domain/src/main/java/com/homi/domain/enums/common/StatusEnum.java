@@ -9,12 +9,12 @@ public enum StatusEnum {
     /**
      * 正常，生效中
      */
-    ACTIVE(0),
+    ACTIVE(1),
 
     /**
-     * 禁用
+     * 停用
      */
-    DISABLED(-1);
+    DISABLED(0);
 
     private final int value;
 

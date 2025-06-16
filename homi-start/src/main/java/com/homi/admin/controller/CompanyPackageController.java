@@ -6,30 +6,29 @@ import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
-import com.homi.domain.dto.company.CompanyCreateDTO;
-import com.homi.domain.dto.company.CompanyQueryDTO;
+import com.homi.domain.dto.company.CompanyPackageCreateDTO;
 import com.homi.domain.enums.common.StatusEnum;
-import com.homi.model.entity.Company;
-import com.homi.service.company.CompanyService;
+import com.homi.model.entity.CompanyPackage;
+import com.homi.service.company.CompanyPackageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("/admin/company")
+@RequestMapping("/admin/company/package")
 @RestController
 @RequiredArgsConstructor
-public class CompanyController {
-    private final CompanyService companyService;
+public class CompanyPackageController {
+    private final CompanyPackageService companyPackageService;
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<Company>> list(@RequestBody CompanyQueryDTO queryDTO) {
-        return ResponseResult.ok(companyService.getCompanyList(queryDTO));
+    public ResponseResult<PageVO<CompanyPackage>> list() {
+        return ResponseResult.ok(companyPackageService.getPackageList());
     }
 
     @PostMapping("/create")
-    public ResponseResult<Boolean> list(@RequestBody CompanyCreateDTO createDTO) {
+    public ResponseResult<Boolean> list(@RequestBody CompanyPackageCreateDTO createDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         createDTO.setCreateBy(currentUser.getId());
         createDTO.setCreateTime(DateUtil.date());
@@ -37,7 +36,7 @@ public class CompanyController {
         createDTO.setUpdateTime(DateUtil.date());
         createDTO.setStatus(StatusEnum.ACTIVE.getValue());
 
-        return ResponseResult.ok(companyService.createCompany(createDTO));
+        return ResponseResult.ok(companyPackageService.createCompanyPackage(createDTO));
     }
 }
 

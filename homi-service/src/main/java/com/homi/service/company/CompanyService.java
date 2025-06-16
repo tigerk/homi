@@ -1,4 +1,4 @@
-package com.homi.service.system;
+package com.homi.service.company;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
@@ -15,6 +15,7 @@ import com.homi.exception.BizException;
 import com.homi.model.entity.Company;
 import com.homi.model.entity.User;
 import com.homi.model.repo.CompanyRepo;
+import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
