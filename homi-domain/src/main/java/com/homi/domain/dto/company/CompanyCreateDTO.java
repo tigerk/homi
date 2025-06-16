@@ -1,29 +1,13 @@
-package com.homi.model.entity;
+package com.homi.domain.dto.company;
 
-import com.baomidou.mybatisplus.annotation.TableLogic;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.Date;
 
-/**
- * <p>
- * 公司表
- * </p>
- *
- * @author tk
- * @since 2025-06-16
- */
-@EqualsAndHashCode(callSuper = false)
 @Data
-@ToString(callSuper = true)
-public class Company implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
-
+@Schema(description = "公司创建对象")
+public class CompanyCreateDTO {
     /**
      * 主键ID
      */
@@ -109,6 +93,10 @@ public class Company implements Serializable {
      */
     private String remark;
 
+    private String account;
+
+    private String password;
+
     /**
      * 创建时间
      */
@@ -128,10 +116,4 @@ public class Company implements Serializable {
      * 更新人
      */
     private Long updateBy;
-
-    /**
-     * 是否删除（0否1是）
-     */
-    @TableLogic
-    private Integer deleted;
 }

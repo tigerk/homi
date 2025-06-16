@@ -1,15 +1,13 @@
 package com.homi.domain.dto.user;
 
 import com.homi.domain.base.BasePageDTO;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-/**
- * @author sjh
- * @version 1.0
- * @date 2024-07-11 11:38
- * @description: 用户查询对象
- */
+@EqualsAndHashCode(callSuper = true)
 @Data
+@Schema(description = "用户查询对象")
 public class UserQueryDTO extends BasePageDTO {
 
     private String username;

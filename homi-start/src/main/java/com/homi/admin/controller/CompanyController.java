@@ -1,13 +1,16 @@
 package com.homi.admin.controller;
 
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.hutool.core.date.DateUtil;
+import com.homi.admin.auth.vo.login.UserLoginVO;
+import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
+import com.homi.domain.dto.company.CompanyCreateDTO;
 import com.homi.domain.dto.company.CompanyQueryDTO;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.model.entity.Company;
 import com.homi.service.system.CompanyService;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,6 +26,18 @@ public class CompanyController {
     @PostMapping("/list")
     public ResponseResult<PageVO<Company>> list(@RequestBody CompanyQueryDTO queryDTO) {
         return ResponseResult.ok(companyService.getCompanyList(queryDTO));
+    }
+
+    @PostMapping("/create")
+    public ResponseResult<Boolean> list(@RequestBody CompanyCreateDTO createDTO) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        createDTO.setCreateBy(currentUser.getId());
+        createDTO.setCreateTime(DateUtil.date());
+        createDTO.setUpdateBy(currentUser.getId());
+        createDTO.setUpdateTime(DateUtil.date());
+        createDTO.setStatus(StatusEnum.ACTIVE.getValue());
+
+        return ResponseResult.ok(companyService.createCompany(createDTO));
     }
 }
 

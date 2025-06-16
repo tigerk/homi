@@ -113,7 +113,7 @@ public class MyBatisGenerator {
             //mapper注解生效
             builder.mapperBuilder().mapperAnnotation(org.apache.ibatis.annotations.Mapper.class);
             builder.serviceBuilder().formatServiceImplFileName("%sRepo");
-            builder.entityBuilder().enableFileOverride().enableLombok();
+            builder.entityBuilder().enableFileOverride().enableLombok().logicDeleteColumnName("deleted");
         }).templateConfig(builder -> builder.service("").controller("").serviceImpl("repo.template.java").entity("entity.template.java").build()).templateEngine(new FreemarkerTemplateEngine()).execute();
     }
 

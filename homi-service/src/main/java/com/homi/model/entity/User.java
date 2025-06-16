@@ -44,11 +44,6 @@ public class User implements Serializable {
     private String password;
 
     /**
-     * 用户类型
-     */
-    private Integer userType;
-
-    /**
      * companyId 为空 → 平台用户
      */
     private Long companyId;

@@ -20,7 +20,7 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-public class Company implements Serializable {
+public class BaseEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 

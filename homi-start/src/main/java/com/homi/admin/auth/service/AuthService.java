@@ -11,7 +11,7 @@ import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.login.UserLoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
-import com.homi.domain.enums.common.BizStatusEnum;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.vo.menu.AsyncRoutesVO;
@@ -140,7 +140,7 @@ public class AuthService {
         if (Objects.isNull(user)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
-        if (user.getStatus().equals(BizStatusEnum.DISABLED.getValue())) {
+        if (user.getStatus().equals(StatusEnum.DISABLED.getValue())) {
             throw new BizException(ResponseCodeEnum.USER_FREEZE);
         }
         // 密码校验
@@ -194,7 +194,7 @@ public class AuthService {
         boolean hasSuperAdmin = false;
         for (SysRole role : sysRoles) {
             roleCodeList.add(role.getRoleCode());
-            if (role.getStatus() == BizStatusEnum.DISABLED.getValue()) {
+            if (role.getStatus() == StatusEnum.DISABLED.getValue()) {
                 existDisable = true;
             }
             if (role.getId().equals(RoleDefaultEnum.SUPERADMIN.getId())) {

@@ -1,6 +1,6 @@
 package com.homi.domain.dto.user;
 
-import com.homi.domain.enums.common.BizStatusEnum;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.validator.EnumValue;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -20,6 +20,6 @@ public class UserUpdateStatusDTO {
      * 状态（0正常，1禁用）
      */
     @NotNull(message = "状态不能为空")
-    @EnumValue(enumClass = BizStatusEnum.class, message = "状态只能为0（正常）或1（冻结）")
+    @EnumValue(enumClass = StatusEnum.class, message = "状态只能为0（正常）或1（冻结）")
     private Integer status;
 }

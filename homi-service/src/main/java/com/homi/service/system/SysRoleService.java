@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.dto.role.RoleQueryDTO;
-import com.homi.domain.enums.common.BizStatusEnum;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.vo.role.SysRoleVO;
@@ -48,7 +48,7 @@ public class SysRoleService {
     }
 
     public Long updateRole(SysRole sysRole) {
-        if (Objects.nonNull(RoleDefaultEnum.fromValue(sysRole.getId())) && sysRole.getStatus().equals(BizStatusEnum.DISABLED.getValue())) {
+        if (Objects.nonNull(RoleDefaultEnum.fromValue(sysRole.getId())) && sysRole.getStatus().equals(StatusEnum.DISABLED.getValue())) {
             throw new BizException(ResponseCodeEnum.FAIL.getCode(), "系统内置角色无法停用");
         }
         SysRole exists = sysRoleMapper.selectById(sysRole.getId());

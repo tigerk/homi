@@ -17,7 +17,7 @@ public class CompanyQueryDTO extends BasePageDTO {
     private String contactName;
 
     @Schema(description = "联系电话")
-    private String phone;
+    private String contactPhone;
 
     @Schema(description = "状态")
     private Integer status;

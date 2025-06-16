@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.user.UserQueryDTO;
-import com.homi.domain.enums.common.BizStatusEnum;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.vo.user.UserVO;
@@ -57,7 +57,7 @@ public class UserService {
         user.setCreateTime(DateUtil.date());
         userMapper.insert(user);
 
-        userRoleMapper.insert(SysUserRole.builder().userId(user.getId()).roleId(RoleDefaultEnum.USER.getId()).build());
+//        userRoleMapper.insert(SysUserRole.builder().userId(user.getId()).roleId(RoleDefaultEnum.USER.getId()).build());
 
         return user.getId();
     }
@@ -66,7 +66,7 @@ public class UserService {
         // 是否存在
         validateUserExists(user.getId());
         // 有冻结的行为
-        if (user.getStatus().equals(BizStatusEnum.DISABLED.getValue())) {
+        if (user.getStatus().equals(StatusEnum.DISABLED.getValue())) {
             if (Long.valueOf(StpUtil.getLoginId().toString()).equals(user.getId())) {
                 throw new BizException("无法冻结自身");
             }

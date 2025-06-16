@@ -4,7 +4,7 @@ package com.homi.domain.enums.common;
 import lombok.Getter;
 
 @Getter
-public enum BizStatusEnum {
+public enum StatusEnum {
 
     /**
      * 正常，生效中
@@ -18,7 +18,7 @@ public enum BizStatusEnum {
 
     private final int value;
 
-    BizStatusEnum(int value) {
+    StatusEnum(int value) {
         this.value = value;
     }
 
