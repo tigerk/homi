@@ -30,7 +30,7 @@ public class SimpleMenuVO {
     /**
      * 菜单类型（0菜单 1iframe 2外链 3按钮）
      */
-    private Integer type;
+    private Integer menuType;
 
 
 }

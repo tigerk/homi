@@ -9,6 +9,7 @@ import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.company.CompanyPackageCreateDTO;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.company.CompanyPackageVO;
+import com.homi.domain.vo.menu.SimpleMenuVO;
 import com.homi.exception.BizException;
 import com.homi.service.company.CompanyPackageService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Objects;
 
 @RequestMapping("/admin/company/package")
@@ -44,8 +46,6 @@ public class CompanyPackageController {
         } else {
             return ResponseResult.ok(companyPackageService.updateCompanyPackage(createDTO));
         }
-
-
     }
 
     @PostMapping("/status/change")
@@ -59,6 +59,26 @@ public class CompanyPackageController {
         createDTO.setUpdateTime(DateUtil.date());
 
         return ResponseResult.ok(companyPackageService.changeStatus(createDTO));
+    }
+
+    @PostMapping("/menus/get")
+    public ResponseResult<List<Long>> getMenusById(@RequestBody CompanyPackageCreateDTO createDTO) {
+        return ResponseResult.ok(companyPackageService.getMenusById(createDTO.getId()));
+    }
+
+    /**
+     * 获取公司套餐可配置的菜单列表
+     * <p>
+     * 菜单列表，树由前端构建（菜单管理）
+     * </p>
+     * {@code @author} tk
+     * {@code @date} 2025/6/16 23:08
+     *
+     * @return com.homi.domain.base.ResponseResult<java.util.List < com.homi.domain.vo.menu.SimpleMenuVO>>
+     */
+    @PostMapping("/menus/list")
+    public ResponseResult<List<SimpleMenuVO>> getMenus() {
+        return ResponseResult.ok(companyPackageService.getMenuList());
     }
 }
 

@@ -21,5 +21,5 @@ public class ConfigCacheKeyConstants {
     /**
      * 验证码类型
      */
-    public static final String CAPTCHA_TYPE = "captcha.type";
+    public static final String CAPTCHA_TYPE = "captcha.menuType";
 }

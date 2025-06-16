@@ -95,7 +95,7 @@ public class SysMenuService {
     /**
      * 根据菜单列表构建菜单树
      *
-     * @param menuList     菜单列表
+     * @param menuList 菜单列表
      * @return 菜单树
      */
     private List<AsyncRoutesVO> buildMenuTree(List<SysMenu> menuList) {
@@ -117,7 +117,7 @@ public class SysMenuService {
         node.setName(menu.getName());
         node.setComponent(menu.getComponent());
         node.setRedirect(menu.getRedirect());
-        node.setType(menu.getType());
+        node.setType(menu.getMenuType());
         // 设置路由元信息
         AsyncRoutesMetaVO meta = new AsyncRoutesMetaVO();
         meta.setTitle(menu.getTitle());

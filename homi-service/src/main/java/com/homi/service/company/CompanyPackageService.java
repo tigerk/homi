@@ -6,13 +6,19 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.company.CompanyPackageCreateDTO;
+import com.homi.domain.dto.menu.MenuQueryDTO;
 import com.homi.domain.vo.company.CompanyPackageVO;
+import com.homi.domain.vo.menu.SimpleMenuVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.CompanyPackage;
+import com.homi.model.entity.SysMenu;
 import com.homi.model.repo.CompanyPackageRepo;
+import com.homi.service.system.SysMenuService;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 应用于 homi-boot
@@ -26,6 +32,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CompanyPackageService {
     private final CompanyPackageRepo companyPackageRepo;
+
+    private final SysMenuService sysMenuService;
 
     public PageVO<CompanyPackageVO> getPackageList() {
         Page<CompanyPackage> page = new Page<>(1, 100);
@@ -92,5 +100,28 @@ public class CompanyPackageService {
         companyPackageRepo.getBaseMapper().updateById(companyPackage);
 
         return true;
+    }
+
+    public List<Long> getMenusById(Long id) {
+        CompanyPackage companyPackage = companyPackageRepo.getBaseMapper().selectById(id);
+
+        return JSONUtil.toList(companyPackage.getPackageMenus(), Long.class);
+    }
+
+    /**
+     * 获取公司套餐可配置的权限列表
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/6/16 22:54
+     *
+     * @return java.util.List<java.lang.Long>
+     */
+    public List<SimpleMenuVO> getMenuList() {
+        MenuQueryDTO queryDTO = new MenuQueryDTO();
+        List<SysMenu> menuList = sysMenuService.getMenuList(queryDTO);
+
+        return menuList.stream().map(sysMenu -> {
+            return BeanCopyUtils.copyBean(sysMenu, SimpleMenuVO.class);
+        }).toList();
     }
 }
