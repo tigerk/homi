@@ -7,6 +7,7 @@ import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.company.CompanyPackageCreateDTO;
+import com.homi.domain.dto.company.CompanyPackageQueryDTO;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.company.CompanyPackageVO;
 import com.homi.domain.vo.menu.SimpleMenuVO;
@@ -28,8 +29,8 @@ public class CompanyPackageController {
     private final CompanyPackageService companyPackageService;
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<CompanyPackageVO>> list() {
-        return ResponseResult.ok(companyPackageService.getPackageList());
+    public ResponseResult<PageVO<CompanyPackageVO>> list(@RequestBody CompanyPackageQueryDTO queryDTO) {
+        return ResponseResult.ok(companyPackageService.getPackageList(queryDTO));
     }
 
     @PostMapping("/create")

@@ -1,11 +1,13 @@
 package com.homi.service.company;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.company.CompanyPackageCreateDTO;
+import com.homi.domain.dto.company.CompanyPackageQueryDTO;
 import com.homi.domain.dto.menu.MenuQueryDTO;
 import com.homi.domain.vo.company.CompanyPackageVO;
 import com.homi.domain.vo.menu.SimpleMenuVO;
@@ -19,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 应用于 homi-boot
@@ -35,10 +38,17 @@ public class CompanyPackageService {
 
     private final SysMenuService sysMenuService;
 
-    public PageVO<CompanyPackageVO> getPackageList() {
-        Page<CompanyPackage> page = new Page<>(1, 100);
+    public PageVO<CompanyPackageVO> getPackageList(CompanyPackageQueryDTO queryDTO) {
+        Page<CompanyPackage> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
 
         LambdaQueryWrapper<CompanyPackage> queryWrapper = new LambdaQueryWrapper<>();
+        if (CharSequenceUtil.isNotBlank(queryDTO.getName())) {
+            queryWrapper.like(CompanyPackage::getName, queryDTO.getName());
+        }
+
+        if (Objects.nonNull(queryDTO.getStatus())) {
+            queryWrapper.eq(CompanyPackage::getStatus, queryDTO.getStatus());
+        }
 
         IPage<CompanyPackage> companyPackagePage = companyPackageRepo.page(page, queryWrapper);
 
