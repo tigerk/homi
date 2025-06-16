@@ -11,17 +11,17 @@ import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.login.UserLoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
-import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.menu.AsyncRoutesVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysRole;
-import com.homi.model.entity.User;
 import com.homi.model.entity.SysUserRole;
+import com.homi.model.entity.User;
 import com.homi.model.mapper.SysRoleMapper;
-import com.homi.model.mapper.UserMapper;
 import com.homi.model.mapper.SysUserRoleMapper;
+import com.homi.model.mapper.UserMapper;
 import com.homi.service.system.SysMenuService;
 import com.homi.service.system.SysPermissionService;
 import lombok.RequiredArgsConstructor;
@@ -46,20 +46,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserMapper userMapper;
-
-    private final SysUserRoleMapper sysUserRoleMapper;
-
-    private final SysRoleMapper sysRoleMapper;
-
-    private final SysMenuService sysMenuService;
-
-    private final SysPermissionService sysPermissionService;
-
     // refresh token userId 名称
     public static final String JWT_USER_ID = "userId";
     public static final String JWT_EXP_TIME = "exp";
-
+    private final UserMapper userMapper;
+    private final SysUserRoleMapper sysUserRoleMapper;
+    private final SysRoleMapper sysRoleMapper;
+    private final SysMenuService sysMenuService;
+    private final SysPermissionService sysPermissionService;
     @Value("${jwt.secret}")
     private String jwtSecret;
 

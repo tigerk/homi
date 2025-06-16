@@ -25,12 +25,7 @@ import java.util.List;
  */
 @Slf4j
 public class JsonUtils {
-    private JsonUtils() {
-        throw new IllegalStateException("Utility class");
-    }
-
     private static final ObjectMapper OBJECT_MAPPER = SpringUtils.getBean(ObjectMapper.class);
-
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     static {
@@ -40,6 +35,10 @@ public class JsonUtils {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         // 解决 LocalDateTime 的序列化
         objectMapper.registerModules(new JavaTimeModule());
+    }
+
+    private JsonUtils() {
+        throw new IllegalStateException("Utility class");
     }
 
     /**

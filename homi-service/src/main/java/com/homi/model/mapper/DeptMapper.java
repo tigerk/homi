@@ -1,7 +1,7 @@
 package com.homi.model.mapper;
 
-import com.homi.model.entity.Dept;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.homi.model.entity.Dept;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

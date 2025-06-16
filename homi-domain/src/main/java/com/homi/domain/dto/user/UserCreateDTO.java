@@ -1,7 +1,7 @@
 package com.homi.domain.dto.user;
 
-import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.common.GenderEnum;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.validator.EnumValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
@@ -10,7 +10,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@Schema (description = "用户创建对象")
+@Schema(description = "用户创建对象")
 public class UserCreateDTO {
 
     /**

@@ -1,7 +1,7 @@
 package com.homi.domain.dto.user;
 
-import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.common.GenderEnum;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.validator.EnumValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
