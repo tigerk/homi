@@ -22,11 +22,12 @@ import java.util.List;
 
 /**
  * JSON 工具类
- *
- * @author 芋道源码
  */
 @Slf4j
 public class JsonUtils {
+    private JsonUtils() {
+        throw new IllegalStateException("Utility class");
+    }
 
     private static final ObjectMapper OBJECT_MAPPER = SpringUtils.getBean(ObjectMapper.class);
 

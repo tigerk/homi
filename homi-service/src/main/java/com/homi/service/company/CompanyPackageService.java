@@ -1,10 +1,12 @@
 package com.homi.service.company;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.company.CompanyPackageCreateDTO;
+import com.homi.domain.vo.company.CompanyPackageVO;
 import com.homi.model.entity.CompanyPackage;
 import com.homi.model.repo.CompanyPackageRepo;
 import com.homi.utils.BeanCopyUtils;
@@ -24,16 +26,22 @@ import org.springframework.stereotype.Service;
 public class CompanyPackageService {
     private final CompanyPackageRepo companyPackageRepo;
 
-    public PageVO<CompanyPackage> getPackageList() {
+    public PageVO<CompanyPackageVO> getPackageList() {
         Page<CompanyPackage> page = new Page<>(1, 100);
 
         LambdaQueryWrapper<CompanyPackage> queryWrapper = new LambdaQueryWrapper<>();
 
         IPage<CompanyPackage> companyPackagePage = companyPackageRepo.page(page, queryWrapper);
 
-        PageVO<CompanyPackage> pageVO = new PageVO<>();
+
+        PageVO<CompanyPackageVO> pageVO = new PageVO<>();
         pageVO.setTotal(companyPackagePage.getTotal());
-        pageVO.setList(companyPackagePage.getRecords());
+        // 格式化数据
+        pageVO.setList(companyPackagePage.getRecords().stream().map(companyPackage -> {
+            CompanyPackageVO companyPackageVO = BeanCopyUtils.copyBean(companyPackage, CompanyPackageVO.class);
+            companyPackageVO.setPackageMenus(JSONUtil.toList(companyPackage.getPackageMenus(), Long.class));
+            return companyPackageVO;
+        }).toList());
         pageVO.setCurrentPage(companyPackagePage.getCurrent());
         pageVO.setPageSize(companyPackagePage.getSize());
         pageVO.setPages(companyPackagePage.getPages());
@@ -43,6 +51,8 @@ public class CompanyPackageService {
 
     public Boolean createCompanyPackage(CompanyPackageCreateDTO createDTO) {
         CompanyPackage companyPackage = BeanCopyUtils.copyBean(createDTO, CompanyPackage.class);
+
+        companyPackage.setPackageMenus(JSONUtil.toJsonStr(createDTO.getPackageMenus()));
 
         companyPackageRepo.save(companyPackage);
 

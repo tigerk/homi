@@ -8,6 +8,7 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.company.CompanyPackageCreateDTO;
 import com.homi.domain.enums.common.StatusEnum;
+import com.homi.domain.vo.company.CompanyPackageVO;
 import com.homi.model.entity.CompanyPackage;
 import com.homi.service.company.CompanyPackageService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class CompanyPackageController {
     private final CompanyPackageService companyPackageService;
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<CompanyPackage>> list() {
+    public ResponseResult<PageVO<CompanyPackageVO>> list() {
         return ResponseResult.ok(companyPackageService.getPackageList());
     }
 
