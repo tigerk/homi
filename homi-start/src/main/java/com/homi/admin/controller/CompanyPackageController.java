@@ -9,13 +9,15 @@ import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.company.CompanyPackageCreateDTO;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.company.CompanyPackageVO;
-import com.homi.model.entity.CompanyPackage;
+import com.homi.exception.BizException;
 import com.homi.service.company.CompanyPackageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Objects;
 
 @RequestMapping("/admin/company/package")
 @RestController
@@ -38,6 +40,19 @@ public class CompanyPackageController {
         createDTO.setStatus(StatusEnum.ACTIVE.getValue());
 
         return ResponseResult.ok(companyPackageService.createCompanyPackage(createDTO));
+    }
+
+    @PostMapping("/status/change")
+    public ResponseResult<Boolean> changeStatus(@RequestBody CompanyPackageCreateDTO createDTO) {
+        if (Objects.isNull(createDTO.getId())) {
+            throw new BizException("id 不能为空");
+        }
+
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        createDTO.setUpdateBy(currentUser.getId());
+        createDTO.setUpdateTime(DateUtil.date());
+
+        return ResponseResult.ok(companyPackageService.changeStatus(createDTO));
     }
 }
 

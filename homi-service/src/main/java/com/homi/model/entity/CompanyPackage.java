@@ -42,7 +42,7 @@ public class CompanyPackage implements Serializable {
     private String packageMenus;
 
     /**
-     * 状态（0正常，-1禁用）
+     * 状态（0正常，0禁用）
      */
     private Integer status;
 

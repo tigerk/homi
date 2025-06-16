@@ -11,6 +11,9 @@ import java.util.List;
 @Data
 @Schema(description = "公司套餐创建请求")
 public class CompanyPackageCreateDTO {
+    @Schema(description = "id，修改时需要传")
+    private Long id;
+
     @Schema(description = "套餐名称")
     @NotBlank(message = "套餐名称不能为空")
     private String name;

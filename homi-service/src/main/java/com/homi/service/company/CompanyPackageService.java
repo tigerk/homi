@@ -64,4 +64,13 @@ public class CompanyPackageService {
 
         return true;
     }
+
+    public Boolean changeStatus(CompanyPackageCreateDTO createDTO) {
+        CompanyPackage companyPackage = companyPackageRepo.getBaseMapper().selectById(createDTO.getId());
+        companyPackage.setStatus(createDTO.getStatus());
+
+        companyPackageRepo.getBaseMapper().updateById(companyPackage);
+
+        return true;
+    }
 }
