@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.company.CompanyPackageCreateDTO;
 import com.homi.domain.vo.company.CompanyPackageVO;
+import com.homi.exception.BizException;
 import com.homi.model.entity.CompanyPackage;
 import com.homi.model.repo.CompanyPackageRepo;
 import com.homi.utils.BeanCopyUtils;
@@ -50,6 +51,11 @@ public class CompanyPackageService {
     }
 
     public Boolean createCompanyPackage(CompanyPackageCreateDTO createDTO) {
+        boolean exists = companyPackageRepo.exists(new LambdaQueryWrapper<CompanyPackage>().eq(CompanyPackage::getName, createDTO.getName()));
+        if (exists) {
+            throw new BizException("套餐名称已存在，不允许重复创建");
+        }
+
         CompanyPackage companyPackage = BeanCopyUtils.copyBean(createDTO, CompanyPackage.class);
 
         companyPackage.setPackageMenus(JSONUtil.toJsonStr(createDTO.getPackageMenus()));
