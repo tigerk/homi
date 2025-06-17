@@ -11,6 +11,9 @@ import com.homi.domain.dto.company.CompanyCreateDTO;
 import com.homi.domain.dto.company.CompanyQueryDTO;
 import com.homi.domain.dto.user.UserCreateDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
+import com.homi.domain.enums.company.CompanyNatureEnum;
+import com.homi.domain.vo.company.CompanyListVO;
+import com.homi.domain.vo.company.IdNameVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Company;
 import com.homi.model.entity.User;
@@ -18,10 +21,14 @@ import com.homi.model.repo.CompanyRepo;
 import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 应用于 homi-boot
@@ -37,7 +44,9 @@ public class CompanyService {
     private final CompanyRepo companyRepo;
     private final UserService userService;
 
-    public PageVO<Company> getCompanyList(CompanyQueryDTO query) {
+    private final CompanyPackageService packageService;
+
+    public PageVO<CompanyListVO> getCompanyList(CompanyQueryDTO query) {
         Page<Company> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
         LambdaQueryWrapper<Company> queryWrapper = new LambdaQueryWrapper<>();
@@ -57,11 +66,19 @@ public class CompanyService {
             queryWrapper.eq(Company::getStatus, query.getStatus());
         }
 
+        Map<Long, String> packageMap = packageService.listSimple().stream()
+                .collect(Collectors.toMap(IdNameVO::getId, IdNameVO::getName));
+
+
         IPage<Company> companyPage = companyRepo.page(page, queryWrapper);
 
-        PageVO<Company> pageVO = new PageVO<>();
+        PageVO<CompanyListVO> pageVO = new PageVO<>();
         pageVO.setTotal(companyPage.getTotal());
-        pageVO.setList(companyPage.getRecords());
+        pageVO.setList(companyPage.getRecords().stream().map(company -> {
+            CompanyListVO vo = BeanCopyUtils.copyBean(company, CompanyListVO.class);
+            vo.setPackageName(packageMap.get(company.getPackageId()));
+            return vo;
+        }).collect(Collectors.toList()));
         pageVO.setCurrentPage(companyPage.getCurrent());
         pageVO.setPageSize(companyPage.getSize());
         pageVO.setPages(companyPage.getPages());
@@ -71,6 +88,12 @@ public class CompanyService {
 
     @Transactional(rollbackFor = Exception.class)
     public Boolean createCompany(CompanyCreateDTO createDTO) {
+        if (Objects.isNull(createDTO.getLegalPerson())) {
+            createDTO.setLegalPerson(StringUtils.EMPTY);
+        }
+
+        createDTO.setNature(CompanyNatureEnum.ENTERPRISE.getCode());
+
         // 创建公司
         Company company = new Company();
         BeanUtil.copyProperties(createDTO, company);

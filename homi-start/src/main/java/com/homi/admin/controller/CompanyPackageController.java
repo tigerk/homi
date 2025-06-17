@@ -2,6 +2,7 @@ package com.homi.admin.controller;
 
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.lang.Pair;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.PageVO;
@@ -10,6 +11,7 @@ import com.homi.domain.dto.company.CompanyPackageCreateDTO;
 import com.homi.domain.dto.company.CompanyPackageQueryDTO;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.company.CompanyPackageVO;
+import com.homi.domain.vo.company.IdNameVO;
 import com.homi.domain.vo.menu.SimpleMenuVO;
 import com.homi.exception.BizException;
 import com.homi.service.company.CompanyPackageService;
@@ -85,6 +87,11 @@ public class CompanyPackageController {
     @PostMapping("/menus/save")
     public ResponseResult<Boolean> saveMenus(@RequestBody CompanyPackageCreateDTO createDTO) {
         return ResponseResult.ok(companyPackageService.saveMenus(createDTO));
+    }
+
+    @PostMapping("/list/simple")
+    public ResponseResult<List<IdNameVO>> listSimple() {
+        return ResponseResult.ok(companyPackageService.listSimple());
     }
 }
 

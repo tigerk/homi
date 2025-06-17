@@ -9,7 +9,9 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.company.CompanyPackageCreateDTO;
 import com.homi.domain.dto.company.CompanyPackageQueryDTO;
 import com.homi.domain.dto.menu.MenuQueryDTO;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.company.CompanyPackageVO;
+import com.homi.domain.vo.company.IdNameVO;
 import com.homi.domain.vo.menu.SimpleMenuVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.CompanyPackage;
@@ -141,5 +143,14 @@ public class CompanyPackageService {
         companyPackageRepo.getBaseMapper().updateById(companyPackage);
 
         return true;
+    }
+
+    public List<IdNameVO> listSimple() {
+        LambdaQueryWrapper<CompanyPackage> queryWrapper = new LambdaQueryWrapper<CompanyPackage>()
+                .eq(CompanyPackage::getStatus, StatusEnum.ACTIVE.getValue());
+
+        return companyPackageRepo.list(queryWrapper).stream()
+                .map(companyPackage -> new IdNameVO(companyPackage.getId(), companyPackage.getName()))
+                .toList();
     }
 }

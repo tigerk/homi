@@ -9,7 +9,7 @@ import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.company.CompanyCreateDTO;
 import com.homi.domain.dto.company.CompanyQueryDTO;
 import com.homi.domain.enums.common.StatusEnum;
-import com.homi.model.entity.Company;
+import com.homi.domain.vo.company.CompanyListVO;
 import com.homi.service.company.CompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +24,7 @@ public class CompanyController {
     private final CompanyService companyService;
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<Company>> list(@RequestBody CompanyQueryDTO queryDTO) {
+    public ResponseResult<PageVO<CompanyListVO>> list(@RequestBody CompanyQueryDTO queryDTO) {
         return ResponseResult.ok(companyService.getCompanyList(queryDTO));
     }
 
