@@ -97,6 +97,7 @@ public class CompanyListVO {
     /**
      * 公司套餐id
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long packageId;
 
     private String packageName;
