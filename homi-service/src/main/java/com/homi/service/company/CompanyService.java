@@ -3,6 +3,7 @@ package com.homi.service.company;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -25,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -119,6 +119,18 @@ public class CompanyService {
         return true;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updateCompany(CompanyCreateDTO createDTO) {
+        Company company = companyRepo.getBaseMapper().selectById(createDTO.getId());
+
+        validateCompanyUniqueness(company);
+
+        BeanUtil.copyProperties(createDTO, company);
+        companyRepo.updateById(company);
+
+        return true;
+    }
+
     /**
      * 检查公司是否唯一
      * <p>
@@ -128,12 +140,17 @@ public class CompanyService {
      * @param company 参数说明
      */
     private void validateCompanyUniqueness(Company company) {
-        Company selectedOne = companyRepo.getBaseMapper().selectOne(new LambdaQueryWrapper<Company>().eq(Company::getName, company.getName()));
+
+        Company selectedOne = companyRepo.getBaseMapper().selectOne(new LambdaQueryWrapper<Company>()
+                .eq(Company::getName, company.getName())
+                .ne(Company::getId, ObjectUtil.defaultIfNull(company.getId(), 0L)));
         if (Objects.nonNull(selectedOne)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该公司已存在");
         }
         if (CharSequenceUtil.isNotBlank(company.getUscc())) {
-            Company uscc = companyRepo.getBaseMapper().selectOne(new LambdaQueryWrapper<Company>().eq(Company::getUscc, company.getUscc()));
+            Company uscc = companyRepo.getBaseMapper().selectOne(new LambdaQueryWrapper<Company>()
+                    .eq(Company::getUscc, company.getUscc())
+                    .ne(Company::getId, ObjectUtil.defaultIfNull(company.getId(), 0L)));
             if (Objects.nonNull(uscc)) {
                 throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该社会统一信用代码已被用户：" + uscc.getName() + "绑定");
             }

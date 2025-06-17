@@ -11,6 +11,7 @@ public class CompanyCreateDTO {
     /**
      * 主键ID
      */
+    @Schema(description = "id，修改时需要传")
     private Long id;
 
     /**

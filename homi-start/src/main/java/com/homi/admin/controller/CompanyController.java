@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Objects;
+
 @RequestMapping("/admin/company")
 @RestController
 @RequiredArgsConstructor
@@ -31,13 +33,18 @@ public class CompanyController {
     @PostMapping("/create")
     public ResponseResult<Boolean> list(@RequestBody CompanyCreateDTO createDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        createDTO.setCreateBy(currentUser.getId());
-        createDTO.setCreateTime(DateUtil.date());
         createDTO.setUpdateBy(currentUser.getId());
         createDTO.setUpdateTime(DateUtil.date());
-        createDTO.setStatus(StatusEnum.ACTIVE.getValue());
 
-        return ResponseResult.ok(companyService.createCompany(createDTO));
+        if (Objects.nonNull(createDTO.getId())) {
+            return ResponseResult.ok(companyService.updateCompany(createDTO));
+        } else {
+            createDTO.setCreateBy(currentUser.getId());
+            createDTO.setCreateTime(DateUtil.date());
+            createDTO.setStatus(StatusEnum.DISABLED.getValue());
+            return ResponseResult.ok(companyService.createCompany(createDTO));
+        }
+
     }
 }
 
