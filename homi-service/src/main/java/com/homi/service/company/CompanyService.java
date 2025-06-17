@@ -105,8 +105,8 @@ public class CompanyService {
 
         // 创建管理员账号，并绑定公司
         UserCreateDTO userCreateDTO = new UserCreateDTO();
-        userCreateDTO.setUsername(createDTO.getAccount());
-        userCreateDTO.setPhone(createDTO.getAccount());
+        userCreateDTO.setUsername(createDTO.getUsername());
+        userCreateDTO.setPhone(createDTO.getContactPhone());
         userCreateDTO.setPassword(createDTO.getPassword());
         userCreateDTO.setCompanyId(company.getId());
         userCreateDTO.setNickname(createDTO.getContactName());

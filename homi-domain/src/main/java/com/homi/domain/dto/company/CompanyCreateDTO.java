@@ -94,7 +94,7 @@ public class CompanyCreateDTO {
      */
     private String remark;
 
-    private String account;
+    private String username;
 
     private String password;
 

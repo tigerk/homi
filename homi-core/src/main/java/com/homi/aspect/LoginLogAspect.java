@@ -64,7 +64,7 @@ public class LoginLogAspect {
 //            Field username = args[0].getClass().getDeclaredField("username");
 //            username.setAccessible(true); // 允许访问 private 字段
 //
-//            loginInfoEvent.setAccount(username.get(args[0]).toString());
+//            loginInfoEvent.setUsername(username.get(args[0]).toString());
 //            loginInfoEvent.setLoginTime(TimeUtils.now());
 //            // 发布事件保存数据库
 //            SpringUtils.context().publishEvent(loginInfoEvent);
