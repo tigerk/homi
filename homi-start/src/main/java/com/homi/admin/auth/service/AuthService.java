@@ -23,7 +23,7 @@ import com.homi.model.mapper.SysRoleMapper;
 import com.homi.model.mapper.SysUserRoleMapper;
 import com.homi.model.mapper.UserMapper;
 import com.homi.service.system.SysMenuService;
-import com.homi.service.system.SysPermissionService;
+import com.homi.service.system.SysRoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,7 +53,9 @@ public class AuthService {
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRoleMapper sysRoleMapper;
     private final SysMenuService sysMenuService;
-    private final SysPermissionService sysPermissionService;
+    private final SysRoleService sysRoleService;
+
+    // jwt 密钥
     @Value("${jwt.secret}")
     private String jwtSecret;
 
@@ -154,7 +156,7 @@ public class AuthService {
             throw new BizException(ResponseCodeEnum.USER_NO_ACCESS);
         }
 
-        List<String> menuPermissionByRoles = sysPermissionService.getMenuPermissionByRoles(roleIdList);
+        List<String> menuPermissionByRoles = sysRoleService.getMenuPermissionByRoles(roleIdList);
 
         UserLoginVO userLoginVO = loginSession(user.getId());
         BeanUtils.copyProperties(user, userLoginVO);
@@ -181,6 +183,10 @@ public class AuthService {
      */
     public Pair<List<Long>, ArrayList<String>> getRoleList(Long userId) {
         List<SysUserRole> userRoleList = sysUserRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, userId));
+        if (userRoleList.isEmpty()) {
+            return Pair.of(new ArrayList<>(), new ArrayList<>());
+        }
+
         List<Long> roleIdList = userRoleList.stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
         List<SysRole> sysRoles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRole>().in(SysRole::getId, roleIdList));
         ArrayList<String> roleCodeList = new ArrayList<>();

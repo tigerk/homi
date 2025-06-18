@@ -44,6 +44,11 @@ public class SysRole implements Serializable {
     private String roleCode;
 
     /**
+     * 公司id
+     */
+    private Long companyId;
+
+    /**
      * 角色状态（0正常 1停用）
      */
     private Integer status;

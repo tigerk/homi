@@ -10,15 +10,22 @@ import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.role.SysRoleVO;
 import com.homi.exception.BizException;
+import com.homi.model.entity.SysMenu;
 import com.homi.model.entity.SysRole;
+import com.homi.model.entity.SysRoleMenu;
 import com.homi.model.mapper.SysRoleMapper;
+import com.homi.model.mapper.SysRoleMenuMapper;
+import com.homi.model.repo.SysMenuRepo;
+import com.homi.model.repo.SysRoleMenuRepo;
 import com.homi.model.repo.SysRoleRepo;
 import com.homi.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 应用于 homi-boot
@@ -34,6 +41,9 @@ public class SysRoleService {
     private final SysRoleMapper sysRoleMapper;
 
     private final SysRoleRepo sysRoleRepo;
+    private final SysMenuRepo sysMenuRepo;
+    private final SysRoleMenuRepo sysRoleMenuRepo;
+    private final SysRoleMenuMapper sysRoleMenuMapper;
 
     public IPage<SysRoleVO> listRolePage(RoleQueryDTO queryDTO) {
         Page<SysRoleVO> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
@@ -104,5 +114,31 @@ public class SysRoleService {
                 .like(StringUtils.isNotEmpty(queryDTO.getRoleName()), SysRole::getRoleName, queryDTO.getRoleName());
 
         return sysRoleRepo.list(queryWrapper);
+    }
+
+    /**
+     * 获取按钮权限菜单
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/4/19 23:35
+     *
+     * @param roleIds 参数说明
+     * @return java.util.Set<java.lang.String>
+     */
+    public List<String> getMenuPermissionByRoles(List<Long> roleIds) {
+        List<SysMenu> sysMenus = sysMenuRepo.getBaseMapper().listRoleMenuByRoles(roleIds, true);
+        return sysMenus.stream().map(SysMenu::getPerms).collect(Collectors.toList());
+    }
+
+    public void setRolePermission(Long roleId, List<Long> permissions) {
+        List<SysRoleMenu> saveList = new ArrayList<>();
+        permissions.forEach(permission -> {
+            SysRoleMenu sysRoleMenu = new SysRoleMenu();
+            sysRoleMenu.setRoleId(roleId);
+            sysRoleMenu.setMenuId(permission);
+            saveList.add(sysRoleMenu);
+        });
+
+        sysRoleMenuRepo.saveBatch(saveList);
     }
 }

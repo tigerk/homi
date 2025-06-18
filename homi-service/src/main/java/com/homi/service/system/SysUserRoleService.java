@@ -26,4 +26,8 @@ public class SysUserRoleService {
     public long getUserCountByRoleId(Long id) {
         return userRoleRepo.count(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getRoleId, id));
     }
+
+    public void createUserRole(Long createdUserId, Long sysRoleId) {
+        sysUserRoleMapper.insert(SysUserRole.builder().roleId(sysRoleId).userId(createdUserId).build());
+    }
 }

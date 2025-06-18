@@ -12,13 +12,17 @@ import com.homi.domain.dto.company.CompanyCreateDTO;
 import com.homi.domain.dto.company.CompanyQueryDTO;
 import com.homi.domain.dto.user.UserCreateDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.company.CompanyNatureEnum;
 import com.homi.domain.vo.company.CompanyListVO;
 import com.homi.domain.vo.company.IdNameVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Company;
+import com.homi.model.entity.SysRole;
 import com.homi.model.entity.User;
 import com.homi.model.repo.CompanyRepo;
+import com.homi.service.system.SysRoleService;
+import com.homi.service.system.SysUserRoleService;
 import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -44,7 +49,80 @@ public class CompanyService {
     private final CompanyRepo companyRepo;
     private final UserService userService;
 
+    private final SysRoleService sysRoleService;
+    private final SysUserRoleService sysUserRoleService;
+
     private final CompanyPackageService packageService;
+    private final CompanyPackageService companyPackageService;
+
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean createCompany(CompanyCreateDTO createDTO) {
+        if (Objects.isNull(createDTO.getLegalPerson())) {
+            createDTO.setLegalPerson(StringUtils.EMPTY);
+        }
+
+        createDTO.setNature(CompanyNatureEnum.ENTERPRISE.getCode());
+
+        // 创建公司
+        Company company = new Company();
+        BeanUtil.copyProperties(createDTO, company);
+
+        // 公司名称 & uscc 不能重复
+        validateCompanyUniqueness(company);
+
+        companyRepo.save(company);
+
+        // 1. 创建默认套餐对应的角色
+        SysRole sysRole = createCompanySuperAdminRole(company);
+
+        // 2. 绑定角色的权限
+        List<Long> menusById = companyPackageService.getMenusById(company.getPackageId());
+        sysRoleService.setRolePermission(sysRole.getId(), menusById);
+
+        // 3. 创建默认套餐对应的用户
+        UserCreateDTO userCreateDTO = new UserCreateDTO();
+        userCreateDTO.setUsername(createDTO.getUsername());
+        userCreateDTO.setPhone(createDTO.getContactPhone());
+        userCreateDTO.setPassword(createDTO.getPassword());
+        userCreateDTO.setCompanyId(company.getId());
+        userCreateDTO.setNickname(createDTO.getContactName());
+        userCreateDTO.setStatus(StatusEnum.ACTIVE.getValue());
+
+        User user = BeanCopyUtils.copyBean(userCreateDTO, User.class);
+        user.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+
+        // 4. 绑定用户角色
+        Long createdUserId = userService.createUser(user);
+        sysUserRoleService.createUserRole(createdUserId, sysRole.getId());
+
+        return true;
+    }
+
+    /**
+     * 创建默认套餐对应的角色
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/6/16 13:44
+     *
+     * @param company 参数说明
+     * @return com.homi.model.entity.SysRole
+     */
+    private SysRole createCompanySuperAdminRole(Company company) {
+        SysRole sysRole = new SysRole();
+        sysRole.setRoleName("超级管理员");
+        sysRole.setCompanyId(company.getId());
+        sysRole.setRoleCode("super-admin");
+        sysRole.setStatus(StatusEnum.ACTIVE.getValue());
+        sysRole.setRemark(String.format("公司：%s的超级管理员角色", company.getName()));
+        sysRole.setCreateBy(company.getCreateBy());
+        sysRole.setCreateTime(company.getCreateTime());
+        sysRole.setUpdateBy(company.getCreateBy());
+        sysRole.setUpdateTime(company.getUpdateTime());
+
+        sysRoleService.createRole(sysRole);
+
+        return sysRole;
+    }
 
     public PageVO<CompanyListVO> getCompanyList(CompanyQueryDTO query) {
         Page<Company> page = new Page<>(query.getCurrentPage(), query.getPageSize());
@@ -84,39 +162,6 @@ public class CompanyService {
         pageVO.setPages(companyPage.getPages());
 
         return pageVO;
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    public Boolean createCompany(CompanyCreateDTO createDTO) {
-        if (Objects.isNull(createDTO.getLegalPerson())) {
-            createDTO.setLegalPerson(StringUtils.EMPTY);
-        }
-
-        createDTO.setNature(CompanyNatureEnum.ENTERPRISE.getCode());
-
-        // 创建公司
-        Company company = new Company();
-        BeanUtil.copyProperties(createDTO, company);
-
-        // 公司名称 & uscc 不能重复
-        validateCompanyUniqueness(company);
-
-        companyRepo.save(company);
-
-        // 创建管理员账号，并绑定公司
-        UserCreateDTO userCreateDTO = new UserCreateDTO();
-        userCreateDTO.setUsername(createDTO.getUsername());
-        userCreateDTO.setPhone(createDTO.getContactPhone());
-        userCreateDTO.setPassword(createDTO.getPassword());
-        userCreateDTO.setCompanyId(company.getId());
-        userCreateDTO.setNickname(createDTO.getContactName());
-
-        User user = BeanCopyUtils.copyBean(userCreateDTO, User.class);
-        user.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-
-        userService.createUser(user);
-
-        return true;
     }
 
     @Transactional(rollbackFor = Exception.class)

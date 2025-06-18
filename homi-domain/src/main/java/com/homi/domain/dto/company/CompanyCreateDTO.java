@@ -94,8 +94,10 @@ public class CompanyCreateDTO {
      */
     private String remark;
 
+    @Schema(description = "公司超管账号")
     private String username;
 
+    @Schema(description = "公司超管账号密码")
     private String password;
 
     /**
