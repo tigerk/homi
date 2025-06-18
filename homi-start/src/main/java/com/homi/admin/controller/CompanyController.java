@@ -41,7 +41,7 @@ public class CompanyController {
         } else {
             createDTO.setCreateBy(currentUser.getId());
             createDTO.setCreateTime(DateUtil.date());
-            createDTO.setStatus(StatusEnum.DISABLED.getValue());
+            createDTO.setStatus(StatusEnum.ACTIVE.getValue());
             return ResponseResult.ok(companyService.createCompany(createDTO));
         }
 
