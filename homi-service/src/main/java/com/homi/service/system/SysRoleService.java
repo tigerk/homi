@@ -51,7 +51,7 @@ public class SysRoleService {
     }
 
     public Long createRole(SysRole sysRole) {
-        validateRoleUniqueness(null, sysRole.getRoleName(), sysRole.getRoleCode());
+        validateRoleUniqueness(null, sysRole.getCompanyId(), sysRole.getRoleName(), sysRole.getRoleCode());
         sysRole.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         sysRoleMapper.insert(sysRole);
         return sysRole.getId();
@@ -66,7 +66,7 @@ public class SysRoleService {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "修改的角色不存在");
         }
 
-        validateRoleUniqueness(sysRole.getId(), sysRole.getRoleName(), sysRole.getRoleCode());
+        validateRoleUniqueness(sysRole.getId(), sysRole.getCompanyId(), sysRole.getRoleName(), sysRole.getRoleCode());
         sysRole.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         sysRoleMapper.updateById(sysRole);
         return sysRole.getId();
@@ -89,12 +89,12 @@ public class SysRoleService {
      * @param name 角色名称
      * @param code 角色编码
      */
-    private void validateRoleUniqueness(Long id, String name, String code) {
-        SysRole sysRoleName = sysRoleMapper.selectOne(new LambdaQueryWrapper<SysRole>().eq(SysRole::getRoleName, name));
+    private void validateRoleUniqueness(Long id, Long companyId, String name, String code) {
+        SysRole sysRoleName = sysRoleMapper.selectOne(new LambdaQueryWrapper<SysRole>().eq(SysRole::getRoleName, name).eq(SysRole::getCompanyId, companyId));
         if (sysRoleName != null && !sysRoleName.getId().equals(id)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "角色名称不能重复");
         }
-        SysRole sysRoleCode = sysRoleMapper.selectOne(new LambdaQueryWrapper<SysRole>().eq(SysRole::getRoleCode, code));
+        SysRole sysRoleCode = sysRoleMapper.selectOne(new LambdaQueryWrapper<SysRole>().eq(SysRole::getRoleCode, code).eq(SysRole::getCompanyId, companyId));
         if (sysRoleCode != null && !sysRoleCode.getId().equals(id)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "角色编码不能重复");
         }

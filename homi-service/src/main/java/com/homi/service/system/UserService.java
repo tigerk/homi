@@ -19,6 +19,7 @@ import com.homi.model.mapper.SysUserRoleMapper;
 import com.homi.model.mapper.UserMapper;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +48,9 @@ public class UserService {
 
     private final SysRoleService roleService;
 
+    @Value("${default-avatar}")
+    private String defaultAvatar;
+
     @Transactional(rollbackFor = Exception.class)
     public Long createUser(User user) {
         validateUserUniqueness(null, user.getUsername(), user.getEmail(), user.getPhone());
@@ -54,9 +58,12 @@ public class UserService {
         // 密码加密
         user.setPassword(SaSecureUtil.md5(user.getPassword()));
         user.setCreateTime(DateUtil.date());
-        userMapper.insert(user);
 
-//        userRoleMapper.insert(SysUserRole.builder().userId(user.getId()).roleId(RoleDefaultEnum.USER.getId()).build());
+        if (Objects.isNull(user.getAvatar())) {
+            user.setAvatar(defaultAvatar);
+        }
+
+        userMapper.insert(user);
 
         return user.getId();
     }
