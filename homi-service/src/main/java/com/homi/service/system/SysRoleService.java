@@ -127,7 +127,7 @@ public class SysRoleService {
      */
     public List<String> getMenuPermissionByRoles(List<Long> roleIds) {
         List<SysMenu> sysMenus = sysMenuRepo.getBaseMapper().listRoleMenuByRoles(roleIds, true);
-        return sysMenus.stream().map(SysMenu::getPerms).collect(Collectors.toList());
+        return sysMenus.stream().map(SysMenu::getAuths).collect(Collectors.toList());
     }
 
     public void setRolePermission(Long roleId, List<Long> permissions) {

@@ -1,7 +1,9 @@
 package com.homi.service.system;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.homi.domain.dto.menu.MenuCreateDTO;
 import com.homi.domain.dto.menu.MenuQueryDTO;
 import com.homi.domain.enums.common.BooleanEnum;
 import com.homi.domain.vo.menu.AsyncRoutesMetaVO;
@@ -13,6 +15,7 @@ import com.homi.model.entity.SysRoleMenu;
 import com.homi.model.mapper.SysMenuMapper;
 import com.homi.model.mapper.SysRoleMenuMapper;
 import com.homi.model.repo.SysMenuRepo;
+import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,7 +52,7 @@ public class SysMenuService {
             query.eq(SysMenu::getVisible, queryDTO.getVisible());
         }
 
-        query.orderByAsc(SysMenu::getSortOrder);
+        query.orderByAsc(SysMenu::getRank);
 
         return sysMenuRepo.list(query);
     }
@@ -122,11 +125,11 @@ public class SysMenuService {
         AsyncRoutesMetaVO meta = new AsyncRoutesMetaVO();
         meta.setTitle(menu.getTitle());
         meta.setIcon(menu.getIcon());
-        meta.setRank(menu.getSortOrder());
-        meta.setShowLink(Boolean.TRUE);
-        meta.setKeepAlive(BooleanEnum.fromValue(menu.getCacheFlag()));
+        meta.setRank(menu.getRank());
+        meta.setShowLink(BooleanEnum.fromValue(menu.getShowLink()));
+        meta.setKeepAlive(BooleanEnum.fromValue(menu.getKeepAlive()));
         meta.setFrameLoading(BooleanEnum.fromValue(menu.getFrameLoading()));
-        meta.setAuths(Optional.ofNullable(menu.getPerms())
+        meta.setAuths(Optional.ofNullable(menu.getAuths())
                 .map(List::of)
                 .orElse(Collections.emptyList()));
         meta.setFrameSrc(menu.getFrameSrc());
@@ -156,8 +159,25 @@ public class SysMenuService {
         return sysMenuMapper.selectById(id);
     }
 
-    public Boolean save(SysMenu sysMenu) {
-        return sysMenuRepo.save(sysMenu);
+    public Boolean createMenu(MenuCreateDTO dto) {
+        SysMenu sysMenu = BeanCopyUtils.copyBean(dto, SysMenu.class);
+
+        sysMenu.setFrameLoading(Boolean.TRUE.equals(dto.getFrameLoading()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
+        sysMenu.setKeepAlive(Boolean.TRUE.equals(dto.getKeepAlive()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
+        sysMenu.setHiddenTag(Boolean.TRUE.equals(dto.getHiddenTag()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
+        sysMenu.setFixedTag(Boolean.TRUE.equals(dto.getFixedTag()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
+        sysMenu.setShowLink(Boolean.TRUE.equals(dto.getShowLink()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
+        sysMenu.setShowParent(Boolean.TRUE.equals(dto.getShowParent()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
+
+        sysMenu.setAuths(CharSequenceUtil.blankToDefault(sysMenu.getAuths(), "[]"));
+
+        if (Objects.isNull(dto.getId())) {
+            sysMenuRepo.getBaseMapper().insert(sysMenu);
+        } else {
+            sysMenuRepo.getBaseMapper().updateById(sysMenu);
+        }
+
+        return true;
     }
 
     public void updateById(SysMenu sysMenu) {

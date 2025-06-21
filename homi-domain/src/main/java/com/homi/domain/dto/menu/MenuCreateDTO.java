@@ -1,41 +1,26 @@
-package com.homi.model.entity;
+package com.homi.domain.dto.menu;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.Date;
 
-/**
- * <p>
- * 菜单表
- * </p>
- *
- * @author tk
- * @since 2025-06-21
- */
-@EqualsAndHashCode(callSuper = false)
 @Data
-@ToString(callSuper = true)
-@TableName("sys_menu")
-public class SysMenu implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
-
-    /**
-     * 菜单ID
-     */
-    @TableId(value = "id", type = IdType.AUTO)
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Schema(description = "创建菜单")
+public class MenuCreateDTO {
+    @Schema(description = "菜单ID, 修改时需要传递")
     private Long id;
 
     /**
      * 菜单名称
      */
+    @Schema(description = "菜单名称")
     private String title;
 
     /**
@@ -71,7 +56,7 @@ public class SysMenu implements Serializable {
     /**
      * 显示顺序
      */
-    private Integer rank;
+    private Integer sortOrder;
 
     /**
      * 路由重定向
@@ -131,32 +116,32 @@ public class SysMenu implements Serializable {
     /**
      * 内嵌的iframe页面是否开启首次加载动画（0否 1是）
      */
-    private Integer frameLoading;
+    private Boolean frameLoading;
 
     /**
      * 路由组件缓存（开启 `true`、关闭 `false`）`可选
      */
-    private Integer keepAlive;
+    private Boolean keepAlive;
 
     /**
      * 当前菜单名称或自定义信息禁止添加到标签页（默认`false`）
      */
-    private Integer hiddenTag;
+    private Boolean hiddenTag;
 
     /**
      * 当前菜单名称是否固定显示在标签页且不可关闭（默认`false`）
      */
-    private Integer fixedTag;
+    private Boolean fixedTag;
 
     /**
      * 是否在菜单中显示（默认`true`）`可选
      */
-    private Integer showLink;
+    private Boolean showLink;
 
     /**
      * 是否显示父级菜单 `可选`
      */
-    private Integer showParent;
+    private Boolean showParent;
 
     /**
      * 创建者

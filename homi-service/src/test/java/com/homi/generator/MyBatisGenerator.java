@@ -67,7 +67,7 @@ public class MyBatisGenerator {
 //                        "sys_dict_data",
 //                        "sys_dict",
 //                        "sys_config",
-                        "company_package"
+                        "sys_menu"
                 )).build();
 
         myBatisGenerator.generate();

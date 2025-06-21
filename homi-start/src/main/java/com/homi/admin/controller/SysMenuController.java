@@ -2,7 +2,11 @@ package com.homi.admin.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.date.DateUtil;
+import com.homi.admin.auth.vo.login.UserLoginVO;
+import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
+import com.homi.domain.dto.menu.MenuCreateDTO;
 import com.homi.domain.dto.menu.MenuQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.menu.SimpleMenuVO;
@@ -26,6 +30,7 @@ import java.util.Objects;
 
 @RequiredArgsConstructor
 @Slf4j
+@RestController
 @RequestMapping("admin/sys/menu")
 public class SysMenuController {
     private final SysMenuService sysMenuService;
@@ -37,9 +42,8 @@ public class SysMenuController {
      * @return 所有数据
      */
     @GetMapping("/list")
-    @SaCheckPermission("system:menu:query")
+//    @SaCheckPermission("system:menu:query")
     public ResponseResult<List<SysMenu>> listMenu(MenuQueryDTO queryDTO) {
-
         return ResponseResult.ok(sysMenuService.getMenuList(queryDTO));
     }
 
@@ -68,15 +72,26 @@ public class SysMenuController {
 
     /**
      * 新增菜单
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/6/21 16:04
      *
-     * @param sysMenu 实体对象
-     * @return 新增结果
+     * @param createDTO 参数说明
+     * @return com.homi.domain.base.ResponseResult<java.lang.Boolean>
      */
     @PostMapping("/create")
-    @SaCheckPermission("system:menu:create")
-    public ResponseResult<Boolean> insert(@RequestBody SysMenu sysMenu) {
-        sysMenu.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        return ResponseResult.ok(sysMenuService.save(sysMenu));
+//    @SaCheckPermission("system:menu:create")
+    public ResponseResult<Boolean> createMenu(@RequestBody MenuCreateDTO createDTO) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        createDTO.setUpdateBy(currentUser.getId());
+        createDTO.setUpdateTime(DateUtil.date());
+
+        if (Objects.isNull(createDTO.getId())) {
+            createDTO.setCreateBy(currentUser.getId());
+            createDTO.setCreateTime(DateUtil.date());
+        }
+
+        return ResponseResult.ok(sysMenuService.createMenu(createDTO));
     }
 
     /**
