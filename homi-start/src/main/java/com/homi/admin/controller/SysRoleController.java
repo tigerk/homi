@@ -2,6 +2,7 @@ package com.homi.admin.controller;
 
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.admin.role.RoleConvert;
 import com.homi.domain.base.ResponseResult;
@@ -13,10 +14,12 @@ import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.vo.role.RoleSimpleVO;
 import com.homi.domain.vo.role.SysRoleVO;
 import com.homi.exception.BizException;
+import com.homi.model.entity.SysMenu;
 import com.homi.model.entity.SysRole;
 import com.homi.service.system.SysRoleService;
 import com.homi.service.system.SysUserRoleService;
 import com.homi.utils.BeanCopyUtils;
+import com.homi.utils.JsonUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

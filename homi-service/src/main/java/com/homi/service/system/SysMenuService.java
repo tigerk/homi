@@ -169,8 +169,6 @@ public class SysMenuService {
         sysMenu.setShowLink(Boolean.TRUE.equals(dto.getShowLink()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
         sysMenu.setShowParent(Boolean.TRUE.equals(dto.getShowParent()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
 
-        sysMenu.setAuths(CharSequenceUtil.blankToDefault(sysMenu.getAuths(), "[]"));
-
         if (Objects.isNull(dto.getId())) {
             sysMenuRepo.getBaseMapper().insert(sysMenu);
         } else {
