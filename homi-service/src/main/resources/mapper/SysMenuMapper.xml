@@ -6,7 +6,7 @@
         <result property="title" column="title" jdbcType="VARCHAR"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
-        <result property="rank" column="sort_order" jdbcType="INTEGER"/>
+        <result property="sort" column="sort_order" jdbcType="INTEGER"/>
         <result property="path" column="path" jdbcType="VARCHAR"/>
         <result property="component" column="component" jdbcType="VARCHAR"/>
         <result property="query" column="query" jdbcType="VARCHAR"/>
@@ -31,14 +31,14 @@
         m.name,
         m.title,
         m.parent_id,
-        m.sort_order,
+        m.sort,
         m.path,
         m.component,
         m.query,
-        m.cache_flag,
+        m.keep_alive,
         m.menu_type,
         m.visible,
-        m.perms,
+        m.auths,
         m.icon,
         m.create_by,
         m.create_time,

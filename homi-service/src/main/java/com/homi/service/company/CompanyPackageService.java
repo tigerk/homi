@@ -12,6 +12,7 @@ import com.homi.domain.dto.menu.MenuQueryDTO;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.company.CompanyPackageVO;
 import com.homi.domain.vo.company.IdNameVO;
+import com.homi.domain.vo.menu.MenuVO;
 import com.homi.domain.vo.menu.SimpleMenuVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.CompanyPackage;
@@ -130,7 +131,7 @@ public class CompanyPackageService {
      */
     public List<SimpleMenuVO> getMenuList() {
         MenuQueryDTO queryDTO = new MenuQueryDTO();
-        List<SysMenu> menuList = sysMenuService.getMenuList(queryDTO);
+        List<MenuVO> menuList = sysMenuService.getMenuList(queryDTO);
 
         return menuList.stream().map(sysMenu -> BeanCopyUtils.copyBean(sysMenu, SimpleMenuVO.class)).toList();
     }

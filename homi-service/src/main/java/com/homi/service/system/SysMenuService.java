@@ -1,13 +1,13 @@
 package com.homi.service.system;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.dto.menu.MenuCreateDTO;
 import com.homi.domain.dto.menu.MenuQueryDTO;
 import com.homi.domain.enums.common.BooleanEnum;
 import com.homi.domain.vo.menu.AsyncRoutesMetaVO;
 import com.homi.domain.vo.menu.AsyncRoutesVO;
+import com.homi.domain.vo.menu.MenuVO;
 import com.homi.domain.vo.menu.SimpleMenuVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysMenu;
@@ -45,16 +45,21 @@ public class SysMenuService {
      * @param queryDTO 查询实体
      * @return 所有数据
      */
-    public List<SysMenu> getMenuList(MenuQueryDTO queryDTO) {
+    public List<MenuVO> getMenuList(MenuQueryDTO queryDTO) {
         LambdaQueryWrapper<SysMenu> query = new LambdaQueryWrapper<>();
 
         if (Objects.nonNull(queryDTO.getVisible())) {
             query.eq(SysMenu::getVisible, queryDTO.getVisible());
         }
 
-        query.orderByAsc(SysMenu::getRank);
+        query.orderByAsc(SysMenu::getSort);
 
-        return sysMenuRepo.list(query);
+
+        return sysMenuRepo.list(query).stream().map(m -> {
+            MenuVO menuVO = BeanCopyUtils.copyBean(m, MenuVO.class);
+            menuVO.setRank(m.getSort());
+            return menuVO;
+        }).collect(Collectors.toList());
     }
 
 
@@ -66,7 +71,7 @@ public class SysMenuService {
     public List<SimpleMenuVO> listSimpleMenu() {
         MenuQueryDTO menuQueryDTO = new MenuQueryDTO();
         menuQueryDTO.setVisible(BooleanEnum.FALSE.getValue());
-        List<SysMenu> menuList = getMenuList(menuQueryDTO);
+        List<MenuVO> menuList = getMenuList(menuQueryDTO);
 
         return menuList.stream().map(m -> {
             SimpleMenuVO simpleMenuVO = new SimpleMenuVO();
@@ -125,7 +130,7 @@ public class SysMenuService {
         AsyncRoutesMetaVO meta = new AsyncRoutesMetaVO();
         meta.setTitle(menu.getTitle());
         meta.setIcon(menu.getIcon());
-        meta.setRank(menu.getRank());
+        meta.setRank(menu.getSort());
         meta.setShowLink(BooleanEnum.fromValue(menu.getShowLink()));
         meta.setKeepAlive(BooleanEnum.fromValue(menu.getKeepAlive()));
         meta.setFrameLoading(BooleanEnum.fromValue(menu.getFrameLoading()));
