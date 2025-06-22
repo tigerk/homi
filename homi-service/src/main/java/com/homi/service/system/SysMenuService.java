@@ -132,6 +132,7 @@ public class SysMenuService {
         meta.setIcon(menu.getIcon());
         meta.setRank(menu.getSort());
         meta.setShowLink(BooleanEnum.fromValue(menu.getShowLink()));
+        meta.setShowParent(BooleanEnum.fromValue(menu.getShowParent()));
         meta.setKeepAlive(BooleanEnum.fromValue(menu.getKeepAlive()));
         meta.setFrameLoading(BooleanEnum.fromValue(menu.getFrameLoading()));
         meta.setAuths(Optional.ofNullable(menu.getAuths())

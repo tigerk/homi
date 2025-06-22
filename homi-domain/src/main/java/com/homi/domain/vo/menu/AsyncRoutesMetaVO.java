@@ -15,6 +15,8 @@ public class AsyncRoutesMetaVO {
 
     private Boolean showLink;
 
+    private Boolean showParent;
+
     @Schema(description = "排序")
     private Integer rank;
 

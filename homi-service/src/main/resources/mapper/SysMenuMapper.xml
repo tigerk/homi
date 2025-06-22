@@ -28,34 +28,37 @@
 
     <select id="listRoleMenuByRoles" resultType="com.homi.model.entity.SysMenu">
         SELECT DISTINCT m.id,
-        m.name,
-        m.title,
-        m.parent_id,
-        m.sort,
-        m.path,
-        m.component,
-        m.query,
-        m.keep_alive,
-        m.menu_type,
-        m.visible,
-        m.auths,
-        m.icon,
-        m.create_by,
-        m.create_time,
-        m.update_by,
-        m.update_time,
-        m.remark,
-        m.platform_type,
-        m.redirect,
-        m.frame_loading,
-        m.frame_src
-        FROM sys_menu m INNER JOIN sys_role_menu rm ON m.id = rm.menu_id
-        WHERE m.visible = 0
+                        m.name,
+                        m.title,
+                        m.parent_id,
+                        m.sort,
+                        m.path,
+                        m.component,
+                        m.query,
+                        m.keep_alive,
+                        m.menu_type,
+                        m.visible,
+                        m.show_link,
+                        m.show_parent,
+                        m.auths,
+                        m.icon,
+                        m.create_by,
+                        m.create_time,
+                        m.update_by,
+                        m.update_time,
+                        m.remark,
+                        m.platform_type,
+                        m.redirect,
+                        m.frame_loading,
+                        m.frame_src
+        FROM sys_menu m
+                 INNER JOIN sys_role_menu rm ON m.id = rm.menu_id
+        WHERE m.visible = 1
         <if test="isPerms">
-            AND m.menu_type = 4
+            AND m.menu_type = 3
         </if>
         <if test="!isPerms">
-            AND m.menu_type in (0, 1, 2, 3)
+            AND m.menu_type in (0, 1, 2)
         </if>
         and rm.role_id IN
         <foreach item="roleId" collection="roleIdList" open="(" separator="," close=")">
