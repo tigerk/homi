@@ -174,6 +174,7 @@ public class SysMenuService {
         sysMenu.setFixedTag(Boolean.TRUE.equals(dto.getFixedTag()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
         sysMenu.setShowLink(Boolean.TRUE.equals(dto.getShowLink()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
         sysMenu.setShowParent(Boolean.TRUE.equals(dto.getShowParent()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
+        sysMenu.setIsPlatform(dto.getIsPlatform() ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
 
         if (Objects.isNull(dto.getId())) {
             sysMenuRepo.getBaseMapper().insert(sysMenu);

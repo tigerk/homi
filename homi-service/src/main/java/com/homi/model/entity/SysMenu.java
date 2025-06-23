@@ -157,6 +157,11 @@ public class SysMenu implements Serializable {
     private Integer showParent;
 
     /**
+     * 是不是平台的（0非平台；1：平台菜单）
+     */
+    private Integer isPlatform;
+
+    /**
      * 0未删除；1：删除
      */
     @TableLogic

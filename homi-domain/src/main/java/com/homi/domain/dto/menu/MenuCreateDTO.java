@@ -144,6 +144,12 @@ public class MenuCreateDTO {
     private Boolean showParent;
 
     /**
+     * 是不是平台的（0非平台；1：平台菜单）
+     */
+    @Schema(description = "是不是平台的（0非平台；1：平台菜单）")
+    private Boolean isPlatform;
+
+    /**
      * 创建者
      */
     private Long createBy;
