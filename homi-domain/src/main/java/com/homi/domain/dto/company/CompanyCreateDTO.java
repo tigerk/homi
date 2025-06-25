@@ -85,7 +85,7 @@ public class CompanyCreateDTO {
     private Long packageId;
 
     /**
-     * 状态（0正常，-1禁用）
+     * 状态（1正常，0禁用）
      */
     private Integer status;
 

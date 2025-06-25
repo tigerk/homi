@@ -1,6 +1,7 @@
 package com.homi.admin.controller;
 
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.date.DateUtil;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
@@ -31,6 +32,7 @@ public class CompanyController {
     }
 
     @PostMapping("/create")
+    @SaCheckPermission("platform:company:createOrUpdate")
     public ResponseResult<Boolean> createCompany(@RequestBody CompanyCreateDTO createDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         createDTO.setUpdateBy(currentUser.getId());
@@ -44,7 +46,18 @@ public class CompanyController {
             createDTO.setStatus(StatusEnum.ACTIVE.getValue());
             return ResponseResult.ok(companyService.createCompany(createDTO));
         }
+    }
 
+    @PostMapping("/status/change")
+    @SaCheckPermission("platform:company:createOrUpdate")
+    public ResponseResult<Boolean> changeStatus(@RequestBody CompanyCreateDTO createDTO) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        createDTO.setUpdateBy(currentUser.getId());
+        createDTO.setUpdateTime(DateUtil.date());
+
+        companyService.changeStatus(createDTO);
+
+        return ResponseResult.ok(Boolean.TRUE);
     }
 }
 

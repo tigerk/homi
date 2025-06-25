@@ -208,12 +208,15 @@ public class CompanyService {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/6/25 13:49
-
-      * @param companyId 参数说明
+     *
+     * @param companyId 参数说明
      * @return com.homi.domain.vo.company.CompanyListVO
      */
     public CompanyListVO getCompanyById(Long companyId) {
         Company company = companyRepo.getBaseMapper().selectById(companyId);
         return BeanCopyUtils.copyBean(company, CompanyListVO.class);
+    }
+
+    public void changeStatus(CompanyCreateDTO createDTO) {
     }
 }

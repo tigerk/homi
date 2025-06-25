@@ -8,29 +8,24 @@ package com.homi.domain.enums.common;
  */
 public enum MenuTypeEnum {
     /**
-     * 目录
-     */
-    DIRECTORY(0, "目录"),
-
-    /**
      * 菜单
      */
-    MENU(1, "菜单"),
+    MENU(0, "菜单"),
 
     /**
      * Iframe
      */
-    IFRAME(2, "Iframe"),
+    IFRAME(1, "Iframe"),
 
     /**
      * 外链
      */
-    EXTERNAL_LINK(3, "外链"),
+    EXTERNAL_LINK(2, "外链"),
 
     /**
      * 按钮
      */
-    BUTTON(4, "按钮");
+    BUTTON(3, "按钮");
 
     private final int type;
     private final String typeStr;

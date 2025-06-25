@@ -40,6 +40,7 @@ public class SysMenuController {
     private final SysMenuService sysMenuService;
 
     private final SysMenuRepo sysMenuRepo;
+    private final SysRoleMenuRepo sysRoleMenuRepo;
 
     /**
      * 返回菜单列表，树由前端构建（菜单管理）
@@ -115,8 +116,6 @@ public class SysMenuController {
     public ResponseResult<Boolean> delete(@PathVariable("id") Long id) {
         return ResponseResult.ok(sysMenuService.deleteById(id));
     }
-
-    private final SysRoleMenuRepo sysRoleMenuRepo;
 
     @GetMapping("init")
     public Boolean init() {

@@ -5,7 +5,6 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.company.CompanyQueryDTO;
 import com.homi.domain.vo.company.CompanyListVO;
-import com.homi.model.entity.Company;
 import com.homi.service.company.CompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

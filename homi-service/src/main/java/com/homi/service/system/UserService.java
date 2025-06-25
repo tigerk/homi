@@ -17,7 +17,6 @@ import com.homi.model.entity.SysUserRole;
 import com.homi.model.entity.User;
 import com.homi.model.mapper.SysUserRoleMapper;
 import com.homi.model.mapper.UserMapper;
-import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
