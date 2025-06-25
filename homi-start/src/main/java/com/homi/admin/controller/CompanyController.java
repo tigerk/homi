@@ -31,7 +31,7 @@ public class CompanyController {
     }
 
     @PostMapping("/create")
-    public ResponseResult<Boolean> list(@RequestBody CompanyCreateDTO createDTO) {
+    public ResponseResult<Boolean> createCompany(@RequestBody CompanyCreateDTO createDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         createDTO.setUpdateBy(currentUser.getId());
         createDTO.setUpdateTime(DateUtil.date());
