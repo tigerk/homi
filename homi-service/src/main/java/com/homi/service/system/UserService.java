@@ -165,9 +165,7 @@ public class UserService {
 
     }
 
-    public UserVO getUserById(Long id) {
-        User user = userMapper.selectById(id);
-
-        return BeanCopyUtils.copyBean(user, UserVO.class);
+    public User getUserById(Long id) {
+        return userMapper.selectById(id);
     }
 }

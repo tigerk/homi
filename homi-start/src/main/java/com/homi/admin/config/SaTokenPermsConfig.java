@@ -3,17 +3,22 @@ package com.homi.admin.config;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.hutool.core.lang.Pair;
 import com.homi.admin.auth.service.AuthService;
+import com.homi.domain.vo.menu.AsyncRoutesVO;
+import com.homi.model.entity.User;
 import com.homi.service.system.SysRoleService;
+import com.homi.service.system.UserService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class SaTokenPermsConfig implements StpInterface {
     private final AuthService authService;
+
+    private final UserService userService;
 
     private final SysRoleService sysRoleService;
 
@@ -22,9 +27,11 @@ public class SaTokenPermsConfig implements StpInterface {
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        Pair<List<Long>, ArrayList<String>> roleList = authService.getRoleList(Long.valueOf(loginId.toString()));
+        User userById = userService.getUserById(Long.valueOf(loginId.toString()));
 
-        return sysRoleService.getMenuPermissionByRoles(roleList.getKey());
+        Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = authService.getUserAuth(userById);
+
+        return userAuth.getRight();
     }
 
     /**
@@ -32,7 +39,10 @@ public class SaTokenPermsConfig implements StpInterface {
      */
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        return authService.getRoleList(Long.valueOf(loginId.toString())).getValue();
+        User userById = userService.getUserById(Long.valueOf(loginId.toString()));
 
+        Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = authService.getUserAuth(userById);
+
+        return userAuth.getLeft().getValue();
     }
 }

@@ -16,7 +16,6 @@ import com.homi.domain.vo.menu.MenuVO;
 import com.homi.domain.vo.menu.SimpleMenuVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.CompanyPackage;
-import com.homi.model.entity.SysMenu;
 import com.homi.model.repo.CompanyPackageRepo;
 import com.homi.service.system.SysMenuService;
 import com.homi.utils.BeanCopyUtils;
@@ -131,7 +130,7 @@ public class CompanyPackageService {
      */
     public List<SimpleMenuVO> getMenuList() {
         MenuQueryDTO queryDTO = new MenuQueryDTO();
-        List<MenuVO> menuList = sysMenuService.getMenuList(queryDTO);
+        List<MenuVO> menuList = sysMenuService.getPlatformMenuList(queryDTO);
 
         return menuList.stream().map(sysMenu -> BeanCopyUtils.copyBean(sysMenu, SimpleMenuVO.class)).toList();
     }

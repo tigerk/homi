@@ -74,7 +74,7 @@ public class SysRoleService {
 
     public boolean hasSuperAdmin(List<Long> ids) {
         for (Long id : ids) {
-            if (id.equals(RoleDefaultEnum.SUPERADMIN.getId())) {
+            if (id.equals(RoleDefaultEnum.PLATFORM_SUPER_ADMIN.getId())) {
                 return true;
             }
         }

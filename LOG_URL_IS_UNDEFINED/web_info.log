@@ -1,1 +1,0 @@
-2025-06-18 10:29:07.674 [SpringApplicationShutdownHook] INFO  o.s.boot.web.embedded.tomcat.GracefulShutdown - Commencing graceful shutdown. Waiting for active requests to complete

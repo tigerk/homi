@@ -143,6 +143,11 @@ public class MenuVO {
     private Integer showParent;
 
     /**
+     * 是否为平台菜单（0否 1是）
+     */
+    private Integer isPlatform;
+
+    /**
      * 创建者
      */
     private Long createBy;

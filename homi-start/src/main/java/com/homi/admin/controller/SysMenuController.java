@@ -50,7 +50,7 @@ public class SysMenuController {
     @PostMapping("/list")
 //    @SaCheckPermission("system:menu:query")
     public ResponseResult<List<MenuVO>> listMenu(MenuQueryDTO queryDTO) {
-        return ResponseResult.ok(sysMenuService.getMenuList(queryDTO));
+        return ResponseResult.ok(sysMenuService.getPlatformMenuList(queryDTO));
     }
 
     /**

@@ -17,11 +17,11 @@ public enum RoleDefaultEnum {
     /**
      * 超级管理员
      */
-    SUPERADMIN(1L, "超级管理员", "super-admin"),
+    PLATFORM_SUPER_ADMIN(1L, "公司管理员", "platform-admin"),
     /**
      * 管理员
      */
-    ADMIN(2L, "管理员", "admin"),
+    COMPANY_ADMIN(2L, "公司管理员", "company-admin"),
     /**
      * 普通用户
      */

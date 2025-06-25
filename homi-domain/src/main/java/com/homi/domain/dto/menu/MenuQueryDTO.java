@@ -6,4 +6,6 @@ import lombok.Data;
 public class MenuQueryDTO {
 
     private Integer visible;
+
+    private Integer isPlatform;
 }

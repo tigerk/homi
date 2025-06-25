@@ -45,7 +45,7 @@ public class SysMenuService {
      * @param queryDTO 查询实体
      * @return 所有数据
      */
-    public List<MenuVO> getMenuList(MenuQueryDTO queryDTO) {
+    public List<MenuVO> getPlatformMenuList(MenuQueryDTO queryDTO) {
         LambdaQueryWrapper<SysMenu> query = new LambdaQueryWrapper<>();
 
         if (Objects.nonNull(queryDTO.getVisible())) {
@@ -62,7 +62,6 @@ public class SysMenuService {
         }).collect(Collectors.toList());
     }
 
-
     public List<AsyncRoutesVO> buildMenuTreeByRoles(List<Long> roleIdList) {
         List<SysMenu> sysMenuList = sysMenuMapper.listRoleMenuByRoles(roleIdList, false);
         return buildMenuTree(sysMenuList);
@@ -71,7 +70,7 @@ public class SysMenuService {
     public List<SimpleMenuVO> listSimpleMenu() {
         MenuQueryDTO menuQueryDTO = new MenuQueryDTO();
         menuQueryDTO.setVisible(BooleanEnum.FALSE.getValue());
-        List<MenuVO> menuList = getMenuList(menuQueryDTO);
+        List<MenuVO> menuList = getPlatformMenuList(menuQueryDTO);
 
         return menuList.stream().map(m -> {
             SimpleMenuVO simpleMenuVO = new SimpleMenuVO();
@@ -106,7 +105,7 @@ public class SysMenuService {
      * @param menuList 菜单列表
      * @return 菜单树
      */
-    private List<AsyncRoutesVO> buildMenuTree(List<SysMenu> menuList) {
+    public List<AsyncRoutesVO> buildMenuTree(List<SysMenu> menuList) {
         List<AsyncRoutesVO> rootNodes = new ArrayList<>();
         for (SysMenu menu : menuList) {
             if (menu.getParentId() == null || menu.getParentId() == 0) {
@@ -187,5 +186,33 @@ public class SysMenuService {
 
     public void updateById(SysMenu sysMenu) {
         sysMenuRepo.updateById(sysMenu);
+    }
+
+    /**
+     * 菜单数据
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/6/25 14:17
+     *
+     * @return java.util.List<com.homi.model.entity.SysMenu>
+     */
+    public List<SysMenu> getPlatformMenuList() {
+        LambdaQueryWrapper<SysMenu> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysMenu::getIsPlatform, BooleanEnum.TRUE.getValue());
+
+        return sysMenuRepo.getBaseMapper().selectList(queryWrapper);
+    }
+
+    /**
+     * 根据菜单id列表获取菜单数据
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/6/25 14:17
+     *
+     * @param menuIdList 参数说明
+     * @return java.util.List<com.homi.model.entity.SysMenu>
+     */
+    public List<SysMenu> getMenuByIds(List<Long> menuIdList) {
+        return sysMenuMapper.selectBatchIds(menuIdList);
     }
 }

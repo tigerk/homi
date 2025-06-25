@@ -3,6 +3,7 @@ package com.homi.admin.auth.service;
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
@@ -11,20 +12,28 @@ import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.login.UserLoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
+import com.homi.domain.enums.common.MenuTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
-import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.enums.common.StatusEnum;
+import com.homi.domain.enums.common.UserTypeEnum;
+import com.homi.domain.vo.company.CompanyListVO;
 import com.homi.domain.vo.menu.AsyncRoutesVO;
+import com.homi.domain.vo.user.UserVO;
 import com.homi.exception.BizException;
+import com.homi.model.entity.SysMenu;
 import com.homi.model.entity.SysRole;
 import com.homi.model.entity.SysUserRole;
 import com.homi.model.entity.User;
 import com.homi.model.mapper.SysRoleMapper;
 import com.homi.model.mapper.SysUserRoleMapper;
 import com.homi.model.mapper.UserMapper;
+import com.homi.service.company.CompanyPackageService;
+import com.homi.service.company.CompanyService;
 import com.homi.service.system.SysMenuService;
 import com.homi.service.system.SysRoleService;
+import com.homi.service.system.UserService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -54,6 +63,11 @@ public class AuthService {
     private final SysRoleMapper sysRoleMapper;
     private final SysMenuService sysMenuService;
     private final SysRoleService sysRoleService;
+
+    private final CompanyPackageService companyPackageService;
+
+    private final CompanyService companyService;
+    private final UserService userService;
 
     // jwt 密钥
     @Value("${jwt.secret}")
@@ -145,31 +159,63 @@ public class AuthService {
             throw new BizException(ResponseCodeEnum.LOGIN_ERROR);
         }
 
-        // 查询用户角色
-        Pair<List<Long>, ArrayList<String>> roleList = getRoleList(user.getId());
-        List<Long> roleIdList = roleList.getKey();
-        ArrayList<String> roleCodeList = roleList.getValue();
+        // 获取用户权限和菜单树
+        Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = getUserAuth(user);
 
+
+        UserLoginVO userLoginVO = loginSession(user.getId());
+        BeanUtils.copyProperties(user, userLoginVO);
+        userLoginVO.setRoles(userAuth.getLeft().getValue());
+        userLoginVO.setPermissions(userAuth.getRight());
+
+        // 用户角色code与权限,用户名存入缓存
+        SaSession currentSession = StpUtil.getSession();
+        currentSession.set(SaSession.ROLE_LIST, userAuth.getLeft().getValue());
+        currentSession.set(SaSession.PERMISSION_LIST, userAuth.getRight());
+
+        return userLoginVO;
+    }
+
+    public Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> getUserAuth(User user) {
+        if (user.getUserType().equals(UserTypeEnum.PLATFORM_SUPER_ADMIN.getType()) || user.getUserType().equals(UserTypeEnum.COMPANY_ADMIN.getType())) {
+            List<SysMenu> menuList;
+
+            // 平台管理员
+            if (user.getUserType().equals(UserTypeEnum.PLATFORM_SUPER_ADMIN.getType())) {
+                // 获取平台管理员菜单列表
+                menuList = sysMenuService.getPlatformMenuList();
+            } else {
+                // 获取公司管理员菜单列表
+                CompanyListVO companyById = companyService.getCompanyById(user.getCompanyId());
+                List<Long> menusById = companyPackageService.getMenusById(companyById.getPackageId());
+                menuList = sysMenuService.getMenuByIds(menusById);
+            }
+
+            List<SysMenu> menuTreeList = menuList.stream()
+                    .filter(m -> !m.getMenuType().equals(MenuTypeEnum.BUTTON.getType()))
+                    .collect(Collectors.toList());
+
+            List<String> permList = menuList.stream()
+                    .filter(m -> m.getMenuType().equals(MenuTypeEnum.BUTTON.getType()))
+                    .map(SysMenu::getAuths)
+                    .collect(Collectors.toList());
+
+            List<AsyncRoutesVO> asyncRoutesVOS = sysMenuService.buildMenuTree(menuTreeList);
+
+            return Triple.of(Pair.of(new ArrayList<>(), new ArrayList<>()), asyncRoutesVOS, permList);
+        }
+
+        // 查询用户角色
+        Pair<List<Long>, List<String>> roleList = getRoleList(user.getId());
         // 构建菜单树
-        List<AsyncRoutesVO> asyncRoutesVOList = sysMenuService.buildMenuTreeByRoles(roleIdList);
+        List<AsyncRoutesVO> asyncRoutesVOList = sysMenuService.buildMenuTreeByRoles(roleList.getKey());
         if (asyncRoutesVOList.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NO_ACCESS);
         }
 
-        List<String> menuPermissionByRoles = sysRoleService.getMenuPermissionByRoles(roleIdList);
+        List<String> menuPermissionByRoles = sysRoleService.getMenuPermissionByRoles(roleList.getKey());
 
-        UserLoginVO userLoginVO = loginSession(user.getId());
-        BeanUtils.copyProperties(user, userLoginVO);
-        userLoginVO.setRoles(roleCodeList);
-        userLoginVO.setPermissions(menuPermissionByRoles);
-        userLoginVO.setAsyncRoutes(asyncRoutesVOList);
-
-        // 用户角色code与权限,用户名存入缓存
-        SaSession currentSession = StpUtil.getSession();
-        currentSession.set(SaSession.ROLE_LIST, roleCodeList);
-        currentSession.set(SaSession.PERMISSION_LIST, menuPermissionByRoles);
-
-        return userLoginVO;
+        return Triple.of(roleList, asyncRoutesVOList, menuPermissionByRoles);
     }
 
     /**
@@ -181,38 +227,31 @@ public class AuthService {
      * @param userId 参数说明
      * @return cn.hutool.core.lang.Pair<java.util.List < java.lang.Long>,java.util.ArrayList<java.lang.String>>
      */
-    public Pair<List<Long>, ArrayList<String>> getRoleList(Long userId) {
+    public Pair<List<Long>, List<String>> getRoleList(Long userId) {
         List<SysUserRole> userRoleList = sysUserRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, userId));
         if (userRoleList.isEmpty()) {
             return Pair.of(new ArrayList<>(), new ArrayList<>());
         }
 
         List<Long> roleIdList = userRoleList.stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
-        List<SysRole> sysRoles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRole>().in(SysRole::getId, roleIdList));
-        ArrayList<String> roleCodeList = new ArrayList<>();
-        boolean existDisable = false;
-        boolean hasSuperAdmin = false;
-        for (SysRole role : sysRoles) {
-            roleCodeList.add(role.getRoleCode());
-            if (role.getStatus() == StatusEnum.DISABLED.getValue()) {
-                existDisable = true;
-            }
-            if (role.getId().equals(RoleDefaultEnum.SUPERADMIN.getId())) {
-                hasSuperAdmin = true;
-            }
+        List<SysRole> sysRoles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRole>().in(SysRole::getId, roleIdList)
+                .eq(SysRole::getStatus, StatusEnum.ACTIVE.getValue())
+        );
+
+        if (CollUtil.isEmpty(sysRoles)) {
+            throw new BizException(ResponseCodeEnum.USER_NO_ACCESS);
         }
-        if (existDisable && !hasSuperAdmin) {
-            throw new BizException(ResponseCodeEnum.ROLE_FREEZE);
-        }
+
+        List<String> roleCodeList = sysRoles.stream().map(SysRole::getRoleCode).collect(Collectors.toList());
 
         return Pair.of(roleIdList, roleCodeList);
     }
 
     public List<AsyncRoutesVO> getUserRoutes(Long userId) {
-        Pair<List<Long>, ArrayList<String>> roleList = getRoleList(userId);
-        List<Long> roleIdList = roleList.getKey();
-        ArrayList<String> roleCodeList = roleList.getValue();
+        User userById = userService.getUserById(userId);
+
+        Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = getUserAuth(userById);
         // 构建菜单树
-        return sysMenuService.buildMenuTreeByRoles(roleIdList);
+        return userAuth.getMiddle();
     }
 }

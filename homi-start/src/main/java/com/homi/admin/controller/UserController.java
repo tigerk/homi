@@ -53,7 +53,10 @@ public class UserController {
     @GetMapping("/detail/{id}")
     @SaCheckPermission("system:user:detail")
     public ResponseResult<UserVO> detail(@PathVariable("id") Long id) {
-        return ResponseResult.ok(userService.getUserById(id));
+        User userById = userService.getUserById(id);
+        UserVO userVO = BeanCopyUtils.copyBean(userById, UserVO.class);
+
+        return ResponseResult.ok(userVO);
     }
 
     /**
