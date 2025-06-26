@@ -167,4 +167,13 @@ public class UserService {
     public User getUserById(Long id) {
         return userMapper.selectById(id);
     }
+
+    public void updateUserStatusByCompanyId(Long companyId, int status) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getCompanyId, companyId);
+
+        User updateUser = new User();
+        updateUser.setStatus(status);
+        userMapper.update(updateUser, queryWrapper);
+    }
 }

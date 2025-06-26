@@ -218,5 +218,13 @@ public class CompanyService {
     }
 
     public void changeStatus(CompanyCreateDTO createDTO) {
+        Company company = companyRepo.getBaseMapper().selectById(createDTO.getId());
+        company.setStatus(createDTO.getStatus());
+
+        if (createDTO.getStatus().equals(StatusEnum.DISABLED.getValue())) {
+            userService.updateUserStatusByCompanyId(company.getId(), StatusEnum.DISABLED.getValue());
+        }
+
+        companyRepo.updateById(company);
     }
 }

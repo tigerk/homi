@@ -9,6 +9,8 @@ import cn.dev33.satoken.router.SaHttpMethod;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpLogic;
 import cn.dev33.satoken.stp.StpUtil;
+import com.homi.admin.auth.vo.login.UserLoginVO;
+import com.homi.config.MyBatisTenantContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +47,10 @@ public class SaTokenConfig implements WebMvcConfigurer {
                 StpUtil.checkLogin();
                 // 续签
                 StpUtil.renewTimeout(SaManager.getConfig().getTimeout());
+
+                // 获取用户信息，注入到当前上下文
+                UserLoginVO currentUser = LoginManager.getCurrentUser();
+                MyBatisTenantContext.setCurrentTenant(currentUser.getCompanyId());
             });
         })).addPathPatterns("/**");
         // 重复提交

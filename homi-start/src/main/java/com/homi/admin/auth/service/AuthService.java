@@ -12,6 +12,7 @@ import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.login.UserLoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
+import com.homi.config.MyBatisTenantContext;
 import com.homi.domain.enums.common.MenuTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.StatusEnum;
@@ -119,6 +120,9 @@ public class AuthService {
         if (Objects.isNull(user)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
+
+        // 设置当前用户的公司Id，用于查询时进行租户隔离
+        MyBatisTenantContext.setCurrentTenant(user.getCompanyId());
 
         // 用户角色code与权限,用户名存入缓存
         SaSession currentSession = StpUtil.getSession();

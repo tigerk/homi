@@ -38,6 +38,16 @@ public class UserLoginVO {
     private String username;
 
     /**
+     * 用户类型，参考UserTypeEnum
+     */
+    private Integer userType;
+
+    /**
+     * companyId 为空 → 平台用户
+     */
+    private Long companyId;
+
+    /**
      * 邮箱
      */
     private String email;
