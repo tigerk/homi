@@ -176,4 +176,22 @@ public class UserService {
         updateUser.setStatus(status);
         userMapper.update(updateUser, queryWrapper);
     }
+
+    /**
+     * 获取公司的人员
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/6/26 09:31
+     *
+     * @param companyId 参数说明
+     * @param type      参数说明
+     * @return java.util.List<com.homi.model.entity.User>
+     */
+    public List<User> getCompanyUserByType(Long companyId, Integer type) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getCompanyId, companyId);
+        queryWrapper.eq(User::getUserType, type);
+
+        return userMapper.selectList(queryWrapper);
+    }
 }
