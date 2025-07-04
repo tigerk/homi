@@ -38,12 +38,10 @@
         user.create_time,
         user.create_by,
         user.register_source,
-        d.name as dept_name,
-        user.dept_id,
         user.company_id
         FROM user
-        left join homi.dept d on d.id = user.dept_id
         <where>
+            user.company_id = #{query.companyId}
             <if test="query.username != null and query.username != ''">
                 AND user.username LIKE CONCAT('%', #{query.username}
                 , '%')

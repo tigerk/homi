@@ -4,6 +4,7 @@ package com.homi.admin.controller;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.annotation.RepeatSubmit;
+import com.homi.config.MyBatisTenantContext;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.user.*;
@@ -41,6 +42,8 @@ public class UserController {
     @PostMapping("/list")
     @SaCheckPermission("system:user:query")
     public ResponseResult<PageVO<UserVO>> list(@RequestBody UserQueryDTO queryDTO) {
+        queryDTO.setCompanyId(MyBatisTenantContext.getCurrentTenant());
+
         return ResponseResult.ok(userService.getUserList(queryDTO));
     }
 

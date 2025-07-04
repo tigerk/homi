@@ -1,35 +1,17 @@
-package com.homi.model.entity;
+package com.homi.domain.dto.dept;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.util.Date;
 
-/**
- * <p>
- * 部门表
- * </p>
- *
- * @author tk
- * @since 2025-07-03
- */
-@EqualsAndHashCode(callSuper = false)
 @Data
-@ToString(callSuper = true)
-public class Dept implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
-
+@Schema(description = "公司创建对象")
+public class DeptCreateDTO {
     /**
-     * 主键
+     * 主键ID
      */
-    @TableId(value = "id", type = IdType.AUTO)
+    @Schema(description = "id，修改时需要传")
     private Long id;
 
     /**
@@ -37,49 +19,49 @@ public class Dept implements Serializable {
      */
     private Long companyId;
 
-    /**
-     * 部门名称
-     */
+    @Schema(description = "部门名称")
     private String name;
 
     /**
      * 父节点id
      */
+    @Schema(description = "父节点id")
     private Long parentId;
 
     /**
      * 部门负责人
      */
+    @Schema(description = "部门负责人")
     private String principal;
 
     /**
      * 部门负责人手机号
      */
+    @Schema(description = "部门负责人手机号")
     private String phone;
 
     /**
      * 邮箱
      */
+    @Schema(description = "邮箱")
     private String email;
-
-    /**
-     * 父节点id路径
-     */
-    private String treePath;
 
     /**
      * 显示顺序
      */
+    @Schema(description = "显示顺序")
     private Integer sort;
 
     /**
      * 状态（1，0不启用）
      */
+    @Schema(description = "状态（1，0不启用）")
     private Integer status;
 
     /**
      * 备注
      */
+    @Schema(description = "备注")
     private String remark;
 
     /**
@@ -101,10 +83,4 @@ public class Dept implements Serializable {
      * 更新人
      */
     private Long updateBy;
-
-    /**
-     * 是否删除（0否1是）
-     */
-    @TableLogic
-    private Integer deleted;
 }

@@ -11,12 +11,14 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.user.UserQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.StatusEnum;
+import com.homi.domain.vo.dept.DeptSimpleVO;
 import com.homi.domain.vo.user.UserVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysUserRole;
 import com.homi.model.entity.User;
 import com.homi.model.mapper.SysUserRoleMapper;
 import com.homi.model.mapper.UserMapper;
+import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -46,6 +48,8 @@ public class UserService {
     private final SysConfigService sysConfigService;
 
     private final SysRoleService roleService;
+
+    private final DeptService deptService;
 
     @Value("${default-avatar}")
     private String defaultAvatar;
@@ -90,11 +94,18 @@ public class UserService {
 
     public PageVO<UserVO> getUserList(UserQueryDTO query) {
         Page<UserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
+
         IPage<UserVO> userVOPage = userMapper.selectUserList(page, query);
+
+        List<UserVO> records = userVOPage.getRecords();
+        records.forEach(userVO -> {
+            DeptSimpleVO deptSimpleVO = BeanCopyUtils.copyBean(deptService.getUserDept(userVO.getId()), DeptSimpleVO.class);
+            userVO.setDept(deptSimpleVO);
+        });
 
         PageVO<UserVO> pageVO = new PageVO<>();
         pageVO.setTotal(userVOPage.getTotal());
-        pageVO.setList(userVOPage.getRecords());
+        pageVO.setList(records);
         pageVO.setCurrentPage(userVOPage.getCurrent());
         pageVO.setPageSize(userVOPage.getSize());
         pageVO.setPages(userVOPage.getPages());

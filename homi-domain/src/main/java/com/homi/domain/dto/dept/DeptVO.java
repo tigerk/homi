@@ -1,11 +1,6 @@
-package com.homi.model.entity;
+package com.homi.domain.dto.dept;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -19,17 +14,16 @@ import java.util.Date;
  * @author tk
  * @since 2025-07-03
  */
-@EqualsAndHashCode(callSuper = false)
 @Data
-@ToString(callSuper = true)
-public class Dept implements Serializable {
+@AllArgsConstructor
+@NoArgsConstructor
+public class DeptVO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
     /**
      * 主键
      */
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -101,10 +95,4 @@ public class Dept implements Serializable {
      * 更新人
      */
     private Long updateBy;
-
-    /**
-     * 是否删除（0否1是）
-     */
-    @TableLogic
-    private Integer deleted;
 }

@@ -149,7 +149,7 @@ public class AuthService {
     @Transactional(rollbackFor = Exception.class)
     public UserLoginVO login(UserLoginDTO userLoginDTO) {
         // 校验用户是否存在
-        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, userLoginDTO.getUsername()).or().eq(User::getEmail, userLoginDTO.getUsername()));
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, userLoginDTO.getUsername()).or().eq(User::getPhone, userLoginDTO.getUsername()));
         if (Objects.isNull(user)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }

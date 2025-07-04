@@ -12,6 +12,8 @@ public class UserQueryDTO extends BasePageDTO {
 
     private String username;
 
+    private Long companyId;
+
     private String email;
 
     private String phone;

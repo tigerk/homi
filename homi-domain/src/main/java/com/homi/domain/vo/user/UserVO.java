@@ -1,5 +1,6 @@
 package com.homi.domain.vo.user;
 
+import com.homi.domain.vo.dept.DeptSimpleVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -20,9 +21,7 @@ public class UserVO {
 
     private Long companyId;
 
-    private Long deptId;
-
-    private String deptName;
+    private DeptSimpleVO dept;
 
     /**
      * 邮箱号
