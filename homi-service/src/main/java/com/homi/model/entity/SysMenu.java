@@ -1,16 +1,17 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.util.Date;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -18,172 +19,144 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-06-22
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("sys_menu")
+@TableName("public.sys_menu")
+@Schema(name = "SysMenu", description = "菜单表")
 public class SysMenu implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 菜单ID
-     */
-    @TableId(value = "id", type = IdType.AUTO)
+    @Schema(description = "菜单ID")
+    @TableId("id")
     private Long id;
 
-    /**
-     * 菜单名称
-     */
+    @Schema(description = "菜单名称")
+    @TableField("title")
     private String title;
 
-    /**
-     * 路由名称
-     */
+    @Schema(description = "路由名称")
+    @TableField("name")
     private String name;
 
-    /**
-     * 菜单类型（0代表菜单、1代表iframe、2代表外链、3代表按钮）
-     */
+    @Schema(description = "菜单类型（0代表菜单、1代表iframe、2代表外链、3代表按钮）")
+    @TableField("menu_type")
     private Integer menuType;
 
-    /**
-     * 父菜单ID
-     */
+    @Schema(description = "父菜单ID")
+    @TableField("parent_id")
     private Long parentId;
 
-    /**
-     * 路由地址
-     */
+    @Schema(description = "路由地址")
+    @TableField("path")
     private String path;
 
-    /**
-     * 组件路径
-     */
+    @Schema(description = "组件路径")
+    @TableField("component")
     private String component;
 
-    /**
-     * 路由参数
-     */
+    @Schema(description = "路由参数")
+    @TableField("query")
     private String query;
 
-    /**
-     * 菜单排序（平台规定只有home路由的rank才能为0，所以后端在返回rank的时候需要从非0开始 点击查看更多）
-     */
+    @Schema(description = "菜单排序（平台规定只有home路由的rank才能为0，所以后端在返回rank的时候需要从非0开始 点击查看更多）")
+    @TableField("sort")
     private Integer sort;
 
-    /**
-     * 路由重定向
-     */
+    @Schema(description = "路由重定向")
+    @TableField("redirect")
     private String redirect;
 
-    /**
-     * 菜单图标
-     */
+    @Schema(description = "菜单图标")
+    @TableField("icon")
     private String icon;
 
-    /**
-     * 右侧菜单图标
-     */
+    @Schema(description = "右侧菜单图标")
+    @TableField("extra_icon")
     private String extraIcon;
 
-    /**
-     * 菜单状态（0显示 1隐藏）
-     */
+    @Schema(description = "菜单状态（1显示 0隐藏）")
+    @TableField("visible")
     private Integer visible;
 
-    /**
-     * 权限标识
-     */
+    @Schema(description = "权限标识")
+    @TableField("auths")
     private String auths;
 
-    /**
-     * 进场动画
-     */
+    @Schema(description = "进场动画")
+    @TableField("enter_transition")
     private String enterTransition;
 
-    /**
-     * 离场动画
-     */
+    @Schema(description = "离场动画")
+    @TableField("leave_transition")
     private String leaveTransition;
 
-    /**
-     * 菜单所属平台（0后台 1前台）
-     */
+    @Schema(description = "菜单所属平台（0后台 1前台）")
+    @TableField("platform_type")
     private Integer platformType;
 
-    /**
-     * 备注
-     */
+    @Schema(description = "备注")
+    @TableField("remark")
     private String remark;
 
+    @TableField("active_path")
     private String activePath;
 
-    /**
-     * iframe页面地址
-     */
+    @Schema(description = "iframe页面地址")
+    @TableField("frame_src")
     private String frameSrc;
 
-    /**
-     * 内嵌的iframe页面是否开启首次加载动画（0否 1是）
-     */
+    @Schema(description = "内嵌的iframe页面是否开启首次加载动画（0否 1是）")
+    @TableField("frame_loading")
     private Integer frameLoading;
 
-    /**
-     * 路由组件缓存（开启 `true`、关闭 `false`）`可选
-     */
+    @Schema(description = "路由组件缓存（开启 `true`、关闭 `false`）`可选")
+    @TableField("keep_alive")
     private Integer keepAlive;
 
-    /**
-     * 当前菜单名称或自定义信息禁止添加到标签页（默认`false`）
-     */
+    @Schema(description = "当前菜单名称或自定义信息禁止添加到标签页（默认`false`）")
+    @TableField("hidden_tag")
     private Integer hiddenTag;
 
-    /**
-     * 当前菜单名称是否固定显示在标签页且不可关闭（默认`false`）
-     */
+    @Schema(description = "当前菜单名称是否固定显示在标签页且不可关闭（默认`false`）")
+    @TableField("fixed_tag")
     private Integer fixedTag;
 
-    /**
-     * 是否在菜单中显示（默认`true`）`可选
-     */
+    @Schema(description = "是否在菜单中显示（默认`true`）`可选")
+    @TableField("show_link")
     private Integer showLink;
 
-    /**
-     * 是否显示父级菜单 `可选`
-     */
+    @Schema(description = "是否显示父级菜单 `可选`")
+    @TableField("show_parent")
     private Integer showParent;
 
-    /**
-     * 是不是平台的（0非平台；1：平台菜单）
-     */
-    private Integer isPlatform;
+    @Schema(description = "是不是平台的（0非平台；1：平台菜单）")
+    @TableField("is_platform")
+    private Boolean isPlatform;
 
-    /**
-     * 0未删除；1：删除
-     */
+    @Schema(description = "0未删除；1：删除")
+    @TableField("deleted")
     @TableLogic
     private Integer deleted;
 
-    /**
-     * 创建者
-     */
+    @Schema(description = "创建者")
+    @TableField("create_by")
     private Long createBy;
 
-    /**
-     * 创建时间
-     */
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    /**
-     * 更新者
-     */
+    @Schema(description = "更新者")
+    @TableField("update_by")
     private Long updateBy;
 
-    /**
-     * 更新时间
-     */
+    @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 }

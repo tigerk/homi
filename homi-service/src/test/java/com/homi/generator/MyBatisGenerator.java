@@ -66,7 +66,7 @@ public class MyBatisGenerator {
 //                        "sys_notice_user_read",
 //                        "sys_notice_role",
 //                        "sys_notice",
-//                        "sys_menu",
+                        "sys_menu",
 //                        "sys_login_log",
 //                        "sys_file_content",
 //                        "sys_file_config",
@@ -138,7 +138,7 @@ public class MyBatisGenerator {
 
         // 当字段长度大于1时,默认转换成Byte,符合类型长度范围,如果想继续转换成Integer.
         dataSourceConfig.typeConvertHandler((globalConfig, typeRegistry, metaInfo) -> {
-            if (JdbcType.TINYINT == metaInfo.getJdbcType() || JdbcType.SMALLINT == metaInfo.getJdbcType() || JdbcType.INTEGER == metaInfo.getJdbcType() || JdbcType.BIT == metaInfo.getJdbcType()) {
+            if (JdbcType.TINYINT == metaInfo.getJdbcType() || JdbcType.SMALLINT == metaInfo.getJdbcType() || JdbcType.INTEGER == metaInfo.getJdbcType()) {
                 return DbColumnType.INTEGER;
             }
 
