@@ -1,8 +1,11 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -17,114 +20,98 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-06-12
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("user")
+@TableName("public.user")
+@Schema(name = "User", description = "用户表")
 public class User implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键（用户id）
-     */
-    @TableId(value = "id", type = IdType.AUTO)
+    @Schema(description = "主键（用户id）")
+    @TableId("id")
     private Long id;
 
-    /**
-     * 用户名（登录名）
-     */
+    @Schema(description = "用户名（登录名）")
+    @TableField("username")
     private String username;
 
-    /**
-     * 密码
-     */
+    @Schema(description = "密码")
+    @TableField("password")
     private String password;
 
-    /**
-     * 用户类型，参考UserTypeEnum
-     */
+    @Schema(description = "用户类型，参考UserTypeEnum")
+    @TableField("user_type")
     private Integer userType;
 
-    /**
-     * companyId 为空 → 平台用户
-     */
+    @Schema(description = "companyId 为空 → 平台用户")
+    @TableField("company_id")
     private Long companyId;
 
-    /**
-     * 部门id
-     */
+    @Schema(description = "部门id")
+    @TableField("dept_id")
     private Long deptId;
 
-    /**
-     * 邮箱号
-     */
+    @Schema(description = "邮箱号")
+    @TableField("email")
     private String email;
 
-    /**
-     * 手机号
-     */
+    @Schema(description = "手机号")
+    @TableField("phone")
     private String phone;
 
-    /**
-     * 昵称
-     */
+    @Schema(description = "昵称")
+    @TableField("nickname")
     private String nickname;
 
-    /**
-     * 头像
-     */
+    @Schema(description = "头像")
+    @TableField("avatar")
     private String avatar;
 
-    /**
-     * 简介
-     */
+    @Schema(description = "简介")
+    @TableField("remark")
     private String remark;
 
-    /**
-     * 性别（0未知，1男，2女）
-     */
+    @Schema(description = "性别（0未知，1男，2女）")
+    @TableField("gender")
     private Integer gender;
 
-    /**
-     * 出生日期
-     */
+    @Schema(description = "出生日期")
+    @TableField("birthday")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date birthday;
 
-    /**
-     * 状态（0正常，-1禁用）
-     */
+    @Schema(description = "状态（0正常，-1禁用）")
+    @TableField("status")
     private Integer status;
 
-    /**
-     * 创建时间
-     */
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    /**
-     * 创建人
-     */
+    @Schema(description = "创建人")
+    @TableField("create_by")
     private Long createBy;
 
-    /**
-     * 更新时间
-     */
+    @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
-    /**
-     * 更新人
-     */
+    @Schema(description = "更新人")
+    @TableField("update_by")
     private Long updateBy;
 
-    /**
-     * 注册来源
-     */
+    @Schema(description = "注册来源")
+    @TableField("register_source")
     private String registerSource;
 
-    /**
-     * 是否删除（0否1是）
-     */
+    @Schema(description = "是否删除（0否1是）")
+    @TableField("deleted")
+    @TableLogic
     private Integer deleted;
 }

@@ -1,7 +1,14 @@
 package com.homi.admin.controller;
 
+import com.homi.model.entity.User;
+import com.homi.model.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 应用于 homi-boot
@@ -12,7 +19,21 @@ import lombok.extern.slf4j.Slf4j;
  */
 
 
-@RequiredArgsConstructor
 @Slf4j
+@RequestMapping("/admin/test")
+@RestController
+@RequiredArgsConstructor
 public class TestController {
+    private final UserRepo userRepo;
+
+    /**
+     * 用户列表
+     *
+     * @return 所有数据
+     */
+    @GetMapping("/user")
+    public List<User> list() {
+        return userRepo.list();
+    }
+
 }
