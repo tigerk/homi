@@ -1,15 +1,16 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.util.Date;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -17,74 +18,64 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-06-12
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("sys_dict_data")
+@TableName("public.sys_dict_data")
+@Schema(name = "SysDictData", description = "字典数据表")
 public class SysDictData implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键ID
-     */
-    @TableId(value = "id", type = IdType.AUTO)
+    @Schema(description = "主键ID")
+    @TableId("id")
     private Long id;
 
-    /**
-     * 字典ID
-     */
+    @Schema(description = "字典ID")
+    @TableField("dict_id")
     private Long dictId;
 
-    /**
-     * 数据项名称
-     */
+    @Schema(description = "数据项名称")
+    @TableField("name")
     private String name;
 
-    /**
-     * 数据项值
-     */
+    @Schema(description = "数据项值")
+    @TableField("value")
     private String value;
 
-    /**
-     * 排序
-     */
+    @Schema(description = "排序")
+    @TableField("sort_order")
     private Integer sortOrder;
 
-    /**
-     * 颜色值
-     */
+    @Schema(description = "颜色值")
+    @TableField("color")
     private String color;
 
-    /**
-     * 状态（0开启 1关闭）
-     */
+    @Schema(description = "状态（0开启 1关闭）")
+    @TableField("status")
     private Integer status;
 
-    /**
-     * 创建者
-     */
+    @Schema(description = "创建者")
+    @TableField("create_by")
     private Long createBy;
 
-    /**
-     * 创建时间
-     */
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    /**
-     * 更新者
-     */
+    @Schema(description = "更新者")
+    @TableField("update_by")
     private Long updateBy;
 
-    /**
-     * 更新时间
-     */
+    @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
-    /**
-     * 备注
-     */
+    @Schema(description = "备注")
+    @TableField("remark")
     private String remark;
 }

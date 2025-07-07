@@ -1,15 +1,17 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.util.Date;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -17,59 +19,53 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-06-12
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("sys_file_content")
+@TableName("public.sys_file_content")
+@Schema(name = "SysFileContent", description = "文件内容表")
 public class SysFileContent implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 编号
-     */
-    @TableId(value = "id", type = IdType.AUTO)
+    @Schema(description = "编号")
+    @TableId("id")
     private Long id;
 
-    /**
-     * 配置编号
-     */
+    @Schema(description = "配置编号")
+    @TableField("config_id")
     private Long configId;
 
-    /**
-     * 文件路径
-     */
+    @Schema(description = "文件路径")
+    @TableField("path")
     private String path;
 
-    /**
-     * 文件内容
-     */
+    @Schema(description = "文件内容")
+    @TableField("content")
     private byte[] content;
 
-    /**
-     * 创建者
-     */
+    @Schema(description = "创建者")
+    @TableField("create_by")
     private Long createBy;
 
-    /**
-     * 创建时间
-     */
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    /**
-     * 更新者
-     */
+    @Schema(description = "更新者")
+    @TableField("update_by")
     private Long updateBy;
 
-    /**
-     * 更新时间
-     */
+    @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
-    /**
-     * 是否删除 0否1是
-     */
+    @Schema(description = "是否删除 0否1是")
+    @TableField("deleted")
+    @TableLogic
     private Integer deleted;
 }

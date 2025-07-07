@@ -11,9 +11,11 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.user.UserQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.StatusEnum;
+import com.homi.domain.enums.common.UserTypeEnum;
 import com.homi.domain.vo.dept.DeptSimpleVO;
 import com.homi.domain.vo.user.UserVO;
 import com.homi.exception.BizException;
+import com.homi.model.entity.Dept;
 import com.homi.model.entity.SysUserRole;
 import com.homi.model.entity.User;
 import com.homi.model.mapper.SysUserRoleMapper;
@@ -56,16 +58,25 @@ public class UserService {
 
     @Transactional(rollbackFor = Exception.class)
     public Long createUser(User user) {
-        validateUserUniqueness(null, user.getUsername(), user.getEmail(), user.getPhone());
-        user.setAvatar(sysConfigService.getConfigValueByKey(USER_DEFAULT_AVATAR));
-        // 密码加密
-        user.setPassword(SaSecureUtil.md5(user.getPassword()));
-        user.setCreateTime(DateUtil.date());
+        validateUserUniqueness(user.getId(), user.getUsername(), user.getEmail(), user.getPhone());
+        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        user.setUpdateTime(DateUtil.date());
 
-        if (Objects.isNull(user.getAvatar())) {
-            user.setAvatar(defaultAvatar);
+        if (Objects.nonNull(user.getId())) {
+            userMapper.updateById(user);
+            return user.getId();
         }
 
+        if (Objects.isNull(user.getPassword())) {
+            throw new BizException("密码不能为空");
+        }
+
+        user.setUserType(UserTypeEnum.COMPANY_USER.getType());
+        // 密码加密
+        user.setPassword(SaSecureUtil.md5(user.getPassword()));
+        user.setAvatar(sysConfigService.getConfigValueByKey(USER_DEFAULT_AVATAR));
+        user.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        user.setCreateTime(DateUtil.date());
         userMapper.insert(user);
 
         return user.getId();
@@ -99,8 +110,11 @@ public class UserService {
 
         List<UserVO> records = userVOPage.getRecords();
         records.forEach(userVO -> {
-            DeptSimpleVO deptSimpleVO = BeanCopyUtils.copyBean(deptService.getUserDept(userVO.getId()), DeptSimpleVO.class);
-            userVO.setDept(deptSimpleVO);
+            Dept deptById = deptService.getDeptById(userVO.getDeptId());
+            if (Objects.nonNull(deptById)) {
+                DeptSimpleVO deptSimpleVO = BeanCopyUtils.copyBean(deptById, DeptSimpleVO.class);
+                userVO.setDept(deptSimpleVO);
+            }
         });
 
         PageVO<UserVO> pageVO = new PageVO<>();

@@ -1,14 +1,17 @@
 package com.homi.model.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.util.Date;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -16,64 +19,57 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-06-16
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("company_package")
+@TableName("public.company_package")
+@Schema(name = "CompanyPackage", description = "公司套餐表")
 public class CompanyPackage implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键ID
-     */
+    @Schema(description = "主键ID")
+    @TableId("id")
     private Long id;
 
-    /**
-     * 套餐名称
-     */
+    @Schema(description = "套餐名称")
+    @TableField("name")
     private String name;
 
-    /**
-     * 关联菜单id
-     */
+    @Schema(description = "关联菜单id")
+    @TableField("package_menus")
     private String packageMenus;
 
-    /**
-     * 状态（0正常，0禁用）
-     */
+    @Schema(description = "状态（0正常，-1禁用）")
+    @TableField("status")
     private Integer status;
 
-    /**
-     * 备注
-     */
+    @Schema(description = "备注")
+    @TableField("remark")
     private String remark;
 
-    /**
-     * 创建时间
-     */
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    /**
-     * 创建人
-     */
+    @Schema(description = "创建人")
+    @TableField("create_by")
     private Long createBy;
 
-    /**
-     * 更新时间
-     */
+    @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
-    /**
-     * 更新人
-     */
+    @Schema(description = "更新人")
+    @TableField("update_by")
     private Long updateBy;
 
-    /**
-     * 是否删除（0否1是）
-     */
+    @Schema(description = "是否删除（0否1是）")
+    @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 }

@@ -1,8 +1,8 @@
 package com.homi.model.repo;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.entity.SysDictData;
 import com.homi.model.mapper.SysDictDataMapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 /**
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
  * </p>
  *
  * @author tk
- * @since 2025-04-17
+ * @since 2025-07-07
  */
 @Service
 public class SysDictDataRepo extends ServiceImpl<SysDictDataMapper, SysDictData> {

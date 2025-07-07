@@ -130,10 +130,10 @@ public class SysMenuService {
         meta.setTitle(menu.getTitle());
         meta.setIcon(menu.getIcon());
         meta.setRank(menu.getSort());
-        meta.setShowLink(BooleanEnum.fromValue(menu.getShowLink()));
-        meta.setShowParent(BooleanEnum.fromValue(menu.getShowParent()));
-        meta.setKeepAlive(BooleanEnum.fromValue(menu.getKeepAlive()));
-        meta.setFrameLoading(BooleanEnum.fromValue(menu.getFrameLoading()));
+        meta.setShowLink(menu.getShowLink());
+        meta.setShowParent(menu.getShowParent());
+        meta.setKeepAlive(menu.getKeepAlive());
+        meta.setFrameLoading(menu.getFrameLoading());
         meta.setAuths(Optional.ofNullable(menu.getAuths())
                 .map(List::of)
                 .orElse(Collections.emptyList()));
@@ -167,12 +167,12 @@ public class SysMenuService {
     public Boolean createMenu(MenuCreateDTO dto) {
         SysMenu sysMenu = BeanCopyUtils.copyBean(dto, SysMenu.class);
 
-        sysMenu.setFrameLoading(Boolean.TRUE.equals(dto.getFrameLoading()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
-        sysMenu.setKeepAlive(Boolean.TRUE.equals(dto.getKeepAlive()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
-        sysMenu.setHiddenTag(Boolean.TRUE.equals(dto.getHiddenTag()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
-        sysMenu.setFixedTag(Boolean.TRUE.equals(dto.getFixedTag()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
-        sysMenu.setShowLink(Boolean.TRUE.equals(dto.getShowLink()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
-        sysMenu.setShowParent(Boolean.TRUE.equals(dto.getShowParent()) ? BooleanEnum.TRUE.getValue() : BooleanEnum.FALSE.getValue());
+        sysMenu.setFrameLoading(dto.getFrameLoading());
+        sysMenu.setKeepAlive(dto.getKeepAlive());
+        sysMenu.setHiddenTag(dto.getHiddenTag());
+        sysMenu.setFixedTag(dto.getFixedTag());
+        sysMenu.setShowLink(dto.getShowLink());
+        sysMenu.setShowParent(dto.getShowParent());
         sysMenu.setIsPlatform(dto.getIsPlatform());
 
         if (Objects.isNull(dto.getId())) {

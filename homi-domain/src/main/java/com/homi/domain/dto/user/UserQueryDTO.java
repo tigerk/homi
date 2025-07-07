@@ -10,9 +10,14 @@ import lombok.EqualsAndHashCode;
 @Schema(description = "用户查询对象")
 public class UserQueryDTO extends BasePageDTO {
 
+    @Schema(description = "用户名")
     private String username;
 
+    @Schema(description = "公司ID")
     private Long companyId;
+
+    @Schema(description = "部门ID")
+    private Long deptId;
 
     private String email;
 

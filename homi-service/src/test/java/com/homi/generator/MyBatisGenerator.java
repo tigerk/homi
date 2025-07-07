@@ -58,22 +58,25 @@ public class MyBatisGenerator {
                 .mapperPackageName("com.homi.model.mapper")
                 .servicePackageName("com.homi.model.repo")
                 .tblNameList(Arrays.asList(
-//                        "sys_user_role",
-//                        "sys_user",
-//                        "sys_role_menu",
-//                        "sys_role",
-//                        "sys_oper_log",
-//                        "sys_notice_user_read",
-//                        "sys_notice_role",
-//                        "sys_notice",
+                        "company",
+                        "company_package",
+                        "dept",
+                        "dept_user",
+                        "sys_config",
+                        "sys_dict",
+                        "sys_dict_data",
+                        "sys_file",
+                        "sys_file_config",
+                        "sys_file_content",
+                        "sys_login_log",
                         "sys_menu",
-//                        "sys_login_log",
-//                        "sys_file_content",
-//                        "sys_file_config",
-//                        "sys_file",
-//                        "sys_dict_data",
-//                        "sys_dict",
-//                        "sys_config",
+                        "sys_notice",
+                        "sys_notice_role",
+                        "sys_notice_user_read",
+                        "sys_oper_log",
+                        "sys_role",
+                        "sys_role_menu",
+                        "sys_user_role",
                         "user"
                 )).build();
 
@@ -120,7 +123,7 @@ public class MyBatisGenerator {
 
                     //mapper注解生效
                     builder.mapperBuilder().mapperAnnotation(Mapper.class);
-                    builder.serviceBuilder().formatServiceImplFileName("%sRepo").enableFileOverride().disableService()
+                    builder.serviceBuilder().formatServiceImplFileName("%sRepo").disableService()
                             .serviceImplTemplate("repo.template.java");
                     builder.controllerBuilder().disable();
                     builder.entityBuilder().enableFileOverride().enableLombok().logicDeleteColumnName("deleted")

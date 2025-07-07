@@ -21,6 +21,8 @@ public class UserVO {
 
     private Long companyId;
 
+    private Long deptId;
+
     private DeptSimpleVO dept;
 
     /**

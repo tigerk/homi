@@ -1,15 +1,16 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.util.Date;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -17,59 +18,51 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-06-12
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("sys_login_log")
+@TableName("public.sys_login_log")
+@Schema(name = "SysLoginLog", description = "系统访问记录")
 public class SysLoginLog implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 访问ID
-     */
-    @TableId(value = "id", type = IdType.AUTO)
+    @Schema(description = "访问ID")
+    @TableId("id")
     private Long id;
 
-    /**
-     * 用户账号
-     */
+    @Schema(description = "用户账号")
+    @TableField("account")
     private String account;
 
-    /**
-     * 登录IP地址
-     */
+    @Schema(description = "登录IP地址")
+    @TableField("ip_address")
     private String ipAddress;
 
-    /**
-     * 登录地点
-     */
+    @Schema(description = "登录地点")
+    @TableField("login_location")
     private String loginLocation;
 
-    /**
-     * 浏览器类型
-     */
+    @Schema(description = "浏览器类型")
+    @TableField("browser")
     private String browser;
 
-    /**
-     * 操作系统
-     */
+    @Schema(description = "操作系统")
+    @TableField("os")
     private String os;
 
-    /**
-     * 登录状态（0成功 1失败）
-     */
+    @Schema(description = "登录状态（0成功 1失败）")
+    @TableField("status")
     private Integer status;
 
-    /**
-     * 提示消息
-     */
+    @Schema(description = "提示消息")
+    @TableField("msg")
     private String msg;
 
-    /**
-     * 登录时间
-     */
+    @Schema(description = "登录时间")
+    @TableField("login_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date loginTime;
 }

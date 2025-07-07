@@ -75,7 +75,7 @@ public class MenuVO {
     /**
      * 菜单状态（0显示 1隐藏）
      */
-    private Integer visible;
+    private Boolean visible;
 
     /**
      * 权限标识
@@ -115,37 +115,37 @@ public class MenuVO {
     /**
      * 内嵌的iframe页面是否开启首次加载动画（0否 1是）
      */
-    private Integer frameLoading;
+    private Boolean frameLoading;
 
     /**
      * 路由组件缓存（开启 `true`、关闭 `false`）`可选
      */
-    private Integer keepAlive;
+    private Boolean keepAlive;
 
     /**
      * 当前菜单名称或自定义信息禁止添加到标签页（默认`false`）
      */
-    private Integer hiddenTag;
+    private Boolean hiddenTag;
 
     /**
      * 当前菜单名称是否固定显示在标签页且不可关闭（默认`false`）
      */
-    private Integer fixedTag;
+    private Boolean fixedTag;
 
     /**
      * 是否在菜单中显示（默认`true`）`可选
      */
-    private Integer showLink;
+    private Boolean showLink;
 
     /**
      * 是否显示父级菜单 `可选`
      */
-    private Integer showParent;
+    private Boolean showParent;
 
     /**
      * 是否为平台菜单（0否 1是）
      */
-    private Integer isPlatform;
+    private Boolean isPlatform;
 
     /**
      * 创建者

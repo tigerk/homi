@@ -180,19 +180,13 @@ public class AuthService {
     }
 
     public Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> getUserAuth(User user) {
-        if (user.getUserType().equals(UserTypeEnum.PLATFORM_SUPER_ADMIN.getType()) || user.getUserType().equals(UserTypeEnum.COMPANY_ADMIN.getType())) {
-            List<SysMenu> menuList;
-
+        if (user.getUserType().equals(UserTypeEnum.COMPANY_ADMIN.getType())) {
             // 平台管理员
-            if (user.getUserType().equals(UserTypeEnum.PLATFORM_SUPER_ADMIN.getType())) {
-                // 获取平台管理员菜单列表
-                menuList = sysMenuService.getPlatformMenuList();
-            } else {
-                // 获取公司管理员菜单列表
-                CompanyListVO companyById = companyService.getCompanyById(user.getCompanyId());
-                List<Long> menusById = companyPackageService.getMenusById(companyById.getPackageId());
-                menuList = sysMenuService.getMenuByIds(menusById);
-            }
+            // 获取公司管理员菜单列表
+            CompanyListVO companyById = companyService.getCompanyById(user.getCompanyId());
+            List<Long> menusById = companyPackageService.getMenusById(companyById.getPackageId());
+            List<SysMenu> menuList = sysMenuService.getMenuByIds(menusById);
+
 
             List<SysMenu> menuTreeList = menuList.stream()
                     .filter(m -> !m.getMenuType().equals(MenuTypeEnum.BUTTON.getType()))

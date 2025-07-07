@@ -8,6 +8,7 @@ import com.homi.config.MyBatisTenantContext;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.user.*;
+import com.homi.domain.enums.common.UserTypeEnum;
 import com.homi.domain.vo.user.UserVO;
 import com.homi.model.entity.User;
 import com.homi.service.system.UserService;
@@ -70,10 +71,9 @@ public class UserController {
      */
     @PostMapping("/create")
     @RepeatSubmit
-    @SaCheckPermission("system:user:create")
+//    @SaCheckPermission("system:user:create")
     public ResponseResult<Long> create(@Valid @RequestBody UserCreateDTO createDTO) {
         User user = BeanCopyUtils.copyBean(createDTO, User.class);
-        user.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         return ResponseResult.ok(userService.createUser(user));
     }
 

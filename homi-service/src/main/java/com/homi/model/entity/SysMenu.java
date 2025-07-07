@@ -80,7 +80,7 @@ public class SysMenu implements Serializable {
 
     @Schema(description = "菜单状态（1显示 0隐藏）")
     @TableField("visible")
-    private Integer visible;
+    private Boolean visible;
 
     @Schema(description = "权限标识")
     @TableField("auths")
@@ -111,36 +111,36 @@ public class SysMenu implements Serializable {
 
     @Schema(description = "内嵌的iframe页面是否开启首次加载动画（0否 1是）")
     @TableField("frame_loading")
-    private Integer frameLoading;
+    private Boolean frameLoading;
 
     @Schema(description = "路由组件缓存（开启 `true`、关闭 `false`）`可选")
     @TableField("keep_alive")
-    private Integer keepAlive;
+    private Boolean keepAlive;
 
     @Schema(description = "当前菜单名称或自定义信息禁止添加到标签页（默认`false`）")
     @TableField("hidden_tag")
-    private Integer hiddenTag;
+    private Boolean hiddenTag;
 
     @Schema(description = "当前菜单名称是否固定显示在标签页且不可关闭（默认`false`）")
     @TableField("fixed_tag")
-    private Integer fixedTag;
+    private Boolean fixedTag;
 
     @Schema(description = "是否在菜单中显示（默认`true`）`可选")
     @TableField("show_link")
-    private Integer showLink;
+    private Boolean showLink;
 
     @Schema(description = "是否显示父级菜单 `可选`")
     @TableField("show_parent")
-    private Integer showParent;
+    private Boolean showParent;
 
     @Schema(description = "是不是平台的（0非平台；1：平台菜单）")
     @TableField("is_platform")
     private Boolean isPlatform;
 
-    @Schema(description = "0未删除；1：删除")
+    @Schema(description = "false：未删除；true：删除")
     @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 
     @Schema(description = "创建者")
     @TableField("create_by")

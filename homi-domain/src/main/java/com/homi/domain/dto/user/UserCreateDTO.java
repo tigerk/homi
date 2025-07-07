@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Data
 @Schema(description = "用户创建对象")
 public class UserCreateDTO {
+    private Long id;
 
     /**
      * 用户名（登录名）
@@ -23,7 +24,6 @@ public class UserCreateDTO {
     /**
      * 密码
      */
-    @NotBlank(message = "密码不能为空")
     @Size(min = 6, max = 20, message = "密码长度必须在6到20个字符之间")
     private String password;
 
@@ -80,4 +80,7 @@ public class UserCreateDTO {
     @NotNull(message = "状态不能为空")
     @EnumValue(enumClass = StatusEnum.class, message = "状态只能为0（正常）或1（冻结）")
     private Integer status;
+
+    @Schema(description = "备注")
+    private String remark;
 }

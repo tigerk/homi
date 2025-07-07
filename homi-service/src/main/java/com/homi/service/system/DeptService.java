@@ -1,8 +1,6 @@
 package com.homi.service.system;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.dept.DeptCreateDTO;
 import com.homi.domain.dto.dept.DeptQueryDTO;
 import com.homi.domain.dto.dept.DeptVO;
@@ -14,6 +12,7 @@ import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -32,9 +31,7 @@ public class DeptService {
     private final DeptMapper deptMapper;
 
 
-    public PageVO<DeptVO> list(DeptQueryDTO queryDTO) {
-        PageVO<DeptVO> pageVO = new PageVO<>();
-
+    public List<DeptVO> list(DeptQueryDTO queryDTO) {
         LambdaQueryWrapper<Dept> queryWrapper = new LambdaQueryWrapper<>();
         if (Objects.nonNull(queryDTO.getName())) {
             queryWrapper.like(Dept::getName, queryDTO.getName());
@@ -44,14 +41,9 @@ public class DeptService {
             queryWrapper.like(Dept::getStatus, queryDTO.getStatus());
         }
 
-        Page<Dept> deptPage = deptMapper.selectPage(Page.of(queryDTO.getCurrentPage(), queryDTO.getPageSize()), queryWrapper);
-        pageVO.setTotal(deptPage.getTotal());
-        pageVO.setList(deptPage.getRecords().stream().map(dept -> BeanCopyUtils.copyBean(dept, DeptVO.class)).toList());
-        pageVO.setCurrentPage(deptPage.getCurrent());
-        pageVO.setPageSize(deptPage.getSize());
-        pageVO.setPages(deptPage.getPages());
+        List<Dept> depts = deptMapper.selectList(queryWrapper);
 
-        return pageVO;
+        return depts.stream().map(dept -> BeanCopyUtils.copyBean(dept, DeptVO.class)).toList();
     }
 
     public Dept getDeptById(Long deptId) {

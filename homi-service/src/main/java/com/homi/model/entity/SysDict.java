@@ -1,15 +1,17 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.util.Date;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -17,64 +19,57 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-06-12
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("sys_dict")
+@TableName("public.sys_dict")
+@Schema(name = "SysDict", description = "字典表")
 public class SysDict implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键id
-     */
-    @TableId(value = "id", type = IdType.AUTO)
+    @Schema(description = "主键id")
+    @TableId("id")
     private Long id;
 
-    /**
-     * 字典编码
-     */
+    @Schema(description = "字典编码")
+    @TableField("dict_code")
     private String dictCode;
 
-    /**
-     * 字典名称
-     */
+    @Schema(description = "字典名称")
+    @TableField("dict_name")
     private String dictName;
 
-    /**
-     * 状态（0开启 1关闭）
-     */
+    @Schema(description = "状态（0开启 1关闭）")
+    @TableField("status")
     private Integer status;
 
-    /**
-     * 是否删除（0否 1是）
-     */
+    @Schema(description = "是否删除（0否 1是）")
+    @TableField("deleted")
+    @TableLogic
     private Integer deleted;
 
-    /**
-     * 创建者
-     */
+    @Schema(description = "创建者")
+    @TableField("create_by")
     private Long createBy;
 
-    /**
-     * 创建时间
-     */
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    /**
-     * 更新者
-     */
+    @Schema(description = "更新者")
+    @TableField("update_by")
     private Long updateBy;
 
-    /**
-     * 更新时间
-     */
+    @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
-    /**
-     * 备注
-     */
+    @Schema(description = "备注")
+    @TableField("remark")
     private String remark;
 }

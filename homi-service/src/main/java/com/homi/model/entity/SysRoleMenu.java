@@ -1,14 +1,15 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -16,29 +17,26 @@ import java.io.Serializable;
  * </p>
  *
  * @author tk
- * @since 2025-06-12
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("sys_role_menu")
+@TableName("public.sys_role_menu")
+@Schema(name = "SysRoleMenu", description = "角色和菜单关联表")
 public class SysRoleMenu implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键ID
-     */
-    @TableId(value = "id", type = IdType.AUTO)
+    @Schema(description = "主键ID")
+    @TableId("id")
     private Long id;
 
-    /**
-     * 角色ID
-     */
+    @Schema(description = "角色ID")
+    @TableField("role_id")
     private Long roleId;
 
-    /**
-     * 菜单ID
-     */
+    @Schema(description = "菜单ID")
+    @TableField("menu_id")
     private Long menuId;
 }

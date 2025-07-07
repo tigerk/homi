@@ -1,5 +1,6 @@
 package com.homi.domain.dto.dept;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.io.Serial;
@@ -79,6 +80,7 @@ public class DeptVO implements Serializable {
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
     /**
@@ -89,6 +91,7 @@ public class DeptVO implements Serializable {
     /**
      * 更新时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
     /**

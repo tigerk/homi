@@ -112,5 +112,5 @@ public class User implements Serializable {
     @Schema(description = "是否删除（0否1是）")
     @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 }

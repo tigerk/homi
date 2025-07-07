@@ -1,15 +1,16 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.util.Date;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -17,94 +18,79 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-06-12
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("sys_oper_log")
+@TableName("public.sys_oper_log")
+@Schema(name = "SysOperLog", description = "操作日志记录表")
 public class SysOperLog implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 日志主键
-     */
-    @TableId(value = "id", type = IdType.AUTO)
+    @Schema(description = "日志主键")
+    @TableId("id")
     private Long id;
 
-    /**
-     * 模块标题
-     */
+    @Schema(description = "模块标题")
+    @TableField("title")
     private String title;
 
-    /**
-     * 业务类型（0其它 1新增 2修改 3删除）
-     */
+    @Schema(description = "业务类型（0其它 1新增 2修改 3删除）")
+    @TableField("business_type")
     private Integer businessType;
 
-    /**
-     * 方法名称
-     */
+    @Schema(description = "方法名称")
+    @TableField("method")
     private String method;
 
-    /**
-     * 请求方式
-     */
+    @Schema(description = "请求方式")
+    @TableField("request_method")
     private String requestMethod;
 
-    /**
-     * 操作类别（0其它 1后台用户 2前台用户）
-     */
+    @Schema(description = "操作类别（0其它 1后台用户 2前台用户）")
+    @TableField("operator_type")
     private Integer operatorType;
 
-    /**
-     * 操作用户名
-     */
+    @Schema(description = "操作用户名")
+    @TableField("oper_username")
     private String operUsername;
 
-    /**
-     * 请求URL
-     */
+    @Schema(description = "请求URL")
+    @TableField("oper_url")
     private String operUrl;
 
-    /**
-     * 主机地址
-     */
+    @Schema(description = "主机地址")
+    @TableField("oper_ip")
     private String operIp;
 
-    /**
-     * 操作地点
-     */
+    @Schema(description = "操作地点")
+    @TableField("oper_location")
     private String operLocation;
 
-    /**
-     * 请求参数
-     */
+    @Schema(description = "请求参数")
+    @TableField("oper_param")
     private String operParam;
 
-    /**
-     * 返回参数
-     */
+    @Schema(description = "返回参数")
+    @TableField("json_result")
     private String jsonResult;
 
-    /**
-     * 操作状态（0正常 1异常）
-     */
+    @Schema(description = "操作状态（0正常 1异常）")
+    @TableField("status")
     private Integer status;
 
-    /**
-     * 错误消息
-     */
+    @Schema(description = "错误消息")
+    @TableField("error_msg")
     private String errorMsg;
 
-    /**
-     * 操作时间
-     */
+    @Schema(description = "操作时间")
+    @TableField("oper_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date operTime;
 
-    /**
-     * 消耗时间
-     */
+    @Schema(description = "消耗时间")
+    @TableField("cost_time")
     private Long costTime;
 }

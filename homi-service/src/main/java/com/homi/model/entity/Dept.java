@@ -1,15 +1,17 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.util.Date;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -17,94 +19,81 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-07-03
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
+@TableName("public.dept")
+@Schema(name = "Dept", description = "部门表")
 public class Dept implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(value = "id", type = IdType.AUTO)
+    @Schema(description = "主键")
+    @TableId("id")
     private Long id;
 
-    /**
-     * 公司Id
-     */
+    @Schema(description = "公司Id")
+    @TableField("company_id")
     private Long companyId;
 
-    /**
-     * 部门名称
-     */
+    @Schema(description = "部门名称")
+    @TableField("name")
     private String name;
 
-    /**
-     * 父节点id
-     */
+    @Schema(description = "父节点id")
+    @TableField("parent_id")
     private Long parentId;
 
-    /**
-     * 部门负责人
-     */
+    @Schema(description = "部门负责人")
+    @TableField("principal")
     private String principal;
 
-    /**
-     * 部门负责人手机号
-     */
+    @Schema(description = "部门负责人手机号")
+    @TableField("phone")
     private String phone;
 
-    /**
-     * 邮箱
-     */
+    @Schema(description = "邮箱")
+    @TableField("email")
     private String email;
 
-    /**
-     * 父节点id路径
-     */
+    @Schema(description = "父节点id路径")
+    @TableField("tree_path")
     private String treePath;
 
-    /**
-     * 显示顺序
-     */
+    @Schema(description = "显示顺序")
+    @TableField("sort")
     private Integer sort;
 
-    /**
-     * 状态（1，0不启用）
-     */
+    @Schema(description = "状态（1，0不启用）")
+    @TableField("status")
     private Integer status;
 
-    /**
-     * 备注
-     */
+    @Schema(description = "备注")
+    @TableField("remark")
     private String remark;
 
-    /**
-     * 创建时间
-     */
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    /**
-     * 创建人
-     */
+    @Schema(description = "创建人")
+    @TableField("create_by")
     private Long createBy;
 
-    /**
-     * 更新时间
-     */
+    @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
-    /**
-     * 更新人
-     */
+    @Schema(description = "更新人")
+    @TableField("update_by")
     private Long updateBy;
 
-    /**
-     * 是否删除（0否1是）
-     */
+    @Schema(description = "是否删除（0否1是）")
+    @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 }

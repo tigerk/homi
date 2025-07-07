@@ -4,7 +4,6 @@ package com.homi.admin.controller;
 import cn.hutool.core.date.DateUtil;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
-import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.dept.DeptCreateDTO;
 import com.homi.domain.dto.dept.DeptQueryDTO;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Objects;
 
 @RequestMapping("/admin/dept")
@@ -25,7 +25,7 @@ public class DeptController {
     private final DeptService deptService;
 
     @PostMapping("list")
-    public ResponseResult<PageVO<DeptVO>> list(@RequestBody DeptQueryDTO queryDTO) {
+    public ResponseResult<List<DeptVO>> list(@RequestBody DeptQueryDTO queryDTO) {
         return ResponseResult.ok(deptService.list(queryDTO));
     }
 

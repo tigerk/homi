@@ -1,15 +1,18 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -17,54 +20,50 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-06-12
+ * @since 2025-07-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("sys_notice_user_read")
+@TableName("public.sys_notice_user_read")
+@Schema(name = "SysNoticeUserRead", description = "用户公告通知已读状态表")
 public class SysNoticeUserRead implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    @Schema(description = "主键")
+    @TableId("id")
+    private BigDecimal id;
 
-    /**
-     * 通知公告ID
-     */
+    @Schema(description = "通知公告ID")
+    @TableField("notice_id")
     private Long noticeId;
 
-    /**
-     * 用户ID
-     */
+    @Schema(description = "用户ID")
+    @TableField("user_id")
     private Long userId;
 
-    /**
-     * 是否已读（0否1是）
-     */
+    @Schema(description = "是否已读（0否1是）")
+    @TableField("status")
     private Integer status;
 
-    /**
-     * 已读时间
-     */
+    @Schema(description = "已读时间")
+    @TableField("read_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date readTime;
 
-    /**
-     * 创建时间
-     */
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    /**
-     * 更新时间
-     */
+    @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
-    /**
-     * 是否删除（0否1是）
-     */
+    @Schema(description = "是否删除（0否1是）")
+    @TableField("deleted")
+    @TableLogic
     private Integer deleted;
 }

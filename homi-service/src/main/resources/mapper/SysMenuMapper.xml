@@ -53,7 +53,7 @@
         m.frame_src
         FROM sys_menu m
         INNER JOIN sys_role_menu rm ON m.id = rm.menu_id
-        WHERE m.visible = 1
+        WHERE m.visible = true
         <if test="isPerms">
             AND m.menu_type = 3
         </if>

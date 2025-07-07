@@ -25,41 +25,45 @@
     </resultMap>
 
     <select id="selectUserList" resultType="com.homi.domain.vo.user.UserVO">
-        SELECT user.id,
-        user.username,
-        user.email,
-        user.phone,
-        user.nickname,
-        user.avatar,
-        user.gender,
-        user.birthday,
-        user.status,
-        user.remark,
-        user.create_time,
-        user.create_by,
-        user.register_source,
-        user.company_id
-        FROM user
+        SELECT id,
+               username,
+               email,
+               phone,
+               nickname,
+               avatar,
+               gender,
+               birthday,
+               status,
+               remark,
+               create_time,
+               create_by,
+               register_source,
+               company_id,
+               dept_id
+        FROM public.user
         <where>
-            user.company_id = #{query.companyId}
+            company_id = #{query.companyId}
+            <if test="query.deptId != null">
+                AND dept_id = #{query.deptId}
+            </if>
             <if test="query.username != null and query.username != ''">
-                AND user.username LIKE CONCAT('%', #{query.username}
-                , '%')
+                AND username LIKE CONCAT('%', #{query.username}
+                    , '%')
             </if>
             <if test="query.email != null and query.email != ''">
-                AND user.email = #{query.email}
+                AND email = #{query.email}
             </if>
             <if test="query.phone != null and query.phone != ''">
-                AND user.phone = #{query.phone}
+                AND phone = #{query.phone}
             </if>
             <if test="query.nickname != null and query.nickname != ''">
-                AND user.nickname LIKE CONCAT('%', #{query.nickname}, '%')
+                AND nickname LIKE CONCAT('%', #{query.nickname}, '%')
             </if>
             <if test="query.status != null">
-                AND user.status = #{query.status}
+                AND status = #{query.status}
             </if>
-            and user.deleted = 0
+            and deleted = false
         </where>
-        ORDER BY user.id DESC
+        ORDER BY id DESC
     </select>
 </mapper>
