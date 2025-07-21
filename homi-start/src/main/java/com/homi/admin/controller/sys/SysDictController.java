@@ -1,4 +1,4 @@
-package com.homi.admin.controller;
+package com.homi.admin.controller.sys;
 
 
 import cn.dev33.satoken.annotation.SaCheckPermission;

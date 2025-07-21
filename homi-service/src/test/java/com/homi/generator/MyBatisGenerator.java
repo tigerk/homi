@@ -51,33 +51,17 @@ public class MyBatisGenerator {
                 .dbUrl("jdbc:postgresql://localhost:5432/homi")
                 .dbUsername("postgres")
                 .dbPassword("123456")
-                .schema("public")
+                .schema("house")
                 .tblPrefix("")
                 .moduleNameOfDao("homi-service")
                 .entityPackageName("com.homi.model.entity")
                 .mapperPackageName("com.homi.model.mapper")
                 .servicePackageName("com.homi.model.repo")
                 .tblNameList(Arrays.asList(
-                        "company",
-                        "company_package",
-                        "dept",
-                        "dept_user",
-                        "sys_config",
-                        "sys_dict",
-                        "sys_dict_data",
-                        "sys_file",
-                        "sys_file_config",
-                        "sys_file_content",
-                        "sys_login_log",
-                        "sys_menu",
-                        "sys_notice",
-                        "sys_notice_role",
-                        "sys_notice_user_read",
-                        "sys_oper_log",
-                        "sys_role",
-                        "sys_role_menu",
-                        "sys_user_role",
-                        "user"
+                        "house",
+                        "room",
+                        "room_layout",
+                        "house_focus"
                 )).build();
 
         myBatisGenerator.generate();
