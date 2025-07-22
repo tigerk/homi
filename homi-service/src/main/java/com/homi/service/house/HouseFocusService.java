@@ -6,8 +6,8 @@ import com.homi.domain.dto.house.FocusCreateDTO;
 import com.homi.domain.dto.house.FocusRoomLayoutDTO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.*;
-import com.homi.model.mapper.HouseFocusMapper;
-import com.homi.model.repo.HouseFocusRepo;
+import com.homi.model.mapper.FocusMapper;
+import com.homi.model.repo.FocusRepo;
 import com.homi.model.repo.HouseRepo;
 import com.homi.model.repo.RoomLayoutRepo;
 import com.homi.model.repo.RoomRepo;
@@ -39,10 +39,10 @@ public class HouseFocusService {
     private HouseRepo houseRepo;
 
     @Resource
-    private HouseFocusRepo houseFocusRepo;
+    private FocusRepo focusRepo;
 
     @Resource
-    private HouseFocusMapper houseFocusMapper;
+    private FocusMapper focusMapper;
 
     @Resource
     private UserService userService;
@@ -79,11 +79,11 @@ public class HouseFocusService {
 
         houseCreateDto.setId(house.getId());
 
-        HouseFocus houseFocus = new HouseFocus();
-        BeanUtils.copyProperties(houseCreateDto, houseFocus);
-        houseFocus.setHouseId(house.getId());
-        houseFocus.setClosedFloors(JSONUtil.toJsonStr(houseCreateDto.getClosedFloors()));
-        houseFocusRepo.getBaseMapper().insert(houseFocus);
+        Focus focus = new Focus();
+        BeanUtils.copyProperties(houseCreateDto, focus);
+        focus.setHouseId(house.getId());
+        focus.setClosedFloors(JSONUtil.toJsonStr(houseCreateDto.getClosedFloors()));
+        focusRepo.getBaseMapper().insert(focus);
 
         // 创建房间 & 房型
         createFocusRoomAndLayout(houseCreateDto);
@@ -162,10 +162,10 @@ public class HouseFocusService {
 
         houseCreateDto.setId(house.getId());
 
-        HouseFocus houseFocus = new HouseFocus();
-        BeanUtils.copyProperties(houseCreateDto, houseFocus);
-        houseFocus.setHouseId(house.getId());
-        houseFocusRepo.updateById(houseFocus);
+        Focus focus = new Focus();
+        BeanUtils.copyProperties(houseCreateDto, focus);
+        focus.setHouseId(house.getId());
+        focusRepo.updateById(focus);
 
         // 创建房间
         createFocusRoomAndLayout(houseCreateDto);

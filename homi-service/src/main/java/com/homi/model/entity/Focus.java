@@ -25,8 +25,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @Data
 @ToString(callSuper = true)
 @TableName("house_focus")
-@Schema(name = "HouseFocus", description = "集中式房源扩展表")
-public class HouseFocus implements Serializable {
+@Schema(name = "Focus", description = "集中式房源扩展表")
+public class Focus implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
