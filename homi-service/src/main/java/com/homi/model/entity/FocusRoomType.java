@@ -2,6 +2,7 @@ package com.homi.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -65,6 +66,11 @@ public class FocusRoomType implements Serializable {
     @Schema(description = "面积")
     @TableField("inside_space")
     private BigDecimal insideSpace;
+
+    @Schema(description = "是否删除：0 否，1 是")
+    @TableField("deleted")
+    @TableLogic
+    private Boolean deleted;
 
     @Schema(description = "创建人")
     @TableField("creater_id")

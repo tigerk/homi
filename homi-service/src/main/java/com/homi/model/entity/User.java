@@ -83,6 +83,10 @@ public class User implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date birthday;
 
+    @Schema(description = "注册来源")
+    @TableField("register_source")
+    private String registerSource;
+
     @Schema(description = "状态（0正常，-1禁用）")
     @TableField("status")
     private Integer status;
@@ -104,10 +108,6 @@ public class User implements Serializable {
     @Schema(description = "更新人")
     @TableField("update_by")
     private Long updateBy;
-
-    @Schema(description = "注册来源")
-    @TableField("register_source")
-    private String registerSource;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
