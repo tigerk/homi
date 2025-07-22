@@ -4,7 +4,6 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.generator.FastAutoGenerator;
 import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
 import com.baomidou.mybatisplus.generator.config.OutputFile;
-import com.baomidou.mybatisplus.generator.config.querys.PostgreSqlQuery;
 import com.baomidou.mybatisplus.generator.config.rules.DateType;
 import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
@@ -48,22 +47,40 @@ public class MyBatisGenerator {
 
     public static void main(String[] args) {
         MyBatisGenerator myBatisGenerator = MyBatisGenerator.builder()
-                .dbUrl("jdbc:postgresql://localhost:5432/homi")
-                .dbUsername("postgres")
+                .dbUrl("jdbc:mysql://localhost:3306/homi?serverTimezone=Asia/Shanghai&allowMultiQueries=true")
+                .dbUsername("root")
                 .dbPassword("123456")
-                .schema("public")
                 .tblPrefix("")
                 .moduleNameOfDao("homi-service")
                 .entityPackageName("com.homi.model.entity")
                 .mapperPackageName("com.homi.model.mapper")
                 .servicePackageName("com.homi.model.repo")
                 .tblNameList(Arrays.asList(
-//                        "house",
-//                        "room",
-//                        "room_layout",
-//                        "house_focus",
-//                        "customer",
-                        "sys_operation_log"
+                        "user",
+                        "sys_role_menu",
+                        "sys_role",
+                        "sys_operation_log",
+                        "sys_notice_user_read",
+                        "sys_notice_role",
+                        "sys_notice",
+                        "sys_menu",
+                        "sys_login_log",
+                        "sys_file_content",
+                        "sys_file_config",
+                        "sys_file",
+                        "sys_dict_data",
+                        "sys_dict",
+                        "sys_config",
+                        "room_layout",
+                        "room",
+                        "house_focus",
+                        "house",
+                        "focus_room_type",
+                        "dept_user",
+                        "dept",
+                        "customer",
+                        "company_package",
+                        "company"
                 )).build();
 
         myBatisGenerator.generate();
@@ -105,14 +122,12 @@ public class MyBatisGenerator {
                         builder.addTablePrefix(tblPrefix);
                     }
 
-                    builder.enableSchema();
-
                     //mapper注解生效
                     builder.mapperBuilder().mapperAnnotation(Mapper.class);
                     builder.serviceBuilder().formatServiceImplFileName("%sRepo").disableService()
                             .serviceImplTemplate("repo.template.java");
                     builder.controllerBuilder().disable();
-                    builder.entityBuilder().enableLombok().logicDeleteColumnName("deleted")
+                    builder.entityBuilder().enableFileOverride().enableLombok().logicDeleteColumnName("deleted")
                             .enableTableFieldAnnotation()
                             .naming(NamingStrategy.underline_to_camel).columnNaming(NamingStrategy.underline_to_camel)
                             .javaTemplate("entity.template.java")
@@ -121,9 +136,7 @@ public class MyBatisGenerator {
     }
 
     private DataSourceConfig.Builder getDataSourceConfig() {
-        DataSourceConfig.Builder dataSourceConfig = new DataSourceConfig.Builder(dbUrl, dbUsername, dbPassword)
-                .dbQuery(new PostgreSqlQuery()).schema(schema);
-
+        DataSourceConfig.Builder dataSourceConfig = new DataSourceConfig.Builder(dbUrl, dbUsername, dbPassword);
 
         // 当字段长度大于1时,默认转换成Byte,符合类型长度范围,如果想继续转换成Integer.
         dataSourceConfig.typeConvertHandler((globalConfig, typeRegistry, metaInfo) -> {
@@ -133,7 +146,6 @@ public class MyBatisGenerator {
 
             return typeRegistry.getColumnType(metaInfo);
         });
-
 
         return dataSourceConfig;
     }

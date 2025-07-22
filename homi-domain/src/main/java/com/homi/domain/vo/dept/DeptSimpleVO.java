@@ -2,7 +2,6 @@ package com.homi.domain.vo.dept;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,7 +13,7 @@ import lombok.NoArgsConstructor;
  * {@code @date} 2025/6/30
  */
 
-@Builder
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

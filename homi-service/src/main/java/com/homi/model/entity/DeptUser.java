@@ -17,12 +17,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.dept_user")
+@TableName("dept_user")
 @Schema(name = "DeptUser", description = "部门和用户关联表")
 public class DeptUser implements Serializable {
     @Serial

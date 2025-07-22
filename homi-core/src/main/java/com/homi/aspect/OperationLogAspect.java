@@ -127,7 +127,7 @@ public class OperationLogAspect {
     /**
      * 获取注解中对方法的描述信息 用于Controller层注解
      *
-     * @param log     日志
+     * @param log          日志
      * @param operationLog 操作日志
      * @throws Exception
      */

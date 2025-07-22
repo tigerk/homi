@@ -18,12 +18,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_login_log")
+@TableName("sys_login_log")
 @Schema(name = "SysLoginLog", description = "系统访问记录")
 public class SysLoginLog implements Serializable {
     @Serial

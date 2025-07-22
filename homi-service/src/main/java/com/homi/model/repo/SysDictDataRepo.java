@@ -1,8 +1,8 @@
 package com.homi.model.repo;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.entity.SysDictData;
 import com.homi.model.mapper.SysDictDataMapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 /**

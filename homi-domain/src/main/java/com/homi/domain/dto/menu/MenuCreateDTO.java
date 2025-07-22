@@ -2,7 +2,6 @@ package com.homi.domain.dto.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +10,7 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+
 @Schema(description = "创建菜单")
 public class MenuCreateDTO {
     @Schema(description = "菜单ID, 修改时需要传递")

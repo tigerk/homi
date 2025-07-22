@@ -1,8 +1,8 @@
 package com.homi.model.repo;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.entity.SysNoticeUserRead;
 import com.homi.model.mapper.SysNoticeUserReadMapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 /**

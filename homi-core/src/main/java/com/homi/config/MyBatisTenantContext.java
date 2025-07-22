@@ -9,18 +9,18 @@ package com.homi.config;
  */
 
 public class MyBatisTenantContext {
+    private static final ThreadLocal<Long> TENANT_ID = new ThreadLocal<>();
+
     private MyBatisTenantContext() {
         throw new IllegalStateException("Utility class");
     }
 
-    private static final ThreadLocal<Long> TENANT_ID = new ThreadLocal<>();
+    public static Long getCurrentTenant() {
+        return TENANT_ID.get();
+    }
 
     public static void setCurrentTenant(Long tenantId) {
         TENANT_ID.set(tenantId);
-    }
-
-    public static Long getCurrentTenant() {
-        return TENANT_ID.get();
     }
 
     public static void clear() {

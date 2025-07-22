@@ -3,14 +3,14 @@ package com.homi.model.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
 import java.io.Serial;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
 
 /**
  * <p>
@@ -18,14 +18,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_user_role")
-@Schema(name = "SysUserRole", description = "用户和角色关联表")
 @Builder
+@TableName("sys_user_role")
+@Schema(name = "SysUserRole", description = "用户和角色关联表")
 public class SysUserRole implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

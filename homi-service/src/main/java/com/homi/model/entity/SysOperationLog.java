@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_operation_log")
+@TableName("sys_operation_log")
 @Schema(name = "SysOperationLog", description = "操作日志记录表")
 public class SysOperationLog implements Serializable {
     @Serial
@@ -54,24 +54,24 @@ public class SysOperationLog implements Serializable {
     private Integer operatorType;
 
     @Schema(description = "操作用户名")
-    @TableField("oper_username")
-    private String operUsername;
+    @TableField("username")
+    private String username;
 
     @Schema(description = "请求URL")
-    @TableField("oper_url")
-    private String operUrl;
+    @TableField("request_url")
+    private String requestUrl;
 
     @Schema(description = "主机地址")
-    @TableField("oper_ip")
-    private String operIp;
+    @TableField("ip")
+    private String ip;
 
     @Schema(description = "操作地点")
-    @TableField("oper_location")
-    private String operLocation;
+    @TableField("location")
+    private String location;
 
     @Schema(description = "请求参数")
-    @TableField("oper_param")
-    private String operParam;
+    @TableField("param")
+    private String param;
 
     @Schema(description = "返回参数")
     @TableField("json_result")

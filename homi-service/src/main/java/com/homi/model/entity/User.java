@@ -19,12 +19,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.user")
+@TableName("user")
 @Schema(name = "User", description = "用户表")
 public class User implements Serializable {
     @Serial
@@ -109,7 +109,7 @@ public class User implements Serializable {
     @TableField("register_source")
     private String registerSource;
 
-    @Schema(description = "是否删除（0否1是）")
+    @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;

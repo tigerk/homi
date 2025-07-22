@@ -18,12 +18,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_dict_data")
+@TableName("sys_dict_data")
 @Schema(name = "SysDictData", description = "字典数据表")
 public class SysDictData implements Serializable {
     @Serial

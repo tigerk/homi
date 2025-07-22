@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("house.house")
+@TableName("house")
 @Schema(name = "House", description = "房源表")
 public class House implements Serializable {
     @Serial
@@ -35,13 +35,6 @@ public class House implements Serializable {
     @TableId("id")
     private Long id;
 
-    @Schema(description = "公司ID")
-    @TableField("company_id")
-    private Long companyId;
-
-    @TableField("dept_id")
-    private Long deptId;
-
     @Schema(description = "房源编号")
     @TableField("house_code")
     private String houseCode;
@@ -49,6 +42,16 @@ public class House implements Serializable {
     @Schema(description = "房源名称")
     @TableField("house_name")
     private String houseName;
+
+    @Schema(description = "公司ID")
+    @TableField("company_id")
+    private Long companyId;
+
+    @TableField("dept_id")
+    private Long deptId;
+
+    @TableField("business_mode")
+    private Integer businessMode;
 
     @Schema(description = "业务类型")
     @TableField("product_type")
@@ -175,16 +178,18 @@ public class House implements Serializable {
     @TableField("locked")
     private Boolean locked;
 
+    @TableField("salesman_id")
+    private Long salesmanId;
+
+    @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;
 
-    @TableField("salesman_id")
-    private Long salesmanId;
-
     @TableField("create_by")
     private Long createBy;
 
+    @Schema(description = "创建时间")
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
@@ -192,10 +197,8 @@ public class House implements Serializable {
     @TableField("update_by")
     private Long updateBy;
 
+    @Schema(description = "更新时间")
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
-
-    @TableField("business_mode")
-    private Integer businessMode;
 }

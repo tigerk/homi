@@ -1,8 +1,8 @@
 package com.homi.model.repo;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.entity.DeptUser;
 import com.homi.model.mapper.DeptUserMapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 /**

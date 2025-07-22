@@ -8,7 +8,6 @@ import com.homi.config.MyBatisTenantContext;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.user.*;
-import com.homi.domain.enums.common.UserTypeEnum;
 import com.homi.domain.vo.user.UserVO;
 import com.homi.model.entity.User;
 import com.homi.service.system.UserService;

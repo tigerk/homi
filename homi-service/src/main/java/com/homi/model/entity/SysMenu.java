@@ -19,12 +19,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_menu")
+@TableName("sys_menu")
 @Schema(name = "SysMenu", description = "菜单表")
 public class SysMenu implements Serializable {
     @Serial
@@ -137,7 +137,7 @@ public class SysMenu implements Serializable {
     @TableField("is_platform")
     private Boolean isPlatform;
 
-    @Schema(description = "false：未删除；true：删除")
+    @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;

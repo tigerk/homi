@@ -19,12 +19,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_role")
+@TableName("sys_role")
 @Schema(name = "SysRole", description = "角色信息表")
 public class SysRole implements Serializable {
     @Serial
@@ -54,7 +54,7 @@ public class SysRole implements Serializable {
     @TableField("remark")
     private String remark;
 
-    @Schema(description = "删除标志（0否 1是）")
+    @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;

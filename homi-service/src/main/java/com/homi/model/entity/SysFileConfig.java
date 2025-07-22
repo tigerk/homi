@@ -19,12 +19,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_file_config")
+@TableName("sys_file_config")
 @Schema(name = "SysFileConfig", description = "文件配置表")
 public class SysFileConfig implements Serializable {
     @Serial
@@ -72,8 +72,8 @@ public class SysFileConfig implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
-    @Schema(description = "是否删除 0否1是")
+    @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 }

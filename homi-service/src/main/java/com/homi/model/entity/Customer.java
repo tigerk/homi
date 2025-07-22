@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("house.customer")
+@TableName("customer")
 @Schema(name = "Customer", description = "客户表")
 public class Customer implements Serializable {
     @Serial
@@ -72,13 +72,15 @@ public class Customer implements Serializable {
     @TableField("remark")
     private String remark;
 
+    @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 
     @TableField("create_by")
     private Long createBy;
 
+    @Schema(description = "创建时间")
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
@@ -86,6 +88,7 @@ public class Customer implements Serializable {
     @TableField("update_by")
     private Long updateBy;
 
+    @Schema(description = "更新时间")
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;

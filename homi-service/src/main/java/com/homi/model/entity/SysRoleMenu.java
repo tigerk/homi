@@ -17,12 +17,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_role_menu")
+@TableName("sys_role_menu")
 @Schema(name = "SysRoleMenu", description = "角色和菜单关联表")
 public class SysRoleMenu implements Serializable {
     @Serial

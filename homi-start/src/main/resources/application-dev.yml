@@ -8,9 +8,9 @@ server:
 
 --- #---------------------数据库配置---------------------------
 spring:
-#  web:
-#    resources:
-#      static-locations: file:/Users/tigerkim/Downloads/icon
+  #  web:
+  #    resources:
+  #      static-locations: file:/Users/tigerkim/Downloads/icon
   datasource:
     url: jdbc:postgresql://localhost:5432/homi
     username: postgres

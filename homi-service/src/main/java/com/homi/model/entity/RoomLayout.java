@@ -24,7 +24,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("house.room_layout")
+@TableName("room_layout")
 @Schema(name = "RoomLayout", description = "房间房型表")
 public class RoomLayout implements Serializable {
     @Serial
@@ -54,6 +54,7 @@ public class RoomLayout implements Serializable {
     @TableField("bedroom")
     private Integer bedroom;
 
+    @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;

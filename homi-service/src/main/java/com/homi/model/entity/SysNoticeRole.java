@@ -17,12 +17,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_notice_role")
+@TableName("sys_notice_role")
 @Schema(name = "SysNoticeRole", description = "通知角色表")
 public class SysNoticeRole implements Serializable {
     @Serial

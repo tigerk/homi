@@ -19,12 +19,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_dict")
+@TableName("sys_dict")
 @Schema(name = "SysDict", description = "字典表")
 public class SysDict implements Serializable {
     @Serial
@@ -46,10 +46,10 @@ public class SysDict implements Serializable {
     @TableField("status")
     private Integer status;
 
-    @Schema(description = "是否删除（0否 1是）")
+    @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 
     @Schema(description = "创建者")
     @TableField("create_by")

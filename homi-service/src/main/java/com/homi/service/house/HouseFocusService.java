@@ -1,6 +1,7 @@
 package com.homi.service.house;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.json.JSONUtil;
 import com.homi.domain.dto.house.FocusCreateDTO;
 import com.homi.domain.dto.house.FocusRoomLayoutDTO;
 import com.homi.exception.BizException;
@@ -81,7 +82,7 @@ public class HouseFocusService {
         HouseFocus houseFocus = new HouseFocus();
         BeanUtils.copyProperties(houseCreateDto, houseFocus);
         houseFocus.setHouseId(house.getId());
-        houseFocus.setClosedFloors(houseCreateDto.getClosedFloors());
+        houseFocus.setClosedFloors(JSONUtil.toJsonStr(houseCreateDto.getClosedFloors()));
         houseFocusRepo.getBaseMapper().insert(houseFocus);
 
         // 创建房间 & 房型

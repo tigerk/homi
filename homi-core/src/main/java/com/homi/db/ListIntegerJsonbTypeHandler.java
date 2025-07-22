@@ -22,7 +22,8 @@ import java.util.List;
  */
 public class ListIntegerJsonbTypeHandler extends BaseTypeHandler<List<Integer>> {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final TypeReference<List<Integer>> TYPE_REFERENCE = new TypeReference<List<Integer>>() {};
+    private static final TypeReference<List<Integer>> TYPE_REFERENCE = new TypeReference<List<Integer>>() {
+    };
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, List<Integer> parameter, JdbcType jdbcType) throws SQLException {

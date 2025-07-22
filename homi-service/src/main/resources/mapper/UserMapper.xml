@@ -26,20 +26,20 @@
 
     <select id="selectUserList" resultType="com.homi.domain.vo.user.UserVO">
         SELECT id,
-               username,
-               email,
-               phone,
-               nickname,
-               avatar,
-               gender,
-               birthday,
-               status,
-               remark,
-               create_time,
-               create_by,
-               register_source,
-               company_id,
-               dept_id
+        username,
+        email,
+        phone,
+        nickname,
+        avatar,
+        gender,
+        birthday,
+        status,
+        remark,
+        create_time,
+        create_by,
+        register_source,
+        company_id,
+        dept_id
         FROM public.user
         <where>
             company_id = #{query.companyId}
@@ -48,7 +48,7 @@
             </if>
             <if test="query.username != null and query.username != ''">
                 AND username LIKE CONCAT('%', #{query.username}
-                    , '%')
+                , '%')
             </if>
             <if test="query.email != null and query.email != ''">
                 AND email = #{query.email}

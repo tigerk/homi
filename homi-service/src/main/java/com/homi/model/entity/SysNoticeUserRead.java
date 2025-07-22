@@ -20,12 +20,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-07
+ * @since 2025-07-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("public.sys_notice_user_read")
+@TableName("sys_notice_user_read")
 @Schema(name = "SysNoticeUserRead", description = "用户公告通知已读状态表")
 public class SysNoticeUserRead implements Serializable {
     @Serial
@@ -62,8 +62,8 @@ public class SysNoticeUserRead implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
-    @Schema(description = "是否删除（0否1是）")
+    @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 }
