@@ -4,18 +4,22 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.db.ListIntegerJsonbTypeHandler;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
 import java.io.Serial;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author tk
@@ -24,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("house.house_focus")
+@TableName(value = "house.house_focus", autoResultMap = true)
 @Schema(name = "HouseFocus", description = "")
 public class HouseFocus implements Serializable {
     @Serial
@@ -76,6 +80,6 @@ public class HouseFocus implements Serializable {
     private Date updateTime;
 
     @Schema(description = "关闭的楼层列表，保存json")
-    @TableField("closed_floors")
-    private String closedFloors;
+    @TableField(typeHandler = ListIntegerJsonbTypeHandler.class)
+    private List<Integer> closedFloors;
 }

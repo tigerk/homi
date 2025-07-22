@@ -1,7 +1,8 @@
 package com.homi.service.house;
 
-import cn.hutool.json.JSONUtil;
+import cn.hutool.core.date.DateUtil;
 import com.homi.domain.dto.house.FocusCreateDTO;
+import com.homi.domain.dto.house.FocusRoomLayoutDTO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.*;
 import com.homi.model.mapper.HouseFocusMapper;
@@ -80,8 +81,8 @@ public class HouseFocusService {
         HouseFocus houseFocus = new HouseFocus();
         BeanUtils.copyProperties(houseCreateDto, houseFocus);
         houseFocus.setHouseId(house.getId());
-        houseFocus.setClosedFloors(JSONUtil.toJsonStr(houseCreateDto.getClosedFloors()));
-        houseFocusRepo.save(houseFocus);
+        houseFocus.setClosedFloors(houseCreateDto.getClosedFloors());
+        houseFocusRepo.getBaseMapper().insert(houseFocus);
 
         // 创建房间 & 房型
         createFocusRoomAndLayout(houseCreateDto);
@@ -97,17 +98,20 @@ public class HouseFocusService {
      * @param houseCreateDto 参数说明
      */
     private void createFocusRoomAndLayout(FocusCreateDTO houseCreateDto) {
-        Map<String, Long> roomLayout2number = new HashMap<>();
+        Map<String, FocusRoomLayoutDTO> roomLayout2number = new HashMap<>();
         // 遍历每个房型布局
         houseCreateDto.getRoomLayouts().forEach(roomLayoutDTO -> {
             RoomLayout roomLayout = new RoomLayout();
             BeanUtils.copyProperties(roomLayoutDTO, roomLayout);
             roomLayout.setHouseId(houseCreateDto.getId());
             roomLayout.setCompanyId(houseCreateDto.getCompanyId());
+            roomLayout.setInsideSpace(roomLayoutDTO.getInsideSpace());
             roomLayoutRepo.saveOrUpdate(roomLayout);
 
-            roomLayoutDTO.getRoomNumbers().forEach(roomNumber -> {
-                roomLayout2number.put(roomNumber, roomLayout.getId());
+            roomLayoutDTO.setId(roomLayout.getId());
+
+            roomLayoutDTO.getRoomNumbers().forEach(roomNumberDTO -> {
+                roomLayout2number.put(roomNumberDTO, roomLayoutDTO);
             });
         });
 
@@ -119,13 +123,19 @@ public class HouseFocusService {
             room.setRoomNumber(roomDTO.getRoomNumber());
             room.setFloorLevel(roomDTO.getFloorLevel());
 
-            room.setRoomLayoutId(roomLayout2number.getOrDefault(roomDTO.getRoomNumber(), null));
+            if (roomLayout2number.containsKey(roomDTO.getRoomNumber())) {
+                FocusRoomLayoutDTO focusRoomLayoutDTO = roomLayout2number.get(roomDTO.getRoomNumber());
+                room.setRoomLayoutId(focusRoomLayoutDTO.getId());
+                room.setLeasePrice(focusRoomLayoutDTO.getLeasePrice());
+                room.setInsideSpace(focusRoomLayoutDTO.getInsideSpace());
+            }
 
             if (Objects.nonNull(roomDTO.getId())) {
                 Room roomBefore = roomRepo.getById(roomDTO.getId());
                 BeanUtils.copyProperties(room, roomBefore);
                 roomRepo.getBaseMapper().updateById(roomBefore);
             } else {
+                room.setVacancyStartTime(DateUtil.date());
                 roomRepo.getBaseMapper().insert(room);
             }
 
