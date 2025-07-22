@@ -1,6 +1,7 @@
 package com.homi.service.house;
 
 import com.homi.domain.dto.house.FocusCreateDTO;
+import com.homi.exception.BizException;
 import com.homi.model.entity.*;
 import com.homi.model.mapper.HouseFocusMapper;
 import com.homi.model.repo.HouseFocusRepo;
@@ -14,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 /**
  * 应用于 homi
@@ -111,6 +114,31 @@ public class HouseFocusService {
     }
 
     public Boolean updateHouseFocus(FocusCreateDTO houseCreateDto) {
+        Dept userDept = deptService.getUserDept(houseCreateDto.getSalesmanId());
+        if (userDept != null) {
+            houseCreateDto.setDeptId(userDept.getId());
+            houseCreateDto.setCompanyId(userDept.getCompanyId());
+        }
+
+        Optional<House> optById = houseRepo.getOptById(houseCreateDto.getId());
+        if (optById.isEmpty()) {
+            throw new BizException("房源不存在");
+        }
+
+        House house = optById.get();
+        BeanUtils.copyProperties(houseCreateDto, house);
+        houseRepo.updateById(house);
+
+        houseCreateDto.setId(house.getId());
+
+        HouseFocus houseFocus = new HouseFocus();
+        BeanUtils.copyProperties(houseCreateDto, houseFocus);
+        houseFocus.setHouseId(house.getId());
+        houseFocusRepo.updateById(houseFocus);
+
+        // 创建房间
+        createFocusRoom(houseCreateDto);
+
         return true;
     }
 }

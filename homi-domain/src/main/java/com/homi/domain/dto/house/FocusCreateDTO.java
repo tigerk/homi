@@ -103,19 +103,25 @@ public class FocusCreateDTO {
     private Boolean hasGas;
 
     @Schema(description = "房间数量", hidden = true)
-    private Integer roomNumber;
+    private Integer roomCount;
 
     @Schema(description = "房间号前缀")
     private String prefix;
 
     @Schema(description = "房间号长度")
-    private Integer roomNoLength;
+    private Integer roomNumberLength;
 
     @Schema(description = "去掉4")
     private Boolean excludeFour;
 
     @Schema(description = "是否已分配")
     private Boolean allocated;
+
+    @Schema(description = "关闭的楼层列表")
+    private List<Integer> closedFloors;
+
+    @Schema(description = "房间列表")
+    private List<FocusRoomDTO> rooms;
 
     @Schema(description = "房间户型")
     private List<FocusRoomLayoutDTO> roomLayouts;

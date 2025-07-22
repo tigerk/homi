@@ -27,13 +27,6 @@ public class FocusRoomLayoutDTO {
     @Schema(description = "租赁价格")
     private BigDecimal leasePrice;
 
-    @Schema(description = "房间列表")
-    private List<FocusRoomDTO> roomList;
-
-    @Data
-    public static class FocusRoomDTO {
-        @Schema(description = "房间号")
-        public String roomNumber;
-    }
-
+    @Schema(description = "房间号列表")
+    private List<String> roomNumberList;
 }

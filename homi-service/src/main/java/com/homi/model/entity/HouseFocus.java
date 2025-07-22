@@ -42,8 +42,9 @@ public class HouseFocus implements Serializable {
     @TableField("prefix")
     private String prefix;
 
-    @TableField("room_no_length")
-    private Integer roomNoLength;
+    @Schema(description = "房间号长度")
+    @TableField("room_number_length")
+    private Integer roomNumberLength;
 
     @Schema(description = "去掉4")
     @TableField("exclude_four")
@@ -73,4 +74,8 @@ public class HouseFocus implements Serializable {
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
+
+    @Schema(description = "关闭的楼层列表，保存json")
+    @TableField("closed_floors")
+    private Object closedFloors;
 }
