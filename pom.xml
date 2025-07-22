@@ -146,11 +146,6 @@
                 <artifactId>tika-core</artifactId>
                 <version>${tika-core.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>42.7.7</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
