@@ -61,7 +61,8 @@ public class MyBatisGenerator {
                         "house",
                         "room",
                         "room_layout",
-                        "house_focus"
+                        "house_focus",
+                        "customer"
                 )).build();
 
         myBatisGenerator.generate();

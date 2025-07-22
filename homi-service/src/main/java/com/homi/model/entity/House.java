@@ -144,12 +144,12 @@ public class House implements Serializable {
     private String certificateNo;
 
     @Schema(description = "是否共有产权  0=否 1=是")
-    @TableField("is_certificate")
-    private Boolean isCertificate;
+    @TableField("shared_owner")
+    private Boolean sharedOwner;
 
     @Schema(description = "是否抵押  0=否 1=是")
-    @TableField("is_mortgage")
-    private Boolean isMortgage;
+    @TableField("mortgaged")
+    private Boolean mortgaged;
 
     @Schema(description = "暖气费")
     @TableField("heating_fee")
@@ -159,41 +159,9 @@ public class House implements Serializable {
     @TableField("management_fee")
     private BigDecimal managementFee;
 
-    @TableField("landlord_id_type")
-    private Integer landlordIdType;
-
-    @TableField("landlord_id_card")
-    private String landlordIdCard;
-
-    @TableField("landlord_name")
-    private String landlordName;
-
-    @TableField("landlord_phone")
-    private String landlordPhone;
-
-    @TableField("landlord_email")
-    private String landlordEmail;
-
-    @TableField("landlord_address")
-    private String landlordAddress;
-
-    @TableField("landlord_emergency_name")
-    private String landlordEmergencyName;
-
-    @TableField("landlord_emergency_phone")
-    private String landlordEmergencyPhone;
-
-    @TableField("landlord_bank_name")
-    private String landlordBankName;
-
-    @TableField("landlord_bank_account")
-    private String landlordBankAccount;
-
-    @TableField("landlord_bank_payee")
-    private String landlordBankPayee;
-
-    @TableField("landlord_bank_branch")
-    private String landlordBankBranch;
+    @Schema(description = "客户Id")
+    @TableField("customer_id")
+    private Long customerId;
 
     @TableField("remark")
     private String remark;
@@ -204,12 +172,12 @@ public class House implements Serializable {
     @TableField("house_status")
     private Integer houseStatus;
 
-    @TableField("is_freeze")
-    private Integer isFreeze;
+    @TableField("locked")
+    private Boolean locked;
 
     @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 
     @TableField("salesman_id")
     private Long salesmanId;
@@ -227,4 +195,7 @@ public class House implements Serializable {
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
+
+    @TableField("business_mode")
+    private Integer businessMode;
 }

@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 
+ * 客户表
  * </p>
  *
  * @author tk
@@ -24,41 +24,57 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("house.house_focus")
-@Schema(name = "HouseFocus", description = "")
-public class HouseFocus implements Serializable {
+@TableName("house.customer")
+@Schema(name = "Customer", description = "客户表")
+public class Customer implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
     @TableId("id")
     private Long id;
 
-    @TableField("company_id")
-    private Long companyId;
+    @TableField("id_type")
+    private Integer idType;
 
-    @TableField("house_id")
-    private Long houseId;
+    @TableField("id_card")
+    private String idCard;
 
-    @TableField("prefix")
-    private String prefix;
+    @TableField("customer_name")
+    private String customerName;
 
-    @TableField("room_no_length")
-    private Integer roomNoLength;
+    @TableField("phone")
+    private String phone;
 
-    @Schema(description = "去掉4")
-    @TableField("exclude_four")
-    private Boolean excludeFour;
+    @TableField("email")
+    private String email;
 
-    @Schema(description = "是否已分配")
-    @TableField("allocated")
-    private Boolean allocated;
+    @TableField("address")
+    private String address;
 
-    @TableField("floor_total")
-    private Integer floorTotal;
+    @TableField("emergency_name")
+    private String emergencyName;
+
+    @TableField("emergency_phone")
+    private String emergencyPhone;
+
+    @TableField("bank_name")
+    private String bankName;
+
+    @TableField("bank_account")
+    private String bankAccount;
+
+    @TableField("bank_payee")
+    private String bankPayee;
+
+    @TableField("bank_branch")
+    private String bankBranch;
+
+    @TableField("remark")
+    private String remark;
 
     @TableField("deleted")
     @TableLogic
-    private Boolean deleted;
+    private Integer deleted;
 
     @TableField("creater_id")
     private Long createrId;

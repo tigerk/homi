@@ -62,16 +62,16 @@ public class Room implements Serializable {
     @TableField("room_status")
     private Integer roomStatus;
 
-    @TableField("is_freeze")
-    private Integer isFreeze;
+    @TableField("locked")
+    private Boolean locked;
 
     @Schema(description = "出租状态：0 未出租；1 已出租")
-    @TableField("is_lease")
-    private Integer isLease;
+    @TableField("leased")
+    private Boolean leased;
 
     @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 
     @TableField("creater_id")
     private Long createrId;

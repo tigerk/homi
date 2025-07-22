@@ -1,28 +1,19 @@
 # Getting Started
 
-### Reference Documentation
+# 规范
 
-For further reference, please consider the following sections:
+## 数据库命名
+不要定义is_开头的字段
 
-* [Official Apache Maven documentation](https://maven.apache.org/guides/index.html)
-* [Spring Boot Maven Plugin Reference Guide](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/maven-plugin)
-* [Create an OCI image](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/maven-plugin/build-image.html)
-* [Spring Web](https://docs.spring.io/spring-boot/3.5.0-SNAPSHOT/reference/web/servlet.html)
+### 比如 删除字段
+✅ 推荐使用：deleted
+优点：
+1. 语义清晰自然：deleted 表示“是否已被删除”，常见于英语数据库设计规范中。 
+2. 与布尔语义更贴合：deleted = true 更自然地表达“已删除”。
 
-### Guides
-
-The following guides illustrate how to use some features concretely:
-
-* [Accessing data with MySQL](https://spring.io/guides/gs/accessing-data-mysql/)
-* [Building a RESTful Web Service](https://spring.io/guides/gs/rest-service/)
-* [Serving Web Content with Spring MVC](https://spring.io/guides/gs/serving-web-content/)
-* [Building REST services with Spring](https://spring.io/guides/tutorials/rest/)
-
-### Maven Parent overrides
-
-Due to Maven's design, elements are inherited from the parent POM to the project POM.
-While most of the inheritance is fine, it also inherits unwanted elements like `<license>` and `<developers>` from the
-parent.
-To prevent this, the project POM contains empty overrides for these elements.
-If you manually switch to a different parent and actually want the inheritance, you need to remove those overrides.
+对齐主流 ORM/框架习惯：
+1. Laravel：deleted_at（时间戳）
+2. Django：is_deleted（布尔） 
+3. SQLAlchemy：deleted / is_deleted 
+4. Spring JPA：逻辑删除一般自定义 deleted
 

@@ -6,6 +6,7 @@ import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.house.FocusCreateDTO;
+import com.homi.domain.dto.house.FocusRoomLayoutDTO;
 import com.homi.service.house.HouseFocusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
