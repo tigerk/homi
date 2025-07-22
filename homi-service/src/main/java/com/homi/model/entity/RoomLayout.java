@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 
+ * 房间房型表
  * </p>
  *
  * @author tk
@@ -26,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @Data
 @ToString(callSuper = true)
 @TableName("house.room_layout")
-@Schema(name = "RoomLayout", description = "")
+@Schema(name = "RoomLayout", description = "房间房型表")
 public class RoomLayout implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
@@ -58,18 +57,4 @@ public class RoomLayout implements Serializable {
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;
-
-    @TableField("creater_id")
-    private Long createrId;
-
-    @TableField("create_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date createTime;
-
-    @TableField("updater_id")
-    private Long updaterId;
-
-    @TableField("update_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date updateTime;
 }

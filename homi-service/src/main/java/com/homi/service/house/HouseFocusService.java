@@ -59,8 +59,10 @@ public class HouseFocusService {
     @Transactional(rollbackFor = Exception.class)
     public Boolean createHouseFocus(FocusCreateDTO houseCreateDto) {
         Dept userDept = deptService.getUserDept(houseCreateDto.getSalesmanId());
-        houseCreateDto.setDeptId(userDept.getId());
-        houseCreateDto.setCompanyId(userDept.getCompanyId());
+        if (userDept != null) {
+            houseCreateDto.setDeptId(userDept.getId());
+            houseCreateDto.setCompanyId(userDept.getCompanyId());
+        }
 
         House house = new House();
         BeanUtils.copyProperties(houseCreateDto, house);

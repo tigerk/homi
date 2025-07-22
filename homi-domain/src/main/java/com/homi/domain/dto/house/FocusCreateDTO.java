@@ -37,7 +37,7 @@ public class FocusCreateDTO {
     private String houseName;
 
     @Schema(description = "楼盘id")
-    private String propertyId;
+    private Long propertyId;
 
     @Schema(description = "项目地址")
     private String address;

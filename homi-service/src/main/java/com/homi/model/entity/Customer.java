@@ -76,15 +76,15 @@ public class Customer implements Serializable {
     @TableLogic
     private Integer deleted;
 
-    @TableField("creater_id")
-    private Long createrId;
+    @TableField("create_by")
+    private Long createBy;
 
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    @TableField("updater_id")
-    private Long updaterId;
+    @TableField("update_by")
+    private Long updateBy;
 
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

@@ -6,7 +6,6 @@ import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.house.FocusCreateDTO;
-import com.homi.domain.dto.house.FocusRoomLayoutDTO;
 import com.homi.service.house.HouseFocusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +25,9 @@ public class HouseController {
     public ResponseResult<Boolean> createHouse(@RequestBody FocusCreateDTO houseCreateDto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         houseCreateDto.setCompanyId(currentUser.getCompanyId());
+
+        houseCreateDto.setUpdateBy(currentUser.getId());
+        houseCreateDto.setUpdateTime(DateUtil.date());
 
         if (Objects.nonNull(houseCreateDto.getId())) {
             return ResponseResult.ok(houseFocusService.updateHouseFocus(houseCreateDto));
