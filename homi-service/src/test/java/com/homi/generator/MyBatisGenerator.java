@@ -51,18 +51,19 @@ public class MyBatisGenerator {
                 .dbUrl("jdbc:postgresql://localhost:5432/homi")
                 .dbUsername("postgres")
                 .dbPassword("123456")
-                .schema("house")
+                .schema("public")
                 .tblPrefix("")
                 .moduleNameOfDao("homi-service")
                 .entityPackageName("com.homi.model.entity")
                 .mapperPackageName("com.homi.model.mapper")
                 .servicePackageName("com.homi.model.repo")
                 .tblNameList(Arrays.asList(
-                        "house",
-                        "room",
-                        "room_layout",
-                        "house_focus",
-                        "customer"
+//                        "house",
+//                        "room",
+//                        "room_layout",
+//                        "house_focus",
+//                        "customer",
+                        "sys_operation_log"
                 )).build();
 
         myBatisGenerator.generate();
@@ -111,7 +112,7 @@ public class MyBatisGenerator {
                     builder.serviceBuilder().formatServiceImplFileName("%sRepo").disableService()
                             .serviceImplTemplate("repo.template.java");
                     builder.controllerBuilder().disable();
-                    builder.entityBuilder().enableFileOverride().enableLombok().logicDeleteColumnName("deleted")
+                    builder.entityBuilder().enableLombok().logicDeleteColumnName("deleted")
                             .enableTableFieldAnnotation()
                             .naming(NamingStrategy.underline_to_camel).columnNaming(NamingStrategy.underline_to_camel)
                             .javaTemplate("entity.template.java")
