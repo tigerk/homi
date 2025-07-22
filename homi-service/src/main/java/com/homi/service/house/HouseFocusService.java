@@ -1,5 +1,6 @@
 package com.homi.service.house;
 
+import cn.hutool.json.JSONUtil;
 import com.homi.domain.dto.house.FocusCreateDTO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.*;
@@ -16,6 +17,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -76,40 +80,56 @@ public class HouseFocusService {
         HouseFocus houseFocus = new HouseFocus();
         BeanUtils.copyProperties(houseCreateDto, houseFocus);
         houseFocus.setHouseId(house.getId());
+        houseFocus.setClosedFloors(JSONUtil.toJsonStr(houseCreateDto.getClosedFloors()));
         houseFocusRepo.save(houseFocus);
 
-        // 创建房间
-        createFocusRoom(houseCreateDto);
+        // 创建房间 & 房型
+        createFocusRoomAndLayout(houseCreateDto);
 
         return true;
     }
 
     /**
-     * 根据 FocusCreateDTO 的 roomLayouts 创建房间数据，并插入到 Room 表中
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/7/22 18:01
      *
-     * @param houseCreateDto 集中式房源创建 DTO
+     * @param houseCreateDto 参数说明
      */
-    private void createFocusRoom(FocusCreateDTO houseCreateDto) {
+    private void createFocusRoomAndLayout(FocusCreateDTO houseCreateDto) {
+        Map<String, Long> roomLayout2number = new HashMap<>();
         // 遍历每个房型布局
         houseCreateDto.getRoomLayouts().forEach(roomLayoutDTO -> {
             RoomLayout roomLayout = new RoomLayout();
             BeanUtils.copyProperties(roomLayoutDTO, roomLayout);
             roomLayout.setHouseId(houseCreateDto.getId());
             roomLayout.setCompanyId(houseCreateDto.getCompanyId());
-            roomLayoutRepo.save(roomLayout);
-            // 遍历每个房间号
-            roomLayoutDTO.getRoomList().forEach(roomDTO -> {
-                // 创建房间实体
-                Room room = new Room();
-                room.setCompanyId(houseCreateDto.getCompanyId());
-                room.setHouseId(houseCreateDto.getId());
-                room.setRoomLayoutId(roomLayout.getId());
-                room.setRoomNumber(roomDTO.getRoomNumber());
-                room.setInsideSpace(roomLayoutDTO.getInsideSpace());
-                room.setLeasePrice(roomLayoutDTO.getLeasePrice());
-                // 保存房间到数据库
-                roomRepo.save(room);
+            roomLayoutRepo.saveOrUpdate(roomLayout);
+
+            roomLayoutDTO.getRoomNumbers().forEach(roomNumber -> {
+                roomLayout2number.put(roomNumber, roomLayout.getId());
             });
+        });
+
+        houseCreateDto.getRooms().forEach(roomDTO -> {
+            Room room = new Room();
+            room.setLocked(roomDTO.getLocked());
+            room.setHouseId(houseCreateDto.getId());
+            room.setCompanyId(houseCreateDto.getCompanyId());
+            room.setRoomNumber(roomDTO.getRoomNumber());
+            room.setFloorLevel(roomDTO.getFloorLevel());
+
+            room.setRoomLayoutId(roomLayout2number.getOrDefault(roomDTO.getRoomNumber(), null));
+
+            if (Objects.nonNull(roomDTO.getId())) {
+                Room roomBefore = roomRepo.getById(roomDTO.getId());
+                BeanUtils.copyProperties(room, roomBefore);
+                roomRepo.getBaseMapper().updateById(roomBefore);
+            } else {
+                roomRepo.getBaseMapper().insert(room);
+            }
+
+            roomDTO.setId(room.getId());
         });
     }
 
@@ -137,7 +157,7 @@ public class HouseFocusService {
         houseFocusRepo.updateById(houseFocus);
 
         // 创建房间
-        createFocusRoom(houseCreateDto);
+        createFocusRoomAndLayout(houseCreateDto);
 
         return true;
     }

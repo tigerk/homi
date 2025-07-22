@@ -9,6 +9,12 @@ import java.util.List;
 @Data
 @Schema(description = "集中式房型创建DTO")
 public class FocusRoomLayoutDTO {
+    @Schema(description = "房型id", hidden = true)
+    private Long id;
+
+    @Schema(description = "房型名称")
+    private String layoutName;
+
     @Schema(description = "室内面积")
     private BigDecimal insideSpace;
 
@@ -28,5 +34,5 @@ public class FocusRoomLayoutDTO {
     private BigDecimal leasePrice;
 
     @Schema(description = "房间号列表")
-    private List<String> roomNumberList;
+    private List<String> roomNumbers;
 }

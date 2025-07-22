@@ -15,5 +15,6 @@ public class FocusRoomDTO {
     @Schema(description = "是否已锁定")
     private Boolean locked;
 
-
+    @Schema(description = "楼层")
+    private Integer floorLevel;
 }

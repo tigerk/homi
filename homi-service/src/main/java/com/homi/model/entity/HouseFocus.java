@@ -77,5 +77,5 @@ public class HouseFocus implements Serializable {
 
     @Schema(description = "关闭的楼层列表，保存json")
     @TableField("closed_floors")
-    private Object closedFloors;
+    private String closedFloors;
 }
