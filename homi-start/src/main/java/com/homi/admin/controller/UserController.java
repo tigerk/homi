@@ -3,11 +3,13 @@ package com.homi.admin.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
+import com.homi.annotation.Log;
 import com.homi.annotation.RepeatSubmit;
 import com.homi.config.MyBatisTenantContext;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.user.*;
+import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.vo.user.UserVO;
 import com.homi.model.entity.User;
 import com.homi.service.system.UserService;
@@ -70,7 +72,7 @@ public class UserController {
      */
     @PostMapping("/create")
     @RepeatSubmit
-//    @SaCheckPermission("system:user:create")
+    @Log(title = "用户管理", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<Long> create(@Valid @RequestBody UserCreateDTO createDTO) {
         User user = BeanCopyUtils.copyBean(createDTO, User.class);
         return ResponseResult.ok(userService.createUser(user));

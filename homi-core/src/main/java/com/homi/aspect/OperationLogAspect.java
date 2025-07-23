@@ -93,7 +93,7 @@ public class OperationLogAspect {
             operationLog.setStatus(RequestResultEnum.SUCCESS.getCode());
             // 请求的地址
             String ip = ServletUtils.getClientIP();
-            operationLog.setIp(ip);
+            operationLog.setIpAddress(ip);
             operationLog.setRequestUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
             SaSession currentSession = StpUtil.getSession();
             JSONObject userInfo = JSONUtil.parseObj(JSONUtil.toJsonStr(currentSession.get(SaSession.USER)));

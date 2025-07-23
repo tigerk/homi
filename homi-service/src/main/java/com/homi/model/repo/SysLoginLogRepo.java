@@ -1,8 +1,12 @@
 package com.homi.model.repo;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.event.LoginLogEvent;
 import com.homi.model.entity.SysLoginLog;
 import com.homi.model.mapper.SysLoginLogMapper;
+import com.homi.utils.BeanCopyUtils;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
@@ -15,5 +19,14 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SysLoginLogRepo extends ServiceImpl<SysLoginLogMapper, SysLoginLog> {
+    /**
+     * 登录日志记录
+     */
+    @Async
+    @EventListener
+    public void recordLogin(LoginLogEvent loginLogEvent) {
+        SysLoginLog loginLog = BeanCopyUtils.copyBean(loginLogEvent, SysLoginLog.class);
+        getBaseMapper().insert(loginLog);
+    }
 
 }

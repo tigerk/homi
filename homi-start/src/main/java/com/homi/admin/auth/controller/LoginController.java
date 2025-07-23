@@ -61,7 +61,6 @@ public class LoginController {
 
     @LoginLog
     @PostMapping("/admin/login")
-    @Log(title = "权限分配", operationType = OperationTypeEnum.GRANT)
     public ResponseResult<UserLoginVO> login(@Valid @RequestBody UserLoginDTO user) {
         return ResponseResult.ok(authService.login(user));
     }

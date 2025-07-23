@@ -58,7 +58,7 @@ public class OperationLogEvent {
     /**
      * 主机地址
      */
-    private String ip;
+    private String ipAddress;
 
     /**
      * 操作地点

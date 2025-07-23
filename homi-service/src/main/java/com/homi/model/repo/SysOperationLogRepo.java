@@ -31,7 +31,7 @@ public class SysOperationLogRepo extends ServiceImpl<SysOperationLogMapper, SysO
     public void addOperationLog(OperationLogEvent operationLogEvent) {
         SysOperationLog sysOperationLog = BeanCopyUtils.copyBean(operationLogEvent, SysOperationLog.class);
         // 远程查询操作地点
-        sysOperationLog.setLocation(AddressUtils.getRealAddressByIP(sysOperationLog.getIp()));
+        sysOperationLog.setLocation(AddressUtils.getRealAddressByIP(sysOperationLog.getIpAddress()));
         getBaseMapper().insert(sysOperationLog);
     }
 }

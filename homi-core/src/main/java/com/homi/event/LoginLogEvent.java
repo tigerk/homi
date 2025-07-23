@@ -20,7 +20,7 @@ public class LoginLogEvent implements Serializable {
     /**
      * 用户账号
      */
-    private String account;
+    private String username;
 
     /**
      * 登录IP地址
@@ -50,7 +50,7 @@ public class LoginLogEvent implements Serializable {
     /**
      * 提示消息
      */
-    private String msg;
+    private String message;
 
     /**
      * 登录时间

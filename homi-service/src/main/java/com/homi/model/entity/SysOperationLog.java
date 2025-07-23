@@ -62,8 +62,8 @@ public class SysOperationLog implements Serializable {
     private String requestUrl;
 
     @Schema(description = "主机地址")
-    @TableField("ip")
-    private String ip;
+    @TableField("ip_address")
+    private String ipAddress;
 
     @Schema(description = "操作地点")
     @TableField("location")
