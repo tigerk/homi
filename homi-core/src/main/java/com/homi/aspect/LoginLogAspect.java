@@ -1,5 +1,7 @@
 package com.homi.aspect;
 
+import cn.dev33.satoken.session.SaSession;
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -35,7 +37,6 @@ public class LoginLogAspect {
     public void afterUserLogin(JoinPoint joinPoint, LoginLog loginLog, Object jsonResult) {
         // 执行你需要的监听事件逻辑
         handleLog(joinPoint, loginLog, null, jsonResult);
-        // 你可以在这里添加任何额外的逻辑，比如记录日志或发送通知
     }
 
     /**
@@ -60,6 +61,10 @@ public class LoginLogAspect {
                 loginInfoEvent.setStatus(RequestResultEnum.SUCCESS.getCode());
                 JSONObject jsonObject = JSONUtil.parseObj(jsonResult);
                 loginInfoEvent.setMessage(jsonObject.getStr("message"));
+
+                SaSession currentSession = StpUtil.getSession();
+                String currentSessionId = currentSession.getId();
+                loginInfoEvent.setSessionId(currentSessionId);
             }
             // 请求的地址
             String ip = ServletUtils.getClientIP();

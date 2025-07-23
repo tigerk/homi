@@ -4,7 +4,6 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -17,6 +16,13 @@ public class LoginLogEvent implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 登录sessionId
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/7/23 11:32
+     */
+    private String sessionId;
 
     /**
      * 用户账号
