@@ -135,7 +135,7 @@ public class OperationLogAspect {
      */
     public void getControllerMethodDescription(JoinPoint joinPoint, Log log, OperationLogEvent operationLog, Object jsonResult) throws Exception {
         // 设置action动作
-        operationLog.setBusinessType(log.operationType().ordinal());
+        operationLog.setOperationType(log.operationType().ordinal());
         // 设置标题
         operationLog.setTitle(log.title());
         // 设置操作人类别

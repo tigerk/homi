@@ -3,7 +3,6 @@ package com.homi.event;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -29,7 +28,7 @@ public class OperationLogEvent {
     /**
      * 业务类型（0其它 1新增 2修改 3删除）
      */
-    private Integer businessType;
+    private Integer operationType;
 
     /**
      * 方法名称

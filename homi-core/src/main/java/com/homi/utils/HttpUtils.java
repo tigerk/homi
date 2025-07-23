@@ -60,20 +60,20 @@ public class HttpUtils {
             }
             log.info("recv - {}", result);
         } catch (ConnectException e) {
-            log.error("调用HttpUtils.sendGet ConnectException, url=" + url + ",param=" + param, e);
+            log.error("调用HttpUtils.sendGet ConnectException, url={},param={}", url, param, e);
         } catch (SocketTimeoutException e) {
-            log.error("调用HttpUtils.sendGet SocketTimeoutException, url=" + url + ",param=" + param, e);
+            log.error("调用HttpUtils.sendGet SocketTimeoutException, url={},param={}", url, param, e);
         } catch (IOException e) {
-            log.error("调用HttpUtils.sendGet IOException, url=" + url + ",param=" + param, e);
+            log.error("调用HttpUtils.sendGet IOException, url={},param={}", url, param, e);
         } catch (Exception e) {
-            log.error("调用HttpsUtil.sendGet Exception, url=" + url + ",param=" + param, e);
+            log.error("调用HttpsUtil.sendGet Exception, url={},param={}", url, param, e);
         } finally {
             try {
                 if (in != null) {
                     in.close();
                 }
             } catch (Exception ex) {
-                log.error("调用in.close Exception, url=" + url + ",param=" + param, ex);
+                log.error("调用in.close Exception, url={},param={}", url, param, ex);
             }
         }
         return result.toString();

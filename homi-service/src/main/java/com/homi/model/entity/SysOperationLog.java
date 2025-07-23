@@ -38,8 +38,8 @@ public class SysOperationLog implements Serializable {
     private String title;
 
     @Schema(description = "业务类型（0其它 1新增 2修改 3删除）")
-    @TableField("business_type")
-    private Integer businessType;
+    @TableField("operation_type")
+    private Integer operationType;
 
     @Schema(description = "方法名称")
     @TableField("method")
