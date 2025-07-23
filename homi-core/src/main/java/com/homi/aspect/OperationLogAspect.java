@@ -7,10 +7,11 @@ import cn.hutool.core.lang.Dict;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.homi.annotation.Log;
-import com.homi.aspect.dto.OperationLogDTO;
 import com.homi.domain.enums.common.RequestResultEnum;
+import com.homi.event.OperationLogEvent;
 import com.homi.utils.JsonUtils;
 import com.homi.utils.ServletUtils;
 import com.homi.utils.SpringUtils;
@@ -88,14 +89,15 @@ public class OperationLogAspect {
     protected void handleLog(final JoinPoint joinPoint, Log controllerLog, final Exception e, Object jsonResult) {
         try {
             // *========数据库日志=========*//
-            OperationLogDTO operationLog = new OperationLogDTO();
+            OperationLogEvent operationLog = new OperationLogEvent();
             operationLog.setStatus(RequestResultEnum.SUCCESS.getCode());
             // 请求的地址
             String ip = ServletUtils.getClientIP();
-            operationLog.setOperIp(ip);
-            operationLog.setOperUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
-            SaSession currentSession = StpUtil.getTokenSession();
-            operationLog.setOperUsername(currentSession.get(SaSession.USER).toString());
+            operationLog.setIp(ip);
+            operationLog.setRequestUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
+            SaSession currentSession = StpUtil.getSession();
+            JSONObject userInfo = JSONUtil.parseObj(JSONUtil.toJsonStr(currentSession.get(SaSession.USER)));
+            operationLog.setUsername(userInfo.getStr("username"));
 
             if (e != null) {
                 operationLog.setStatus(RequestResultEnum.FAILURE.getCode());
@@ -113,12 +115,12 @@ public class OperationLogAspect {
             StopWatch stopWatch = KEY_CACHE.get();
             stopWatch.stop();
             operationLog.setCostTime(stopWatch.getTime());
-            operationLog.setOperTime(DateUtil.date().toLocalDateTime());
+            operationLog.setRequestTime(DateUtil.date());
             // 发布事件保存数据库
             SpringUtils.context().publishEvent(operationLog);
         } catch (Exception exp) {
             // 记录本地异常日志
-            log.error("异常信息:{}", exp.getMessage());
+            log.error("日志异常信息", exp);
         } finally {
             KEY_CACHE.remove();
         }
@@ -131,9 +133,9 @@ public class OperationLogAspect {
      * @param operationLog 操作日志
      * @throws Exception
      */
-    public void getControllerMethodDescription(JoinPoint joinPoint, Log log, OperationLogDTO operationLog, Object jsonResult) throws Exception {
+    public void getControllerMethodDescription(JoinPoint joinPoint, Log log, OperationLogEvent operationLog, Object jsonResult) throws Exception {
         // 设置action动作
-        operationLog.setBusinessType(log.businessType().ordinal());
+        operationLog.setBusinessType(log.operationType().ordinal());
         // 设置标题
         operationLog.setTitle(log.title());
         // 设置操作人类别
@@ -152,20 +154,20 @@ public class OperationLogAspect {
     /**
      * 获取请求的参数，放到log中
      *
-     * @param operLog 操作日志
+     * @param operationLog 操作日志
      * @throws Exception 异常
      */
-    private void setRequestValue(JoinPoint joinPoint, OperationLogDTO operLog, String[] excludeParamNames) throws Exception {
+    private void setRequestValue(JoinPoint joinPoint, OperationLogEvent operationLog, String[] excludeParamNames) throws Exception {
         Map<String, String> paramsMap = ServletUtils.getParamMap(ServletUtils.getRequest());
-        String requestMethod = operLog.getRequestMethod();
+        String requestMethod = operationLog.getRequestMethod();
         if (MapUtil.isEmpty(paramsMap)
                 && HttpMethod.PUT.name().equals(requestMethod) || HttpMethod.POST.name().equals(requestMethod)) {
             String params = argsArrayToString(joinPoint.getArgs(), excludeParamNames);
-            operLog.setOperParam(StringUtils.substring(params, 0, 2000));
+            operationLog.setParam(StringUtils.substring(params, 0, 2000));
         } else {
             MapUtil.removeAny(paramsMap, EXCLUDE_PROPERTIES);
             MapUtil.removeAny(paramsMap, excludeParamNames);
-            operLog.setOperParam(StringUtils.substring(JSONUtil.toJsonStr(paramsMap), 0, 2000));
+            operationLog.setParam(StringUtils.substring(JSONUtil.toJsonStr(paramsMap), 0, 2000));
         }
     }
 

@@ -1,7 +1,7 @@
 package com.homi.annotation;
 
 
-import com.homi.domain.enums.common.BizOperateTypeEnum;
+import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.enums.common.OperatorTypeEnum;
 
 import java.lang.annotation.*;
@@ -23,7 +23,7 @@ public @interface Log {
     /**
      * 功能
      */
-    BizOperateTypeEnum businessType() default BizOperateTypeEnum.OTHER;
+    OperationTypeEnum operationType() default OperationTypeEnum.OTHER;
 
     /**
      * 操作人类别

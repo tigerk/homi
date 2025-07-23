@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-22
+ * @since 2025-07-23
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -86,9 +86,9 @@ public class SysOperationLog implements Serializable {
     private String errorMsg;
 
     @Schema(description = "操作时间")
-    @TableField("oper_time")
+    @TableField("request_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date operTime;
+    private Date requestTime;
 
     @Schema(description = "消耗时间")
     @TableField("cost_time")

@@ -8,7 +8,7 @@ import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.dict.data.DictDataQueryDTO;
 import com.homi.domain.dto.dict.data.SysDictDataCreateDTO;
 import com.homi.domain.dto.dict.data.SysDictDataUpdateDTO;
-import com.homi.domain.enums.common.BizOperateTypeEnum;
+import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.model.entity.SysDictData;
 import com.homi.service.system.SysDictDataService;
 import com.homi.utils.BeanCopyUtils;
@@ -75,7 +75,7 @@ public class SysDictDataController {
      * @param updateDTO 实体对象
      * @return 修改结果
      */
-    @Log(title = "字典数据项管理", businessType = BizOperateTypeEnum.UPDATE)
+    @Log(title = "字典数据项管理", operationType = OperationTypeEnum.UPDATE)
     @PutMapping("update")
     @SaCheckPermission("system:dict:data:update")
     public ResponseResult<Long> update(@Valid @RequestBody SysDictDataUpdateDTO updateDTO) {
@@ -89,7 +89,7 @@ public class SysDictDataController {
      * @param idList 主键结合
      * @return 删除结果
      */
-    @Log(title = "字典数据项管理", businessType = BizOperateTypeEnum.DELETE)
+    @Log(title = "字典数据项管理", operationType = OperationTypeEnum.DELETE)
     @DeleteMapping("/delete")
     @SaCheckPermission("system:dict:data:delete")
     public ResponseResult<Boolean> delete(@RequestBody List<Long> idList) {

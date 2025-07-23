@@ -15,7 +15,7 @@ spring:
     url: jdbc:mysql://localhost:3306/homi?serverTimezone=Asia/Shanghai&allowMultiQueries=true
     username: root
     password: 123456
-    driver-class-name: org.postgresql.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       minimum-idle: 5

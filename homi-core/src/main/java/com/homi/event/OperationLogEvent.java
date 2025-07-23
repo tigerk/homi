@@ -1,31 +1,28 @@
 package com.homi.event;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
- * 操作日志事件
+ * 应用于 homi
  *
- * @author Lion Li
+ * @author tk
+ * @version v1.0
+ * {@code @date} 2025/7/22
  */
-
 @Data
-public class OperateLogEvent implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
-
-
+public class OperationLogEvent {
     /**
-     * 用户名
+     * 日志主键
      */
-    private String operUsername;
+    @TableId
+    private Long id;
 
     /**
-     * 操作模块
+     * 模块标题
      */
     private String title;
 
@@ -35,12 +32,7 @@ public class OperateLogEvent implements Serializable {
     private Integer businessType;
 
     /**
-     * 业务类型数组
-     */
-    private Integer[] businessTypes;
-
-    /**
-     * 请求方法
+     * 方法名称
      */
     private String method;
 
@@ -50,29 +42,34 @@ public class OperateLogEvent implements Serializable {
     private String requestMethod;
 
     /**
-     * 操作类别（0其它 1后台用户）
+     * 操作类别（0其它 1后台用户 2前台用户）
      */
     private Integer operatorType;
 
     /**
-     * 请求url
+     * 操作用户名
      */
-    private String operUrl;
+    private String username;
 
     /**
-     * 操作地址
+     * 请求URL
      */
-    private String operIp;
+    private String requestUrl;
+
+    /**
+     * 主机地址
+     */
+    private String ip;
 
     /**
      * 操作地点
      */
-    private String operLocation;
+    private String location;
 
     /**
      * 请求参数
      */
-    private String operParam;
+    private String param;
 
     /**
      * 返回参数
@@ -92,7 +89,7 @@ public class OperateLogEvent implements Serializable {
     /**
      * 操作时间
      */
-    private LocalDateTime operTime;
+    private Date requestTime;
 
     /**
      * 消耗时间

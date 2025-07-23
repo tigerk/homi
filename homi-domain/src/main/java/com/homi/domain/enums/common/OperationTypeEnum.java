@@ -8,7 +8,7 @@ import lombok.Getter;
  * @author ruoyi
  */
 @Getter
-public enum BizOperateTypeEnum {
+public enum OperationTypeEnum {
     /**
      * 其它
      */
@@ -56,7 +56,7 @@ public enum BizOperateTypeEnum {
 
     private final int value;
 
-    BizOperateTypeEnum(int value) {
+    OperationTypeEnum(int value) {
         this.value = value;
     }
 

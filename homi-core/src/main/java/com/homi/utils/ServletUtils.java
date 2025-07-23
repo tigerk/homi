@@ -189,6 +189,12 @@ public class ServletUtils extends JakartaServletUtil {
     }
 
     public static String getClientIP() {
-        return getClientIP(getRequest());
+        String clientIP = getClientIP(getRequest());
+        // 3. 如果是本地 IPv6 地址，则转换为 127.0.0.1
+        if ("::1".equals(clientIP) || "0:0:0:0:0:0:0:1".equals(clientIP)) {
+            clientIP = "127.0.0.1";
+        }
+
+        return clientIP;
     }
 }
