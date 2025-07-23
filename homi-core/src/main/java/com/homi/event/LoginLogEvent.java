@@ -17,12 +17,12 @@ public class LoginLogEvent implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 登录sessionId
+     * 登录token
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/7/23 11:32
      */
-    private String sessionId;
+    private String loginToken;
 
     /**
      * 用户账号

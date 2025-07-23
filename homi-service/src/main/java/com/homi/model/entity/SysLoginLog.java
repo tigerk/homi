@@ -42,8 +42,8 @@ public class SysLoginLog implements Serializable {
     @TableField("username")
     private String username;
 
-    @TableField("session_id")
-    private String sessionId;
+    @TableField("login_token")
+    private String loginToken;
 
     @Schema(description = "登录IP地址")
     @TableField("ip_address")

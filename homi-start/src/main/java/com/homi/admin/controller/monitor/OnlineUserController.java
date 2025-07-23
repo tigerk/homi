@@ -1,6 +1,7 @@
 package com.homi.admin.controller.monitor;
 
 
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequestMapping("/admin/monitor/online")
@@ -29,7 +31,15 @@ public class OnlineUserController {
         // 获取所有登录的用户ids
         List<String> sessionIds = StpUtil.searchSessionId("", 0, -1, false);
 
-        return ResponseResult.ok(sysLoginLogRepo.getLoginUsers(currentUser.getCompanyId(), sessionIds));
+        List<String> validTokens = new ArrayList<>();
+        for (String sessionId : sessionIds) {
+            SaSession sessionBySessionId = StpUtil.getSessionBySessionId(sessionId);
+            List<String> sessionTokens = StpUtil.getTokenValueListByLoginId(sessionBySessionId.getLoginId());
+
+            validTokens.addAll(sessionTokens);
+        }
+
+        return ResponseResult.ok(sysLoginLogRepo.getLoginUsers(currentUser.getCompanyId(), validTokens));
     }
 }
 

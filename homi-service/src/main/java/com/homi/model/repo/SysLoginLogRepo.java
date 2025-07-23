@@ -50,12 +50,12 @@ public class SysLoginLogRepo extends ServiceImpl<SysLoginLogMapper, SysLoginLog>
      * {@code @date} 2025/7/23 11:37
      *
      * @param companyId  参数说明
-     * @param sessionIds 参数说明
+     * @param loginTokens 参数说明
      * @return java.util.List<com.homi.model.entity.SysLoginLog>
      */
-    public List<SysLoginLog> getLoginUsers(Long companyId, List<String> sessionIds) {
+    public List<SysLoginLog> getLoginUsers(Long companyId, List<String> loginTokens) {
         return getBaseMapper().selectList(new LambdaQueryWrapper<SysLoginLog>()
                 .eq(SysLoginLog::getCompanyId, companyId)
-                .in(SysLoginLog::getSessionId, sessionIds));
+                .in(SysLoginLog::getLoginToken, loginTokens));
     }
 }

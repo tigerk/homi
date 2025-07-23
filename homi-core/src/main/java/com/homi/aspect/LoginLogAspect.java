@@ -1,6 +1,5 @@
 package com.homi.aspect;
 
-import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONObject;
@@ -62,9 +61,7 @@ public class LoginLogAspect {
                 JSONObject jsonObject = JSONUtil.parseObj(jsonResult);
                 loginInfoEvent.setMessage(jsonObject.getStr("message"));
 
-                SaSession currentSession = StpUtil.getSession();
-                String currentSessionId = currentSession.getId();
-                loginInfoEvent.setSessionId(currentSessionId);
+                loginInfoEvent.setLoginToken(StpUtil.getTokenValue());
             }
             // 请求的地址
             String ip = ServletUtils.getClientIP();
