@@ -41,6 +41,13 @@ public class SysOperationLog implements Serializable {
     @TableField("operation_type")
     private Integer operationType;
 
+    @TableField("company_id")
+    private Long companyId;
+
+    @Schema(description = "操作用户名")
+    @TableField("username")
+    private String username;
+
     @Schema(description = "方法名称")
     @TableField("method")
     private String method;
@@ -52,10 +59,6 @@ public class SysOperationLog implements Serializable {
     @Schema(description = "操作类别（0其它 1后台用户 2前台用户）")
     @TableField("operator_type")
     private Integer operatorType;
-
-    @Schema(description = "操作用户名")
-    @TableField("username")
-    private String username;
 
     @Schema(description = "请求URL")
     @TableField("request_url")

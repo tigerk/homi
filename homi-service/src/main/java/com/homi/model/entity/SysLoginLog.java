@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -33,6 +32,10 @@ public class SysLoginLog implements Serializable {
     @Schema(description = "访问ID")
     @TableId("id")
     private Long id;
+
+    @Schema(description = "公司id")
+    @TableField("company_id")
+    private Long companyId;
 
     @Schema(description = "用户账号")
     @TableField("username")
@@ -65,5 +68,5 @@ public class SysLoginLog implements Serializable {
     @Schema(description = "登录时间")
     @TableField("login_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private LocalDateTime loginTime;
+    private Date loginTime;
 }

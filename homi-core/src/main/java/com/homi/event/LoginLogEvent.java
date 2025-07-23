@@ -5,6 +5,7 @@ import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 登录事件
@@ -55,6 +56,6 @@ public class LoginLogEvent implements Serializable {
     /**
      * 登录时间
      */
-    private LocalDateTime loginTime;
+    private Date loginTime;
 
 }

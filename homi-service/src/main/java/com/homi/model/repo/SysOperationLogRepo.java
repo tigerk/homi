@@ -3,9 +3,11 @@ package com.homi.model.repo;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.event.OperationLogEvent;
 import com.homi.model.entity.SysOperationLog;
+import com.homi.model.entity.User;
 import com.homi.model.mapper.SysOperationLogMapper;
 import com.homi.utils.AddressUtils;
 import com.homi.utils.BeanCopyUtils;
+import jakarta.annotation.Resource;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SysOperationLogRepo extends ServiceImpl<SysOperationLogMapper, SysOperationLog> {
+    @Resource
+    private UserRepo userRepo;
 
     /**
      * 操作日志记录
@@ -32,6 +36,12 @@ public class SysOperationLogRepo extends ServiceImpl<SysOperationLogMapper, SysO
         SysOperationLog sysOperationLog = BeanCopyUtils.copyBean(operationLogEvent, SysOperationLog.class);
         // 远程查询操作地点
         sysOperationLog.setLocation(AddressUtils.getRealAddressByIP(sysOperationLog.getIpAddress()));
+
+        User user = userRepo.getUserByUsername(sysOperationLog.getUsername());
+        if (user != null) {
+            sysOperationLog.setCompanyId(user.getCompanyId());
+        }
+
         getBaseMapper().insert(sysOperationLog);
     }
 }

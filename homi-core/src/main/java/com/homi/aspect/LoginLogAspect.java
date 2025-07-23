@@ -76,7 +76,7 @@ public class LoginLogAspect {
             // 允许访问 private 字段
             username.setAccessible(true);
             loginInfoEvent.setUsername(username.get(args[0]).toString());
-            loginInfoEvent.setLoginTime(DateUtil.date().toLocalDateTime());
+            loginInfoEvent.setLoginTime(DateUtil.date());
             // 发布事件保存数据库
             SpringUtils.context().publishEvent(loginInfoEvent);
         } catch (Exception exp) {
