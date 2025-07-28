@@ -1,9 +1,9 @@
-package com.homi.admin.aspect;
+package com.homi.aspect;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.homi.admin.annotation.LoginLog;
+import com.homi.annotation.LoginLog;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.enums.common.RequestResultEnum;

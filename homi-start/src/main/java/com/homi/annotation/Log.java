@@ -1,4 +1,4 @@
-package com.homi.admin.annotation;
+package com.homi.annotation;
 
 
 import com.homi.domain.enums.common.OperationTypeEnum;

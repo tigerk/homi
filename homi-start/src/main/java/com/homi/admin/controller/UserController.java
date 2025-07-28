@@ -3,7 +3,7 @@ package com.homi.admin.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
-import com.homi.admin.annotation.Log;
+import com.homi.annotation.Log;
 import com.homi.annotation.RepeatSubmit;
 import com.homi.config.MyBatisTenantContext;
 import com.homi.domain.base.PageVO;

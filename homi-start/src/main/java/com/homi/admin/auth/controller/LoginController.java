@@ -4,7 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.captcha.generator.RandomGenerator;
-import com.homi.admin.annotation.LoginLog;
+import com.homi.annotation.LoginLog;
 import com.homi.admin.auth.dto.login.TokenRefreshDTO;
 import com.homi.admin.auth.dto.login.UserLoginDTO;
 import com.homi.admin.auth.service.AuthService;

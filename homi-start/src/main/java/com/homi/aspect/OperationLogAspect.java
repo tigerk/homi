@@ -1,4 +1,4 @@
-package com.homi.admin.aspect;
+package com.homi.aspect;
 
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
@@ -9,7 +9,7 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.homi.admin.annotation.Log;
+import com.homi.annotation.Log;
 import com.homi.domain.enums.common.RequestResultEnum;
 import com.homi.event.OperationLogEvent;
 import com.homi.utils.JsonUtils;
