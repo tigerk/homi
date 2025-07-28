@@ -3,16 +3,14 @@ package com.homi.admin.controller.monitor;
 
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
+import com.homi.admin.auth.service.AuthService;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.model.entity.SysLoginLog;
 import com.homi.model.repo.SysLoginLogRepo;
-import com.homi.model.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +20,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OnlineUserController {
     private final SysLoginLogRepo sysLoginLogRepo;
-    private final UserRepo userRepo;
+
+    private final AuthService authService;
 
     @GetMapping("/users")
     public ResponseResult<List<SysLoginLog>> getOnlineUsers() {
@@ -40,6 +39,11 @@ public class OnlineUserController {
         }
 
         return ResponseResult.ok(sysLoginLogRepo.getLoginUsers(currentUser.getCompanyId(), validTokens));
+    }
+
+    @PostMapping("/offline")
+    public ResponseResult<Boolean> offlineUser(@RequestBody SysLoginLog sysLoginLog) {
+        return ResponseResult.ok(authService.kickUserByUsername(sysLoginLog.getUsername()));
     }
 }
 

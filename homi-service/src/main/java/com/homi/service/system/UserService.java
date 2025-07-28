@@ -193,6 +193,10 @@ public class UserService {
         return userMapper.selectById(id);
     }
 
+    public User getUserByUsername(String username) {
+        return userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
+    }
+
     public void updateUserStatusByCompanyId(Long companyId, int status) {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(User::getCompanyId, companyId);

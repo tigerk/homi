@@ -20,7 +20,7 @@ public enum ResponseCodeEnum {
     /**
      * 验证码错误
      */
-    VERIFICATIONCODE_ERROR(400, "验证码错误"),
+    VERIFICATION_CODE_ERROR(400, "验证码错误"),
 
     /**
      * 未登录

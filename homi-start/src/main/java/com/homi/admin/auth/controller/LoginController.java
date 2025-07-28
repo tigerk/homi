@@ -66,9 +66,7 @@ public class LoginController {
     @PostMapping("/admin/token/refresh")
     @LoginLog
     public ResponseResult<UserLoginVO> refresh(@RequestBody TokenRefreshDTO req) {
-        Long userId = authService.getUserIdByToken(req.getRefreshToken());
-
-        return ResponseResult.ok(authService.loginSession(userId));
+        return ResponseResult.ok(authService.refreshLogin(req.getRefreshToken()));
     }
 
     @PostMapping("/admin/logout")
