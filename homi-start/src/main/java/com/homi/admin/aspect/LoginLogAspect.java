@@ -1,10 +1,11 @@
-package com.homi.aspect;
+package com.homi.admin.aspect;
 
-import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.homi.annotation.LoginLog;
+import com.homi.admin.annotation.LoginLog;
+import com.homi.admin.auth.vo.login.UserLoginVO;
+import com.homi.admin.config.LoginManager;
 import com.homi.domain.enums.common.RequestResultEnum;
 import com.homi.event.LoginLogEvent;
 import com.homi.utils.AddressUtils;
@@ -53,16 +54,6 @@ public class LoginLogAspect {
         try {
             UserAgent userAgent = UserAgent.parseUserAgentString(ServletUtils.getRequest().getHeader("User-Agent"));
             LoginLogEvent loginInfoEvent = new LoginLogEvent();
-            if (e != null) {
-                loginInfoEvent.setStatus(RequestResultEnum.FAILURE.getCode());
-                loginInfoEvent.setMessage(e.getMessage());
-            } else {
-                loginInfoEvent.setStatus(RequestResultEnum.SUCCESS.getCode());
-                JSONObject jsonObject = JSONUtil.parseObj(jsonResult);
-                loginInfoEvent.setMessage(jsonObject.getStr("message"));
-
-                loginInfoEvent.setLoginToken(StpUtil.getTokenValue());
-            }
             // 请求的地址
             String ip = ServletUtils.getClientIP();
             // 获取客户端操作系统
@@ -73,11 +64,28 @@ public class LoginLogAspect {
             loginInfoEvent.setOs(os);
             loginInfoEvent.setBrowser(browser);
             loginInfoEvent.setLoginLocation(AddressUtils.getRealAddressByIP(ip));
-            Object[] args = joinPoint.getArgs();
-            Field username = args[0].getClass().getDeclaredField("username");
-            // 允许访问 private 字段
-            username.setAccessible(true);
-            loginInfoEvent.setUsername(username.get(args[0]).toString());
+            if (e != null) {
+                loginInfoEvent.setStatus(RequestResultEnum.FAILURE.getCode());
+                loginInfoEvent.setMessage(e.getMessage());
+
+                Object[] args = joinPoint.getArgs();
+                Field username = args[0].getClass().getDeclaredField("username");
+                // 允许访问 private 字段
+                username.setAccessible(true);
+                loginInfoEvent.setUsername(username.get(args[0]).toString());
+            } else {
+                loginInfoEvent.setStatus(RequestResultEnum.SUCCESS.getCode());
+                JSONObject jsonObject = JSONUtil.parseObj(jsonResult);
+                loginInfoEvent.setMessage(jsonObject.getStr("message"));
+
+                loginInfoEvent.setLoginToken(LoginManager.getTokenInfo().getTokenValue());
+                loginInfoEvent.setIpAddress(ip);
+
+                UserLoginVO currentUser = LoginManager.getCurrentUser();
+
+                loginInfoEvent.setUsername(currentUser.getUsername());
+            }
+
             loginInfoEvent.setLoginTime(DateUtil.date());
             // 发布事件保存数据库
             SpringUtils.context().publishEvent(loginInfoEvent);

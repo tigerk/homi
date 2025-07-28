@@ -3,7 +3,7 @@ package com.homi.admin.controller.sys;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.homi.annotation.Log;
+import com.homi.admin.annotation.Log;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.dict.data.DictDataQueryDTO;
 import com.homi.domain.dto.dict.data.SysDictDataCreateDTO;
