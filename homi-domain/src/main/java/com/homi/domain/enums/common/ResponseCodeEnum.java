@@ -94,9 +94,9 @@ public enum ResponseCodeEnum {
     WEIBO_LOGIN_ERROR(720, "微博登录错误"),
 
     /**
-     * token验证错误
+     * token异常
      */
-    TOKEN_ERROR(800, "token验证错误");
+    TOKEN_ERROR(9999, "token异常");
 
     /**
      * 状态码
