@@ -19,7 +19,7 @@ public enum RequestResultEnum {
     /**
      * 失败
      */
-    FAILURE(1, "失败");
+    FAILURE(-1, "失败");
 
     private final int code;
     private final String message;

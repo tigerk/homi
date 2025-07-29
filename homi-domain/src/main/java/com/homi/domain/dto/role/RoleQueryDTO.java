@@ -1,6 +1,6 @@
 package com.homi.domain.dto.role;
 
-import com.homi.domain.base.BasePageDTO;
+import com.homi.domain.base.PageDTO;
 import lombok.Data;
 
 /**
@@ -10,7 +10,7 @@ import lombok.Data;
  * @description: 角色查询对象
  */
 @Data
-public class RoleQueryDTO extends BasePageDTO {
+public class RoleQueryDTO extends PageDTO {
 
     private String roleName;
 

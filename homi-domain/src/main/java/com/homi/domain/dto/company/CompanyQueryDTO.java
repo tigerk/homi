@@ -1,6 +1,6 @@
 package com.homi.domain.dto.company;
 
-import com.homi.domain.base.BasePageDTO;
+import com.homi.domain.base.PageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Schema(description = "公司查询对象")
-public class CompanyQueryDTO extends BasePageDTO {
+public class CompanyQueryDTO extends PageDTO {
 
     @Schema(description = "公司名称")
     private String name;

@@ -3,7 +3,7 @@ package com.homi.domain.base;
 import lombok.Data;
 
 @Data
-public class BasePageDTO {
+public class PageDTO {
 
     private Long currentPage = 1L;
 

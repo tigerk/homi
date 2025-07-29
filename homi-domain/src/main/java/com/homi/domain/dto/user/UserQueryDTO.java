@@ -1,6 +1,6 @@
 package com.homi.domain.dto.user;
 
-import com.homi.domain.base.BasePageDTO;
+import com.homi.domain.base.PageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Schema(description = "用户查询对象")
-public class UserQueryDTO extends BasePageDTO {
+public class UserQueryDTO extends PageDTO {
 
     @Schema(description = "用户名")
     private String username;

@@ -1,6 +1,6 @@
 package com.homi.domain.dto.company;
 
-import com.homi.domain.base.BasePageDTO;
+import com.homi.domain.base.PageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -14,7 +14,7 @@ import lombok.Data;
 
 @Data
 @Schema(description = "公司套餐列表查询DTO")
-public class CompanyPackageQueryDTO extends BasePageDTO {
+public class CompanyPackageQueryDTO extends PageDTO {
     /**
      * 套餐名称
      */

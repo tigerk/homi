@@ -1,6 +1,6 @@
 package com.homi.domain.dto.dept;
 
-import com.homi.domain.base.BasePageDTO;
+import com.homi.domain.base.PageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "部门查询对象")
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeptQueryDTO extends BasePageDTO {
+public class DeptQueryDTO extends PageDTO {
 
     @Schema(description = "部门名称")
     private String name;
