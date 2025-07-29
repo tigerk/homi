@@ -107,4 +107,9 @@ public class SysLoginLogRepo extends ServiceImpl<SysLoginLogMapper, SysLoginLog>
         return getBaseMapper().delete(new LambdaQueryWrapper<SysLoginLog>()
                 .eq(SysLoginLog::getCompanyId, companyId));
     }
+
+    public int batchDeleteByIds(List<Long> ids) {
+        return getBaseMapper().delete(new LambdaQueryWrapper<SysLoginLog>()
+                .in(SysLoginLog::getId, ids));
+    }
 }

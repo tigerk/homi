@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RequestMapping("/admin/monitor/login/log")
 @RestController
 @RequiredArgsConstructor
@@ -33,6 +35,13 @@ public class LoginLogController {
     public ResponseResult<Boolean> clearAll() {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         int deleted = sysLoginLogRepo.clearAllByCompanyId(currentUser.getCompanyId());
+
+        return ResponseResult.ok(deleted > 0);
+    }
+
+    @PostMapping("/batch/delete")
+    public ResponseResult<Boolean> batchDelete(@RequestBody List<Long> ids) {
+        int deleted = sysLoginLogRepo.batchDeleteByIds(ids);
 
         return ResponseResult.ok(deleted > 0);
     }
