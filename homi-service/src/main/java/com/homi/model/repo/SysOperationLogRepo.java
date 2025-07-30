@@ -1,6 +1,12 @@
 package com.homi.model.repo;
 
+import cn.hutool.core.text.CharSequenceUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.domain.base.PageVO;
+import com.homi.domain.dto.monitor.OperationLogDTO;
 import com.homi.event.OperationLogEvent;
 import com.homi.model.entity.SysOperationLog;
 import com.homi.model.entity.User;
@@ -11,6 +17,8 @@ import jakarta.annotation.Resource;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * <p>
@@ -43,5 +51,34 @@ public class SysOperationLogRepo extends ServiceImpl<SysOperationLogMapper, SysO
         }
 
         getBaseMapper().insert(sysOperationLog);
+    }
+
+    public PageVO<SysOperationLog> getList(OperationLogDTO dto) {
+        Page<SysOperationLog> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
+
+        LambdaQueryWrapper<SysOperationLog> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        if (CharSequenceUtil.isNotBlank(dto.getTitle())) {
+            lambdaQueryWrapper.like(SysOperationLog::getTitle, dto.getTitle());
+        }
+        if (Objects.nonNull(dto.getStatus())) {
+            lambdaQueryWrapper.eq(SysOperationLog::getStatus, dto.getStatus());
+        }
+
+        if (Objects.nonNull(dto.getRequestTime()) && dto.getRequestTime().size() == 2) {
+            lambdaQueryWrapper.ge(SysOperationLog::getRequestTime, dto.getRequestTime().get(0));
+            lambdaQueryWrapper.le(SysOperationLog::getRequestTime, dto.getRequestTime().get(1));
+        }
+        lambdaQueryWrapper.orderByDesc(SysOperationLog::getRequestTime);
+
+        IPage<SysOperationLog> sysOperationLogPage = getBaseMapper().selectPage(page, lambdaQueryWrapper);
+
+        PageVO<SysOperationLog> pageVO = new PageVO<>();
+        pageVO.setTotal(sysOperationLogPage.getTotal());
+        pageVO.setList(sysOperationLogPage.getRecords());
+        pageVO.setCurrentPage(sysOperationLogPage.getCurrent());
+        pageVO.setPageSize(sysOperationLogPage.getSize());
+        pageVO.setPages(sysOperationLogPage.getPages());
+
+        return pageVO;
     }
 }

@@ -128,14 +128,19 @@ public class OperationLogAspect {
 
     /**
      * 获取注解中对方法的描述信息 用于Controller层注解
-     *
-     * @param log          日志
-     * @param operationLog 操作日志
-     * @throws Exception
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/7/30 15:55
+
+     * @param joinPoint 参数说明
+     * @param log 参数说明
+     * @param operationLog 参数说明
+     * @param jsonResult 参数说明
+
      */
     public void getControllerMethodDescription(JoinPoint joinPoint, Log log, OperationLogEvent operationLog, Object jsonResult) throws Exception {
         // 设置action动作
-        operationLog.setOperationType(log.operationType().ordinal());
+        operationLog.setOperationType(log.operationType().getCode());
         // 设置标题
         operationLog.setTitle(log.title());
         // 设置操作人类别

@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.captcha.generator.RandomGenerator;
+import com.homi.annotation.Log;
 import com.homi.annotation.LoginLog;
 import com.homi.admin.auth.dto.login.TokenRefreshDTO;
 import com.homi.admin.auth.dto.login.UserLoginDTO;
@@ -12,6 +13,7 @@ import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.RedisKey;
 import com.homi.domain.base.ResponseResult;
+import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.vo.menu.AsyncRoutesVO;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -59,6 +61,7 @@ public class LoginController {
 
     @LoginLog
     @PostMapping("/admin/login")
+    @Log(title = "用户管理", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<UserLoginVO> login(@Valid @RequestBody UserLoginDTO user) {
         return ResponseResult.ok(authService.login(user));
     }
