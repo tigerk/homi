@@ -81,4 +81,8 @@ public class SysOperationLogRepo extends ServiceImpl<SysOperationLogMapper, SysO
 
         return pageVO;
     }
+
+    public SysOperationLog getDetailById(Long id) {
+        return getBaseMapper().selectById(id);
+    }
 }

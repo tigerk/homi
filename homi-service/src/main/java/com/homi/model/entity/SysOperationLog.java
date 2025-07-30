@@ -98,7 +98,7 @@ public class SysOperationLog implements Serializable {
 
     @Schema(description = "操作时间")
     @TableField("request_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date requestTime;
 
     @Schema(description = "消耗时间")

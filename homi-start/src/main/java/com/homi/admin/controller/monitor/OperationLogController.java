@@ -22,8 +22,13 @@ public class OperationLogController {
     private final AuthService authService;
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<SysOperationLog>> getLoginLogList(@RequestBody OperationLogDTO dto) {
+    public ResponseResult<PageVO<SysOperationLog>> getOperationList(@RequestBody OperationLogDTO dto) {
         return ResponseResult.ok(sysOperationLogRepo.getList(dto));
+    }
+
+    @PostMapping("/detail")
+    public ResponseResult<SysOperationLog> getOperationDetail(@RequestBody OperationLogDTO dto) {
+        return ResponseResult.ok(sysOperationLogRepo.getDetailById(dto.getId()));
     }
 }
 

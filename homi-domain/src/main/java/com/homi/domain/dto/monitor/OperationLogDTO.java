@@ -19,6 +19,9 @@ import java.util.List;
 @Data
 @Schema(description = "操作日志DTO")
 public class OperationLogDTO extends PageDTO {
+    @Schema(description = "id")
+    private Long id;
+
     @Schema(description = "模块")
     private String title;
 
