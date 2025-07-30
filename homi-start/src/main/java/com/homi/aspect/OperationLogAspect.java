@@ -32,6 +32,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
@@ -195,12 +196,15 @@ public class OperationLogAspect {
         for (Object o : paramsArray) {
             if (ObjectUtil.isNotNull(o) && !isFilterObject(o)) {
                 String str = JSONUtil.toJsonStr(o);
-                Dict dict = JSONUtil.toBean(str, Dict.class);
-                if (MapUtil.isNotEmpty(dict)) {
-                    MapUtil.removeAny(dict, EXCLUDE_PROPERTIES);
-                    MapUtil.removeAny(dict, excludeParamNames);
-                    str = JsonUtils.toJsonString(dict);
+                if (!(o instanceof List<?>)) {
+                    Dict dict = JSONUtil.toBean(str, Dict.class);
+                    if (MapUtil.isNotEmpty(dict)) {
+                        MapUtil.removeAny(dict, EXCLUDE_PROPERTIES);
+                        MapUtil.removeAny(dict, excludeParamNames);
+                        str = JsonUtils.toJsonString(dict);
+                    }
                 }
+
                 params.add(str);
             }
         }

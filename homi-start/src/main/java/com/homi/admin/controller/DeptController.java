@@ -4,11 +4,14 @@ package com.homi.admin.controller;
 import cn.hutool.core.date.DateUtil;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
+import com.homi.annotation.Log;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.dept.DeptCreateDTO;
 import com.homi.domain.dto.dept.DeptQueryDTO;
 import com.homi.domain.dto.dept.DeptVO;
+import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.service.system.DeptService;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +24,7 @@ import java.util.Objects;
 @RequestMapping("/admin/dept")
 @RestController
 @RequiredArgsConstructor
+@Schema(description = "部门管理")
 public class DeptController {
     private final DeptService deptService;
 
@@ -30,6 +34,7 @@ public class DeptController {
     }
 
     @PostMapping("/create")
+    @Log(title = "部门管理", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<Boolean> createDept(@RequestBody DeptCreateDTO createDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         createDTO.setUpdateBy(currentUser.getId());

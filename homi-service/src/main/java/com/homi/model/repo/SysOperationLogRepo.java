@@ -18,6 +18,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -84,5 +85,13 @@ public class SysOperationLogRepo extends ServiceImpl<SysOperationLogMapper, SysO
 
     public SysOperationLog getDetailById(Long id) {
         return getBaseMapper().selectById(id);
+    }
+
+    public int clearAllByCompanyId(Long companyId) {
+        return getBaseMapper().delete(new LambdaQueryWrapper<SysOperationLog>().eq(SysOperationLog::getCompanyId, companyId));
+    }
+
+    public int batchDeleteByIds(List<Long> ids) {
+        return getBaseMapper().deleteBatchIds(ids);
     }
 }
