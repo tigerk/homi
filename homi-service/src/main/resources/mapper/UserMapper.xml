@@ -40,7 +40,7 @@
         register_source,
         company_id,
         dept_id
-        FROM public.user
+        FROM `user`
         <where>
             company_id = #{query.companyId}
             <if test="query.deptId != null">
