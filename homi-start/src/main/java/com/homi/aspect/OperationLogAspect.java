@@ -15,6 +15,7 @@ import com.homi.event.OperationLogEvent;
 import com.homi.utils.JsonUtils;
 import com.homi.utils.ServletUtils;
 import com.homi.utils.SpringUtils;
+import eu.bitwalker.useragentutils.UserAgent;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -88,11 +89,19 @@ public class OperationLogAspect {
 
     protected void handleLog(final JoinPoint joinPoint, Log controllerLog, final Exception e, Object jsonResult) {
         try {
+            UserAgent userAgent = UserAgent.parseUserAgentString(ServletUtils.getRequest().getHeader("User-Agent"));
             // *========数据库日志=========*//
             OperationLogEvent operationLog = new OperationLogEvent();
             operationLog.setStatus(RequestResultEnum.SUCCESS.getCode());
             // 请求的地址
             String ip = ServletUtils.getClientIP();
+            // 获取客户端操作系统
+            String os = userAgent.getOperatingSystem().getName();
+            operationLog.setOs(os);
+            // 获取客户端浏览器
+            String browser = userAgent.getBrowser().getName();
+            operationLog.setBrowser(browser);
+
             operationLog.setIpAddress(ip);
             operationLog.setRequestUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
             SaSession currentSession = StpUtil.getSession();
@@ -131,12 +140,11 @@ public class OperationLogAspect {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/7/30 15:55
-
-     * @param joinPoint 参数说明
-     * @param log 参数说明
+     *
+     * @param joinPoint    参数说明
+     * @param log          参数说明
      * @param operationLog 参数说明
-     * @param jsonResult 参数说明
-
+     * @param jsonResult   参数说明
      */
     public void getControllerMethodDescription(JoinPoint joinPoint, Log log, OperationLogEvent operationLog, Object jsonResult) throws Exception {
         // 设置action动作

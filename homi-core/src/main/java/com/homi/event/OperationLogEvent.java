@@ -36,6 +36,16 @@ public class OperationLogEvent {
     private String method;
 
     /**
+     * 浏览器类型
+     */
+    private String browser;
+
+    /**
+     * 操作系统
+     */
+    private String os;
+
+    /**
      * 请求方式
      */
     private String requestMethod;

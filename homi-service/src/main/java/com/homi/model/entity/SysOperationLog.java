@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-23
+ * @since 2025-07-30
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -41,12 +41,24 @@ public class SysOperationLog implements Serializable {
     @TableField("operation_type")
     private Integer operationType;
 
+    @Schema(description = "操作人类别（0其它 1后台用户 2前台用户）")
+    @TableField("operator_type")
+    private Integer operatorType;
+
     @TableField("company_id")
     private Long companyId;
 
     @Schema(description = "操作用户名")
     @TableField("username")
     private String username;
+
+    @Schema(description = "操作系统")
+    @TableField("os")
+    private String os;
+
+    @Schema(description = "浏览器类型")
+    @TableField("browser")
+    private String browser;
 
     @Schema(description = "方法名称")
     @TableField("method")
@@ -55,10 +67,6 @@ public class SysOperationLog implements Serializable {
     @Schema(description = "请求方式")
     @TableField("request_method")
     private String requestMethod;
-
-    @Schema(description = "操作类别（0其它 1后台用户 2前台用户）")
-    @TableField("operator_type")
-    private Integer operatorType;
 
     @Schema(description = "请求URL")
     @TableField("request_url")
@@ -80,7 +88,7 @@ public class SysOperationLog implements Serializable {
     @TableField("json_result")
     private String jsonResult;
 
-    @Schema(description = "操作状态（0正常 1异常）")
+    @Schema(description = "操作状态（0：正常；-1：异常）")
     @TableField("status")
     private Integer status;
 

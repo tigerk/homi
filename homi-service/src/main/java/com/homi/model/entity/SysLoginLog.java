@@ -3,15 +3,14 @@ package com.homi.model.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -19,7 +18,7 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-07-23
+ * @since 2025-07-30
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -71,6 +70,6 @@ public class SysLoginLog implements Serializable {
 
     @Schema(description = "登录时间")
     @TableField("login_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date loginTime;
 }
