@@ -1,4 +1,4 @@
-package com.homi.admin.controller;
+package com.homi.admin.controller.sys;
 
 
 import cn.hutool.core.date.DateUtil;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Objects;
 
-@RequestMapping("/admin/dept")
+@RequestMapping("/admin/sys/dept")
 @RestController
 @RequiredArgsConstructor
 @Schema(description = "部门管理")
@@ -29,7 +29,8 @@ public class DeptController {
     private final DeptService deptService;
 
     @PostMapping("list")
-    public ResponseResult<List<DeptVO>> list(@RequestBody DeptQueryDTO queryDTO) {
+    public ResponseResult<List<DeptVO>> list() {
+        DeptQueryDTO queryDTO = new DeptQueryDTO();
         return ResponseResult.ok(deptService.list(queryDTO));
     }
 
@@ -48,17 +49,11 @@ public class DeptController {
             return ResponseResult.ok(deptService.createDept(createDTO));
         }
     }
-//
-//    @PostMapping("/status/change")
-//    @SaCheckPermission("platform:company:createOrUpdate")
-//    public ResponseResult<Boolean> changeStatus(@RequestBody CompanyCreateDTO createDTO) {
-//        UserLoginVO currentUser = LoginManager.getCurrentUser();
-//        createDTO.setUpdateBy(currentUser.getId());
-//        createDTO.setUpdateTime(DateUtil.date());
-//
-//        companyService.changeStatus(createDTO);
-//
-//        return ResponseResult.ok(Boolean.TRUE);
-//    }
+
+    @PostMapping("/delete")
+    @Log(title = "部门管理", operationType = OperationTypeEnum.DELETE)
+    public ResponseResult<Boolean> deleteDept(@RequestBody DeptCreateDTO createDTO) {
+        return ResponseResult.ok(deptService.deleteDept(createDTO.getId()));
+    }
 }
 

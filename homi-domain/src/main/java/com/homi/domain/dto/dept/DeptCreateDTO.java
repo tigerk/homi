@@ -1,12 +1,16 @@
 package com.homi.domain.dto.dept;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @Data
 @Schema(description = "公司创建对象")
+@AllArgsConstructor
+@NoArgsConstructor
 public class DeptCreateDTO {
     /**
      * 主键ID

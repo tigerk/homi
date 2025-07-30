@@ -41,9 +41,9 @@ public class DeptService {
             queryWrapper.like(Dept::getStatus, queryDTO.getStatus());
         }
 
-        List<Dept> depts = deptMapper.selectList(queryWrapper);
+        List<Dept> deptList = deptMapper.selectList(queryWrapper);
 
-        return depts.stream().map(dept -> BeanCopyUtils.copyBean(dept, DeptVO.class)).toList();
+        return deptList.stream().map(dept -> BeanCopyUtils.copyBean(dept, DeptVO.class)).toList();
     }
 
     public Dept getDeptById(Long deptId) {
@@ -73,5 +73,10 @@ public class DeptService {
         Dept dept = BeanCopyUtils.copyBean(createDTO, Dept.class);
 
         return deptMapper.updateById(dept) > 0;
+    }
+
+
+    public Boolean deleteDept(Long id) {
+        return deptMapper.deleteById(id) > 0;
     }
 }
