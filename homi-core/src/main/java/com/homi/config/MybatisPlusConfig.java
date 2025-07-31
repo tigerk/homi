@@ -32,7 +32,8 @@ public class MybatisPlusConfig {
             "sys_menu",
             "company_package",
             "company",
-            "dept_user"
+            "dept_user",
+            "region"
     );
 
     /**

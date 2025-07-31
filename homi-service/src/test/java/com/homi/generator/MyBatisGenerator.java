@@ -56,31 +56,7 @@ public class MyBatisGenerator {
                 .mapperPackageName("com.homi.model.mapper")
                 .servicePackageName("com.homi.model.repo")
                 .tblNameList(Arrays.asList(
-                        "user",
-                        "sys_role_menu",
-                        "sys_role",
-                        "sys_operation_log",
-                        "sys_notice_user_read",
-                        "sys_notice_role",
-                        "sys_notice",
-                        "sys_menu",
-                        "sys_login_log",
-                        "sys_file_content",
-                        "sys_file_config",
-                        "sys_file",
-                        "sys_dict_data",
-                        "sys_dict",
-                        "sys_config",
-                        "room_layout",
-                        "room",
-                        "house_focus",
-                        "house",
-                        "focus_room_type",
-                        "dept_user",
-                        "dept",
-                        "customer",
-                        "company_package",
-                        "company"
+                        "region"
                 )).build();
 
         myBatisGenerator.generate();
