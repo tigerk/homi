@@ -11,7 +11,8 @@ import com.homi.domain.dto.dept.DeptQueryDTO;
 import com.homi.domain.dto.dept.DeptVO;
 import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.service.system.DeptService;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,11 +25,12 @@ import java.util.Objects;
 @RequestMapping("/admin/sys/dept")
 @RestController
 @RequiredArgsConstructor
-@Schema(description = "部门管理")
+@Tag(name = "部门管理")
 public class DeptController {
     private final DeptService deptService;
 
     @PostMapping("list")
+    @Operation(summary = "获取部门列表")
     public ResponseResult<List<DeptVO>> list() {
         DeptQueryDTO queryDTO = new DeptQueryDTO();
         return ResponseResult.ok(deptService.list(queryDTO));
@@ -36,6 +38,7 @@ public class DeptController {
 
     @PostMapping("/create")
     @Log(title = "部门管理", operationType = OperationTypeEnum.INSERT)
+    @Operation(summary = "创建部门")
     public ResponseResult<Boolean> createDept(@RequestBody DeptCreateDTO createDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         createDTO.setUpdateBy(currentUser.getId());
@@ -52,6 +55,7 @@ public class DeptController {
 
     @PostMapping("/delete")
     @Log(title = "部门管理", operationType = OperationTypeEnum.DELETE)
+    @Operation(summary = "删除部门")
     public ResponseResult<Boolean> deleteDept(@RequestBody DeptCreateDTO createDTO) {
         return ResponseResult.ok(deptService.deleteDept(createDTO.getId()));
     }

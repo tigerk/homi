@@ -4,11 +4,15 @@ package com.homi.admin.controller.monitor;
 import com.homi.admin.auth.service.AuthService;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
+import com.homi.annotation.Log;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.monitor.LoginLogDTO;
+import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.model.entity.SysLoginLog;
 import com.homi.model.repo.SysLoginLogRepo;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,18 +24,22 @@ import java.util.List;
 @RequestMapping("/admin/monitor/login/log")
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "登录日志")
 public class LoginLogController {
     private final SysLoginLogRepo sysLoginLogRepo;
 
     private final AuthService authService;
 
     @PostMapping("/list")
+    @Operation(summary = "获取登录日志列表")
     public ResponseResult<PageVO<SysLoginLog>> getLoginLogList(@RequestBody LoginLogDTO dto) {
         return ResponseResult.ok(sysLoginLogRepo.getLoginLogList(dto));
     }
 
 
     @PostMapping("/clear/all")
+    @Operation(summary = "清空所有登录日志")
+    @Log(title = "登录日志", operationType = OperationTypeEnum.CLEAR)
     public ResponseResult<Boolean> clearAll() {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         int deleted = sysLoginLogRepo.clearAllByCompanyId(currentUser.getCompanyId());
@@ -40,6 +48,8 @@ public class LoginLogController {
     }
 
     @PostMapping("/batch/delete")
+    @Operation(summary = "批量删除登录日志")
+    @Log(title = "登录日志", operationType = OperationTypeEnum.DELETE)
     public ResponseResult<Boolean> batchDelete(@RequestBody List<Long> ids) {
         int deleted = sysLoginLogRepo.batchDeleteByIds(ids);
 

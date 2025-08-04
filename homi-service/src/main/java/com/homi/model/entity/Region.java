@@ -51,11 +51,11 @@ public class Region implements Serializable {
     @TableField("pinyin")
     private String pinyin;
 
-    @Schema(description = "街道id")
-    @TableField("street_id")
-    private Long streetId;
+    @Schema(description = "扩展id")
+    @TableField("ext_id")
+    private Long extId;
 
-    @Schema(description = "街道名称")
-    @TableField("street_name")
-    private String streetName;
+    @Schema(description = "扩展名称")
+    @TableField("ext_name")
+    private String extName;
 }
