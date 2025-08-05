@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DeptQueryDTO extends PageDTO {
+    @Schema(description = "部门ID")
+    private Long deptId;
 
     @Schema(description = "部门名称")
     private String name;
