@@ -10,14 +10,13 @@ import com.homi.domain.dto.dept.DeptCreateDTO;
 import com.homi.domain.dto.dept.DeptQueryDTO;
 import com.homi.domain.dto.dept.DeptVO;
 import com.homi.domain.enums.common.OperationTypeEnum;
+import com.homi.domain.vo.user.UserVO;
 import com.homi.service.system.DeptService;
+import com.homi.service.system.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +27,8 @@ import java.util.Objects;
 @Tag(name = "部门管理")
 public class DeptController {
     private final DeptService deptService;
+
+    private final UserService userService;
 
     @PostMapping("list")
     @Operation(summary = "获取部门列表")
@@ -58,6 +59,12 @@ public class DeptController {
     @Operation(summary = "删除部门")
     public ResponseResult<Boolean> deleteDept(@RequestBody DeptCreateDTO createDTO) {
         return ResponseResult.ok(deptService.deleteDept(createDTO.getId()));
+    }
+
+    @GetMapping("/user/list")
+    @Operation(summary = "获取部门的用户列表")
+    public ResponseResult<List<UserVO>> getDeptUserList(Long deptId) {
+        return ResponseResult.ok(userService.getUserListByDeptId(deptId));
     }
 }
 

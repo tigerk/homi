@@ -223,4 +223,12 @@ public class UserService {
 
         return userMapper.selectList(queryWrapper);
     }
+
+    public List<UserVO> getUserListByDeptId(Long deptId) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getDeptId, deptId);
+        queryWrapper.eq(User::getStatus, StatusEnum.ACTIVE.getValue());
+
+        return userMapper.selectList(queryWrapper).stream().map(user -> BeanCopyUtils.copyBean(user, UserVO.class)).toList();
+    }
 }
