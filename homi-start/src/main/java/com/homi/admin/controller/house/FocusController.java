@@ -18,7 +18,7 @@ import java.util.Objects;
 @RequestMapping("/admin/house/focus")
 @RestController
 @RequiredArgsConstructor
-public class HouseController {
+public class FocusController {
     private final HouseFocusService houseFocusService;
 
     @PostMapping("/create")

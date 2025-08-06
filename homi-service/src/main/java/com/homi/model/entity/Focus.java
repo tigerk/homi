@@ -39,8 +39,8 @@ public class Focus implements Serializable {
     @TableField("house_id")
     private Long houseId;
 
-    @TableField("prefix")
-    private String prefix;
+    @TableField("room_prefix")
+    private String roomPrefix;
 
     @Schema(description = "房间号长度")
     @TableField("room_number_length")

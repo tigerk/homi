@@ -21,11 +21,11 @@ public class FocusCreateDTO {
     @Schema(description = "公司id", hidden = true)
     private Long companyId;
 
-    @Schema(description = "经营模式")
+    @Schema(description = "经营模式", hidden = true)
     private Integer businessMode;
 
-    @Schema(description = "城市id")
-    private Long cityId;
+    @Schema(description = "区域id")
+    private Long regionId;
 
     @Schema(description = "部门id", hidden = true)
     private Long deptId;
@@ -56,6 +56,25 @@ public class FocusCreateDTO {
 
     @Schema(description = "门牌号")
     private String doorNumber;
+
+
+    @Schema(description = "总楼层")
+    private Integer floorTotal;
+
+    @Schema(description = "房间号前缀")
+    private String roomPrefix;
+
+    @Schema(description = "房间号长度")
+    private Integer roomNumberLength;
+
+    @Schema(description = "去掉4")
+    private Boolean excludeFour;
+
+    @Schema(description = "关闭的楼层列表")
+    private List<Integer> closedFloors;
+
+    @Schema(description = "房间列表")
+    private List<FocusRoomDTO> roomList;
 
     @Schema(description = "业务员id")
     private Long salesmanId;
@@ -89,41 +108,5 @@ public class FocusCreateDTO {
      */
     @Schema(description = "更新人", hidden = true)
     private Long updateBy;
-
-    @Schema(description = "总楼层")
-    private Integer floorTotal;
-
-    @Schema(description = "朝向")
-    private Integer orientation;
-
-    @Schema(description = "是否有电梯")
-    private Boolean hasElevator;
-
-    @Schema(description = "是否有燃气")
-    private Boolean hasGas;
-
-    @Schema(description = "房间数量", hidden = true)
-    private Integer roomCount;
-
-    @Schema(description = "房间号前缀")
-    private String prefix;
-
-    @Schema(description = "房间号长度")
-    private Integer roomNumberLength;
-
-    @Schema(description = "去掉4")
-    private Boolean excludeFour;
-
-    @Schema(description = "是否已分配")
-    private Boolean allocated;
-
-    @Schema(description = "关闭的楼层列表")
-    private List<Integer> closedFloors;
-
-    @Schema(description = "房间列表")
-    private List<FocusRoomDTO> rooms;
-
-    @Schema(description = "房间户型")
-    private List<FocusRoomLayoutDTO> roomLayouts;
 
 }
