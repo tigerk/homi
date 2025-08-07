@@ -38,7 +38,7 @@ public class RoomItemDTO {
     private BigDecimal leasePrice;
 
     @Schema(description = "房间状态")
-    private String roomStatus;
+    private Integer roomStatus;
 
     @Schema(description = "负责人id")
     private String salesmanId;

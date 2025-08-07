@@ -57,5 +57,8 @@
         <if test="query.houseId != null">
             and r.house_id = #{query.houseId,jdbcType=BIGINT}
         </if>
+        <if test="query.operationMode != null">
+            and h.operation_mode = #{query.operationMode,jdbcType=INTEGER}
+        </if>
     </select>
 </mapper>
