@@ -37,6 +37,10 @@ public class Room implements Serializable {
     @TableField("company_id")
     private Long companyId;
 
+    @Schema(description = "搜索关键字")
+    @TableField("keywords")
+    private String keywords;
+
     @TableField("house_id")
     private Long houseId;
 

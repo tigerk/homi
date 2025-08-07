@@ -1,4 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.homi.model.mapper.RoomMapper">
+    <resultMap id="RoomDetailMap" type="com.homi.domain.dto.room.RoomItemDTO">
+        <id property="roomId" column="room_id"/>
+        <result property="roomNumber" column="room_number"/>
+        <result property="houseCode" column="house_code"/>
+        <result property="houseName" column="house_name"/>
+        <result property="leasePrice" column="lease_price"/>
+        <result property="salesmanId" column="salesman_id"/>
+        <result property="salesmanName" column="nickname"/>
+        <result property="salesmanPhone" column="phone"/>
+        <result property="roomStatus" column="room_status"/>
+
+        <!-- 如果需要包含房型信息等集合 -->
+        <collection property="houseLayout" ofType="com.homi.domain.dto.room.HouseLayoutDTO">
+            <id property="id" column="layout_id"/>
+            <result property="layoutName" column="layout_name"/>
+            <result property="livingRoom" column="living_room"/>
+            <result property="bedroom" column="bedroom"/>
+            <result property="bathroom" column="bathroom"/>
+            <result property="kitchen" column="kitchen"/>
+            <result property="insideSpace" column="inside_space"/>
+            <result property="orientation" column="orientation"/>
+        </collection>
+    </resultMap>
+
+    <select id="list" resultMap="RoomDetailMap">
+        SELECT r.id          AS room_id,
+               r.room_number,
+               r.lease_price,
+               r.room_status,
+               h.salesman_id,
+               u.nickname,
+               u.phone,
+               h.house_code,
+               h.house_name  AS house_name,
+               l.id          AS layout_id,
+               l.layout_name AS layout_name,
+               l.bedroom,
+               l.living_room,
+               l.bathroom,
+               l.kitchen,
+               l.inside_space,
+               l.orientation
+        FROM room r
+                 LEFT JOIN house h ON r.house_id = h.id
+                 LEFT JOIN house_layout l ON h.id = l.house_id
+                 LEFT JOIN `user` u ON u.id = h.salesman_id
+        where r.deleted = 0
+        <if test="query.keywords != null">
+            and r.keywords like '%#{query.keywords,jdbcType=VARCHAR}%'
+        </if>
+        <if test="query.roomStatus != null">
+            and r.room_status = #{query.roomStatus,jdbcType=INTEGER}
+        </if>
+        <if test="query.houseId != null">
+            and r.house_id = #{query.houseId,jdbcType=BIGINT}
+        </if>
+    </select>
 </mapper>

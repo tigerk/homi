@@ -23,7 +23,8 @@
 
 ## 数据字典
 
-|   字典    |            解释             |
-|:-------:|:-------------------------:|
-|  focus  | 集中式, 定义见OperationModeEnum |
-| scatter | 分散式， 定义见OperationModeEnum |
+|   字典    |                解释                 |
+|:-------:|:---------------------------------:|
+|  focus  |     集中式, 定义见OperationModeEnum     |
+| scatter |     分散式， 定义见OperationModeEnum     |
+|  phone  | 手机号, 所有手机号都统一使用这个字段，根据不同场景增加对应的前缀 |
