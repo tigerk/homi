@@ -1,8 +1,8 @@
 package com.homi.model.repo;
 
+import com.homi.model.entity.HouseLayout;
+import com.homi.model.mapper.HouseLayoutMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.model.entity.FocusRoomType;
-import com.homi.model.mapper.FocusRoomTypeMapper;
 import org.springframework.stereotype.Service;
 
 /**
@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
  * </p>
  *
  * @author tk
- * @since 2025-07-22
+ * @since 2025-08-07
  */
 @Service
-public class FocusRoomTypeRepo extends ServiceImpl<FocusRoomTypeMapper, FocusRoomType> {
+public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout> {
 
 }

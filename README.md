@@ -21,3 +21,9 @@
 3. SQLAlchemy：deleted / is_deleted
 4. Spring JPA：逻辑删除一般自定义 deleted
 
+## 数据字典
+
+|   字典    |            解释             |
+|:-------:|:-------------------------:|
+|  focus  | 集中式, 定义见OperationModeEnum |
+| scatter | 分散式， 定义见OperationModeEnum |

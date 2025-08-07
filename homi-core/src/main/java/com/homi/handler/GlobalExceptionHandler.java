@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BizException.class)
     public ResponseResult<Void> handlerBusinessException(BizException e) {
         // 打印异常信息
-        log.warn("业务错误信息：" + e.getMessage(), e);
+//        log.warn("业务错误信息：" + e.getMessage(), e);
         // 从异常对象中获取提示信息封装返回
         return ResponseResult.fail(e.getCode(), e.getMessage());
     }

@@ -3,9 +3,8 @@ package com.homi.service.house;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.domain.dto.house.FocusCreateDTO;
-import com.homi.domain.dto.house.FocusRoomLayoutDTO;
+import com.homi.domain.enums.house.OperationModeEnum;
 import com.homi.exception.BizException;
-import com.homi.model.entity.Dept;
 import com.homi.model.entity.Focus;
 import com.homi.model.entity.House;
 import com.homi.model.entity.Room;
@@ -22,8 +21,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -70,8 +67,14 @@ public class HouseFocusService {
      */
     @Transactional(rollbackFor = Exception.class)
     public Boolean createHouseFocus(FocusCreateDTO houseCreateDto) {
+        if (houseRepo.checkHouseCodeExist(houseCreateDto.getHouseCode())) {
+            throw new BizException("项目编号已存在");
+        }
+
         House house = new House();
         BeanUtils.copyProperties(houseCreateDto, house);
+        // 运营模式
+        house.setOperationMode(OperationModeEnum.FOCUS.getCode());
         houseRepo.save(house);
 
         houseCreateDto.setId(house.getId());
@@ -86,23 +89,39 @@ public class HouseFocusService {
         // 创建房间
         createFocusRoom(houseCreateDto);
 
+        boolean b = houseRepo.updateHouseRoomCount(house.getId());
+        if (!b) {
+            log.warn("更新房源房间数量：houseId={}, resp={}", house.getId(), b);
+        }
+
         return true;
     }
 
     private void createFocusRoom(FocusCreateDTO houseCreateDto) {
         houseCreateDto.getRoomList().forEach(roomDTO -> {
+            // 去掉尾号是4的房间号
+            if (Boolean.TRUE.equals(houseCreateDto.getExcludeFour()) && roomDTO.getRoomNumber().endsWith("4")) {
+                return;
+            }
+
             Room room = new Room();
             room.setLocked(roomDTO.getLocked());
             room.setHouseId(houseCreateDto.getId());
             room.setCompanyId(houseCreateDto.getCompanyId());
             room.setRoomNumber(roomDTO.getRoomNumber());
             room.setFloorLevel(roomDTO.getFloorLevel());
+            room.setLocked(roomDTO.getLocked());
+            room.setUpdateBy(houseCreateDto.getUpdateBy());
+            room.setUpdateTime(houseCreateDto.getUpdateTime());
 
             if (Objects.nonNull(roomDTO.getId())) {
                 Room roomBefore = roomRepo.getById(roomDTO.getId());
                 BeanUtils.copyProperties(room, roomBefore);
                 roomRepo.getBaseMapper().updateById(roomBefore);
             } else {
+                room.setCreateBy(houseCreateDto.getCreateBy());
+                room.setCreateTime(houseCreateDto.getCreateTime());
+
                 room.setVacancyStartTime(DateUtil.date());
                 roomRepo.getBaseMapper().insert(room);
             }
@@ -111,31 +130,6 @@ public class HouseFocusService {
         });
     }
 
-    /**
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/7/22 18:01
-     *
-     * @param houseCreateDto 参数说明
-     */
-    private void createFocusRoomAndLayout(FocusCreateDTO houseCreateDto) {
-        Map<String, FocusRoomLayoutDTO> roomLayout2number = new HashMap<>();
-        // 遍历每个房型布局
-//        houseCreateDto.getRoomLayouts().forEach(roomLayoutDTO -> {
-//            RoomLayout roomLayout = new RoomLayout();
-//            BeanUtils.copyProperties(roomLayoutDTO, roomLayout);
-//            roomLayout.setHouseId(houseCreateDto.getId());
-//            roomLayout.setCompanyId(houseCreateDto.getCompanyId());
-//            roomLayout.setInsideSpace(roomLayoutDTO.getInsideSpace());
-//            roomLayoutRepo.saveOrUpdate(roomLayout);
-//
-//            roomLayoutDTO.setId(roomLayout.getId());
-//
-//            roomLayoutDTO.getRoomNumbers().forEach(roomNumberDTO -> {
-//                roomLayout2number.put(roomNumberDTO, roomLayoutDTO);
-//            });
-//        });
-    }
 
     public Boolean updateHouseFocus(FocusCreateDTO houseCreateDto) {
         Optional<House> optById = houseRepo.getOptById(houseCreateDto.getId());

@@ -1,7 +1,7 @@
 package com.homi.model.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.homi.model.entity.FocusRoomType;
+import com.homi.model.entity.HouseLayout;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -10,9 +10,9 @@ import org.apache.ibatis.annotations.Mapper;
  * </p>
  *
  * @author tk
- * @since 2025-07-22
+ * @since 2025-08-07
  */
 @Mapper
-public interface FocusRoomTypeMapper extends BaseMapper<FocusRoomType> {
+public interface HouseLayoutMapper extends BaseMapper<HouseLayout> {
 
 }

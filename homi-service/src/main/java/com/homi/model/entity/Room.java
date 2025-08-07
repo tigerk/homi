@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-30
+ * @since 2025-08-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -40,14 +40,19 @@ public class Room implements Serializable {
     @TableField("house_id")
     private Long houseId;
 
-    @TableField("product_type")
-    private Integer productType;
-
-    @TableField("inside_space")
-    private BigDecimal insideSpace;
+    @Schema(description = "楼层")
+    @TableField("floor_level")
+    private Integer floorLevel;
 
     @TableField("room_number")
     private String roomNumber;
+
+    @Schema(description = "房间房型id")
+    @TableField("house_layout_id")
+    private Long houseLayoutId;
+
+    @TableField("inside_space")
+    private BigDecimal insideSpace;
 
     @Schema(description = "出房价格")
     @TableField("lease_price")
@@ -57,24 +62,10 @@ public class Room implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date vacancyStartTime;
 
-    @Schema(description = "朝向")
-    @TableField("orientation")
-    private Integer orientation;
-
-    @Schema(description = "楼层")
-    @TableField("floor_level")
-    private Integer floorLevel;
-
     @TableField("remark")
     private String remark;
 
-    @Schema(description = "房间房型id")
-    @TableField("room_layout_id")
-    private Long roomLayoutId;
-
-    @TableField("shelf_status")
-    private Integer shelfStatus;
-
+    @Schema(description = "房间状态")
     @TableField("room_status")
     private Integer roomStatus;
 

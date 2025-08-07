@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -16,36 +15,32 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 房型设置
+ * 分散式房源扩展表
  * </p>
  *
  * @author tk
- * @since 2025-07-30
+ * @since 2025-08-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("focus_room_type")
-@Schema(name = "FocusRoomType", description = "房型设置")
-public class FocusRoomType implements Serializable {
+@TableName("scatter")
+@Schema(name = "Scatter", description = "分散式房源扩展表")
+public class Scatter implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "主键id")
+    @Schema(description = "房源id")
     @TableId("id")
     private Long id;
-
-    @Schema(description = "公司ID")
-    @TableField("company_id")
-    private Long companyId;
 
     @Schema(description = "房源id")
     @TableField("house_id")
     private Long houseId;
 
-    @Schema(description = "房型名称")
-    @TableField("type_name")
-    private String typeName;
+    @Schema(description = "公司ID")
+    @TableField("company_id")
+    private Long companyId;
 
     @Schema(description = "厅")
     @TableField("living_room")
@@ -63,27 +58,29 @@ public class FocusRoomType implements Serializable {
     @TableField("bedroom")
     private Integer bedroom;
 
-    @Schema(description = "面积")
-    @TableField("inside_space")
-    private BigDecimal insideSpace;
+    @Schema(description = "楼层")
+    @TableField("floor_level")
+    private Integer floorLevel;
+
+    @Schema(description = "朝向")
+    @TableField("orientation")
+    private Integer orientation;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;
 
-    @Schema(description = "创建人")
-    @TableField("creater_id")
-    private Long createrId;
+    @TableField("create_by")
+    private Long createBy;
 
     @Schema(description = "创建时间")
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    @Schema(description = "修改人")
-    @TableField("updater_id")
-    private Long updaterId;
+    @TableField("update_by")
+    private Long updateBy;
 
     @Schema(description = "更新时间")
     @TableField("update_time")

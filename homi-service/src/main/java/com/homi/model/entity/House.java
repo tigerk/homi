@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-30
+ * @since 2025-08-07
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -50,20 +50,13 @@ public class House implements Serializable {
     @TableField("dept_id")
     private Long deptId;
 
-    @TableField("business_mode")
-    private Integer businessMode;
-
-    @Schema(description = "业务类型")
-    @TableField("product_type")
-    private Integer productType;
+    @Schema(description = "1:集中式/2:分散式")
+    @TableField("operation_mode")
+    private Integer operationMode;
 
     @Schema(description = "物业id")
     @TableField("property_id")
     private Long propertyId;
-
-    @Schema(description = "楼盘简称")
-    @TableField("property_alias")
-    private String propertyAlias;
 
     @Schema(description = "房本地址")
     @TableField("address")
@@ -100,22 +93,6 @@ public class House implements Serializable {
     @TableField("inside_space")
     private BigDecimal insideSpace;
 
-    @Schema(description = "厅")
-    @TableField("living_room")
-    private Integer livingRoom;
-
-    @Schema(description = "卫")
-    @TableField("bathroom")
-    private Integer bathroom;
-
-    @Schema(description = "厨")
-    @TableField("kitchen")
-    private Integer kitchen;
-
-    @Schema(description = "室")
-    @TableField("bedroom")
-    private Integer bedroom;
-
     @Schema(description = "楼层")
     @TableField("floor_level")
     private Integer floorLevel;
@@ -123,10 +100,6 @@ public class House implements Serializable {
     @Schema(description = "总楼层")
     @TableField("floor_total")
     private Integer floorTotal;
-
-    @Schema(description = "朝向")
-    @TableField("orientation")
-    private Integer orientation;
 
     @TableField("has_elevator")
     private Boolean hasElevator;
@@ -154,27 +127,27 @@ public class House implements Serializable {
     @TableField("mortgaged")
     private Boolean mortgaged;
 
-    @Schema(description = "暖气费")
+    @Schema(description = "暖气费，每月")
     @TableField("heating_fee")
     private BigDecimal heatingFee;
 
-    @Schema(description = "管理费用：物业费")
-    @TableField("management_fee")
-    private BigDecimal managementFee;
+    @Schema(description = "物业费，每月")
+    @TableField("mgmt_fee")
+    private BigDecimal mgmtFee;
 
     @Schema(description = "客户Id")
     @TableField("customer_id")
     private Long customerId;
 
+    @Schema(description = "备注")
     @TableField("remark")
     private String remark;
 
-    @TableField("shelf_status")
-    private Integer shelfStatus;
-
+    @Schema(description = "房源状态")
     @TableField("house_status")
     private Integer houseStatus;
 
+    @Schema(description = "是否锁定")
     @TableField("locked")
     private Boolean locked;
 
