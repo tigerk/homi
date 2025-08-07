@@ -1,5 +1,6 @@
 package com.homi.model.repo;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.entity.Room;
 import com.homi.model.mapper.RoomMapper;
@@ -16,4 +17,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
 
+    /**
+     * 根据房源id和房间号查询房间，此数据只有一条数据
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/7 14:17
+     *
+     * @param houseId    房源id
+     * @param roomNumber 房间号
+     * @return com.homi.model.entity.Room
+     */
+    public Room getRoomByHouseIdAndRoomNumber(Long houseId, String roomNumber) {
+        LambdaQueryWrapper<Room> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Room::getHouseId, houseId);
+        queryWrapper.eq(Room::getRoomNumber, roomNumber);
+        return getOne(queryWrapper);
+    }
 }

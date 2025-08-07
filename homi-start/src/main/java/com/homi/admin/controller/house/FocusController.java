@@ -22,7 +22,7 @@ public class FocusController {
     private final HouseFocusService houseFocusService;
 
     @PostMapping("/create")
-    public ResponseResult<Boolean> createHouse(@RequestBody FocusCreateDTO houseCreateDto) {
+    public ResponseResult<Long> createHouse(@RequestBody FocusCreateDTO houseCreateDto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         houseCreateDto.setCompanyId(currentUser.getCompanyId());
 

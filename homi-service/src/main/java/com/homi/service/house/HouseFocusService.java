@@ -66,7 +66,7 @@ public class HouseFocusService {
      * @return java.lang.Boolean
      */
     @Transactional(rollbackFor = Exception.class)
-    public Boolean createHouseFocus(FocusCreateDTO houseCreateDto) {
+    public Long createHouseFocus(FocusCreateDTO houseCreateDto) {
         if (houseRepo.checkHouseCodeExist(houseCreateDto.getHouseCode())) {
             throw new BizException("项目编号已存在");
         }
@@ -94,11 +94,15 @@ public class HouseFocusService {
             log.warn("更新房源房间数量：houseId={}, resp={}", house.getId(), b);
         }
 
-        return true;
+        return house.getId();
     }
 
     private void createFocusRoom(FocusCreateDTO houseCreateDto) {
         houseCreateDto.getRoomList().forEach(roomDTO -> {
+            if (houseCreateDto.getClosedFloors().contains(roomDTO.getFloorLevel())) {
+                return;
+            }
+
             // 去掉尾号是4的房间号
             if (Boolean.TRUE.equals(houseCreateDto.getExcludeFour()) && roomDTO.getRoomNumber().endsWith("4")) {
                 return;
@@ -115,7 +119,7 @@ public class HouseFocusService {
             room.setUpdateTime(houseCreateDto.getUpdateTime());
 
             if (Objects.nonNull(roomDTO.getId())) {
-                Room roomBefore = roomRepo.getById(roomDTO.getId());
+                Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(houseCreateDto.getId(), roomDTO.getRoomNumber());
                 BeanUtils.copyProperties(room, roomBefore);
                 roomRepo.getBaseMapper().updateById(roomBefore);
             } else {
@@ -131,7 +135,7 @@ public class HouseFocusService {
     }
 
 
-    public Boolean updateHouseFocus(FocusCreateDTO houseCreateDto) {
+    public Long updateHouseFocus(FocusCreateDTO houseCreateDto) {
         Optional<House> optById = houseRepo.getOptById(houseCreateDto.getId());
         if (optById.isEmpty()) {
             throw new BizException("房源不存在");
@@ -151,6 +155,6 @@ public class HouseFocusService {
         // 更新房间
         createFocusRoom(houseCreateDto);
 
-        return true;
+        return house.getId();
     }
 }
