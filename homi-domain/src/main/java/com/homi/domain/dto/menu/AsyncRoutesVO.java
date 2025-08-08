@@ -1,4 +1,4 @@
-package com.homi.domain.vo.menu;
+package com.homi.domain.dto.menu;
 
 import lombok.Data;
 

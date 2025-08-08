@@ -1,4 +1,4 @@
-package com.homi.domain.vo.role;
+package com.homi.domain.dto.role;
 
 import lombok.Data;
 

@@ -1,6 +1,6 @@
 package com.homi.admin.auth.vo.login;
 
-import com.homi.domain.vo.menu.AsyncRoutesVO;
+import com.homi.domain.dto.menu.AsyncRoutesVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

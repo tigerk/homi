@@ -8,7 +8,7 @@ import com.homi.domain.dto.role.RoleQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.enums.common.StatusEnum;
-import com.homi.domain.vo.role.SysRoleVO;
+import com.homi.domain.dto.role.SysRoleVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysMenu;
 import com.homi.model.entity.SysRole;

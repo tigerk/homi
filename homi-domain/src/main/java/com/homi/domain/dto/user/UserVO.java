@@ -1,6 +1,6 @@
-package com.homi.domain.vo.user;
+package com.homi.domain.dto.user;
 
-import com.homi.domain.vo.dept.DeptSimpleVO;
+import com.homi.domain.dto.dept.DeptSimpleVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

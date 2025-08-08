@@ -6,12 +6,15 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.room.RoomItemDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
+import com.homi.domain.dto.room.RoomTotalItemDTO;
 import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.model.repo.HouseRepo;
 import com.homi.model.repo.RoomRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 应用于 homi
@@ -59,5 +62,18 @@ public class RoomService {
     public void format(RoomItemDTO room) {
         RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, room.getRoomStatus());
         room.setRoomStatusName(roomStatusEnum.getName());
+        room.setRoomStatusColor(roomStatusEnum.getColor());
+    }
+
+    public List<RoomTotalItemDTO> getRoomStatusTotal(RoomQueryDTO query) {
+        List<RoomTotalItemDTO> statusTotal = roomRepo.getBaseMapper().getStatusTotal(query);
+
+        statusTotal.forEach(roomTotalItemDTO -> {
+            RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, roomTotalItemDTO.getRoomStatus());
+            roomTotalItemDTO.setRoomStatusName(roomStatusEnum.getName());
+            roomTotalItemDTO.setRoomStatusColor(roomStatusEnum.getColor());
+        });
+
+        return statusTotal;
     }
 }

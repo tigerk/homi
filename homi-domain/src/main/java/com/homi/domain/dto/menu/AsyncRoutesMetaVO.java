@@ -1,4 +1,4 @@
-package com.homi.domain.vo.menu;
+package com.homi.domain.dto.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

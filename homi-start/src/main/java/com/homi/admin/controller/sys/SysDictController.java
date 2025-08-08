@@ -8,7 +8,7 @@ import com.homi.domain.dto.dict.DictQueryDTO;
 import com.homi.domain.dto.dict.SysDictCreateDTO;
 import com.homi.domain.dto.dict.SysDictUpdateDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
-import com.homi.domain.vo.dict.DictWithDataVO;
+import com.homi.domain.dto.dict.DictWithDataVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysDict;
 import com.homi.service.system.SysDictDataService;

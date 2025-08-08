@@ -43,6 +43,9 @@ public class RoomItemDTO {
     @Schema(description = "房间状态，参考：RoomStatusEnum")
     private String roomStatusName;
 
+    @Schema(description = "房间状态颜色，参考：RoomStatusEnum")
+    private String roomStatusColor;
+
     @Schema(description = "负责人id")
     private String salesmanId;
 

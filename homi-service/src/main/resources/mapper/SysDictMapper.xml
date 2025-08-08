@@ -15,9 +15,9 @@
     </resultMap>
 
     <!-- 结果映射 -->
-    <resultMap id="DictWithDataResultMap" type="com.homi.domain.vo.dict.DictWithDataVO">
+    <resultMap id="DictWithDataResultMap" type="com.homi.domain.dto.dict.DictWithDataVO">
         <id column="dictCode" property="dictCode"/>
-        <collection property="dictValue" ofType="com.homi.domain.vo.dict.DictDataVO">
+        <collection property="dictValue" ofType="com.homi.domain.dto.dict.DictDataVO">
             <result column="name" property="name"/>
             <result column="value" property="value"/>
             <result column="color" property="color"/>

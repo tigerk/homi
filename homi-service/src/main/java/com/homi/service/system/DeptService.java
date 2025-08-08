@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.dto.dept.DeptCreateDTO;
 import com.homi.domain.dto.dept.DeptQueryDTO;
 import com.homi.domain.dto.dept.DeptVO;
-import com.homi.domain.vo.user.UserVO;
 import com.homi.model.entity.Dept;
 import com.homi.model.entity.DeptUser;
 import com.homi.model.mapper.DeptMapper;

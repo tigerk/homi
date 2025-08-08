@@ -3,7 +3,7 @@ package com.homi.admin.config;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.hutool.core.lang.Pair;
 import com.homi.admin.auth.service.AuthService;
-import com.homi.domain.vo.menu.AsyncRoutesVO;
+import com.homi.domain.dto.menu.AsyncRoutesVO;
 import com.homi.model.entity.User;
 import com.homi.service.system.SysRoleService;
 import com.homi.service.system.UserService;

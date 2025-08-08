@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.dto.dict.DictQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
-import com.homi.domain.vo.dict.DictWithDataVO;
+import com.homi.domain.dto.dict.DictWithDataVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysDict;
 import com.homi.model.mapper.SysDictMapper;

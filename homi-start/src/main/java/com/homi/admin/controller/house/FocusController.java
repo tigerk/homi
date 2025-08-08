@@ -45,7 +45,5 @@ public class FocusController {
     public ResponseResult<List<HouseSimpleVO>> houseOptions() {
         return ResponseResult.ok(houseFocusService.getHouseOptionList(OperationModeEnum.FOCUS));
     }
-
-
 }
 

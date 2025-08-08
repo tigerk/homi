@@ -1,4 +1,4 @@
-package com.homi.domain.vo.company;
+package com.homi.domain.dto.company;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;

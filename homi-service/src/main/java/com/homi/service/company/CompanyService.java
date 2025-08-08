@@ -3,7 +3,7 @@ package com.homi.service.company;
 import com.homi.domain.dto.company.CompanyCreateDTO;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.common.UserTypeEnum;
-import com.homi.domain.vo.company.CompanyListVO;
+import com.homi.domain.dto.company.CompanyListVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Company;
 import com.homi.model.entity.User;

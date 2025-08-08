@@ -1,7 +1,7 @@
 package com.homi.model.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.homi.domain.vo.dict.DictWithDataVO;
+import com.homi.domain.dto.dict.DictWithDataVO;
 import com.homi.model.entity.SysDict;
 import org.apache.ibatis.annotations.Mapper;
 

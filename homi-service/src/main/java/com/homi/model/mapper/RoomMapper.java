@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.dto.room.RoomItemDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
+import com.homi.domain.dto.room.RoomTotalItemDTO;
 import com.homi.model.entity.Room;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -23,4 +24,6 @@ import java.util.List;
 public interface RoomMapper extends BaseMapper<Room> {
 
     IPage<RoomItemDTO> list(IPage<RoomItemDTO> page, @Param("query") RoomQueryDTO query);
+
+    List<RoomTotalItemDTO> getStatusTotal(@Param("query") RoomQueryDTO query);
 }

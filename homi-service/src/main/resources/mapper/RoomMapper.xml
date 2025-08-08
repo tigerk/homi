@@ -48,6 +48,23 @@
                  LEFT JOIN house_layout l ON h.id = l.house_id
                  LEFT JOIN `user` u ON u.id = h.salesman_id
         where r.deleted = 0
+        <include refid="roomListQuery">
+        </include>
+    </select>
+
+    <select id="getStatusTotal" resultType="com.homi.domain.dto.room.RoomTotalItemDTO">
+        SELECT room_status, count(room_status) AS total
+        FROM room r
+        LEFT JOIN house h ON r.house_id = h.id
+        LEFT JOIN house_layout l ON h.id = l.house_id
+        LEFT JOIN `user` u ON u.id = h.salesman_id
+        where r.deleted = 0
+        <include refid="roomListQuery">
+        </include>
+        group by room_status
+    </select>
+    
+    <sql id="roomListQuery">
         <if test="query.keywords != null and query.keywords.trim() != ''">
             and r.keywords like '%#{query.keywords,jdbcType=VARCHAR}%'
         </if>
@@ -60,5 +77,5 @@
         <if test="query.operationMode != null">
             and h.operation_mode = #{query.operationMode,jdbcType=INTEGER}
         </if>
-    </select>
+    </sql>
 </mapper>
