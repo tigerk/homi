@@ -40,6 +40,9 @@ public class RoomItemDTO {
     @Schema(description = "房间状态")
     private Integer roomStatus;
 
+    @Schema(description = "房间状态，参考：RoomStatusEnum")
+    private String roomStatusName;
+
     @Schema(description = "负责人id")
     private String salesmanId;
 

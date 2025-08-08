@@ -1,10 +1,12 @@
 package com.homi.service.room;
 
+import cn.hutool.core.util.EnumUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.room.RoomItemDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
+import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.model.repo.HouseRepo;
 import com.homi.model.repo.RoomRepo;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,8 @@ public class RoomService {
 
         IPage<RoomItemDTO> roomPage = roomRepo.getBaseMapper().list(page, query);
 
+        roomPage.getRecords().forEach(this::format);
+
         // 封装返回结果
         PageVO<RoomItemDTO> pageVO = new PageVO<>();
         pageVO.setTotal(roomPage.getTotal());
@@ -50,5 +54,10 @@ public class RoomService {
         pageVO.setPages(roomPage.getPages());
 
         return pageVO;
+    }
+
+    public void format(RoomItemDTO room) {
+        RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, room.getRoomStatus());
+        room.setRoomStatusName(roomStatusEnum.getName());
     }
 }

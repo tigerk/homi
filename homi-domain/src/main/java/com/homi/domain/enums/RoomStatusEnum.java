@@ -9,11 +9,11 @@ public enum RoomStatusEnum {
     /**
      * 房间状态枚举
      */
-    AVAILABLE(1, "可租"),
-    LEASED(2, "已租"),
-    LOCKED(3, "锁房"),
-    PREPARING(4, "配置中"),
-    OBSOLETE(5, "下架"),
+    AVAILABLE(0, "空置"),
+    LEASED(1, "已租"),
+    LOCKED(2, "锁房"),
+    PREPARING(3, "配置中"),
+    OBSOLETE(4, "下架"),
 
     ;
 
