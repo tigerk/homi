@@ -48,7 +48,7 @@
                  LEFT JOIN house_layout l ON h.id = l.house_id
                  LEFT JOIN `user` u ON u.id = h.salesman_id
         where r.deleted = 0
-        <if test="query.keywords != null">
+        <if test="query.keywords != null and query.keywords.trim() != ''">
             and r.keywords like '%#{query.keywords,jdbcType=VARCHAR}%'
         </if>
         <if test="query.roomStatus != null">

@@ -2,7 +2,9 @@ package com.homi.service.house;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.dto.house.FocusCreateDTO;
+import com.homi.domain.dto.house.HouseSimpleVO;
 import com.homi.domain.enums.house.OperationModeEnum;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Focus;
@@ -15,12 +17,14 @@ import com.homi.model.repo.RoomLayoutRepo;
 import com.homi.model.repo.RoomRepo;
 import com.homi.service.system.DeptService;
 import com.homi.service.system.UserService;
+import com.homi.utils.BeanCopyUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -156,5 +160,14 @@ public class HouseFocusService {
         createFocusRoom(houseCreateDto);
 
         return house.getId();
+    }
+
+    public List<HouseSimpleVO> getHouseOptionList(OperationModeEnum operationModeEnum) {
+        LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(House::getOperationMode, operationModeEnum.getCode());
+
+        List<House> list = houseRepo.list(queryWrapper);
+
+        return list.stream().map(house -> BeanCopyUtils.copyBean(house, HouseSimpleVO.class)).toList();
     }
 }
