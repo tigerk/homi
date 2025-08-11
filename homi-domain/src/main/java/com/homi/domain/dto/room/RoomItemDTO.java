@@ -35,7 +35,7 @@ public class RoomItemDTO {
     private String roomNumber;
 
     @Schema(description = "出租价格")
-    private BigDecimal leasePrice;
+    private BigDecimal price;
 
     @Schema(description = "房间状态")
     private Integer roomStatus;
