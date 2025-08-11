@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-08-07
+ * @since 2025-08-11
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -64,12 +64,12 @@ public class HouseLayout implements Serializable {
     private Integer bedroom;
 
     @Schema(description = "面积")
-    @TableField("inside_space")
-    private BigDecimal insideSpace;
+    @TableField("area")
+    private BigDecimal area;
 
     @Schema(description = "朝向")
-    @TableField("orientation")
-    private Integer orientation;
+    @TableField("direction")
+    private Integer direction;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")

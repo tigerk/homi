@@ -3,6 +3,8 @@ package com.homi.domain.dto.house;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @Schema(description = "集中式房间创建DTO")
 public class FocusRoomDTO {
@@ -17,4 +19,13 @@ public class FocusRoomDTO {
 
     @Schema(description = "楼层")
     private Integer floorLevel;
+
+    @Schema(description = "朝向")
+    private String direction;
+
+    @Schema(description = "面积")
+    private String area;
+
+    @Schema(description = "价格")
+    private BigDecimal price;
 }

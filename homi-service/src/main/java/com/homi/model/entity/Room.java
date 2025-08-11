@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-08-07
+ * @since 2025-08-11
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -37,12 +37,12 @@ public class Room implements Serializable {
     @TableField("company_id")
     private Long companyId;
 
+    @TableField("house_id")
+    private Long houseId;
+
     @Schema(description = "搜索关键字")
     @TableField("keywords")
     private String keywords;
-
-    @TableField("house_id")
-    private Long houseId;
 
     @Schema(description = "楼层")
     @TableField("floor_level")
@@ -55,12 +55,13 @@ public class Room implements Serializable {
     @TableField("house_layout_id")
     private Long houseLayoutId;
 
-    @TableField("inside_space")
-    private BigDecimal insideSpace;
+    @Schema(description = "面积")
+    @TableField("area")
+    private BigDecimal area;
 
     @Schema(description = "出房价格")
-    @TableField("lease_price")
-    private BigDecimal leasePrice;
+    @TableField("price")
+    private BigDecimal price;
 
     @TableField("vacancy_start_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
