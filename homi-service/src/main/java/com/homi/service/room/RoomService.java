@@ -14,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用于 homi
@@ -66,14 +68,23 @@ public class RoomService {
     }
 
     public List<RoomTotalItemDTO> getRoomStatusTotal(RoomQueryDTO query) {
-        List<RoomTotalItemDTO> statusTotal = roomRepo.getBaseMapper().getStatusTotal(query);
-
-        statusTotal.forEach(roomTotalItemDTO -> {
-            RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, roomTotalItemDTO.getRoomStatus());
+        Map<Integer, RoomTotalItemDTO> result = new HashMap<>();
+        RoomStatusEnum[] values = RoomStatusEnum.values();
+        for (RoomStatusEnum roomStatusEnum : values) {
+            RoomTotalItemDTO roomTotalItemDTO = new RoomTotalItemDTO();
+            roomTotalItemDTO.setRoomStatus(roomStatusEnum.getCode());
             roomTotalItemDTO.setRoomStatusName(roomStatusEnum.getName());
             roomTotalItemDTO.setRoomStatusColor(roomStatusEnum.getColor());
+            roomTotalItemDTO.setTotal(0);
+            result.put(roomStatusEnum.getCode(), roomTotalItemDTO);
+        }
+
+        List<RoomTotalItemDTO> statusTotal = roomRepo.getBaseMapper().getStatusTotal(query);
+        statusTotal.forEach(roomTotalItemDTO -> {
+            RoomTotalItemDTO orDefault = result.getOrDefault(roomTotalItemDTO.getRoomStatus(), roomTotalItemDTO);
+            orDefault.setTotal(roomTotalItemDTO.getTotal());
         });
 
-        return statusTotal;
+        return result.values().stream().toList();
     }
 }
