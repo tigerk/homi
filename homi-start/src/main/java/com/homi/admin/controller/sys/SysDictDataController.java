@@ -44,7 +44,7 @@ public class SysDictDataController {
      */
     @GetMapping("/list")
 //    @SaCheckPermission("system:dict:data:query")
-    public ResponseResult<PageVO<SysDictData>> selectAll(@Valid DictDataQueryDTO queryDTO) {
+    public ResponseResult<PageVO<SysDictData>> list(@Valid DictDataQueryDTO queryDTO) {
         return ResponseResult.ok(sysDictDataService.list(queryDTO));
     }
 
