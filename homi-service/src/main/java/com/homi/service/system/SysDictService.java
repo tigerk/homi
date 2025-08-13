@@ -4,8 +4,9 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.dto.dict.DictQueryDTO;
-import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.dto.dict.DictWithDataVO;
+import com.homi.domain.enums.common.ResponseCodeEnum;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysDict;
 import com.homi.model.mapper.SysDictMapper;
@@ -96,6 +97,13 @@ public class SysDictService {
 
     public Boolean removeDictById(Long id) {
         return sysDictRepo.removeById(id);
+    }
+
+    public SysDict getDictByCode(String dictCode) {
+        LambdaQueryWrapper<SysDict> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysDict::getDictCode, dictCode);
+        queryWrapper.eq(SysDict::getStatus, StatusEnum.ACTIVE.getValue());
+        return sysDictRepo.getOne(queryWrapper);
     }
 }
 

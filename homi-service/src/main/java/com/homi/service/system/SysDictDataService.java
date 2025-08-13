@@ -117,5 +117,21 @@ public class SysDictDataService {
         return sysDictDataRepo.removeByIds(idList);
     }
 
+    /**
+     * 使用字典id查询数据项
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/13 19:57
+
+      * @param dictId 参数说明
+     * @return java.util.List<com.homi.model.entity.SysDictData>
+     */
+    public List<SysDictData> listByDictId(Long dictId) {
+        LambdaQueryWrapper<SysDictData> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SysDictData::getDictId, dictId)
+                .orderByAsc(SysDictData::getSort);
+
+        return sysDictDataRepo.list(queryWrapper);
+    }
 }
 
