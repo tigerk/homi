@@ -1,9 +1,11 @@
 package com.homi.service.system;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.dict.data.DictDataQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.exception.BizException;
@@ -39,6 +41,7 @@ public class SysDictDataService {
     public Long createDictData(SysDictData sysDictData) {
         validateDictDataUniqueness(null, sysDictData.getName(), sysDictData.getValue(), sysDictData.getDictId());
         sysDictData.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        sysDictData.setCreateTime(DateUtil.date());
         sysDictDataMapper.insert(sysDictData);
         return sysDictData.getId();
     }
@@ -56,7 +59,9 @@ public class SysDictDataService {
         }
         validateDictDataUniqueness(sysDictData.getId(), sysDictData.getName(), sysDictData.getValue(), sysDictData.getDictId());
         sysDictData.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        sysDictData.setUpdateTime(DateUtil.date());
         sysDictDataMapper.updateById(sysDictData);
+
         return sysDictData.getId();
     }
 
@@ -82,15 +87,26 @@ public class SysDictDataService {
         return sysDictDataRepo.count(new LambdaQueryWrapper<SysDictData>().eq(SysDictData::getDictId, id));
     }
 
-    public Page<SysDictData> list(DictDataQueryDTO queryDTO) {
+    public PageVO<SysDictData> list(DictDataQueryDTO queryDTO) {
         LambdaQueryWrapper<SysDictData> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(SysDictData::getDictId, queryDTO.getDictId()).like(CharSequenceUtil.isNotEmpty(queryDTO.getName()), SysDictData::getName, queryDTO.getName())
+        queryWrapper.eq(SysDictData::getDictId, queryDTO.getDictId())
+                .like(CharSequenceUtil.isNotEmpty(queryDTO.getName()), SysDictData::getName, queryDTO.getName())
                 .like(CharSequenceUtil.isNotEmpty(queryDTO.getValue()), SysDictData::getValue, queryDTO.getValue())
-                .eq(Objects.nonNull(queryDTO.getStatus()), SysDictData::getStatus, queryDTO.getStatus()).orderByAsc(SysDictData::getSortOrder);
+                .eq(Objects.nonNull(queryDTO.getStatus()), SysDictData::getStatus, queryDTO.getStatus())
+                .orderByAsc(SysDictData::getSort);
 
         Page<SysDictData> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
 
-        return sysDictDataRepo.page(page, queryWrapper);
+        Page<SysDictData> sysDictDataPage = sysDictDataRepo.page(page, queryWrapper);
+
+        PageVO<SysDictData> pageVO = new PageVO<>();
+        pageVO.setTotal(sysDictDataPage.getTotal());
+        pageVO.setList(sysDictDataPage.getRecords());
+        pageVO.setCurrentPage(sysDictDataPage.getCurrent());
+        pageVO.setPageSize(sysDictDataPage.getSize());
+        pageVO.setPages(sysDictDataPage.getPages());
+
+        return pageVO;
     }
 
     public SysDictData getDictDataById(Long id) {

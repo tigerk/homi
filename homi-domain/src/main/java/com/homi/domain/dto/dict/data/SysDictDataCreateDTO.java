@@ -1,17 +1,16 @@
 package com.homi.domain.dto.dict.data;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-/**
- * @author sjh
- * @version 1.0
- * @date 2024-06-29 15:19
- * @description: 字典数据项创建对象
- */
 @Data
+@Schema(description = "字典数据项创建对象")
 public class SysDictDataCreateDTO {
+    @Schema(description = "字典数据ID")
+    private Long id;
+
     /**
      * 字典ID
      */
@@ -34,7 +33,7 @@ public class SysDictDataCreateDTO {
      * 排序
      */
     @NotNull(message = "排序不能为空")
-    private Integer sortOrder;
+    private Integer sort;
 
     /**
      * 颜色值

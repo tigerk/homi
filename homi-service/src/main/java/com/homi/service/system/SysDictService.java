@@ -3,7 +3,6 @@ package com.homi.service.system;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.dto.dict.DictQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.dto.dict.DictWithDataVO;
@@ -86,19 +85,13 @@ public class SysDictService {
     }
 
 
-    public Page<SysDict> list(DictQueryDTO queryDTO) {
+    public List<SysDict> list(DictQueryDTO queryDTO) {
         LambdaQueryWrapper<SysDict> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(CharSequenceUtil.isNotEmpty(queryDTO.getDictName()), SysDict::getDictName, queryDTO.getDictName())
                 .like(CharSequenceUtil.isNotEmpty(queryDTO.getDictCode()), SysDict::getDictCode, queryDTO.getDictCode())
                 .eq(Objects.nonNull(queryDTO.getStatus()), SysDict::getStatus, queryDTO.getStatus());
 
-        Page<SysDict> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
-
-        return sysDictRepo.page(page, queryWrapper);
-    }
-
-    public SysDict getDictById(Long id) {
-        return sysDictMapper.selectById(id);
+        return sysDictRepo.list(queryWrapper);
     }
 
     public Boolean removeDictById(Long id) {

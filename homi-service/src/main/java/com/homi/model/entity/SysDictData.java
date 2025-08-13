@@ -46,8 +46,8 @@ public class SysDictData implements Serializable {
     private String value;
 
     @Schema(description = "排序")
-    @TableField("sort_order")
-    private Integer sortOrder;
+    @TableField("sort")
+    private Integer sort;
 
     @Schema(description = "颜色值")
     @TableField("color")

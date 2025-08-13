@@ -2,7 +2,6 @@ package com.homi.admin.controller.sys;
 
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.dict.DictQueryDTO;
 import com.homi.domain.dto.dict.SysDictCreateDTO;
@@ -29,6 +28,7 @@ import java.util.List;
  */
 @RequestMapping("admin/sys/dict")
 @RequiredArgsConstructor
+@RestController
 public class SysDictController {
     /**
      * 服务对象
@@ -43,21 +43,10 @@ public class SysDictController {
      * @param queryDTO 查询实体
      * @return 所有数据
      */
-    @GetMapping("/list")
-    @SaCheckPermission("system:dict:query")
-    public ResponseResult<Page<SysDict>> list(DictQueryDTO queryDTO) {
+    @GetMapping("list")
+//    @SaCheckPermission("system:dict:query")
+    public ResponseResult<List<SysDict>> list(DictQueryDTO queryDTO) {
         return ResponseResult.ok(sysDictService.list(queryDTO));
-    }
-
-    /**
-     * 字典详情
-     *
-     * @param id 主键
-     * @return 单条数据
-     */
-    @GetMapping("/get/{id}")
-    public ResponseResult<SysDict> selectOne(@PathVariable Long id) {
-        return ResponseResult.ok(sysDictService.getDictById(id));
     }
 
     /**
@@ -70,7 +59,7 @@ public class SysDictController {
     @SaCheckPermission("system:dict:create")
     public ResponseResult<Long> insert(@Valid @RequestBody SysDictCreateDTO createDTO) {
         SysDict sysDict = BeanCopyUtils.copyBean(createDTO, SysDict.class);
-        return ResponseResult.ok(this.sysDictService.createDict(sysDict));
+        return ResponseResult.ok(sysDictService.createDict(sysDict));
     }
 
     /**
@@ -103,7 +92,7 @@ public class SysDictController {
     }
 
     @GetMapping("/getAllDictAndData")
-    public ResponseResult<List<DictWithDataVO>> getAllDictAndData() {
+    public ResponseResult<List<DictWithDataVO>> getDict() {
         return ResponseResult.ok(sysDictService.listAllDictAndData());
     }
 }
