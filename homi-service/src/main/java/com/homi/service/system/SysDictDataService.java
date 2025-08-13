@@ -116,5 +116,6 @@ public class SysDictDataService {
     public Boolean deleteByIds(List<Long> idList) {
         return sysDictDataRepo.removeByIds(idList);
     }
+
 }
 
