@@ -40,6 +40,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
         registry.addInterceptor(new SaInterceptor(handler -> {
             // 后台登录校验以及角色校验
             SaRouter.notMatch("/favicon.ico",
+                    "/uploads/**",
                     ADMIN_PREFIX.concat("/login"),
                     ADMIN_PREFIX.concat("/register"),
                     ADMIN_PREFIX.concat("/token/refresh"),
