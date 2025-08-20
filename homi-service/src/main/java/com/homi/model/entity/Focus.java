@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-08-11
+ * @since 2025-08-20
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -64,6 +64,10 @@ public class Focus implements Serializable {
     @Schema(description = "关闭的楼层列表json")
     @TableField("closed_floors")
     private String closedFloors;
+
+    @Schema(description = "文件列表")
+    @TableField("project_file_list")
+    private String projectFileList;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")

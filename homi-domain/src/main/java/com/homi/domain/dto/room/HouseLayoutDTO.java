@@ -1,6 +1,9 @@
 package com.homi.domain.dto.room;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
@@ -12,6 +15,9 @@ import java.math.BigDecimal;
  * {@code @date} 2025/8/7
  */
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class HouseLayoutDTO {
     @Schema(description = "主键id")
     private Long id;

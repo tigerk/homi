@@ -10,12 +10,10 @@ import com.homi.domain.enums.house.OperationModeEnum;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Focus;
 import com.homi.model.entity.House;
+import com.homi.model.entity.HouseLayout;
 import com.homi.model.entity.Room;
 import com.homi.model.mapper.FocusMapper;
-import com.homi.model.repo.FocusRepo;
-import com.homi.model.repo.HouseRepo;
-import com.homi.model.repo.RoomLayoutRepo;
-import com.homi.model.repo.RoomRepo;
+import com.homi.model.repo.*;
 import com.homi.service.system.DeptService;
 import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
@@ -25,9 +23,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 应用于 homi
@@ -61,6 +57,9 @@ public class HouseFocusService {
     @Resource
     private RoomRepo roomRepo;
 
+    @Resource
+    private HouseLayoutRepo houseLayoutRepo;
+
     /**
      * 创建集中式房源
      * <p>
@@ -80,6 +79,8 @@ public class HouseFocusService {
         BeanUtils.copyProperties(houseCreateDto, house);
         // 运营模式
         house.setOperationMode(OperationModeEnum.FOCUS.getCode());
+        // 设置标签
+        house.setTags(JSONUtil.toJsonStr(houseCreateDto.getTags()));
         houseRepo.save(house);
 
         houseCreateDto.setId(house.getId());
@@ -88,6 +89,7 @@ public class HouseFocusService {
         BeanUtils.copyProperties(houseCreateDto, focus);
         focus.setHouseId(house.getId());
         focus.setClosedFloors(JSONUtil.toJsonStr(houseCreateDto.getClosedFloors()));
+        focus.setProjectFileList(JSONUtil.toJsonStr(houseCreateDto.getProjectFileList()));
         focusRepo.getBaseMapper().insert(focus);
 
         houseCreateDto.setId(focus.getId());
@@ -102,14 +104,32 @@ public class HouseFocusService {
         return house.getId();
     }
 
+    /**
+     * 创建集中式的房间、更新户型
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/20 13:50
+     *
+     * @param houseCreateDto 参数说明
+     */
     private void createFocusRoom(FocusCreateDTO houseCreateDto) {
+        Map<Long, Long> houseLayoutIdMap = new HashMap<>();
+        houseCreateDto.getHouseLayoutList().forEach(houseLayoutDTO -> {
+            HouseLayout houseLayout = new HouseLayout();
+            BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
+            houseLayout.setHouseId(houseCreateDto.getId());
+            houseLayout.setCompanyId(houseCreateDto.getCompanyId());
+            houseLayout.setCreateBy(houseCreateDto.getCreateBy());
+            houseLayout.setCreateTime(houseCreateDto.getCreateTime());
+            houseLayout.setUpdateBy(houseCreateDto.getUpdateBy());
+            houseLayout.setUpdateTime(houseCreateDto.getUpdateTime());
+
+            houseLayoutRepo.getBaseMapper().insert(houseLayout);
+            houseLayoutIdMap.put(houseLayoutDTO.getId(), houseLayout.getId());
+        });
+
         houseCreateDto.getRoomList().forEach(roomDTO -> {
             if (CollUtil.isNotEmpty(houseCreateDto.getClosedFloors()) && houseCreateDto.getClosedFloors().contains(roomDTO.getFloor())) {
-                return;
-            }
-
-            // 去掉尾号是4的房间号
-            if (Boolean.TRUE.equals(houseCreateDto.getExcludeFour()) && roomDTO.getRoomNumber().endsWith("4")) {
                 return;
             }
 
@@ -120,6 +140,7 @@ public class HouseFocusService {
             room.setRoomNumber(roomDTO.getRoomNumber());
             room.setFloor(roomDTO.getFloor());
             room.setLocked(roomDTO.getLocked());
+            room.setHouseLayoutId(houseLayoutIdMap.get(roomDTO.getHouseLayoutId()));
             room.setUpdateBy(houseCreateDto.getUpdateBy());
             room.setUpdateTime(houseCreateDto.getUpdateTime());
 

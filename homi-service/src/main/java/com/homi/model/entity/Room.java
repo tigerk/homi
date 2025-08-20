@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-08-11
+ * @since 2025-08-20
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -51,6 +51,10 @@ public class Room implements Serializable {
     @TableField("room_number")
     private String roomNumber;
 
+    @Schema(description = "出房价格")
+    @TableField("price")
+    private BigDecimal price;
+
     @Schema(description = "房间房型id")
     @TableField("house_layout_id")
     private Long houseLayoutId;
@@ -59,9 +63,9 @@ public class Room implements Serializable {
     @TableField("area")
     private BigDecimal area;
 
-    @Schema(description = "出房价格")
-    @TableField("price")
-    private BigDecimal price;
+    @Schema(description = "朝向")
+    @TableField("direction")
+    private Integer direction;
 
     @TableField("vacancy_start_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

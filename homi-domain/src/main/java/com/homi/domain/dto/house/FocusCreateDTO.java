@@ -86,6 +86,9 @@ public class FocusCreateDTO {
     @Schema(description = "项目文件列表")
     private List<String> projectFileList;
 
+    @Schema(description = "标签")
+    private List<String> tags;
+
     /**
      * 备注
      */

@@ -12,11 +12,11 @@ public final class BeanCopyUtils {
 
     public static <V> V copyBean(Object source, Class<V> clazz) {
         //创建目标对象
-        V result = null;
+        V result;
         try {
             result = clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            return result;
+            return null;
         }
         //实现属性copy
         BeanUtils.copyProperties(source, result);
