@@ -65,10 +65,6 @@ public class Focus implements Serializable {
     @TableField("closed_floors")
     private String closedFloors;
 
-    @Schema(description = "文件列表")
-    @TableField("project_file_list")
-    private String projectFileList;
-
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic

@@ -79,8 +79,10 @@ public class HouseFocusService {
         BeanUtils.copyProperties(houseCreateDto, house);
         // 运营模式
         house.setOperationMode(OperationModeEnum.FOCUS.getCode());
+        house.setFacilities(JSONUtil.toJsonStr(houseCreateDto.getFacilities()));
         // 设置标签
         house.setTags(JSONUtil.toJsonStr(houseCreateDto.getTags()));
+        house.setImageList(JSONUtil.toJsonStr(houseCreateDto.getImageList()));
         houseRepo.save(house);
 
         houseCreateDto.setId(house.getId());
@@ -89,7 +91,6 @@ public class HouseFocusService {
         BeanUtils.copyProperties(houseCreateDto, focus);
         focus.setHouseId(house.getId());
         focus.setClosedFloors(JSONUtil.toJsonStr(houseCreateDto.getClosedFloors()));
-        focus.setProjectFileList(JSONUtil.toJsonStr(houseCreateDto.getProjectFileList()));
         focusRepo.getBaseMapper().insert(focus);
 
         houseCreateDto.setId(focus.getId());

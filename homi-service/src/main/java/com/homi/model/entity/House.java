@@ -50,6 +50,10 @@ public class House implements Serializable {
     @TableField("dept_id")
     private Long deptId;
 
+    @Schema(description = "区域id")
+    @TableField("region_id")
+    private Long regionId;
+
     @Schema(description = "1:集中式/2:分散式")
     @TableField("operation_mode")
     private Integer operationMode;
@@ -57,13 +61,6 @@ public class House implements Serializable {
     @Schema(description = "物业id")
     @TableField("property_id")
     private Long propertyId;
-
-    @Schema(description = "房本地址")
-    @TableField("address")
-    private String address;
-
-    @TableField("tags")
-    private String tags;
 
     @Schema(description = "经度")
     @TableField("lng")
@@ -73,6 +70,14 @@ public class House implements Serializable {
     @TableField("lat")
     private String lat;
 
+    @Schema(description = "房本地址")
+    @TableField("address")
+    private String address;
+
+    @Schema(description = "标签")
+    @TableField("tags")
+    private String tags;
+
     @Schema(description = "座栋")
     @TableField("building")
     private String building;
@@ -81,7 +86,7 @@ public class House implements Serializable {
     @TableField("unit")
     private String unit;
 
-    @Schema(description = "门牌号")
+    @Schema(description = "门牌号，分散式独有")
     @TableField("door_number")
     private String doorNumber;
 
@@ -101,11 +106,39 @@ public class House implements Serializable {
     @TableField("floor_total")
     private Integer floorTotal;
 
+    @Schema(description = "水")
+    @TableField("water")
+    private String water;
+
+    @Schema(description = "电")
+    @TableField("electricity")
+    private String electricity;
+
+    @Schema(description = "供暖")
+    @TableField("heating")
+    private String heating;
+
     @TableField("has_elevator")
     private Boolean hasElevator;
 
     @TableField("has_gas")
     private Boolean hasGas;
+
+    @Schema(description = "暖气费，每月")
+    @TableField("heating_fee")
+    private BigDecimal heatingFee;
+
+    @Schema(description = "物业费，每月")
+    @TableField("mgmt_fee")
+    private BigDecimal mgmtFee;
+
+    @Schema(description = "设施、从字典dict_data获取并配置")
+    @TableField("facilities")
+    private String facilities;
+
+    @Schema(description = "图片列表")
+    @TableField("image_list")
+    private String imageList;
 
     @Schema(description = "房间数 为0表示未分配房间")
     @TableField("room_count")
@@ -127,21 +160,9 @@ public class House implements Serializable {
     @TableField("mortgaged")
     private Boolean mortgaged;
 
-    @Schema(description = "暖气费，每月")
-    @TableField("heating_fee")
-    private BigDecimal heatingFee;
-
-    @Schema(description = "物业费，每月")
-    @TableField("mgmt_fee")
-    private BigDecimal mgmtFee;
-
     @Schema(description = "客户Id")
     @TableField("customer_id")
     private Long customerId;
-
-    @Schema(description = "备注")
-    @TableField("remark")
-    private String remark;
 
     @Schema(description = "房源状态")
     @TableField("house_status")
@@ -151,8 +172,24 @@ public class House implements Serializable {
     @TableField("locked")
     private Boolean locked;
 
+    @Schema(description = "门店联系电话")
+    @TableField("store_phone")
+    private String storePhone;
+
     @TableField("salesman_id")
     private Long salesmanId;
+
+    @Schema(description = "备注")
+    @TableField("remark")
+    private String remark;
+
+    @Schema(description = "房源描述、项目介绍")
+    @TableField("house_desc")
+    private String houseDesc;
+
+    @Schema(description = "商圈介绍、广告语")
+    @TableField("business_desc")
+    private String businessDesc;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")

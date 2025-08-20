@@ -83,15 +83,38 @@ public class FocusCreateDTO {
     @Schema(description = "业务员id")
     private Long salesmanId;
 
-    @Schema(description = "项目文件列表")
-    private List<String> projectFileList;
+    @Schema(description = "门店联系电话")
+    private String storePhone;
+
+    @Schema(description = "水")
+    private String water;
+
+    @Schema(description = "电")
+    private String electricity;
+
+    @Schema(description = "供暖")
+    private String heating;
+
+    @Schema(description = "燃气")
+    private Boolean hasGas;
+
+    @Schema(description = "电梯")
+    private Boolean hasElevator;
+
+    private List<String> facilities;
 
     @Schema(description = "标签")
     private List<String> tags;
 
-    /**
-     * 备注
-     */
+    @Schema(description = "项目文件列表")
+    private List<String> imageList;
+
+    @Schema(description = "房源描述、项目介绍")
+    private String houseDesc;
+
+    @Schema(description = "商圈介绍、广告语")
+    private String businessDesc;
+
     @Schema(description = "备注")
     private String remark;
 
