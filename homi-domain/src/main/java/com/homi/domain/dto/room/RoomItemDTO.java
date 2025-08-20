@@ -37,6 +37,12 @@ public class RoomItemDTO {
     @Schema(description = "出租价格")
     private BigDecimal price;
 
+    @Schema(description = "面积")
+    private BigDecimal area;
+
+    @Schema(description = "朝向")
+    private Integer direction;
+
     @Schema(description = "房间状态")
     private Integer roomStatus;
 

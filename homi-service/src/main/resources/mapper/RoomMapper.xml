@@ -10,6 +10,8 @@
         <result property="salesmanId" column="salesman_id"/>
         <result property="salesmanName" column="nickname"/>
         <result property="salesmanPhone" column="phone"/>
+        <result property="area" column="area"/>
+        <result property="direction" column="direction"/>
         <result property="roomStatus" column="room_status"/>
 
         <!-- 如果需要包含房型信息等集合 -->
@@ -20,33 +22,31 @@
             <result property="bedroom" column="bedroom"/>
             <result property="bathroom" column="bathroom"/>
             <result property="kitchen" column="kitchen"/>
-            <result property="area" column="area"/>
-            <result property="direction" column="direction"/>
         </collection>
     </resultMap>
 
     <select id="list" resultMap="RoomDetailMap">
-        SELECT r.id          AS room_id,
-               r.room_number,
-               r.price,
-               r.room_status,
-               h.salesman_id,
-               u.nickname,
-               u.phone,
-               h.house_code,
-               h.house_name  AS house_name,
-               l.id          AS layout_id,
-               l.layout_name AS layout_name,
-               l.bedroom,
-               l.living_room,
-               l.bathroom,
-               l.kitchen,
-               l.area,
-               l.direction
+        SELECT r.id AS room_id,
+        r.room_number,
+        r.price,
+        r.room_status,
+        r.area,
+        r.direction,
+        h.salesman_id,
+        u.nickname,
+        u.phone,
+        h.house_code,
+        h.house_name AS house_name,
+        hl.id AS layout_id,
+        hl.layout_name AS layout_name,
+        hl.bedroom,
+        hl.living_room,
+        hl.bathroom,
+        hl.kitchen
         FROM room r
-                 LEFT JOIN house h ON r.house_id = h.id
-                 LEFT JOIN house_layout l ON h.id = l.house_id
-                 LEFT JOIN `user` u ON u.id = h.salesman_id
+        LEFT JOIN house h ON r.house_id = h.id
+        LEFT JOIN house_layout hl ON r.house_layout_id = hl.id
+        LEFT JOIN `user` u ON u.id = h.salesman_id
         where r.deleted = 0
         <include refid="roomListQuery">
         </include>
@@ -63,7 +63,7 @@
         </include>
         group by room_status
     </select>
-    
+
     <sql id="roomListQuery">
         <if test="query.keywords != null and query.keywords.trim() != ''">
             and r.keywords like '%#{query.keywords,jdbcType=VARCHAR}%'
