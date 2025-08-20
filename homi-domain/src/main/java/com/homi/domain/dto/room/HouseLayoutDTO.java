@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
 /**
  * 应用于 homi
  *
@@ -19,8 +17,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class HouseLayoutDTO {
-    @Schema(description = "主键id")
-    private Long id;
+    @Schema(description = "主键id，tmp开头则为临时id")
+    private String id;
 
     @Schema(description = "房型名称")
     private String layoutName;
