@@ -11,7 +11,7 @@ public enum RoomStatusEnum {
      */
     AVAILABLE(0, "空置", "#FF2800"),
     LEASED(1, "已租", "#52C41A"),
-    LOCKED(2, "锁房", "#F9541C"),
+    LOCKED(2, "锁房", "#EAA212"),
     PREPARING(3, "配置中", "#4B50AD"),
     OBSOLETE(4, "下架", "#DBDBDB"),
     ;

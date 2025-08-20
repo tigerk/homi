@@ -29,6 +29,10 @@ public class FocusController {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         houseCreateDto.setCompanyId(currentUser.getCompanyId());
 
+        if (Objects.isNull(houseCreateDto.getExcludeFour())) {
+            houseCreateDto.setExcludeFour(false);
+        }
+
         houseCreateDto.setUpdateBy(currentUser.getId());
         houseCreateDto.setUpdateTime(DateUtil.date());
 

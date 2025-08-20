@@ -94,8 +94,8 @@ public class House implements Serializable {
     private BigDecimal area;
 
     @Schema(description = "楼层")
-    @TableField("floor_level")
-    private Integer floorLevel;
+    @TableField("floor")
+    private Integer floor;
 
     @Schema(description = "总楼层")
     @TableField("floor_total")

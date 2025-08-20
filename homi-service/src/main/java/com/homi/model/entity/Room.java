@@ -45,8 +45,8 @@ public class Room implements Serializable {
     private String keywords;
 
     @Schema(description = "楼层")
-    @TableField("floor_level")
-    private Integer floorLevel;
+    @TableField("floor")
+    private Integer floor;
 
     @TableField("room_number")
     private String roomNumber;

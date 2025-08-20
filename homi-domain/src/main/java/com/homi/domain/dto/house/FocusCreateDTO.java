@@ -1,5 +1,6 @@
 package com.homi.domain.dto.house;
 
+import com.homi.domain.dto.room.HouseLayoutDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -73,11 +74,17 @@ public class FocusCreateDTO {
     @Schema(description = "关闭的楼层列表")
     private List<Integer> closedFloors;
 
+    @Schema(description = "户型列表")
+    private List<HouseLayoutDTO> houseLayoutList;
+
     @Schema(description = "房间列表")
     private List<FocusRoomDTO> roomList;
 
     @Schema(description = "业务员id")
     private Long salesmanId;
+
+    @Schema(description = "项目文件列表")
+    private List<String> projectFileList;
 
     /**
      * 备注

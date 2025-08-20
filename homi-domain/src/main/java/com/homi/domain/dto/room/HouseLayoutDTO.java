@@ -30,10 +30,4 @@ public class HouseLayoutDTO {
 
     @Schema(description = "室")
     private Integer bedroom;
-
-    @Schema(description = "面积")
-    private BigDecimal area;
-
-    @Schema(description = "朝向")
-    private Integer direction;
 }

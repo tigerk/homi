@@ -1,5 +1,6 @@
 package com.homi.service.house;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -103,7 +104,7 @@ public class HouseFocusService {
 
     private void createFocusRoom(FocusCreateDTO houseCreateDto) {
         houseCreateDto.getRoomList().forEach(roomDTO -> {
-            if (houseCreateDto.getClosedFloors().contains(roomDTO.getFloorLevel())) {
+            if (CollUtil.isNotEmpty(houseCreateDto.getClosedFloors()) && houseCreateDto.getClosedFloors().contains(roomDTO.getFloor())) {
                 return;
             }
 
@@ -117,7 +118,7 @@ public class HouseFocusService {
             room.setHouseId(houseCreateDto.getId());
             room.setCompanyId(houseCreateDto.getCompanyId());
             room.setRoomNumber(roomDTO.getRoomNumber());
-            room.setFloorLevel(roomDTO.getFloorLevel());
+            room.setFloor(roomDTO.getFloor());
             room.setLocked(roomDTO.getLocked());
             room.setUpdateBy(houseCreateDto.getUpdateBy());
             room.setUpdateTime(houseCreateDto.getUpdateTime());
