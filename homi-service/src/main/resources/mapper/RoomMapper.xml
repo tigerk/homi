@@ -56,7 +56,7 @@
         SELECT room_status, count(room_status) AS total
         FROM room r
         LEFT JOIN house h ON r.house_id = h.id
-        LEFT JOIN house_layout l ON h.id = l.house_id
+        LEFT JOIN house_layout hl ON r.house_layout_id = hl.id
         LEFT JOIN `user` u ON u.id = h.salesman_id
         where r.deleted = 0
         <include refid="roomListQuery">
@@ -65,8 +65,8 @@
     </select>
 
     <sql id="roomListQuery">
-        <if test="query.keywords != null and query.keywords.trim() != ''">
-            and r.keywords like '%#{query.keywords,jdbcType=VARCHAR}%'
+        <if test="query.keywords != null and query.keywords != ''">
+            and r.keywords like concat('%', #{query.keywords,jdbcType=VARCHAR}, '%')
         </if>
         <if test="query.roomStatus != null">
             and r.room_status = #{query.roomStatus,jdbcType=INTEGER}

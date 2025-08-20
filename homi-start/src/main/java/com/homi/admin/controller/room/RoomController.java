@@ -7,6 +7,7 @@ import com.homi.domain.dto.room.RoomItemDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.RoomTotalItemDTO;
 import com.homi.domain.dto.room.RoomTotalVO;
+import com.homi.service.room.RoomSearchService;
 import com.homi.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,6 +23,8 @@ import java.util.List;
 public class RoomController {
     private final RoomService roomService;
 
+    private final RoomSearchService roomSearchService;
+
     @PostMapping("/list")
     public ResponseResult<PageVO<RoomItemDTO>> getRoomList(@RequestBody RoomQueryDTO query) {
         return ResponseResult.ok(roomService.getRoomList(query));
@@ -34,6 +37,12 @@ public class RoomController {
         roomTotalVO.setStatusList(roomStatusTotal);
 
         return ResponseResult.ok(roomTotalVO);
+    }
+
+    @PostMapping("/reset/keyword")
+    public ResponseResult<Boolean> resetKeyword() {
+        Boolean result = roomSearchService.resetKeyword();
+        return ResponseResult.ok(result);
     }
 }
 
