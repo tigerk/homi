@@ -47,6 +47,15 @@ public class FocusController {
         return ResponseResult.ok(houseFocusService.getHouseOptionList(OperationModeEnum.FOCUS));
     }
 
+    /**
+     * 获取房源详情
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/21 13:28
+     *
+     * @param id 参数说明
+     * @return com.homi.domain.base.ResponseResult<com.homi.domain.dto.house.FocusCreateDTO>
+     */
     @GetMapping("/get")
     public ResponseResult<FocusCreateDTO> getById(@RequestParam("id") Long id) {
         return ResponseResult.ok(houseFocusService.getHouseById(id));

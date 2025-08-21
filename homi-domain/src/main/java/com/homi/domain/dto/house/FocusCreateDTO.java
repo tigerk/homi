@@ -26,6 +26,9 @@ public class FocusCreateDTO {
     @Schema(description = "经营模式", hidden = true)
     private Integer businessMode;
 
+    @Schema(description = "区域级联id")
+    private List<Long> region;
+
     @Schema(description = "区域id")
     private Long regionId;
 

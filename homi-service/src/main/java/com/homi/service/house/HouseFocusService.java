@@ -12,10 +12,7 @@ import com.homi.model.entity.Focus;
 import com.homi.model.entity.House;
 import com.homi.model.entity.HouseLayout;
 import com.homi.model.entity.Room;
-import com.homi.model.repo.FocusRepo;
-import com.homi.model.repo.HouseLayoutRepo;
-import com.homi.model.repo.HouseRepo;
-import com.homi.model.repo.RoomRepo;
+import com.homi.model.repo.*;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +44,9 @@ public class HouseFocusService {
 
     @Resource
     private HouseLayoutRepo houseLayoutRepo;
+
+    @Resource
+    private RegionRepo regionRepo;
 
     /**
      * 创建集中式房源
@@ -215,6 +215,11 @@ public class HouseFocusService {
         if (Objects.isNull(houseCreateDto)) {
             throw new BizException("找不到");
         }
+
+        List<Long> regionIds = regionRepo.findParentIdsById(house.getRegionId());
+        regionIds.add(house.getRegionId());
+
+        houseCreateDto.setRegion(regionIds);
 
         houseCreateDto.setTags(JSONUtil.toList(house.getTags(), String.class));
         houseCreateDto.setImageList(JSONUtil.toList(house.getImageList(), String.class));
