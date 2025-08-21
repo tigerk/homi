@@ -114,20 +114,7 @@ public class HouseFocusService {
      * @param houseCreateDto 参数说明
      */
     private void createFocusRoom(FocusCreateDTO houseCreateDto) {
-        Map<Long, Long> houseLayoutIdMap = new HashMap<>();
-        houseCreateDto.getHouseLayoutList().forEach(houseLayoutDTO -> {
-            HouseLayout houseLayout = new HouseLayout();
-            BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
-            houseLayout.setHouseId(houseCreateDto.getId());
-            houseLayout.setCompanyId(houseCreateDto.getCompanyId());
-            houseLayout.setCreateBy(houseCreateDto.getCreateBy());
-            houseLayout.setCreateTime(houseCreateDto.getCreateTime());
-            houseLayout.setUpdateBy(houseCreateDto.getUpdateBy());
-            houseLayout.setUpdateTime(houseCreateDto.getUpdateTime());
-
-            houseLayoutRepo.getBaseMapper().insert(houseLayout);
-            houseLayoutIdMap.put(houseLayoutDTO.getId(), houseLayout.getId());
-        });
+        Map<Long, Long> houseLayoutIdMap = createHouseLayouts(houseCreateDto);
 
         houseCreateDto.getRoomList().forEach(roomDTO -> {
             if (CollUtil.isNotEmpty(houseCreateDto.getClosedFloors()) && houseCreateDto.getClosedFloors().contains(roomDTO.getFloor())) {
@@ -159,6 +146,40 @@ public class HouseFocusService {
 
             roomDTO.setId(room.getId());
         });
+    }
+
+    /**
+     * 创建集中式房源户型
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/20 13:50
+     *
+     * @param houseCreateDto 创建房源参数
+     * @return java.util.Map<java.lang.Long, java.lang.Long>
+     */
+    public Map<Long, Long> createHouseLayouts(FocusCreateDTO houseCreateDto) {
+        Map<Long, Long> houseLayoutIdMap = new HashMap<>();
+        houseCreateDto.getHouseLayoutList().forEach(houseLayoutDTO -> {
+            HouseLayout houseLayout = new HouseLayout();
+            BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
+            houseLayout.setHouseId(houseCreateDto.getId());
+            houseLayout.setCompanyId(houseCreateDto.getCompanyId());
+            houseLayout.setCreateBy(houseCreateDto.getCreateBy());
+            houseLayout.setCreateTime(houseCreateDto.getCreateTime());
+            houseLayout.setUpdateBy(houseCreateDto.getUpdateBy());
+            houseLayout.setUpdateTime(houseCreateDto.getUpdateTime());
+
+            if (houseLayoutDTO.getNewly().equals(Boolean.TRUE)) {
+                houseLayoutRepo.getBaseMapper().insert(houseLayout);
+            } else {
+                houseLayout.setId(houseLayoutDTO.getId());
+                houseLayoutRepo.updateById(houseLayout);
+            }
+
+            houseLayoutIdMap.put(houseLayoutDTO.getId(), houseLayout.getId());
+        });
+
+        return houseLayoutIdMap;
     }
 
 

@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class HouseLayoutDTO {
     @Schema(description = "主键id，tmp开头则为临时id")
-    private String id;
+    private Long id;
 
     @Schema(description = "房型名称")
     private String layoutName;
@@ -34,4 +34,7 @@ public class HouseLayoutDTO {
 
     @Schema(description = "室")
     private Integer bedroom;
+
+    @Schema(description = "新创建的")
+    private Boolean newly;
 }
