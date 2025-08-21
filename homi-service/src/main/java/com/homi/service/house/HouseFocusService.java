@@ -43,18 +43,6 @@ public class HouseFocusService {
     private FocusRepo focusRepo;
 
     @Resource
-    private FocusMapper focusMapper;
-
-    @Resource
-    private UserService userService;
-
-    @Resource
-    private DeptService deptService;
-
-    @Resource
-    private RoomLayoutRepo roomLayoutRepo;
-
-    @Resource
     private RoomRepo roomRepo;
 
     @Resource
