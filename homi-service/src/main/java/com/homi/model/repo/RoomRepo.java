@@ -2,9 +2,14 @@ package com.homi.model.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.domain.dto.house.FocusRoomDTO;
 import com.homi.model.entity.Room;
 import com.homi.model.mapper.RoomMapper;
+import com.homi.utils.BeanCopyUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -32,5 +37,16 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         queryWrapper.eq(Room::getHouseId, houseId);
         queryWrapper.eq(Room::getRoomNumber, roomNumber);
         return getOne(queryWrapper);
+    }
+
+    public List<FocusRoomDTO> getRoomListByHouseId(Long houseId) {
+        LambdaQueryWrapper<Room> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Room::getHouseId, houseId);
+
+        return getBaseMapper().selectList(queryWrapper).stream().map(room -> {
+            FocusRoomDTO roomDTO = BeanCopyUtils.copyBean(room, FocusRoomDTO.class);
+
+            return roomDTO;
+        }).collect(Collectors.toList());
     }
 }

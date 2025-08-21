@@ -41,7 +41,7 @@ public class RoomItemDTO {
     private BigDecimal area;
 
     @Schema(description = "朝向")
-    private Integer direction;
+    private String direction;
 
     @Schema(description = "房间状态")
     private Integer roomStatus;

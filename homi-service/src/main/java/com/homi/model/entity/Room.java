@@ -65,7 +65,7 @@ public class Room implements Serializable {
 
     @Schema(description = "朝向")
     @TableField("direction")
-    private Integer direction;
+    private String direction;
 
     @TableField("vacancy_start_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

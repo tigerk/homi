@@ -30,7 +30,7 @@ public class FocusRoomDTO {
     private String direction;
 
     @Schema(description = "面积")
-    private String area;
+    private BigDecimal area;
 
     @Schema(description = "价格")
     private BigDecimal price;

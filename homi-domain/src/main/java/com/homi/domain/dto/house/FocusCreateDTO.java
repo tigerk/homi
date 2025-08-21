@@ -1,5 +1,6 @@
 package com.homi.domain.dto.house;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.domain.dto.room.HouseLayoutDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -122,6 +123,7 @@ public class FocusCreateDTO {
      * 创建时间
      */
     @Schema(description = "创建时间", hidden = true)
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
     /**
@@ -134,6 +136,7 @@ public class FocusCreateDTO {
      * 更新时间
      */
     @Schema(description = "更新时间", hidden = true)
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
     /**

@@ -12,10 +12,10 @@ import com.homi.model.entity.Focus;
 import com.homi.model.entity.House;
 import com.homi.model.entity.HouseLayout;
 import com.homi.model.entity.Room;
-import com.homi.model.mapper.FocusMapper;
-import com.homi.model.repo.*;
-import com.homi.service.system.DeptService;
-import com.homi.service.system.UserService;
+import com.homi.model.repo.FocusRepo;
+import com.homi.model.repo.HouseLayoutRepo;
+import com.homi.model.repo.HouseRepo;
+import com.homi.model.repo.RoomRepo;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -114,6 +114,8 @@ public class HouseFocusService {
             room.setHouseId(houseCreateDto.getId());
             room.setCompanyId(houseCreateDto.getCompanyId());
             room.setRoomNumber(roomDTO.getRoomNumber());
+            room.setArea(roomDTO.getArea());
+            room.setDirection(roomDTO.getDirection());
             room.setFloor(roomDTO.getFloor());
             room.setLocked(roomDTO.getLocked());
             room.setHouseLayoutId(houseLayoutIdMap.get(roomDTO.getHouseLayoutId()));
@@ -201,5 +203,38 @@ public class HouseFocusService {
         List<House> list = houseRepo.list(queryWrapper);
 
         return list.stream().map(house -> BeanCopyUtils.copyBean(house, HouseSimpleVO.class)).toList();
+    }
+
+    public FocusCreateDTO getHouseById(Long id) {
+        House house = houseRepo.getById(id);
+        if (Objects.isNull(house)) {
+            throw new BizException("找不到该项目");
+        }
+
+        FocusCreateDTO houseCreateDto = BeanCopyUtils.copyBean(house, FocusCreateDTO.class);
+        if (Objects.isNull(houseCreateDto)) {
+            throw new BizException("找不到");
+        }
+
+        houseCreateDto.setTags(JSONUtil.toList(house.getTags(), String.class));
+        houseCreateDto.setImageList(JSONUtil.toList(house.getImageList(), String.class));
+
+        Focus focusByHouseId = getFocusByHouseId(id);
+        BeanUtils.copyProperties(focusByHouseId, houseCreateDto);
+
+        houseCreateDto.setClosedFloors(JSONUtil.toList(focusByHouseId.getClosedFloors(), Integer.class));
+
+        houseCreateDto.setRoomList(roomRepo.getRoomListByHouseId(id));
+
+        houseCreateDto.setHouseLayoutList(houseLayoutRepo.getHouseLayoutListByHouseId(id));
+
+        return houseCreateDto;
+    }
+
+    public Focus getFocusByHouseId(Long houseId) {
+        LambdaQueryWrapper<Focus> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Focus::getHouseId, houseId);
+
+        return focusRepo.getOne(queryWrapper);
     }
 }
