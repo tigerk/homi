@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.dto.house.FocusCreateDTO;
 import com.homi.domain.dto.house.HouseSimpleVO;
+import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.domain.enums.house.OperationModeEnum;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Focus;
@@ -13,6 +14,7 @@ import com.homi.model.entity.House;
 import com.homi.model.entity.HouseLayout;
 import com.homi.model.entity.Room;
 import com.homi.model.repo.*;
+import com.homi.service.room.RoomService;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +49,9 @@ public class HouseFocusService {
 
     @Resource
     private RegionRepo regionRepo;
+
+    @Resource
+    private RoomService roomService;
 
     /**
      * 创建集中式房源
@@ -117,6 +122,9 @@ public class HouseFocusService {
             room.setHouseLayoutId(houseLayoutIdMap.get(roomDTO.getHouseLayoutId()));
             room.setUpdateBy(houseCreateDto.getUpdateBy());
             room.setUpdateTime(houseCreateDto.getUpdateTime());
+
+            RoomStatusEnum roomStatusEnum = roomService.calculateRoomStatus(room);
+            room.setRoomStatus(roomStatusEnum.getCode());
 
             Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(houseCreateDto.getId(), roomDTO.getRoomNumber());
             if (Objects.nonNull(roomBefore)) {

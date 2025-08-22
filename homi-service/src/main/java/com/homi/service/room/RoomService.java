@@ -1,5 +1,6 @@
 package com.homi.service.room;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.EnumUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,6 +9,7 @@ import com.homi.domain.dto.room.RoomItemDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.RoomTotalItemDTO;
 import com.homi.domain.enums.RoomStatusEnum;
+import com.homi.model.entity.Room;
 import com.homi.model.repo.HouseRepo;
 import com.homi.model.repo.RoomRepo;
 import lombok.RequiredArgsConstructor;
@@ -86,5 +88,18 @@ public class RoomService {
         });
 
         return result.values().stream().toList();
+    }
+
+    public RoomStatusEnum calculateRoomStatus(Room room) {
+        if (Boolean.TRUE.equals(room.getLeased())) {
+            return RoomStatusEnum.LEASED;
+        }
+        if (Boolean.TRUE.equals(room.getLocked())) {
+            return RoomStatusEnum.LOCKED;
+        }
+        if (room.getVacancyStartTime() != null && room.getVacancyStartTime().after(DateUtil.date())) {
+            return RoomStatusEnum.PREPARING;
+        }
+        return RoomStatusEnum.AVAILABLE;
     }
 }
