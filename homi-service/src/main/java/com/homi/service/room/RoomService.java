@@ -10,7 +10,6 @@ import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.RoomTotalItemDTO;
 import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.model.entity.Room;
-import com.homi.model.repo.HouseRepo;
 import com.homi.model.repo.RoomRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,8 +31,6 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 public class RoomService {
-    private final HouseRepo houseRepo;
-
     private final RoomRepo roomRepo;
 
     /**
