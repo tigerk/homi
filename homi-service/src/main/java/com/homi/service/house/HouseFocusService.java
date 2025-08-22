@@ -85,11 +85,6 @@ public class HouseFocusService {
         // 创建房间
         createFocusRoom(houseCreateDto);
 
-        boolean b = houseRepo.updateHouseRoomCount(house.getId());
-        if (!b) {
-            log.warn("更新房源房间数量：houseId={}, resp={}", house.getId(), b);
-        }
-
         return house.getId();
     }
 
@@ -114,6 +109,7 @@ public class HouseFocusService {
             room.setHouseId(houseCreateDto.getId());
             room.setCompanyId(houseCreateDto.getCompanyId());
             room.setRoomNumber(roomDTO.getRoomNumber());
+            room.setPrice(roomDTO.getPrice());
             room.setArea(roomDTO.getArea());
             room.setDirection(roomDTO.getDirection());
             room.setFloor(roomDTO.getFloor());
@@ -122,10 +118,10 @@ public class HouseFocusService {
             room.setUpdateBy(houseCreateDto.getUpdateBy());
             room.setUpdateTime(houseCreateDto.getUpdateTime());
 
-            if (Objects.nonNull(roomDTO.getId())) {
-                Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(houseCreateDto.getId(), roomDTO.getRoomNumber());
-                BeanUtils.copyProperties(room, roomBefore);
-                roomRepo.getBaseMapper().updateById(roomBefore);
+            Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(houseCreateDto.getId(), roomDTO.getRoomNumber());
+            if (Objects.nonNull(roomBefore)) {
+                room.setId(roomBefore.getId());
+                roomRepo.getBaseMapper().updateById(room);
             } else {
                 room.setCreateBy(houseCreateDto.getCreateBy());
                 room.setCreateTime(houseCreateDto.getCreateTime());
@@ -180,17 +176,24 @@ public class HouseFocusService {
         }
 
         House house = optById.get();
-        BeanUtils.copyProperties(houseCreateDto, house);
+        BeanUtils.copyProperties(houseCreateDto, house, "createBy", "createTime");
+
+        // 运营模式
+        house.setOperationMode(OperationModeEnum.FOCUS.getCode());
+        house.setFacilities(JSONUtil.toJsonStr(houseCreateDto.getFacilities()));
+        // 设置标签
+        house.setTags(JSONUtil.toJsonStr(houseCreateDto.getTags()));
+        house.setImageList(JSONUtil.toJsonStr(houseCreateDto.getImageList()));
         houseRepo.updateById(house);
 
-        houseCreateDto.setId(house.getId());
-
-        Focus focus = new Focus();
+        Focus focus = focusRepo.getFocusByHouseId(house.getId());
         BeanUtils.copyProperties(houseCreateDto, focus);
         focus.setHouseId(house.getId());
-        focusRepo.updateById(focus);
+        focus.setClosedFloors(JSONUtil.toJsonStr(houseCreateDto.getClosedFloors()));
+        focusRepo.getBaseMapper().updateById(focus);
 
-        // 更新房间
+        houseCreateDto.setId(focus.getId());
+        // 创建房间
         createFocusRoom(houseCreateDto);
 
         return house.getId();
@@ -222,6 +225,7 @@ public class HouseFocusService {
         houseCreateDto.setRegion(regionIds);
 
         houseCreateDto.setTags(JSONUtil.toList(house.getTags(), String.class));
+        houseCreateDto.setFacilities(JSONUtil.toList(house.getFacilities(), String.class));
         houseCreateDto.setImageList(JSONUtil.toList(house.getImageList(), String.class));
 
         Focus focusByHouseId = getFocusByHouseId(id);
@@ -241,5 +245,12 @@ public class HouseFocusService {
         queryWrapper.eq(Focus::getHouseId, houseId);
 
         return focusRepo.getOne(queryWrapper);
+    }
+
+    public void updateHouseRoomCount(Long houseId) {
+        boolean b = houseRepo.updateHouseRoomCount(houseId);
+        if (!b) {
+            log.warn("更新房源房间数量：houseId={}, resp={}", houseId, b);
+        }
     }
 }

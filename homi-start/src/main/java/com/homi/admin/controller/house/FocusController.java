@@ -30,16 +30,23 @@ public class FocusController {
             houseCreateDto.setExcludeFour(false);
         }
 
+        houseCreateDto.setCreateBy(currentUser.getId());
+        houseCreateDto.setCreateTime(DateUtil.date());
         houseCreateDto.setUpdateBy(currentUser.getId());
         houseCreateDto.setUpdateTime(DateUtil.date());
 
+        Long houseId;
         if (Objects.nonNull(houseCreateDto.getId())) {
-            return ResponseResult.ok(houseFocusService.updateHouseFocus(houseCreateDto));
+            houseId = houseFocusService.updateHouseFocus(houseCreateDto);
         } else {
             houseCreateDto.setCreateBy(currentUser.getId());
             houseCreateDto.setCreateTime(DateUtil.date());
-            return ResponseResult.ok(houseFocusService.createHouseFocus(houseCreateDto));
+            houseId = houseFocusService.createHouseFocus(houseCreateDto);
         }
+
+        houseFocusService.updateHouseRoomCount(houseId);
+
+        return ResponseResult.ok(houseId);
     }
 
     @PostMapping("/house/options")
