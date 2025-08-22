@@ -81,6 +81,8 @@ public class RoomService {
             result.put(roomStatusEnum.getCode(), roomTotalItemDTO);
         }
 
+        query.setRoomStatus(null);
+
         List<RoomTotalItemDTO> statusTotal = roomRepo.getBaseMapper().getStatusTotal(query);
         statusTotal.forEach(roomTotalItemDTO -> {
             RoomTotalItemDTO orDefault = result.getOrDefault(roomTotalItemDTO.getRoomStatus(), roomTotalItemDTO);

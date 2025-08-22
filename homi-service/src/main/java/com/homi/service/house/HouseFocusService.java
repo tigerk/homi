@@ -14,6 +14,7 @@ import com.homi.model.entity.House;
 import com.homi.model.entity.HouseLayout;
 import com.homi.model.entity.Room;
 import com.homi.model.repo.*;
+import com.homi.service.room.RoomSearchService;
 import com.homi.service.room.RoomService;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.annotation.Resource;
@@ -52,6 +53,9 @@ public class HouseFocusService {
 
     @Resource
     private RoomService roomService;
+
+    @Resource
+    private RoomSearchService roomSearchService;
 
     /**
      * 创建集中式房源
@@ -125,6 +129,7 @@ public class HouseFocusService {
 
             RoomStatusEnum roomStatusEnum = roomService.calculateRoomStatus(room);
             room.setRoomStatus(roomStatusEnum.getCode());
+            room.setKeywords(roomSearchService.generateKeywords(room));
 
             Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(houseCreateDto.getId(), roomDTO.getRoomNumber());
             if (Objects.nonNull(roomBefore)) {

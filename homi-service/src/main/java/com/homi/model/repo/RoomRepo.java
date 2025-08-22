@@ -1,14 +1,19 @@
 package com.homi.model.repo;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.domain.dto.house.FocusRoomDTO;
+import com.homi.model.entity.House;
+import com.homi.model.entity.HouseLayout;
 import com.homi.model.entity.Room;
 import com.homi.model.mapper.RoomMapper;
 import com.homi.utils.BeanCopyUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -20,8 +25,8 @@ import java.util.stream.Collectors;
  * @since 2025-07-22
  */
 @Service
+@RequiredArgsConstructor
 public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
-
     /**
      * 根据房源id和房间号查询房间，此数据只有一条数据
      * <p>

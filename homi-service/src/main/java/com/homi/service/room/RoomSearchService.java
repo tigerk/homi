@@ -1,7 +1,7 @@
 package com.homi.service.room;
 
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.homi.model.entity.House;
 import com.homi.model.entity.HouseLayout;
 import com.homi.model.entity.Room;
 import com.homi.model.repo.HouseLayoutRepo;
@@ -33,31 +33,42 @@ public class RoomSearchService {
     private final HouseLayoutRepo houseLayoutRepo;
 
     public Boolean resetKeyword() {
-
-        houseRepo.list().forEach(house -> {
-            LambdaUpdateWrapper<Room> wrapper = new LambdaUpdateWrapper<Room>()
-                .eq(Room::getHouseId, house.getId());
-
-            List<String> tags = JSONUtil.toList(house.getTags(), String.class);
-            String tagsStr = String.join("|", tags);
-
-            roomRepo.list(wrapper).forEach(room -> {
-                HouseLayout houseLayoutRepoById = null;
-                if (Objects.nonNull(room.getHouseLayoutId())) {
-                    houseLayoutRepoById = houseLayoutRepo.getById(room.getHouseLayoutId());
-                }
-
-                String keyword = String.format("%s|%s|%s|%s|%s", house.getHouseCode(),
-                    house.getHouseName(),
-                    tagsStr,
-                    Objects.isNull(houseLayoutRepoById) ? "" : houseLayoutRepoById.getLayoutName(),
-                    room.getRoomNumber());
-                room.setKeywords(keyword);
-
-                roomRepo.updateById(room);
-            });
+        log.info("开始更新房间搜索关键字");
+        roomRepo.list().forEach(room -> {
+            room.setKeywords(generateKeywords(room));
+            roomRepo.updateById(room);
         });
 
+        log.info("结束更新房间搜索关键字");
+
         return Boolean.TRUE;
+    }
+
+    /**
+     * 生成房间搜索关键字
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/22 11:19
+     *
+     * @param room 参数说明
+     * @return java.lang.String
+     */
+    public String generateKeywords(Room room) {
+        House house = houseRepo.getById(room.getHouseId());
+
+        List<String> tags = JSONUtil.toList(house.getTags(), String.class);
+        String tagsStr = String.join("|", tags);
+
+        HouseLayout houseLayoutRepoById = null;
+        if (Objects.nonNull(room.getHouseLayoutId())) {
+            houseLayoutRepoById = houseLayoutRepo.getById(room.getHouseLayoutId());
+        }
+
+        return String.format("%s|%s|%s|%s|%s", house.getHouseCode(),
+            house.getHouseName(),
+            tagsStr,
+            Objects.isNull(houseLayoutRepoById) ? "" : houseLayoutRepoById.getLayoutName(),
+            room.getRoomNumber());
+
     }
 }
