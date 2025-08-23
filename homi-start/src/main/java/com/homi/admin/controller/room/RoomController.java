@@ -6,7 +6,8 @@ import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.room.RoomItemDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.RoomTotalItemDTO;
-import com.homi.domain.dto.room.RoomTotalVO;
+import com.homi.domain.vo.room.RoomGridVO;
+import com.homi.domain.vo.room.RoomTotalVO;
 import com.homi.service.room.RoomSearchService;
 import com.homi.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,13 @@ public class RoomController {
     public ResponseResult<Boolean> resetKeyword() {
         Boolean result = roomSearchService.resetKeyword();
         return ResponseResult.ok(result);
+    }
+
+
+
+    @PostMapping("/grid")
+    public ResponseResult<List<RoomGridVO>> getRoomGrid(@RequestBody RoomQueryDTO query) {
+        return ResponseResult.ok(roomService.getRoomGrid(query));
     }
 }
 

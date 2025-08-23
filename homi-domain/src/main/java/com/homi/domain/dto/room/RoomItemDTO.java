@@ -34,6 +34,9 @@ public class RoomItemDTO {
     @Schema(description = "房间号")
     private String roomNumber;
 
+    @Schema(description = "楼层")
+    private Integer floor;
+
     @Schema(description = "出租价格")
     private BigDecimal price;
 
@@ -51,6 +54,12 @@ public class RoomItemDTO {
 
     @Schema(description = "房间状态颜色，参考：RoomStatusEnum")
     private String roomStatusColor;
+
+    @Schema(description = "锁定状态")
+    private Boolean locked;
+
+    @Schema(description = "出租状态")
+    private Boolean leased;
 
     @Schema(description = "负责人id")
     private String salesmanId;

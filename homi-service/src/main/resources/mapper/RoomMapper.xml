@@ -13,6 +13,10 @@
         <result property="area" column="area"/>
         <result property="direction" column="direction"/>
         <result property="roomStatus" column="room_status"/>
+        <result property="locked" column="locked"/>
+        <result property="leased" column="leased"/>
+        <!-- 添加floor字段 -->
+        <result property="floor" column="floor"/>
 
         <!-- 如果需要包含房型信息等集合 -->
         <collection property="houseLayout" ofType="com.homi.domain.dto.room.HouseLayoutDTO">
@@ -25,11 +29,14 @@
         </collection>
     </resultMap>
 
-    <select id="list" resultMap="RoomDetailMap">
+    <select id="getPage" resultMap="RoomDetailMap">
         SELECT r.id AS room_id,
         r.room_number,
+        r.floor,
         r.price,
         r.room_status,
+        r.locked,
+        r.leased,
         r.area,
         r.direction,
         h.salesman_id,

@@ -44,6 +44,8 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         LambdaQueryWrapper<Room> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Room::getHouseId, houseId);
 
-        return getBaseMapper().selectList(queryWrapper).stream().map(room -> BeanCopyUtils.copyBean(room, FocusRoomDTO.class)).collect(Collectors.toList());
+        return getBaseMapper().selectList(queryWrapper).stream()
+            .map(room -> BeanCopyUtils.copyBean(room, FocusRoomDTO.class))
+            .collect(Collectors.toList());
     }
 }

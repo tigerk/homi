@@ -20,4 +20,5 @@ public class HouseSimpleVO {
 
     @Schema(description = "房源名称")
     private String houseName;
+
 }
