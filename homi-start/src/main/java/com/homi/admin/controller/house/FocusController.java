@@ -6,11 +6,14 @@ import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.house.FocusCreateDTO;
-import com.homi.domain.dto.house.HouseSimpleVO;
-import com.homi.domain.enums.house.OperationModeEnum;
-import com.homi.service.house.HouseFocusService;
+import com.homi.domain.enums.house.LeaseModeEnum;
+import com.homi.domain.vo.IdNameVO;
+import com.homi.service.house.FocusService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
@@ -19,53 +22,41 @@ import java.util.Objects;
 @RestController
 @RequiredArgsConstructor
 public class FocusController {
-    private final HouseFocusService houseFocusService;
+    private final FocusService focusService;
 
     @PostMapping("/create")
-    public ResponseResult<Long> createHouse(@RequestBody FocusCreateDTO houseCreateDto) {
+    public ResponseResult<Long> createHouse(@RequestBody FocusCreateDTO focusCreateDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        houseCreateDto.setCompanyId(currentUser.getCompanyId());
+        focusCreateDTO.setCompanyId(currentUser.getCompanyId());
 
-        if (Objects.isNull(houseCreateDto.getExcludeFour())) {
-            houseCreateDto.setExcludeFour(false);
-        }
+        focusCreateDTO.setCreateBy(currentUser.getId());
+        focusCreateDTO.setCreateTime(DateUtil.date());
+        focusCreateDTO.setUpdateBy(currentUser.getId());
+        focusCreateDTO.setUpdateTime(DateUtil.date());
 
-        houseCreateDto.setCreateBy(currentUser.getId());
-        houseCreateDto.setCreateTime(DateUtil.date());
-        houseCreateDto.setUpdateBy(currentUser.getId());
-        houseCreateDto.setUpdateTime(DateUtil.date());
-
-        Long houseId;
-        if (Objects.nonNull(houseCreateDto.getId())) {
-            houseId = houseFocusService.updateHouseFocus(houseCreateDto);
+        Long focusId;
+        if (Objects.nonNull(focusCreateDTO.getId())) {
+            focusId = focusService.updateHouseFocus(focusCreateDTO);
         } else {
-            houseCreateDto.setCreateBy(currentUser.getId());
-            houseCreateDto.setCreateTime(DateUtil.date());
-            houseId = houseFocusService.createHouseFocus(houseCreateDto);
+            focusCreateDTO.setCreateBy(currentUser.getId());
+            focusCreateDTO.setCreateTime(DateUtil.date());
+            focusId = focusService.createHouseFocus(focusCreateDTO);
         }
 
-        houseFocusService.updateHouseRoomCount(houseId);
-
-        return ResponseResult.ok(houseId);
-    }
-
-    @PostMapping("/house/options")
-    public ResponseResult<List<HouseSimpleVO>> houseOptions() {
-        return ResponseResult.ok(houseFocusService.getHouseOptionList(OperationModeEnum.FOCUS));
+        return ResponseResult.ok(focusId);
     }
 
     /**
-     * 获取房源详情
+     * 集中式项目选项
      * <p>
      * {@code @author} tk
-     * {@code @date} 2025/8/21 13:28
+     * {@code @date} 2025/9/10 23:16
      *
-     * @param id 参数说明
-     * @return com.homi.domain.base.ResponseResult<com.homi.domain.dto.house.FocusCreateDTO>
+     * @return com.homi.domain.base.ResponseResult<java.util.List<com.homi.domain.vo.IdNameVO>>
      */
-    @GetMapping("/get")
-    public ResponseResult<FocusCreateDTO> getById(@RequestParam("id") Long id) {
-        return ResponseResult.ok(houseFocusService.getHouseById(id));
+    @PostMapping("/options")
+    public ResponseResult<List<IdNameVO>> houseOptions() {
+        return ResponseResult.ok(focusService.getFocusOptionList(LeaseModeEnum.FOCUS));
     }
 }
 

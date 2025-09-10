@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum OperationModeEnum {
+public enum LeaseModeEnum {
     /**
      * 运营模式：集中式 or 分散式
      */

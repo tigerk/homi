@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-08-20
+ * @since 2025-09-10
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -47,16 +47,25 @@ public class House implements Serializable {
     @TableField("company_id")
     private Long companyId;
 
+    @Schema(description = "部门ID")
     @TableField("dept_id")
     private Long deptId;
+
+    @Schema(description = "业务员ID")
+    @TableField("salesman_id")
+    private Long salesmanId;
 
     @Schema(description = "区域id")
     @TableField("region_id")
     private Long regionId;
 
-    @Schema(description = "1:集中式/2:分散式")
-    @TableField("operation_mode")
-    private Integer operationMode;
+    @Schema(description = "来源id")
+    @TableField("mode_ref_id")
+    private Long modeRefId;
+
+    @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
+    @TableField("lease_mode")
+    private Integer leaseMode;
 
     @Schema(description = "物业id")
     @TableField("property_id")
@@ -90,13 +99,21 @@ public class House implements Serializable {
     @TableField("door_number")
     private String doorNumber;
 
-    @Schema(description = "建筑面积")
-    @TableField("building_area")
-    private BigDecimal buildingArea;
+    @Schema(description = "户型")
+    @TableField("house_layout_id")
+    private Long houseLayoutId;
+
+    @Schema(description = "出房价格")
+    @TableField("price")
+    private BigDecimal price;
 
     @Schema(description = "套内面积")
     @TableField("area")
     private BigDecimal area;
+
+    @Schema(description = "朝向")
+    @TableField("direction")
+    private String direction;
 
     @Schema(description = "楼层")
     @TableField("floor")
@@ -118,9 +135,11 @@ public class House implements Serializable {
     @TableField("heating")
     private String heating;
 
+    @Schema(description = "是否有电梯")
     @TableField("has_elevator")
     private Boolean hasElevator;
 
+    @Schema(description = "是否有燃气")
     @TableField("has_gas")
     private Boolean hasGas;
 
@@ -172,17 +191,6 @@ public class House implements Serializable {
     @TableField("locked")
     private Boolean locked;
 
-    @Schema(description = "门店联系电话")
-    @TableField("store_phone")
-    private String storePhone;
-
-    @TableField("salesman_id")
-    private Long salesmanId;
-
-    @Schema(description = "备注")
-    @TableField("remark")
-    private String remark;
-
     @Schema(description = "房源描述、项目介绍")
     @TableField("house_desc")
     private String houseDesc;
@@ -190,6 +198,10 @@ public class House implements Serializable {
     @Schema(description = "商圈介绍、广告语")
     @TableField("business_desc")
     private String businessDesc;
+
+    @Schema(description = "备注")
+    @TableField("remark")
+    private String remark;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")

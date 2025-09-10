@@ -15,17 +15,17 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 集中式房源扩展表
+ * 集中式项目
  * </p>
  *
  * @author tk
- * @since 2025-08-20
+ * @since 2025-09-10
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
 @TableName("focus")
-@Schema(name = "Focus", description = "集中式房源扩展表")
+@Schema(name = "Focus", description = "集中式项目")
 public class Focus implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
@@ -33,37 +33,85 @@ public class Focus implements Serializable {
     @TableId("id")
     private Long id;
 
-    @Schema(description = "公司id")
+    @Schema(description = "公司ID")
     @TableField("company_id")
     private Long companyId;
 
-    @Schema(description = "房源id")
-    @TableField("house_id")
-    private Long houseId;
+    @Schema(description = "项目编号")
+    @TableField("focus_code")
+    private String focusCode;
 
-    @Schema(description = "房间号前缀")
-    @TableField("room_prefix")
-    private String roomPrefix;
+    @Schema(description = "项目名称")
+    @TableField("focus_name")
+    private String focusName;
 
-    @Schema(description = "房间号长度")
-    @TableField("room_number_length")
-    private Integer roomNumberLength;
+    @Schema(description = "区域ID")
+    @TableField("region_id")
+    private Long regionId;
 
-    @Schema(description = "去掉4")
-    @TableField("exclude_four")
-    private Boolean excludeFour;
+    @Schema(description = "小区ID")
+    @TableField("property_id")
+    private Long propertyId;
 
-    @Schema(description = "是否已分配")
-    @TableField("allocated")
-    private Boolean allocated;
+    @Schema(description = "门店联系电话")
+    @TableField("store_phone")
+    private String storePhone;
 
-    @Schema(description = "总楼层")
-    @TableField("floor_total")
-    private Integer floorTotal;
+    @Schema(description = "部门ID")
+    @TableField("dept_id")
+    private Long deptId;
 
-    @Schema(description = "关闭的楼层列表json")
-    @TableField("closed_floors")
-    private String closedFloors;
+    @Schema(description = "业务员ID")
+    @TableField("salesman_id")
+    private Long salesmanId;
+
+    @Schema(description = "设施、从字典dict_data获取并配置")
+    @TableField("facilities")
+    private String facilities;
+
+    @Schema(description = "水")
+    @TableField("water")
+    private String water;
+
+    @Schema(description = "电")
+    @TableField("electricity")
+    private String electricity;
+
+    @Schema(description = "供暖")
+    @TableField("heating")
+    private String heating;
+
+    @Schema(description = "是否有电梯")
+    @TableField("has_elevator")
+    private Boolean hasElevator;
+
+    @Schema(description = "是否有燃气")
+    @TableField("has_gas")
+    private Boolean hasGas;
+
+    @Schema(description = "房间数 为0表示未分配房间")
+    @TableField("room_count")
+    private Integer roomCount;
+
+    @Schema(description = "房源描述、项目介绍")
+    @TableField("house_desc")
+    private String houseDesc;
+
+    @Schema(description = "商圈介绍、广告语")
+    @TableField("business_desc")
+    private String businessDesc;
+
+    @Schema(description = "标签")
+    @TableField("tags")
+    private String tags;
+
+    @Schema(description = "项目描述")
+    @TableField("remark")
+    private String remark;
+
+    @Schema(description = "图片列表")
+    @TableField("image_list")
+    private String imageList;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")

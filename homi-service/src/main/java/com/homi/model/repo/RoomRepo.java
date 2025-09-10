@@ -1,15 +1,20 @@
 package com.homi.model.repo;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.domain.dto.house.FocusRoomDTO;
+import com.homi.domain.dto.house.FocusHouseDTO;
+import com.homi.domain.enums.RoomStatusEnum;
+import com.homi.model.entity.House;
 import com.homi.model.entity.Room;
 import com.homi.model.mapper.RoomMapper;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -40,12 +45,34 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         return getOne(queryWrapper);
     }
 
-    public List<FocusRoomDTO> getRoomListByHouseId(Long houseId) {
+    public List<FocusHouseDTO> getRoomListByHouseId(Long houseId) {
         LambdaQueryWrapper<Room> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Room::getHouseId, houseId);
 
         return getBaseMapper().selectList(queryWrapper).stream()
-            .map(room -> BeanCopyUtils.copyBean(room, FocusRoomDTO.class))
+            .map(room -> BeanCopyUtils.copyBean(room, FocusHouseDTO.class))
             .collect(Collectors.toList());
+    }
+
+    /**
+     * 计算房间状态
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/10 22:53
+
+      * @param room 参数说明
+     * @return com.homi.domain.enums.RoomStatusEnum
+     */
+    public RoomStatusEnum calculateRoomStatus(Room room) {
+        if (Boolean.TRUE.equals(room.getLeased())) {
+            return RoomStatusEnum.LEASED;
+        }
+        if (Boolean.TRUE.equals(room.getLocked())) {
+            return RoomStatusEnum.LOCKED;
+        }
+        if (room.getVacancyStartTime() != null && room.getVacancyStartTime().after(DateUtil.date())) {
+            return RoomStatusEnum.PREPARING;
+        }
+        return RoomStatusEnum.AVAILABLE;
     }
 }

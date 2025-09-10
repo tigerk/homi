@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 房型设置
+ * 公司用户表
  * </p>
  *
  * @author tk
@@ -24,13 +24,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("house_layout")
-@Schema(name = "HouseLayout", description = "房型设置")
-public class HouseLayout implements Serializable {
+@TableName("company_user")
+@Schema(name = "CompanyUser", description = "公司用户表")
+public class CompanyUser implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "主键id")
+    @Schema(description = "主键")
     @TableId("id")
     private Long id;
 
@@ -38,50 +38,46 @@ public class HouseLayout implements Serializable {
     @TableField("company_id")
     private Long companyId;
 
-    @Schema(description = "房源id")
-    @TableField("house_id")
-    private Long houseId;
+    @Schema(description = "部门ID")
+    @TableField("dept_id")
+    private Long deptId;
 
-    @Schema(description = "房型名称")
-    @TableField("layout_name")
-    private String layoutName;
+    @Schema(description = "用户ID")
+    @TableField("user_id")
+    private Long userId;
 
-    @Schema(description = "厅")
-    @TableField("living_room")
-    private Integer livingRoom;
+    @Schema(description = "公司用户类型：管理员、副管理员、员工")
+    @TableField("company_user_type")
+    private Integer companyUserType;
 
-    @Schema(description = "卫")
-    @TableField("bathroom")
-    private Integer bathroom;
+    @Schema(description = "公司角色列表")
+    @TableField("roles")
+    private String roles;
 
-    @Schema(description = "厨")
-    @TableField("kitchen")
-    private Integer kitchen;
-
-    @Schema(description = "室")
-    @TableField("bedroom")
-    private Integer bedroom;
+    @Schema(description = "可查看部门列表")
+    @TableField("deptIds")
+    private String deptIds;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;
 
-    @Schema(description = "创建人")
-    @TableField("create_by")
-    private Long createBy;
-
     @Schema(description = "创建时间")
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    @Schema(description = "修改人")
-    @TableField("update_by")
-    private Long updateBy;
+    @Schema(description = "创建人")
+    @TableField("create_by")
+    private Long createBy;
 
     @Schema(description = "更新时间")
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
+
+    @Schema(description = "更新人")
+    @TableField("update_by")
+    private Long updateBy;
 }

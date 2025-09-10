@@ -17,78 +17,41 @@ public class FocusCreateDTO {
     @Schema(description = "id，修改时需要传")
     private Long id;
 
-    /**
-     * 公司Id
-     */
-    @Schema(description = "公司id", hidden = true)
+    @Schema(description = "公司ID")
     private Long companyId;
 
-    @Schema(description = "经营模式", hidden = true)
-    private Integer businessMode;
-
-    @Schema(description = "区域级联id")
-    private List<Long> region;
-
-    @Schema(description = "区域id")
-    private Long regionId;
-
-    @Schema(description = "部门id", hidden = true)
-    private Long deptId;
-
     @Schema(description = "项目编号")
-    private String houseCode;
+    private String focusCode;
 
     @Schema(description = "项目名称")
-    private String houseName;
+    private String focusName;
 
-    @Schema(description = "楼盘id")
+    @Schema(description = "区域ID")
+    private Long regionId;
+
+    @Schema(description = "小区ID")
     private Long propertyId;
 
-    @Schema(description = "项目地址")
-    private String address;
-
-    @Schema(description = "经度")
-    private String lng;
-
-    @Schema(description = "纬度")
-    private String lat;
-
-    @Schema(description = "楼栋")
-    private String building;
-
-    @Schema(description = "单元号")
-    private String unit;
-
-    @Schema(description = "门牌号")
-    private String doorNumber;
-
-
-    @Schema(description = "总楼层")
-    private Integer floorTotal;
-
-    @Schema(description = "房间号前缀")
-    private String roomPrefix;
-
-    @Schema(description = "房间号长度")
-    private Integer roomNumberLength;
-
-    @Schema(description = "去掉4")
-    private Boolean excludeFour;
-
-    @Schema(description = "关闭的楼层列表")
-    private List<Integer> closedFloors;
+    @Schema(description = "楼栋列表")
+    private List<FocusBuildingDTO> buildingList;
 
     @Schema(description = "户型列表")
     private List<HouseLayoutDTO> houseLayoutList;
 
     @Schema(description = "房间列表")
-    private List<FocusRoomDTO> roomList;
-
-    @Schema(description = "业务员id")
-    private Long salesmanId;
+    private List<FocusHouseDTO> houseList;
 
     @Schema(description = "门店联系电话")
     private String storePhone;
+
+    @Schema(description = "部门ID")
+    private Long deptId;
+
+    @Schema(description = "业务员ID")
+    private Long salesmanId;
+
+    @Schema(description = "设施、从字典dict_data获取并配置")
+    private List<String> facilities;
 
     @Schema(description = "水")
     private String water;
@@ -99,19 +62,14 @@ public class FocusCreateDTO {
     @Schema(description = "供暖")
     private String heating;
 
-    @Schema(description = "燃气")
-    private Boolean hasGas;
-
-    @Schema(description = "电梯")
+    @Schema(description = "是否有电梯")
     private Boolean hasElevator;
 
-    private List<String> facilities;
+    @Schema(description = "是否有燃气")
+    private Boolean hasGas;
 
-    @Schema(description = "标签")
-    private List<String> tags;
-
-    @Schema(description = "项目文件列表")
-    private List<String> imageList;
+    @Schema(description = "房间数 为0表示未分配房间")
+    private Integer roomCount;
 
     @Schema(description = "房源描述、项目介绍")
     private String houseDesc;
@@ -119,33 +77,27 @@ public class FocusCreateDTO {
     @Schema(description = "商圈介绍、广告语")
     private String businessDesc;
 
-    @Schema(description = "备注")
+    @Schema(description = "标签")
+    private List<String> tags;
+
+    @Schema(description = "项目描述")
     private String remark;
 
-    /**
-     * 创建时间
-     */
-    @Schema(description = "创建时间", hidden = true)
+    @Schema(description = "图片列表")
+    private List<String> imageList;
+
+    @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    /**
-     * 创建人
-     */
-    @Schema(description = "创建人", hidden = true)
-    private Long createBy;
+    @Schema(description = "更新人")
+    private Long updateBy;
 
-    /**
-     * 更新时间
-     */
-    @Schema(description = "更新时间", hidden = true)
+    @Schema(description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
 
-    /**
-     * 更新人
-     */
-    @Schema(description = "更新人", hidden = true)
-    private Long updateBy;
+    @Schema(description = "创建人")
+    private Long createBy;
 
 }

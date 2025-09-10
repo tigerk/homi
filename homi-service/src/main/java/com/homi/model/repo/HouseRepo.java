@@ -8,6 +8,8 @@ import com.homi.model.mapper.HouseMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 /**
  * <p>
  * 房源表 服务实现类
@@ -20,12 +22,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class HouseRepo extends ServiceImpl<HouseMapper, House> {
     private final RoomRepo roomRepo;
-
-    public boolean checkHouseCodeExist(String houseCode) {
-        LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(House::getHouseCode, houseCode);
-        return count(queryWrapper) > 0;
-    }
 
     public boolean updateHouseRoomCount(Long houseId) {
         LambdaQueryWrapper<Room> queryWrapper = new LambdaQueryWrapper<>();
@@ -43,4 +39,25 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         return updateById(house);
     }
 
+    /**
+     * 根据houseCode判断是否存在，存在更新，不存在则插入
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/10 22:45
+     *
+     * @param house 参数说明
+     */
+    public void saveHouse(House house) {
+        LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(House::getHouseCode, house.getHouseCode());
+
+        House oneHouse = getOne(queryWrapper);
+
+        if (Objects.nonNull(oneHouse)) {
+            house.setId(oneHouse.getId());
+            updateById(house);
+        } else {
+            save(house);
+        }
+    }
 }

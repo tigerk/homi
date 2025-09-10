@@ -2,13 +2,17 @@ package com.homi.model.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.domain.dto.house.FocusCreateDTO;
 import com.homi.domain.dto.room.HouseLayoutDTO;
 import com.homi.model.entity.HouseLayout;
 import com.homi.model.mapper.HouseLayoutMapper;
 import com.homi.utils.BeanCopyUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -44,5 +48,39 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
 
             return houseLayoutDTO;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 创建集中式房源户型
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/20 13:50
+     *
+     * @param houseCreateDto 创建房源参数
+     * @return java.util.Map<java.lang.Long, java.lang.Long>
+     */
+    public Map<Long, Long> createHouseLayouts(FocusCreateDTO houseCreateDto) {
+        Map<Long, Long> houseLayoutIdMap = new HashMap<>();
+        houseCreateDto.getHouseLayoutList().forEach(houseLayoutDTO -> {
+            HouseLayout houseLayout = new HouseLayout();
+            BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
+            houseLayout.setHouseId(houseCreateDto.getId());
+            houseLayout.setCompanyId(houseCreateDto.getCompanyId());
+            houseLayout.setCreateBy(houseCreateDto.getCreateBy());
+            houseLayout.setCreateTime(houseCreateDto.getCreateTime());
+            houseLayout.setUpdateBy(houseCreateDto.getUpdateBy());
+            houseLayout.setUpdateTime(houseCreateDto.getUpdateTime());
+
+            if (houseLayoutDTO.getNewly().equals(Boolean.TRUE)) {
+                getBaseMapper().insert(houseLayout);
+            } else {
+                houseLayout.setId(houseLayoutDTO.getId());
+                updateById(houseLayout);
+            }
+
+            houseLayoutIdMap.put(houseLayoutDTO.getId(), houseLayout.getId());
+        });
+
+        return houseLayoutIdMap;
     }
 }

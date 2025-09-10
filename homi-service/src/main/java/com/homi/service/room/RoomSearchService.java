@@ -60,8 +60,8 @@ public class RoomSearchService {
         String tagsStr = String.join("|", tags);
 
         HouseLayout houseLayoutRepoById = null;
-        if (Objects.nonNull(room.getHouseLayoutId())) {
-            houseLayoutRepoById = houseLayoutRepo.getById(room.getHouseLayoutId());
+        if (Objects.nonNull(house.getHouseLayoutId())) {
+            houseLayoutRepoById = houseLayoutRepo.getById(house.getHouseLayoutId());
         }
 
         return String.format("%s|%s|%s|%s|%s", house.getHouseCode(),
@@ -69,6 +69,5 @@ public class RoomSearchService {
             tagsStr,
             Objects.isNull(houseLayoutRepoById) ? "" : houseLayoutRepoById.getLayoutName(),
             room.getRoomNumber());
-
     }
 }

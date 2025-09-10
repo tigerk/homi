@@ -11,7 +11,7 @@ import com.homi.domain.dto.company.CompanyPackageQueryDTO;
 import com.homi.domain.dto.menu.MenuQueryDTO;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.dto.company.CompanyPackageVO;
-import com.homi.domain.dto.company.IdNameVO;
+import com.homi.domain.vo.IdNameVO;
 import com.homi.domain.dto.menu.MenuVO;
 import com.homi.domain.dto.menu.SimpleMenuVO;
 import com.homi.exception.BizException;

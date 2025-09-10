@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -16,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 房间表
+ * 集中楼栋表
  * </p>
  *
  * @author tk
@@ -25,75 +24,62 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("room")
-@Schema(name = "Room", description = "房间表")
-public class Room implements Serializable {
+@TableName("focus_building")
+@Schema(name = "FocusBuilding", description = "集中楼栋表")
+public class FocusBuilding implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
     @TableId("id")
     private Long id;
 
+    @Schema(description = "公司id")
     @TableField("company_id")
     private Long companyId;
 
-    @TableField("house_id")
-    private Long houseId;
+    @Schema(description = "集中式ID")
+    @TableField("focus_id")
+    private Long focusId;
 
-    @Schema(description = "搜索关键字")
-    @TableField("keywords")
-    private String keywords;
+    @Schema(description = "座栋")
+    @TableField("building")
+    private String building;
 
-    @Schema(description = "楼层")
-    @TableField("floor")
-    private Integer floor;
+    @Schema(description = "单元")
+    @TableField("unit")
+    private String unit;
 
-    @TableField("room_number")
-    private String roomNumber;
+    @Schema(description = "房号前缀")
+    @TableField("house_prefix")
+    private String housePrefix;
 
-    @Schema(description = "出房价格")
-    @TableField("price")
-    private BigDecimal price;
+    @Schema(description = "房号长度")
+    @TableField("number_length")
+    private Integer numberLength;
 
-    @Schema(description = "面积")
-    @TableField("area")
-    private BigDecimal area;
+    @Schema(description = "去掉4")
+    @TableField("exclude_four")
+    private Boolean excludeFour;
 
-    @Schema(description = "朝向")
-    @TableField("direction")
-    private String direction;
+    @Schema(description = "总楼层")
+    @TableField("floor_total")
+    private Integer floorTotal;
 
-    @TableField("vacancy_start_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date vacancyStartTime;
-
-    @TableField("remark")
-    private String remark;
-
-    @Schema(description = "房间状态")
-    @TableField("room_status")
-    private Integer roomStatus;
-
-    @TableField("locked")
-    private Boolean locked;
-
-    @Schema(description = "出租状态：0 未出租；1 已出租")
-    @TableField("leased")
-    private Boolean leased;
+    @Schema(description = "关闭的楼层列表json")
+    @TableField("closed_floors")
+    private String closedFloors;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;
 
-    @TableField("create_by")
-    private Long createBy;
-
     @Schema(description = "创建时间")
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
+    @Schema(description = "更新人")
     @TableField("update_by")
     private Long updateBy;
 
@@ -101,4 +87,8 @@ public class Room implements Serializable {
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
+
+    @Schema(description = "创建人")
+    @TableField("create_by")
+    private Long createBy;
 }
