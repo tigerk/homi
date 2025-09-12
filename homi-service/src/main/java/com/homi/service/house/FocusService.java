@@ -179,7 +179,7 @@ public class FocusService {
         return focus.getId();
     }
 
-    public List<IdNameVO> getFocusOptionList(LeaseModeEnum leaseModeEnum) {
+    public List<IdNameVO> getFocusOptionList() {
         List<Focus> focusList = focusRepo.list();
 
         return focusList.stream().map(focus -> IdNameVO.builder()

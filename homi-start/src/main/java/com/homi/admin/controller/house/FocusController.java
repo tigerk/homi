@@ -56,7 +56,7 @@ public class FocusController {
      */
     @PostMapping("/options")
     public ResponseResult<List<IdNameVO>> houseOptions() {
-        return ResponseResult.ok(focusService.getFocusOptionList(LeaseModeEnum.FOCUS));
+        return ResponseResult.ok(focusService.getFocusOptionList());
     }
 }
 
