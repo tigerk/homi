@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-07-30
+ * @since 2025-09-10
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -45,14 +45,6 @@ public class User implements Serializable {
     @Schema(description = "用户类型，参考UserTypeEnum")
     @TableField("user_type")
     private Integer userType;
-
-    @Schema(description = "companyId 为空 → 平台用户")
-    @TableField("company_id")
-    private Long companyId;
-
-    @Schema(description = "部门id")
-    @TableField("dept_id")
-    private Long deptId;
 
     @Schema(description = "邮箱号")
     @TableField("email")

@@ -38,7 +38,7 @@ public class OnlineUserController {
             validTokens.addAll(sessionTokens);
         }
 
-        return ResponseResult.ok(sysLoginLogRepo.getLoginUsers(currentUser.getCompanyId(), validTokens));
+        return ResponseResult.ok(sysLoginLogRepo.getLoginUsers(currentUser.getCurCompanyId(), validTokens));
     }
 
     @PostMapping("/offline")

@@ -9,10 +9,11 @@ import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.dept.DeptCreateDTO;
 import com.homi.domain.dto.dept.DeptQueryDTO;
 import com.homi.domain.dto.dept.DeptVO;
+import com.homi.domain.dto.user.UserVO;
 import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
-import com.homi.domain.dto.user.UserVO;
 import com.homi.exception.BizException;
+import com.homi.service.company.CompanyUserService;
 import com.homi.service.system.DeptService;
 import com.homi.service.system.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +35,8 @@ public class DeptController {
     private final DeptService deptService;
 
     private final UserService userService;
+
+    private final CompanyUserService companyUserService;
 
     @PostMapping("list")
     @Operation(summary = "获取部门列表")
@@ -73,7 +76,7 @@ public class DeptController {
             throw new BizException(ResponseCodeEnum.VALID_ERROR);
         }
 
-        return ResponseResult.ok(userService.getUserListByDeptId(query.getDeptId()));
+        return ResponseResult.ok(companyUserService.getUserListByDeptId(query.getDeptId()));
     }
 }
 

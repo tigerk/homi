@@ -1,14 +1,13 @@
 package com.homi.admin.config;
 
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpInterface;
-import cn.hutool.core.lang.Pair;
+import cn.dev33.satoken.stp.StpUtil;
 import com.homi.admin.auth.service.AuthService;
-import com.homi.domain.dto.menu.AsyncRoutesVO;
-import com.homi.model.entity.User;
+import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.service.system.SysRoleService;
 import com.homi.service.system.UserService;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -27,11 +26,10 @@ public class SaTokenPermsConfig implements StpInterface {
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        User userById = userService.getUserById(Long.valueOf(loginId.toString()));
+        SaSession sessionByLoginId = StpUtil.getSessionByLoginId(loginId);
+        UserLoginVO loginVO = (UserLoginVO) sessionByLoginId.get(SaSession.USER);
 
-        Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = authService.getUserAuth(userById);
-
-        return userAuth.getRight();
+        return loginVO.getPermissions();
     }
 
     /**
@@ -39,10 +37,9 @@ public class SaTokenPermsConfig implements StpInterface {
      */
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        User userById = userService.getUserById(Long.valueOf(loginId.toString()));
+        SaSession sessionByLoginId = StpUtil.getSessionByLoginId(loginId);
+        UserLoginVO loginVO = (UserLoginVO) sessionByLoginId.get(SaSession.USER);
 
-        Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = authService.getUserAuth(userById);
-
-        return userAuth.getLeft().getValue();
+        return loginVO.getRoles();
     }
 }

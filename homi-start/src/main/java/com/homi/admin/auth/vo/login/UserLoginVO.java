@@ -1,6 +1,8 @@
 package com.homi.admin.auth.vo.login;
 
 import com.homi.domain.dto.menu.AsyncRoutesVO;
+import com.homi.domain.enums.common.CompanyUserTypeEnum;
+import com.homi.domain.vo.IdNameVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +17,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserLoginVO {
-
     /**
      * token值
      */
@@ -42,10 +43,14 @@ public class UserLoginVO {
      */
     private Integer userType;
 
-    /**
-     * companyId 为空 → 平台用户
-     */
-    private Long companyId;
+    @Schema(description = "当前公司ID")
+    private Long curCompanyId;
+
+    @Schema(description = "是否当前公司的管理员")
+    private Integer companyUserType;
+
+    @Schema(description = "公司列表")
+    private List<IdNameVO> companyList;
 
     /**
      * 邮箱

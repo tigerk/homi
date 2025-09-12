@@ -34,6 +34,9 @@ public class SysOperationLogRepo extends ServiceImpl<SysOperationLogMapper, SysO
     @Resource
     private UserRepo userRepo;
 
+    @Resource
+    private CompanyUserRepo companyUserRepo;
+
     /**
      * 操作日志记录
      *
@@ -45,11 +48,6 @@ public class SysOperationLogRepo extends ServiceImpl<SysOperationLogMapper, SysO
         SysOperationLog sysOperationLog = BeanCopyUtils.copyBean(operationLogEvent, SysOperationLog.class);
         // 远程查询操作地点
         sysOperationLog.setLocation(AddressUtils.getRealAddressByIP(sysOperationLog.getIpAddress()));
-
-        User user = userRepo.getUserByUsername(sysOperationLog.getUsername());
-        if (user != null) {
-            sysOperationLog.setCompanyId(user.getCompanyId());
-        }
 
         getBaseMapper().insert(sysOperationLog);
     }

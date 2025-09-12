@@ -54,7 +54,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
 
                 // 获取用户信息，注入到当前上下文
                 UserLoginVO currentUser = LoginManager.getCurrentUser();
-                MyBatisTenantContext.setCurrentTenant(currentUser.getCompanyId());
+                MyBatisTenantContext.setCurrentTenant(currentUser.getCurCompanyId());
             });
         })).addPathPatterns("/**");
         // 重复提交

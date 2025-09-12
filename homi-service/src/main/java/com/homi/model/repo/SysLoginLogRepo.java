@@ -33,6 +33,9 @@ public class SysLoginLogRepo extends ServiceImpl<SysLoginLogMapper, SysLoginLog>
     @Resource
     private UserRepo userRepo;
 
+    @Resource
+    private CompanyUserRepo companyUserRepo;
+
     /**
      * 登录日志记录
      */
@@ -40,11 +43,6 @@ public class SysLoginLogRepo extends ServiceImpl<SysLoginLogMapper, SysLoginLog>
     @EventListener
     public void recordLogin(LoginLogEvent loginLogEvent) {
         SysLoginLog loginLog = BeanCopyUtils.copyBean(loginLogEvent, SysLoginLog.class);
-
-        User user = userRepo.getUserByUsername(loginLog.getUsername());
-        if (user != null) {
-            loginLog.setCompanyId(user.getCompanyId());
-        }
 
         getBaseMapper().insert(loginLog);
     }
@@ -99,17 +97,17 @@ public class SysLoginLogRepo extends ServiceImpl<SysLoginLogMapper, SysLoginLog>
      */
     public List<SysLoginLog> getLoginUsers(Long companyId, List<String> loginTokens) {
         return getBaseMapper().selectList(new LambdaQueryWrapper<SysLoginLog>()
-                .eq(SysLoginLog::getCompanyId, companyId)
-                .in(SysLoginLog::getLoginToken, loginTokens));
+            .eq(SysLoginLog::getCompanyId, companyId)
+            .in(SysLoginLog::getLoginToken, loginTokens));
     }
 
     public int clearAllByCompanyId(Long companyId) {
         return getBaseMapper().delete(new LambdaQueryWrapper<SysLoginLog>()
-                .eq(SysLoginLog::getCompanyId, companyId));
+            .eq(SysLoginLog::getCompanyId, companyId));
     }
 
     public int batchDeleteByIds(List<Long> ids) {
         return getBaseMapper().delete(new LambdaQueryWrapper<SysLoginLog>()
-                .in(SysLoginLog::getId, ids));
+            .in(SysLoginLog::getId, ids));
     }
 }

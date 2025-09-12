@@ -43,7 +43,7 @@ public class OperationLogController {
     @PostMapping("/clear/all")
     public ResponseResult<Boolean> clearAll() {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        int deleted = sysOperationLogRepo.clearAllByCompanyId(currentUser.getCompanyId());
+        int deleted = sysOperationLogRepo.clearAllByCompanyId(currentUser.getCurCompanyId());
 
         return ResponseResult.ok(deleted > 0);
     }

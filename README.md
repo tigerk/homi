@@ -1,5 +1,18 @@
 # Getting Started
 
+# 设计
+company 记录公司信息 、user 登录用户 、 company-user 关联，然后每个 user 有单独的权限，但是他们的账号是一套。
+
+1. 一个账号开通后创建公司，一个账号可以绑定多个公司，一个公司只有一个管理员账号，user 和 company 是多对多关系。
+
+2. 在company_user 记录公司和用户关系，在companyUserType记录账号类型
+
+3. 一个管家可不可以在多个公司任职，添加该管家时如果账号已经创建过，让用户自己申请加入公司。
+
+## 切换公司
+
+1. 登录用户，查看自己绑定的公司列表，选择一个公司，相当于重新做一个遍登录操作，获取该公司下的菜单、权限。
+
 # 规范
 
 ## 数据库命名
@@ -54,4 +67,3 @@
 | 清洁费   | Cleaning Fee                       | `cleaningFee`       | `cleaning_fee`                        | 租客搬出时的清洁费用      |
 | 逾期滞纳金 | Late Fee                           | `lateFee`           | `late_fee`                            | 租金逾期支付的附加费用     |
 | 其他费用  | Other Fee                          | `otherFee`          | `other_fee`                           | 灵活扩展项，便于存放额外费用  |
-

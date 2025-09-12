@@ -42,7 +42,7 @@ public class LoginLogController {
     @Log(title = "登录日志", operationType = OperationTypeEnum.CLEAR)
     public ResponseResult<Boolean> clearAll() {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        int deleted = sysLoginLogRepo.clearAllByCompanyId(currentUser.getCompanyId());
+        int deleted = sysLoginLogRepo.clearAllByCompanyId(currentUser.getCurCompanyId());
 
         return ResponseResult.ok(deleted > 0);
     }

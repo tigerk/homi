@@ -4,15 +4,18 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.captcha.generator.RandomGenerator;
-import com.homi.annotation.LoginLog;
+import com.homi.admin.auth.dto.login.LoginDTO;
 import com.homi.admin.auth.dto.login.TokenRefreshDTO;
-import com.homi.admin.auth.dto.login.UserLoginDTO;
 import com.homi.admin.auth.service.AuthService;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
+import com.homi.annotation.LoginLog;
 import com.homi.domain.RedisKey;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.menu.AsyncRoutesVO;
+import com.homi.exception.BizException;
+import com.homi.service.company.CompanyService;
+import com.homi.service.company.CompanyUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +44,10 @@ public class LoginController {
 
     private final StringRedisTemplate redisTemplate;
 
+    private final CompanyService companyService;
+
+    private final CompanyUserService companyUserService;
+
     @GetMapping("/admin/captcha/{username}")
     public void captcha(@PathVariable("username") Long username, HttpServletResponse response) throws IOException {
         // 生成验证码
@@ -59,8 +66,10 @@ public class LoginController {
 
     @LoginLog
     @PostMapping("/admin/login")
-    public ResponseResult<UserLoginVO> login(@Valid @RequestBody UserLoginDTO user) {
-        return ResponseResult.ok(authService.login(user));
+    public ResponseResult<UserLoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
+        UserLoginVO userLogin = authService.checkUserLogin(loginDTO);
+
+        return ResponseResult.ok(authService.login(userLogin));
     }
 
     @PostMapping("/admin/token/refresh")
@@ -92,6 +101,29 @@ public class LoginController {
 
     @GetMapping("/admin/get-async-routes")
     public ResponseResult<List<AsyncRoutesVO>> getUserRoutes() {
-        return ResponseResult.ok(authService.getUserRoutes(LoginManager.getUserId()));
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+
+        return ResponseResult.ok(authService.getUserRoutes(currentUser));
     }
+
+    /**
+     * 切换公司
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/12 11:14
+     *
+     * @param companyId 参数说明
+     * @return com.homi.domain.base.ResponseResult<com.homi.admin.auth.vo.login.UserLoginVO>
+     */
+    @PostMapping("/admin/switchCompany")
+    public ResponseResult<UserLoginVO> switchCompany(@RequestParam("companyId") Long companyId) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        // 校验用户是否有这个公司权限
+        if (!companyUserService.userHasCompany(currentUser.getId(), companyId)) {
+            throw new BizException("无效的公司ID");
+        }
+
+        return ResponseResult.ok(authService.loginWithCompanyId(currentUser.getId(), companyId));
+    }
+
 }

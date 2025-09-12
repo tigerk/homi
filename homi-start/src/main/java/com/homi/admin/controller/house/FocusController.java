@@ -27,7 +27,7 @@ public class FocusController {
     @PostMapping("/create")
     public ResponseResult<Long> createHouse(@RequestBody FocusCreateDTO focusCreateDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        focusCreateDTO.setCompanyId(currentUser.getCompanyId());
+        focusCreateDTO.setCompanyId(currentUser.getCurCompanyId());
 
         focusCreateDTO.setCreateBy(currentUser.getId());
         focusCreateDTO.setCreateTime(DateUtil.date());

@@ -196,39 +196,4 @@ public class UserService {
     public User getUserByUsername(String username) {
         return userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
     }
-
-    public void updateUserStatusByCompanyId(Long companyId, int status) {
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getCompanyId, companyId);
-
-        User updateUser = new User();
-        updateUser.setStatus(status);
-        userMapper.update(updateUser, queryWrapper);
-    }
-
-    /**
-     * 获取公司的人员
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/6/26 09:31
-     *
-     * @param companyId 参数说明
-     * @param type      参数说明
-     * @return java.util.List<com.homi.model.entity.User>
-     */
-    public List<User> getCompanyUserByType(Long companyId, Integer type) {
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getCompanyId, companyId);
-        queryWrapper.eq(User::getUserType, type);
-
-        return userMapper.selectList(queryWrapper);
-    }
-
-    public List<UserVO> getUserListByDeptId(Long deptId) {
-        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getDeptId, deptId);
-        queryWrapper.eq(User::getStatus, StatusEnum.ACTIVE.getValue());
-
-        return userMapper.selectList(queryWrapper).stream().map(user -> BeanCopyUtils.copyBean(user, UserVO.class)).toList();
-    }
 }

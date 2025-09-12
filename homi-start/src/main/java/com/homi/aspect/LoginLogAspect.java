@@ -72,6 +72,7 @@ public class LoginLogAspect {
                 Field username = args[0].getClass().getDeclaredField("username");
                 // 允许访问 private 字段
                 username.setAccessible(true);
+                loginInfoEvent.setCompanyId(null);
                 loginInfoEvent.setUsername(username.get(args[0]).toString());
             } else {
                 loginInfoEvent.setStatus(RequestResultEnum.SUCCESS.getCode());
@@ -82,7 +83,7 @@ public class LoginLogAspect {
                 loginInfoEvent.setIpAddress(ip);
 
                 UserLoginVO currentUser = LoginManager.getCurrentUser();
-
+                loginInfoEvent.setCompanyId(currentUser.getCurCompanyId());
                 loginInfoEvent.setUsername(currentUser.getUsername());
             }
 

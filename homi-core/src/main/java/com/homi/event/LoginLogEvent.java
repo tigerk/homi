@@ -30,6 +30,11 @@ public class LoginLogEvent implements Serializable {
     private String username;
 
     /**
+     * 公司ID
+     */
+    private Long companyId;
+
+    /**
      * 登录IP地址
      */
     private String ipAddress;

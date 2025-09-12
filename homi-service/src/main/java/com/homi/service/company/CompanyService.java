@@ -1,19 +1,12 @@
 package com.homi.service.company;
 
-import com.homi.domain.dto.company.CompanyCreateDTO;
-import com.homi.domain.enums.common.StatusEnum;
-import com.homi.domain.enums.common.UserTypeEnum;
 import com.homi.domain.dto.company.CompanyListVO;
-import com.homi.exception.BizException;
 import com.homi.model.entity.Company;
-import com.homi.model.entity.User;
 import com.homi.model.repo.CompanyRepo;
 import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * 应用于 homi-boot
@@ -41,24 +34,5 @@ public class CompanyService {
     public CompanyListVO getCompanyById(Long companyId) {
         Company company = companyRepo.getBaseMapper().selectById(companyId);
         return BeanCopyUtils.copyBean(company, CompanyListVO.class);
-    }
-
-    public void changeStatus(CompanyCreateDTO createDTO) {
-        Company company = companyRepo.getBaseMapper().selectById(createDTO.getId());
-        company.setStatus(createDTO.getStatus());
-
-        if (createDTO.getStatus().equals(StatusEnum.DISABLED.getValue())) {
-            userService.updateUserStatusByCompanyId(company.getId(), StatusEnum.DISABLED.getValue());
-        } else {
-            List<User> companyUserByType = userService.getCompanyUserByType(company.getId(), UserTypeEnum.COMPANY_ADMIN.getType());
-            if (companyUserByType.isEmpty()) {
-                throw new BizException("该公司下没有管理员，请先创建管理员");
-            }
-            User user = companyUserByType.getFirst();
-            user.setStatus(StatusEnum.ACTIVE.getValue());
-            userService.updateUser(user);
-        }
-
-        companyRepo.updateById(company);
     }
 }

@@ -21,6 +21,11 @@ public class OperationLogEvent {
     private Long id;
 
     /**
+     * 公司ID
+     */
+    private Long companyId;
+
+    /**
      * 模块标题
      */
     private String title;

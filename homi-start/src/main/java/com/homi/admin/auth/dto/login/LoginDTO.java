@@ -1,11 +1,12 @@
 package com.homi.admin.auth.dto.login;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UserLoginDTO {
+public class LoginDTO {
 
     /**
      * 用户名
@@ -18,4 +19,7 @@ public class UserLoginDTO {
      */
     @Size(min = 6, max = 20, message = "密码长度必须在6到20个字符之间")
     private String password;
+
+    @Schema(description = "公司ID")
+    private Long companyId;
 }

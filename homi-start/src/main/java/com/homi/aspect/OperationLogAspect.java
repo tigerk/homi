@@ -9,6 +9,7 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.annotation.Log;
 import com.homi.domain.enums.common.RequestResultEnum;
 import com.homi.event.OperationLogEvent;
@@ -105,9 +106,9 @@ public class OperationLogAspect {
 
             operationLog.setIpAddress(ip);
             operationLog.setRequestUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
-            SaSession currentSession = StpUtil.getSession();
-            JSONObject userInfo = JSONUtil.parseObj(JSONUtil.toJsonStr(currentSession.get(SaSession.USER)));
-            operationLog.setUsername(userInfo.getStr("username"));
+            UserLoginVO userLoginVO = (UserLoginVO) StpUtil.getSession().get(SaSession.USER);
+            operationLog.setUsername(userLoginVO.getUsername());
+            operationLog.setCompanyId(userLoginVO.getCurCompanyId());
 
             if (e != null) {
                 operationLog.setStatus(RequestResultEnum.FAILURE.getCode());

@@ -63,6 +63,7 @@ public class MyBatisGenerator {
                 "scatter",
                 "room",
                 "company",
+                "user",
                 "company_user"
             )).build();
 
