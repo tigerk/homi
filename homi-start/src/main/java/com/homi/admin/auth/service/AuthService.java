@@ -15,6 +15,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.login.LoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.domain.RedisKey;
+import com.homi.domain.dto.company.CompanyUserListDTO;
 import com.homi.domain.dto.menu.AsyncRoutesVO;
 import com.homi.domain.enums.common.CompanyUserTypeEnum;
 import com.homi.domain.enums.common.MenuTypeEnum;
@@ -163,6 +164,9 @@ public class AuthService {
         user.setRefreshToken(refreshToken);
         user.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenTimeout()).getTime());
 
+        List<CompanyUserListDTO> companyListByUserId = companyUserRepo.getCompanyListByUserId(user.getId());
+        user.setCompanyList(companyListByUserId);
+
         // 用户角色code与权限,用户名存入缓存
         SaSession currentSession = StpUtil.getSession();
         currentSession.set(SaSession.USER, user);
@@ -220,7 +224,7 @@ public class AuthService {
         }
 
         // 获取绑定该用户的公司列表
-        List<CompanyUser> companyUserList = companyUserRepo.getCompanyListByUserId(user.getId());
+        List<CompanyUserListDTO> companyUserList = companyUserRepo.getCompanyListByUserId(user.getId());
         if (companyUserList.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
@@ -228,7 +232,7 @@ public class AuthService {
         UserLoginVO userLogin = new UserLoginVO();
         BeanUtils.copyProperties(user, userLogin);
 
-        CompanyUser first = companyUserList.getFirst();
+        CompanyUserListDTO first = companyUserList.getFirst();
         userLogin.setCurCompanyId(first.getCompanyId());
         userLogin.setCompanyUserType(first.getCompanyUserType());
 

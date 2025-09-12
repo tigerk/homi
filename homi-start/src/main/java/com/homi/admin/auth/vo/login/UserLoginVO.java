@@ -1,5 +1,6 @@
 package com.homi.admin.auth.vo.login;
 
+import com.homi.domain.dto.company.CompanyUserListDTO;
 import com.homi.domain.dto.menu.AsyncRoutesVO;
 import com.homi.domain.vo.IdNameVO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -49,7 +50,7 @@ public class UserLoginVO {
     private Integer companyUserType;
 
     @Schema(description = "公司列表")
-    private List<IdNameVO> companyList;
+    private List<CompanyUserListDTO> companyList;
 
     /**
      * 邮箱
