@@ -9,7 +9,6 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.monitor.OperationLogDTO;
 import com.homi.event.OperationLogEvent;
 import com.homi.model.entity.SysOperationLog;
-import com.homi.model.entity.User;
 import com.homi.model.mapper.SysOperationLogMapper;
 import com.homi.utils.AddressUtils;
 import com.homi.utils.BeanCopyUtils;

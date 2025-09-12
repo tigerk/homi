@@ -9,7 +9,6 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.monitor.LoginLogDTO;
 import com.homi.event.LoginLogEvent;
 import com.homi.model.entity.SysLoginLog;
-import com.homi.model.entity.User;
 import com.homi.model.mapper.SysLoginLogMapper;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.annotation.Resource;

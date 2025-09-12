@@ -1,14 +1,10 @@
 package com.homi.domain.dto.house;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.domain.dto.room.HouseLayoutDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serial;
-import java.util.Date;
 import java.util.List;
 
 @Data
