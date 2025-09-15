@@ -3,6 +3,8 @@ package com.homi.admin.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
+import com.homi.admin.auth.vo.login.UserLoginVO;
+import com.homi.admin.config.LoginManager;
 import com.homi.annotation.Log;
 import com.homi.annotation.RepeatSubmit;
 import com.homi.config.MyBatisTenantContext;
@@ -10,6 +12,7 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.user.*;
 import com.homi.domain.enums.common.OperationTypeEnum;
+import com.homi.domain.vo.IdNameVO;
 import com.homi.model.entity.User;
 import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
@@ -45,7 +48,7 @@ public class UserController {
     public ResponseResult<PageVO<UserVO>> list(@RequestBody UserQueryDTO queryDTO) {
         queryDTO.setCompanyId(MyBatisTenantContext.getCurrentTenant());
 
-        return ResponseResult.ok(userService.getUserList(queryDTO));
+        return ResponseResult.ok(userService.pageUserList(queryDTO));
     }
 
     /**

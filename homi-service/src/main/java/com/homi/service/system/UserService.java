@@ -14,6 +14,7 @@ import com.homi.domain.dto.user.UserVO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.common.UserTypeEnum;
+import com.homi.domain.vo.IdNameVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Dept;
 import com.homi.model.entity.SysUserRole;
@@ -103,7 +104,7 @@ public class UserService {
         return user.getId();
     }
 
-    public PageVO<UserVO> getUserList(UserQueryDTO query) {
+    public PageVO<UserVO> pageUserList(UserQueryDTO query) {
         Page<UserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
         IPage<UserVO> userVOPage = userMapper.selectUserList(page, query);
