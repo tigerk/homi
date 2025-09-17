@@ -68,7 +68,7 @@ public class FocusService {
     @Transactional(rollbackFor = Exception.class)
     public Long createHouseFocus(FocusCreateDTO focusCreateDto) {
         if (focusRepo.checkFocusCodeExist(focusCreateDto.getFocusCode())) {
-            throw new BizException("项目编号（"+focusCreateDto.getFocusCode()+"）已存在");
+            throw new BizException("项目编号（" + focusCreateDto.getFocusCode() + "）已存在");
         }
 
         // 创建集中式项目
@@ -222,7 +222,7 @@ public class FocusService {
 
         return focusList.stream().map(focus -> IdNameVO.builder()
             .id(focus.getId())
-            .name(focus.getFocusName())
+            .name(String.format("%s（%s）", focus.getFocusName(), focus.getFocusCode()))
             .build()).toList();
     }
 }
