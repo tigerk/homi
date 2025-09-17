@@ -3,9 +3,12 @@
 <mapper namespace="com.homi.model.mapper.RoomMapper">
     <resultMap id="RoomDetailMap" type="com.homi.domain.dto.room.RoomItemDTO">
         <id property="roomId" column="room_id"/>
+        <result property="houseId" column="house_id"/>
         <result property="roomNumber" column="room_number"/>
         <result property="houseCode" column="house_code"/>
         <result property="houseName" column="house_name"/>
+        <result property="modeRefId" column="mode_ref_id"/>
+        <result property="leaseMode" column="lease_mode"/>
         <result property="price" column="price"/>
         <result property="salesmanId" column="salesman_id"/>
         <result property="salesmanName" column="nickname"/>
@@ -14,6 +17,7 @@
         <result property="direction" column="direction"/>
         <result property="roomStatus" column="room_status"/>
         <result property="locked" column="locked"/>
+        <result property="closed" column="closed"/>
         <result property="leased" column="leased"/>
         <!-- 添加floor字段 -->
         <result property="floor" column="floor"/>
@@ -31,19 +35,23 @@
 
     <select id="getPage" resultMap="RoomDetailMap">
         SELECT r.id AS room_id,
+        r.house_id AS house_id,
+        h.house_code,
+        h.house_name AS house_name,
+        h.lease_mode,
+        h.mode_ref_id,
         r.room_number,
         r.floor,
         r.price,
         r.room_status,
         r.locked,
+        r.closed,
         r.leased,
         r.area,
         r.direction,
         h.salesman_id,
         u.nickname,
         u.phone,
-        h.house_code,
-        h.house_name AS house_name,
         hl.id AS layout_id,
         hl.layout_name AS layout_name,
         hl.bedroom,
@@ -52,7 +60,7 @@
         hl.kitchen
         FROM room r
         LEFT JOIN house h ON r.house_id = h.id
-        LEFT JOIN house_layout hl ON r.house_layout_id = hl.id
+        LEFT JOIN house_layout hl ON h.house_layout_id = hl.id
         LEFT JOIN user u ON u.id = h.salesman_id
         where r.deleted = 0
         <include refid="roomListQuery">

@@ -22,11 +22,26 @@ public class RoomItemDTO {
     @Schema(description = "房间id")
     private Long roomId;
 
+    @Schema(description = "房源ID")
+    private Long houseId;
+
+    @Schema(description = "小区ID")
+    private Long propertyId;
+
+    @Schema(description = "小区名称")
+    private String propertyName;
+
     @Schema(description = "房源编号")
     private String houseCode;
 
     @Schema(description = "房源名称")
     private String houseName;
+
+    @Schema(description = "来源id")
+    private Long modeRefId;
+
+    @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
+    private Integer leaseMode;
 
     @Schema(description = "房型")
     private HouseLayoutDTO houseLayout;
@@ -57,6 +72,9 @@ public class RoomItemDTO {
 
     @Schema(description = "锁定状态")
     private Boolean locked;
+
+    @Schema(description = "禁用状态：是否已禁用")
+    private Boolean closed;
 
     @Schema(description = "出租状态")
     private Boolean leased;

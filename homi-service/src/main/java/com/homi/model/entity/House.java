@@ -188,9 +188,13 @@ public class House implements Serializable {
     @TableField("house_status")
     private Integer houseStatus;
 
-    @Schema(description = "是否锁定")
+    @Schema(description = "锁定状态：是否锁定")
     @TableField("locked")
     private Boolean locked;
+
+    @Schema(description = "禁用状态：是否已禁用")
+    @TableField("closed")
+    private Boolean closed;
 
     @Schema(description = "房源描述、项目介绍")
     @TableField("house_desc")

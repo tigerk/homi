@@ -54,6 +54,10 @@ public class Focus implements Serializable {
     @TableField("property_id")
     private Long propertyId;
 
+    @Schema(description = "项目地址")
+    @TableField("address")
+    private String address;
+
     @Schema(description = "门店联系电话")
     @TableField("store_phone")
     private String storePhone;

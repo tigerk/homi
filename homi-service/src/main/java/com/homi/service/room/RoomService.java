@@ -10,9 +10,12 @@ import com.homi.domain.dto.room.RoomItemDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.RoomTotalItemDTO;
 import com.homi.domain.enums.RoomStatusEnum;
+import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.domain.vo.room.RoomGridVO;
+import com.homi.model.entity.Focus;
 import com.homi.model.entity.House;
 import com.homi.model.entity.Room;
+import com.homi.model.repo.FocusRepo;
 import com.homi.model.repo.HouseRepo;
 import com.homi.model.repo.RoomRepo;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +44,7 @@ public class RoomService {
     private final RoomRepo roomRepo;
 
     private final HouseRepo houseRepo;
+    private final FocusRepo focusRepo;
 
     /**
      * 获取房间列表
@@ -70,6 +74,11 @@ public class RoomService {
     }
 
     public void format(RoomItemDTO room) {
+        if(room.getLeaseMode().equals(LeaseModeEnum.FOCUS.getCode())) {
+            Focus byId = focusRepo.getById(room.getModeRefId());
+            room.setPropertyName(byId.getFocusName());
+        }
+
         RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, room.getRoomStatus());
         room.setRoomStatusName(roomStatusEnum.getName());
         room.setRoomStatusColor(roomStatusEnum.getColor());
@@ -96,19 +105,6 @@ public class RoomService {
         });
 
         return result.values().stream().toList();
-    }
-
-    public RoomStatusEnum calculateRoomStatus(Room room) {
-        if (Boolean.TRUE.equals(room.getLeased())) {
-            return RoomStatusEnum.LEASED;
-        }
-        if (Boolean.TRUE.equals(room.getLocked())) {
-            return RoomStatusEnum.LOCKED;
-        }
-        if (room.getVacancyStartTime() != null && room.getVacancyStartTime().after(DateUtil.date())) {
-            return RoomStatusEnum.PREPARING;
-        }
-        return RoomStatusEnum.AVAILABLE;
     }
 
     /**

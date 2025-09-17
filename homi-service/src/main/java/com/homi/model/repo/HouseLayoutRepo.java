@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.domain.dto.house.FocusCreateDTO;
 import com.homi.domain.dto.room.HouseLayoutDTO;
+import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.model.entity.HouseLayout;
 import com.homi.model.mapper.HouseLayoutMapper;
 import com.homi.utils.BeanCopyUtils;
@@ -30,15 +31,17 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
      * 获取房型列表
      * <p>
      * {@code @author} tk
-     * {@code @date} 2025/8/21 12:23
-
-      * @param houseId 参数说明
+     * {@code @date} 2025/9/17 21:46
+     *
+     * @param modeRefId 参数说明
+     * @param leaseMode 参数说明
      * @return java.util.List<com.homi.domain.dto.room.HouseLayoutDTO>
      */
-    public List<HouseLayoutDTO> getHouseLayoutListByHouseId(Long houseId) {
+    public List<HouseLayoutDTO> getHouseLayoutListByHouseId(Long modeRefId, Integer leaseMode) {
         LambdaQueryWrapper<HouseLayout> queryWrapper = new LambdaQueryWrapper<>();
 
-        queryWrapper.eq(HouseLayout::getHouseId, houseId);
+        queryWrapper.eq(HouseLayout::getModeRefId, modeRefId);
+        queryWrapper.eq(HouseLayout::getLeaseMode, leaseMode);
         return getBaseMapper().selectList(queryWrapper).stream().map(layout -> {
 
             HouseLayoutDTO houseLayoutDTO = BeanCopyUtils.copyBean(layout, HouseLayoutDTO.class);
@@ -64,7 +67,8 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
         houseCreateDto.getHouseLayoutList().forEach(houseLayoutDTO -> {
             HouseLayout houseLayout = new HouseLayout();
             BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
-            houseLayout.setHouseId(houseCreateDto.getId());
+            houseLayout.setLeaseMode(LeaseModeEnum.FOCUS.getCode());
+            houseLayout.setModeRefId(houseCreateDto.getId());
             houseLayout.setCompanyId(houseCreateDto.getCompanyId());
             houseLayout.setCreateBy(houseCreateDto.getCreateBy());
             houseLayout.setCreateTime(houseCreateDto.getCreateTime());

@@ -38,4 +38,7 @@ public class FocusBuildingDTO {
 
     @Schema(description = "关闭的楼层列表json")
     private List<Integer> closedFloors;
+
+    @Schema(description = "关闭的楼层列表json")
+    private List<FocusHouseDTO> closedHouses;
 }

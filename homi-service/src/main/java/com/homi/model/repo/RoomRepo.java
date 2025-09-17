@@ -64,12 +64,18 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         if (Boolean.TRUE.equals(room.getLeased())) {
             return RoomStatusEnum.LEASED;
         }
+
+        if (Boolean.TRUE.equals(room.getClosed())) {
+            return RoomStatusEnum.CLOSED;
+        }
+
         if (Boolean.TRUE.equals(room.getLocked())) {
             return RoomStatusEnum.LOCKED;
         }
         if (room.getVacancyStartTime() != null && room.getVacancyStartTime().after(DateUtil.date())) {
             return RoomStatusEnum.PREPARING;
         }
+
         return RoomStatusEnum.AVAILABLE;
     }
 }

@@ -75,8 +75,13 @@ public class Room implements Serializable {
     @TableField("room_status")
     private Integer roomStatus;
 
+    @Schema(description = "锁定状态：是否锁定")
     @TableField("locked")
     private Boolean locked;
+
+    @Schema(description = "禁用状态：是否已禁用")
+    @TableField("closed")
+    private Boolean closed;
 
     @Schema(description = "出租状态：0 未出租；1 已出租")
     @TableField("leased")

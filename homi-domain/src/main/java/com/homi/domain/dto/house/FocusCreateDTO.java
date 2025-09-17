@@ -20,11 +20,17 @@ public class FocusCreateDTO {
     @Schema(description = "公司ID")
     private Long companyId;
 
+    @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
+    private Integer leaseMode;
+
     @Schema(description = "项目编号")
     private String focusCode;
 
     @Schema(description = "项目名称")
     private String focusName;
+
+    @Schema(description = "区域列表")
+    private List<Long> region;
 
     @Schema(description = "区域ID")
     private Long regionId;
@@ -32,8 +38,11 @@ public class FocusCreateDTO {
     @Schema(description = "小区ID")
     private Long propertyId;
 
+    @Schema(description = "项目地址")
+    private String address;
+
     @Schema(description = "楼栋列表")
-    private List<FocusBuildingDTO> buildingList;
+    private List<FocusBuildingDTO> buildings;
 
     @Schema(description = "户型列表")
     private List<HouseLayoutDTO> houseLayoutList;

@@ -1,12 +1,12 @@
 package com.homi.admin.controller.house;
 
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.house.FocusCreateDTO;
-import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.service.house.FocusService;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +33,11 @@ public class FocusController {
         focusCreateDTO.setCreateTime(DateUtil.date());
         focusCreateDTO.setUpdateBy(currentUser.getId());
         focusCreateDTO.setUpdateTime(DateUtil.date());
+
+        if (CollUtil.isNotEmpty(focusCreateDTO.getRegion())) {
+            focusCreateDTO.setRegionId(focusCreateDTO.getRegion().getLast());
+        }
+
 
         Long focusId;
         if (Objects.nonNull(focusCreateDTO.getId())) {

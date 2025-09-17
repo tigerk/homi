@@ -8,8 +8,11 @@ import java.math.BigDecimal;
 @Data
 @Schema(description = "集中式房间创建DTO")
 public class FocusHouseDTO {
-    @Schema(description = "房间id")
+    @Schema(description = "房源ID")
     private Long id;
+
+    @Schema(description = "游标")
+    private String cursor;
 
     @Schema(description = "房源索引id")
     private Long houseIndex;
@@ -26,8 +29,8 @@ public class FocusHouseDTO {
     @Schema(description = "户型id")
     private Long houseLayoutId;
 
-    @Schema(description = "锁定状态：是否已锁定")
-    private Boolean locked;
+    @Schema(description = "禁用状态：是否已禁用")
+    private Boolean closed;
 
     @Schema(description = "楼层")
     private Integer floor;
