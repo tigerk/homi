@@ -9,10 +9,7 @@ import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.Focus;
-import com.homi.model.entity.FocusBuilding;
-import com.homi.model.entity.House;
-import com.homi.model.entity.Room;
+import com.homi.model.entity.*;
 import com.homi.model.repo.*;
 import com.homi.service.room.RoomSearchService;
 import com.homi.utils.BeanCopyUtils;
@@ -56,6 +53,9 @@ public class FocusService {
     @Resource
     private RoomSearchService roomSearchService;
 
+    @Resource
+    private CommunityRepo communityRepo;
+
     /**
      * 创建集中式房源
      * <p>
@@ -70,6 +70,9 @@ public class FocusService {
         if (focusRepo.checkFocusCodeExist(focusCreateDto.getFocusCode())) {
             throw new BizException("项目编号（" + focusCreateDto.getFocusCode() + "）已存在");
         }
+
+        Community community = communityRepo.createCommunity(focusCreateDto.getCommunity());
+        focusCreateDto.getCommunity().setCommunityId(community.getId());
 
         // 创建集中式项目
         Focus focus = focusRepo.saveFocus(focusCreateDto);
@@ -131,15 +134,21 @@ public class FocusService {
             BeanUtils.copyProperties(focusCreateDto, house);
             BeanUtils.copyProperties(houseDTO, house);
 
+            house.setCommunityId(focusCreateDto.getCommunity().getCommunityId());
+
             // 集中式标记
             house.setModeRefId(focusCreateDto.getId());
             house.setLeaseMode(LeaseModeEnum.FOCUS.getCode());
+
+            house.setHouseLayoutId(houseLayoutIdMap.get(houseDTO.getHouseLayoutId()));
 
             // 创建集中式房源编号
             String houseCode = String.format("%s%s%s%s", focusCreateDto.getFocusCode(), houseDTO.getBuilding(), houseDTO.getUnit(), houseDTO.getDoorNumber());
             house.setHouseCode(houseCode);
 
-            house.setHouseName(String.format("%s%s栋%s-%s室", focusCreateDto.getFocusName(), houseDTO.getBuilding(),
+            house.setHouseName(String.format("%s%s%s栋%s-%s室", focusCreateDto.getCommunity().getDistrict(),
+                focusCreateDto.getCommunity().getName(),
+                houseDTO.getBuilding(),
                 CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : "" + houseDTO.getUnit() + "单元",
                 houseDTO.getDoorNumber()));
 

@@ -64,7 +64,8 @@ public class MyBatisGenerator {
                 "room",
                 "company",
                 "user",
-                "company_user"
+                "company_user",
+                "community"
             )).build();
 
         myBatisGenerator.generate();

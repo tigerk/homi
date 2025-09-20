@@ -8,6 +8,8 @@ import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.house.FocusCreateDTO;
 import com.homi.domain.vo.IdNameVO;
+import com.homi.model.entity.Community;
+import com.homi.model.repo.CommunityRepo;
 import com.homi.service.house.FocusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,11 +35,6 @@ public class FocusController {
         focusCreateDTO.setCreateTime(DateUtil.date());
         focusCreateDTO.setUpdateBy(currentUser.getId());
         focusCreateDTO.setUpdateTime(DateUtil.date());
-
-        if (CollUtil.isNotEmpty(focusCreateDTO.getRegion())) {
-            focusCreateDTO.setRegionId(focusCreateDTO.getRegion().getLast());
-        }
-
 
         Long focusId;
         if (Objects.nonNull(focusCreateDTO.getId())) {

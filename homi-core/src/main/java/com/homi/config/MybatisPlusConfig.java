@@ -35,7 +35,8 @@ public class MybatisPlusConfig {
         "company_user",
         "dept_user",
         "region",
-        "user"
+        "user",
+        "community"
     );
 
     /**

@@ -39,14 +39,16 @@ public class FocusRepo extends ServiceImpl<FocusMapper, Focus> {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/9/10 22:30
-
-      * @param focusCreateDto 参数说明
+     *
+     * @param focusCreateDto 参数说明
      * @return com.homi.model.entity.Focus
      */
     public Focus saveFocus(FocusCreateDTO focusCreateDto) {
 
         Focus focus = new Focus();
         BeanUtils.copyProperties(focusCreateDto, focus);
+        focus.setCommunityId(focusCreateDto.getCommunity().getCommunityId());
+
         focus.setFacilities(JSONUtil.toJsonStr(focusCreateDto.getFacilities()));
         // 设置标签
         focus.setTags(JSONUtil.toJsonStr(focusCreateDto.getTags()));

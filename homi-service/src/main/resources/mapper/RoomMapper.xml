@@ -65,6 +65,8 @@
         where r.deleted = 0
         <include refid="roomListQuery">
         </include>
+
+        order by r.id desc
     </select>
 
     <select id="getStatusTotal" resultType="com.homi.domain.dto.room.RoomTotalItemDTO">

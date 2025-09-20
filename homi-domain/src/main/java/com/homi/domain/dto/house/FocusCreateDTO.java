@@ -29,14 +29,8 @@ public class FocusCreateDTO {
     @Schema(description = "项目名称")
     private String focusName;
 
-    @Schema(description = "区域列表")
-    private List<Long> region;
-
-    @Schema(description = "区域ID")
-    private Long regionId;
-
-    @Schema(description = "小区ID")
-    private Long propertyId;
+    @Schema(description = "住宅小区")
+    private CommunityDTO community;
 
     @Schema(description = "项目地址")
     private String address;
@@ -108,5 +102,4 @@ public class FocusCreateDTO {
 
     @Schema(description = "创建人")
     private Long createBy;
-
 }
