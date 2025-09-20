@@ -49,8 +49,8 @@ public class CommunityRepo extends ServiceImpl<CommunityMapper, Community> {
         if (CharSequenceUtil.isNotBlank(community.getLocation())) {
             List<String> split = CharSequenceUtil.split(community.getLocation(), ',');
             if (split.size() == 2) {
-                communityEntity.setLongitude(new BigDecimal(split.getFirst()));
-                communityEntity.setLatitude(new BigDecimal(split.getLast()));
+                communityEntity.setLongitude(new BigDecimal(CharSequenceUtil.trim(split.getFirst())));
+                communityEntity.setLatitude(new BigDecimal(CharSequenceUtil.trim(split.getLast())));
             }
         }
 
