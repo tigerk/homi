@@ -1,15 +1,12 @@
-package com.homi.admin.controller.house;
+package com.homi.admin.controller.focus;
 
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.house.FocusCreateDTO;
 import com.homi.domain.vo.IdNameVO;
-import com.homi.model.entity.Community;
-import com.homi.model.repo.CommunityRepo;
 import com.homi.service.house.FocusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Objects;
 
-@RequestMapping("/admin/house/focus")
+@RequestMapping("/admin/focus")
 @RestController
 @RequiredArgsConstructor
 public class FocusController {
@@ -57,7 +54,7 @@ public class FocusController {
      * @return com.homi.domain.base.ResponseResult<java.util.List<com.homi.domain.vo.IdNameVO>>
      */
     @PostMapping("/options")
-    public ResponseResult<List<IdNameVO>> houseOptions() {
+    public ResponseResult<List<IdNameVO>> focusOptions() {
         return ResponseResult.ok(focusService.getFocusOptionList());
     }
 }
