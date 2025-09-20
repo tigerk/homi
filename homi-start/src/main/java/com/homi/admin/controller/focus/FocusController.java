@@ -2,6 +2,7 @@ package com.homi.admin.controller.focus;
 
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
@@ -9,10 +10,7 @@ import com.homi.domain.dto.house.FocusCreateDTO;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.service.house.FocusService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
@@ -53,9 +51,14 @@ public class FocusController {
      *
      * @return com.homi.domain.base.ResponseResult<java.util.List<com.homi.domain.vo.IdNameVO>>
      */
-    @PostMapping("/options")
+    @GetMapping("/options")
     public ResponseResult<List<IdNameVO>> focusOptions() {
         return ResponseResult.ok(focusService.getFocusOptionList());
+    }
+
+    @GetMapping("/code/check")
+    public ResponseResult<Boolean> checkFocusCodeExist(@RequestParam("focusCode") String focusCode) {
+        return ResponseResult.ok(focusService.checkFocusCodeExist(CharSequenceUtil.trim(focusCode)));
     }
 }
 

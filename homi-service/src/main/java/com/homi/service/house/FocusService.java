@@ -234,4 +234,8 @@ public class FocusService {
             .name(String.format("%s（%s）", focus.getFocusName(), focus.getFocusCode()))
             .build()).toList();
     }
+
+    public Boolean checkFocusCodeExist(String focusCode) {
+        return focusRepo.checkFocusCodeExist(focusCode);
+    }
 }
