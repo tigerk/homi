@@ -84,14 +84,17 @@
         <if test="query.keywords != null and query.keywords != ''">
             and r.keywords like concat('%', #{query.keywords,jdbcType=VARCHAR}, '%')
         </if>
+
         <if test="query.roomStatus != null">
             and r.room_status = #{query.roomStatus,jdbcType=INTEGER}
         </if>
-        <if test="query.houseId != null">
-            and r.house_id = #{query.houseId,jdbcType=BIGINT}
+
+        <if test="query.modeRefId != null">
+            and h.mode_ref_id = #{query.modeRefId,jdbcType=BIGINT}
         </if>
-        <if test="query.operationMode != null">
-            and h.operation_mode = #{query.operationMode,jdbcType=INTEGER}
+
+        <if test="query.leaseMode != null">
+            and h.lease_mode = #{query.leaseMode,jdbcType=INTEGER}
         </if>
     </sql>
 </mapper>

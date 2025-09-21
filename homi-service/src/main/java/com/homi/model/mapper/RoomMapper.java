@@ -22,6 +22,16 @@ import java.util.List;
 @Mapper
 public interface RoomMapper extends BaseMapper<Room> {
 
+    /**
+     * 查询房间列表数据
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/20 23:55
+
+     * @param page 参数说明
+     * @param query 参数说明
+     * @return com.baomidou.mybatisplus.core.metadata.IPage<com.homi.domain.dto.room.RoomItemDTO>
+     */
     IPage<RoomItemDTO> getPage(IPage<RoomItemDTO> page, @Param("query") RoomQueryDTO query);
 
     List<RoomTotalItemDTO> getStatusTotal(@Param("query") RoomQueryDTO query);

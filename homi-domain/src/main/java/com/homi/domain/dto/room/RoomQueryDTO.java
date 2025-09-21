@@ -9,11 +9,11 @@ import lombok.EqualsAndHashCode;
 @Data
 @Schema(description = "集中式房源创建DTO")
 public class RoomQueryDTO extends PageDTO {
-    @Schema(description = "项目Id")
-    private Long houseId;
+    @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
+    private Long leaseMode;
 
-    @Schema(description = "运营模式：1集中式 or 2分散式")
-    private Long operationMode;
+    @Schema(description = "模式引用ID")
+    private Long modeRefId;
 
     @Schema(description = "搜索关键字")
     private String keywords;
