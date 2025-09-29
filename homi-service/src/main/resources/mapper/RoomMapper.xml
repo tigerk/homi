@@ -9,6 +9,8 @@
         <result property="houseName" column="house_name"/>
         <result property="modeRefId" column="mode_ref_id"/>
         <result property="leaseMode" column="lease_mode"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="deptName" column="dept_name"/>
         <result property="price" column="price"/>
         <result property="salesmanId" column="salesman_id"/>
         <result property="salesmanName" column="nickname"/>
@@ -23,7 +25,7 @@
         <result property="floor" column="floor"/>
 
         <!-- 如果需要包含房型信息等集合 -->
-        <collection property="houseLayout" ofType="com.homi.domain.dto.room.HouseLayoutDTO">
+        <collection property="houseLayout" ofType="com.homi.domain.dto.house.HouseLayoutDTO">
             <id property="id" column="layout_id"/>
             <result property="layoutName" column="layout_name"/>
             <result property="livingRoom" column="living_room"/>
@@ -33,13 +35,15 @@
         </collection>
     </resultMap>
 
-    <select id="getPage" resultMap="RoomDetailMap">
+    <select id="pageRoomList" resultMap="RoomDetailMap">
         SELECT r.id AS room_id,
         r.house_id AS house_id,
         h.house_code,
         h.house_name AS house_name,
         h.lease_mode,
         h.mode_ref_id,
+        h.dept_id,
+        d.name AS dept_name,
         r.room_number,
         r.floor,
         r.price,
@@ -62,9 +66,9 @@
         LEFT JOIN house h ON r.house_id = h.id
         LEFT JOIN house_layout hl ON h.house_layout_id = hl.id
         LEFT JOIN user u ON u.id = h.salesman_id
+        LEFT JOIN dept d ON d.id = h.dept_id
         where r.deleted = 0
-        <include refid="roomListQuery">
-        </include>
+        <include refid="roomListQuery" />
 
         order by r.id desc
     </select>
@@ -75,8 +79,7 @@
         LEFT JOIN house h ON r.house_id = h.id
         LEFT JOIN user u ON u.id = h.salesman_id
         where r.deleted = 0
-        <include refid="roomListQuery">
-        </include>
+        <include refid="roomListQuery" />
         group by room_status
     </select>
 
@@ -93,8 +96,84 @@
             and h.mode_ref_id = #{query.modeRefId,jdbcType=BIGINT}
         </if>
 
+        <if test="query.communityId != null">
+            and h.community_id = #{query.communityId,jdbcType=BIGINT}
+        </if>
+
         <if test="query.leaseMode != null">
             and h.lease_mode = #{query.leaseMode,jdbcType=INTEGER}
         </if>
+
+        <if test="query.communityIds != null and query.communityIds.size > 0">
+            and h.community_id in
+            <foreach collection="query.communityIds" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+
+        <if test="query.buildings != null and query.buildings.size > 0">
+            and h.building in
+            <foreach collection="query.buildings" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+
+        <if test="query.units != null and query.units.size > 0">
+            and h.unit in
+            <foreach collection="query.units" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+
+        <if test="query.floors != null and query.floors.size > 0">
+            and h.floor in
+            <foreach collection="query.floors" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
     </sql>
+
+    <!-- 获取楼层统计信息 -->
+    <select id="selectFloorStatistics" resultType="com.homi.domain.dto.room.FloorStatisticsDTO">
+        SELECT
+        h.community_id,
+        h.building,
+        h.unit,
+        h.floor,
+        COUNT( * ) AS totalRooms,
+        SUM( IF( leased = 1, 1, 0 ) ) AS leasedRooms,
+        ROUND( SUM( IF( leased = 1, 1, 0 ) ) * 100.0 / COUNT( * ), 2 ) AS occupancyRate
+        FROM
+        room r
+        LEFT JOIN house h ON r.house_id = h.id
+        WHERE 1=1
+        <include refid="roomListQuery" />
+        GROUP BY
+        h.community_id,
+        h.building,
+        h.unit,
+        h.floor
+    </select>
+
+    <select id="selectAggregatedRooms" resultType="com.homi.domain.dto.room.RoomAggregatedDTO">
+        SELECT h.community_id,
+               h.building,
+               h.unit,
+               h.floor,
+               COUNT(*)                                                 AS totalRooms,
+               SUM(IF(r.leased = 1, 1, 0))                              AS leasedRooms,
+               ROUND(SUM(IF(r.leased = 1, 1, 0)) * 100.0 / COUNT(*), 2) AS occupancyRate
+        FROM room r
+                 LEFT JOIN house h ON r.house_id = h.id
+        WHERE 1 = 1
+        <include refid="roomListQuery" />
+        GROUP BY h.community_id,
+                 h.building,
+                 h.unit,
+                 h.floor
+        ORDER BY h.community_id DESC,
+        h.building ASC,
+        h.unit ASC,
+        h.floor ASC
+    </select>
 </mapper>

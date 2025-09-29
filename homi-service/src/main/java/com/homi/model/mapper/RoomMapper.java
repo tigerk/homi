@@ -2,9 +2,7 @@ package com.homi.model.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.homi.domain.dto.room.RoomItemDTO;
-import com.homi.domain.dto.room.RoomQueryDTO;
-import com.homi.domain.dto.room.RoomTotalItemDTO;
+import com.homi.domain.dto.room.*;
 import com.homi.model.entity.Room;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -32,7 +30,22 @@ public interface RoomMapper extends BaseMapper<Room> {
      * @param query 参数说明
      * @return com.baomidou.mybatisplus.core.metadata.IPage<com.homi.domain.dto.room.RoomItemDTO>
      */
-    IPage<RoomItemDTO> getPage(IPage<RoomItemDTO> page, @Param("query") RoomQueryDTO query);
+    IPage<RoomItemDTO> pageRoomList(IPage<RoomItemDTO> page, @Param("query") RoomQueryDTO query);
 
     List<RoomTotalItemDTO> getStatusTotal(@Param("query") RoomQueryDTO query);
+
+    List<RoomGridDTO> selectGridRooms(@Param("query") RoomQueryDTO query);
+
+    List<FloorStatisticsDTO> selectFloorStatistics(@Param("query") RoomQueryDTO query);
+
+    /**
+     * 查询小区的聚合数据
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/29 14:21
+     *
+     * @param query 参数说明
+     * @return java.util.List<com.homi.domain.dto.room.RoomAggregatedDTO>
+     */
+    List<RoomAggregatedDTO> selectAggregatedRooms(RoomQueryDTO query);
 }

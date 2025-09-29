@@ -3,11 +3,12 @@ package com.homi.admin.controller.room;
 
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
+import com.homi.domain.dto.room.RoomGridDTO;
 import com.homi.domain.dto.room.RoomItemDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.RoomTotalItemDTO;
-import com.homi.domain.vo.room.RoomGridVO;
 import com.homi.domain.vo.room.RoomTotalVO;
+import com.homi.service.room.RoomGridService;
 import com.homi.service.room.RoomSearchService;
 import com.homi.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RoomController {
     private final RoomService roomService;
+
+    private final RoomGridService roomGridService;
 
     private final RoomSearchService roomSearchService;
 
@@ -47,10 +50,17 @@ public class RoomController {
     }
 
 
-
     @PostMapping("/grid")
-    public ResponseResult<List<RoomGridVO>> getRoomGrid(@RequestBody RoomQueryDTO query) {
-        return ResponseResult.ok(roomService.getRoomGrid(query));
+    public ResponseResult<RoomGridDTO> getRoomGrid(@RequestBody RoomQueryDTO query) {
+        return ResponseResult.ok(roomGridService.getRoomGrid(query));
+    }
+
+    /**
+     * 获取多个小区的摘要数据
+     */
+    @PostMapping("/aggregated/summary")
+    public Result<List<CommunitySummaryDTO>> getPropertiesSummary(@RequestBody List<Long> communityIds) {
+        return ResponseResult.ok(roomGridService.getPropertiesSummary(communityIds));
     }
 }
 

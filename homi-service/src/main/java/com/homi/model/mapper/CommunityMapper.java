@@ -15,4 +15,16 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface CommunityMapper extends BaseMapper<Community> {
 
+    /**
+     * 获取小区的房间数量
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/26 01:21
+     *
+     * @param communityId 参数说明
+     * @param leaseMode
+     * @param companyId
+     * @return java.lang.Integer
+     */
+    Integer getCommunityRoomCount(Long communityId, Integer leaseMode, Long companyId);
 }

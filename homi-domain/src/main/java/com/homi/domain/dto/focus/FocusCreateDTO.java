@@ -1,7 +1,8 @@
-package com.homi.domain.dto.house;
+package com.homi.domain.dto.focus;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.domain.dto.room.HouseLayoutDTO;
+import com.homi.domain.dto.community.CommunityDTO;
+import com.homi.domain.dto.house.HouseLayoutDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

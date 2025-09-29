@@ -6,7 +6,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
-import com.homi.domain.dto.house.FocusCreateDTO;
+import com.homi.domain.dto.focus.FocusCreateDTO;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.service.house.FocusService;
 import lombok.RequiredArgsConstructor;

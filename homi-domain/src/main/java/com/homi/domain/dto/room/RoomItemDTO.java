@@ -1,5 +1,6 @@
 package com.homi.domain.dto.room;
 
+import com.homi.domain.dto.house.HouseLayoutDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,10 +27,10 @@ public class RoomItemDTO {
     private Long houseId;
 
     @Schema(description = "小区ID")
-    private Long propertyId;
+    private Long communityId;
 
     @Schema(description = "小区名称")
-    private String propertyName;
+    private String communityName;
 
     @Schema(description = "房源编号")
     private String houseCode;
@@ -45,6 +46,12 @@ public class RoomItemDTO {
 
     @Schema(description = "房型")
     private HouseLayoutDTO houseLayout;
+
+    @Schema(description = "部门id")
+    private Long deptId;
+
+    @Schema(description = "部门名称")
+    private String deptName;
 
     @Schema(description = "房间号")
     private String roomNumber;

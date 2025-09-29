@@ -1,4 +1,4 @@
-package com.homi.domain.dto.room;
+package com.homi.domain.dto.house;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

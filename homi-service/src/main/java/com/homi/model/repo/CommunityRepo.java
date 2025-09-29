@@ -3,7 +3,8 @@ package com.homi.model.repo;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.domain.dto.house.CommunityDTO;
+import com.homi.domain.dto.community.CommunityDTO;
+import com.homi.domain.dto.room.CommunityGroup;
 import com.homi.model.entity.Community;
 import com.homi.model.entity.Region;
 import com.homi.model.mapper.CommunityMapper;
@@ -73,7 +74,7 @@ public class CommunityRepo extends ServiceImpl<CommunityMapper, Community> {
     public Community getCommunityByName(String adcode, String name) {
         LambdaQueryWrapper<Community> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Community::getAdcode, adcode)
-            .eq(Community::getName, name);
+                .eq(Community::getName, name);
 
         List<Community> list = list(queryWrapper);
         if (list.isEmpty()) {
@@ -85,5 +86,30 @@ public class CommunityRepo extends ServiceImpl<CommunityMapper, Community> {
         }
 
         return list.getFirst();
+    }
+
+    /**
+     * 根据公司id和项目类型获取小区的房间数量
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/26 01:23
+
+     * @param communityId 参数说明
+     * @param leaseMode 参数说明
+     * @return com.homi.domain.dto.room.CommunityGroup
+     */
+    public CommunityGroup getCommunityById(Long communityId, Integer leaseMode, Long companyId) {
+        Community community = getById(communityId);
+
+        CommunityGroup communityGroup = CommunityGroup.builder()
+                .communityId(community.getId())
+                .communityName(community.getName())
+                .address(community.getAddress()).build();
+
+        Integer roomCount = getBaseMapper().getCommunityRoomCount(communityId, leaseMode, companyId);
+
+        communityGroup.setTotalRooms(roomCount);
+
+        return communityGroup;
     }
 }

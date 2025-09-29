@@ -2,8 +2,8 @@ package com.homi.model.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.domain.dto.house.FocusCreateDTO;
-import com.homi.domain.dto.room.HouseLayoutDTO;
+import com.homi.domain.dto.focus.FocusCreateDTO;
+import com.homi.domain.dto.house.HouseLayoutDTO;
 import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.model.entity.HouseLayout;
 import com.homi.model.mapper.HouseLayoutMapper;
@@ -35,7 +35,7 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
      *
      * @param modeRefId 参数说明
      * @param leaseMode 参数说明
-     * @return java.util.List<com.homi.domain.dto.room.HouseLayoutDTO>
+     * @return java.util.List<com.homi.domain.dto.house.HouseLayoutDTO>
      */
     public List<HouseLayoutDTO> getHouseLayoutListByHouseId(Long modeRefId, Integer leaseMode) {
         LambdaQueryWrapper<HouseLayout> queryWrapper = new LambdaQueryWrapper<>();

@@ -2,19 +2,10 @@ package com.homi.model.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.domain.dto.house.FocusBuildingDTO;
 import com.homi.model.entity.FocusBuilding;
 import com.homi.model.mapper.FocusBuildingMapper;
-import com.homi.utils.BeanCopyUtils;
-import com.homi.utils.SpringUtils;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * <p>

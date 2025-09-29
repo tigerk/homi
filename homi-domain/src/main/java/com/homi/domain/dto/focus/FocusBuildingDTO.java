@@ -1,4 +1,4 @@
-package com.homi.domain.dto.house;
+package com.homi.domain.dto.focus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

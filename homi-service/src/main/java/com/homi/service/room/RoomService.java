@@ -1,6 +1,5 @@
 package com.homi.service.room;
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.EnumUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -14,7 +13,6 @@ import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.domain.vo.room.RoomGridVO;
 import com.homi.model.entity.Focus;
 import com.homi.model.entity.House;
-import com.homi.model.entity.Room;
 import com.homi.model.repo.FocusRepo;
 import com.homi.model.repo.HouseRepo;
 import com.homi.model.repo.RoomRepo;
@@ -58,7 +56,7 @@ public class RoomService {
     public PageVO<RoomItemDTO> getRoomList(RoomQueryDTO query) {
         Page<RoomItemDTO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
-        IPage<RoomItemDTO> roomPage = roomRepo.getBaseMapper().getPage(page, query);
+        IPage<RoomItemDTO> roomPage = roomRepo.getBaseMapper().pageRoomList(page, query);
 
         roomPage.getRecords().forEach(this::format);
 
@@ -76,7 +74,7 @@ public class RoomService {
     public void format(RoomItemDTO room) {
         if(room.getLeaseMode().equals(LeaseModeEnum.FOCUS.getCode())) {
             Focus byId = focusRepo.getById(room.getModeRefId());
-            room.setPropertyName(byId.getFocusName());
+            room.setCommunityName(byId.getFocusName());
         }
 
         RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, room.getRoomStatus());

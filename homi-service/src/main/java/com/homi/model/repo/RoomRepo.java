@@ -2,8 +2,13 @@ package com.homi.model.repo;
 
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.domain.dto.house.FocusHouseDTO;
+import com.homi.domain.dto.focus.FocusHouseDTO;
+import com.homi.domain.dto.room.RoomAggregatedDTO;
+import com.homi.domain.dto.room.RoomItemDTO;
+import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.model.entity.Room;
 import com.homi.model.mapper.RoomMapper;
@@ -47,8 +52,8 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         queryWrapper.eq(Room::getHouseId, houseId);
 
         return getBaseMapper().selectList(queryWrapper).stream()
-            .map(room -> BeanCopyUtils.copyBean(room, FocusHouseDTO.class))
-            .collect(Collectors.toList());
+                .map(room -> BeanCopyUtils.copyBean(room, FocusHouseDTO.class))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -56,8 +61,8 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/9/10 22:53
-
-      * @param room 参数说明
+     *
+     * @param room 参数说明
      * @return com.homi.domain.enums.RoomStatusEnum
      */
     public RoomStatusEnum calculateRoomStatus(Room room) {
@@ -78,4 +83,24 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
 
         return RoomStatusEnum.AVAILABLE;
     }
+
+    public List<RoomAggregatedDTO> selectAggregatedRooms(RoomQueryDTO query) {
+        return getBaseMapper().selectAggregatedRooms(query);
+    }
+
+    public IPage<RoomItemDTO> pageRoomGridList(List<RoomAggregatedDTO> currentQueryStatistic, RoomQueryDTO query) {
+        List<Long> communityIds = currentQueryStatistic.stream().map(RoomAggregatedDTO::getCommunityId).distinct().toList();
+        List<String> buildings = currentQueryStatistic.stream().map(RoomAggregatedDTO::getBuilding).distinct().toList();
+        List<String> units = currentQueryStatistic.stream().map(RoomAggregatedDTO::getUnit).distinct().toList();
+        List<Integer> floors = currentQueryStatistic.stream().map(RoomAggregatedDTO::getFloor).distinct().toList();
+
+        query.setCommunityIds(communityIds);
+        query.setBuildings(buildings);
+        query.setUnits(units);
+        query.setFloors(floors);
+
+        Page<RoomItemDTO> page = new Page<>(1, Integer.MAX_VALUE);
+        return getBaseMapper().pageRoomList(page, query);
+    }
+
 }
