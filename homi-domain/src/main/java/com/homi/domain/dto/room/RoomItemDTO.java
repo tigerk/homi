@@ -56,6 +56,12 @@ public class RoomItemDTO {
     @Schema(description = "房间号")
     private String roomNumber;
 
+    @Schema(description = "楼栋号")
+    private String building;
+
+    @Schema(description = "单元号")
+    private String unit;
+
     @Schema(description = "楼层")
     private Integer floor;
 

@@ -3,7 +3,7 @@ package com.homi.admin.controller.room;
 
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
-import com.homi.domain.dto.room.RoomGridDTO;
+import com.homi.domain.dto.room.grid.RoomGridDTO;
 import com.homi.domain.dto.room.RoomItemDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.RoomTotalItemDTO;

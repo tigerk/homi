@@ -2,6 +2,9 @@ package com.homi.service.room;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.domain.dto.room.*;
+import com.homi.domain.dto.room.grid.FloorStatisticsDTO;
+import com.homi.domain.dto.room.grid.RoomAggregatedDTO;
+import com.homi.domain.dto.room.grid.RoomGridDTO;
 import com.homi.model.mapper.HouseMapper;
 import com.homi.model.repo.CommunityRepo;
 import com.homi.model.repo.RoomRepo;
@@ -35,7 +38,7 @@ public class RoomGridService {
      * {@code @date} 2025/9/29 14:27
      *
      * @param query 参数说明
-     * @return java.util.List<com.homi.domain.dto.room.RoomAggregatedDTO>
+     * @return java.util.List<com.homi.domain.dto.room.grid.RoomAggregatedDTO>
      */
     public List<RoomAggregatedDTO> getAggregatedRooms(RoomQueryDTO query) {
         return roomRepo.selectAggregatedRooms(query);

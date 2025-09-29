@@ -3,6 +3,9 @@ package com.homi.model.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.domain.dto.room.*;
+import com.homi.domain.dto.room.grid.FloorStatisticsDTO;
+import com.homi.domain.dto.room.grid.RoomAggregatedDTO;
+import com.homi.domain.dto.room.grid.RoomGridDTO;
 import com.homi.model.entity.Room;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -45,7 +48,7 @@ public interface RoomMapper extends BaseMapper<Room> {
      * {@code @date} 2025/9/29 14:21
      *
      * @param query 参数说明
-     * @return java.util.List<com.homi.domain.dto.room.RoomAggregatedDTO>
+     * @return java.util.List<com.homi.domain.dto.room.grid.RoomAggregatedDTO>
      */
     List<RoomAggregatedDTO> selectAggregatedRooms(RoomQueryDTO query);
 }

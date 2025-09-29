@@ -1,10 +1,9 @@
-package com.homi.domain.dto.room;
+package com.homi.domain.dto.room.grid;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * 应用于 homi

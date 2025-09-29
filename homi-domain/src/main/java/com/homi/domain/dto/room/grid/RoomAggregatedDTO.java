@@ -1,4 +1,4 @@
-package com.homi.domain.dto.room;
+package com.homi.domain.dto.room.grid;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -10,19 +10,19 @@ import java.math.BigDecimal;
  *
  * @author tk
  * @version v1.0
- * {@code @date} 2025/9/26
+ * {@code @date} 2025/9/29
  */
 
 @Data
-public class FloorStatisticsDTO {
+public class RoomAggregatedDTO {
     @Schema(description = "小区 id")
-    private Integer communityId;
+    private Long communityId;
 
     @Schema(description = "楼栋")
-    private Integer building;
+    private String building;
 
     @Schema(description = "单元")
-    private Integer unit;
+    private String unit;
 
     @Schema(description = "楼层")
     private Integer floor;

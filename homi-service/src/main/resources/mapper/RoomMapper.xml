@@ -22,6 +22,8 @@
         <result property="closed" column="closed"/>
         <result property="leased" column="leased"/>
         <!-- 添加floor字段 -->
+        <result property="building" column="building"/>
+        <result property="unit" column="unit"/>
         <result property="floor" column="floor"/>
 
         <!-- 如果需要包含房型信息等集合 -->
@@ -45,6 +47,8 @@
         h.dept_id,
         d.name AS dept_name,
         r.room_number,
+        h.building,
+        h.unit,
         r.floor,
         r.price,
         r.room_status,
@@ -134,7 +138,7 @@
     </sql>
 
     <!-- 获取楼层统计信息 -->
-    <select id="selectFloorStatistics" resultType="com.homi.domain.dto.room.FloorStatisticsDTO">
+    <select id="selectFloorStatistics" resultType="com.homi.domain.dto.room.grid.FloorStatisticsDTO">
         SELECT
         h.community_id,
         h.building,
@@ -155,7 +159,7 @@
         h.floor
     </select>
 
-    <select id="selectAggregatedRooms" resultType="com.homi.domain.dto.room.RoomAggregatedDTO">
+    <select id="selectAggregatedRooms" resultType="com.homi.domain.dto.room.grid.RoomAggregatedDTO">
         SELECT h.community_id,
                h.building,
                h.unit,

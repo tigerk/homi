@@ -1,5 +1,7 @@
-package com.homi.domain.dto.room;
+package com.homi.domain.dto.room.grid;
 
+import com.homi.domain.dto.room.RoomItemDTO;
+import com.homi.domain.dto.room.UnitGroup;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

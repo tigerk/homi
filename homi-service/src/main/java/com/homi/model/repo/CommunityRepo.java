@@ -4,7 +4,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.domain.dto.community.CommunityDTO;
-import com.homi.domain.dto.room.CommunityGroup;
+import com.homi.domain.dto.room.grid.CommunityGroup;
 import com.homi.model.entity.Community;
 import com.homi.model.entity.Region;
 import com.homi.model.mapper.CommunityMapper;
@@ -96,7 +96,7 @@ public class CommunityRepo extends ServiceImpl<CommunityMapper, Community> {
 
      * @param communityId 参数说明
      * @param leaseMode 参数说明
-     * @return com.homi.domain.dto.room.CommunityGroup
+     * @return com.homi.domain.dto.room.grid.CommunityGroup
      */
     public CommunityGroup getCommunityById(Long communityId, Integer leaseMode, Long companyId) {
         Community community = getById(communityId);
