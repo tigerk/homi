@@ -26,7 +26,7 @@ public class RoomController {
 
     private final RoomSearchService roomSearchService;
 
-    @PostMapping("/list")
+    @GetMapping("/list")
     public ResponseResult<PageVO<RoomItemDTO>> getRoomList(@RequestBody RoomQueryDTO query) {
         return ResponseResult.ok(roomService.getRoomList(query));
     }
