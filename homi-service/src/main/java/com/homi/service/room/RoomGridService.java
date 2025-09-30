@@ -81,10 +81,11 @@ public class RoomGridService {
 
         result.setCurrentPage(query.getCurrentPage());
         result.setPageSize(query.getPageSize());
-        result.setHasMore(offset + query.getPageSize() < currentQueryStatistic.size());
+        result.setHasMore(offset + query.getPageSize() < aggregatedRooms.size());
 
         // 5. 查询这些楼层的所有房间
-        IPage<RoomItemDTO> roomItemDTOIPage = roomRepo.pageRoomGridList(currentQueryStatistic, query);
+        query.setSpatialQuery(currentQueryStatistic);
+        IPage<RoomItemDTO> roomItemDTOIPage = roomRepo.pageRoomGridList(query);
         List<RoomItemDTO> rooms = roomItemDTOIPage.getRecords();
 
         // 7. 构建楼层分组数据

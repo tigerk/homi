@@ -113,32 +113,17 @@
             and h.lease_mode = #{query.leaseMode,jdbcType=INTEGER}
         </if>
 
-        <if test="query.communityIds != null and query.communityIds.size > 0">
-            and h.community_id in
-            <foreach collection="query.communityIds" item="id" open="(" separator="," close=")">
-                #{id}
+        <if test="query.spatialQuery != null and query.spatialQuery.size > 0">
+            AND (
+            <foreach collection="query.spatialQuery" item="item" separator="OR">
+                (
+                h.community_id = #{item.communityId, jdbcType=BIGINT}
+                AND h.building = #{item.building, jdbcType=VARCHAR}
+                AND h.unit = #{item.unit, jdbcType=VARCHAR}
+                AND h.floor = #{item.floor, jdbcType=INTEGER}
+                )
             </foreach>
-        </if>
-
-        <if test="query.buildings != null and query.buildings.size > 0">
-            and h.building in
-            <foreach collection="query.buildings" item="id" open="(" separator="," close=")">
-                #{id}
-            </foreach>
-        </if>
-
-        <if test="query.units != null and query.units.size > 0">
-            and h.unit in
-            <foreach collection="query.units" item="id" open="(" separator="," close=")">
-                #{id}
-            </foreach>
-        </if>
-
-        <if test="query.floors != null and query.floors.size > 0">
-            and h.floor in
-            <foreach collection="query.floors" item="id" open="(" separator="," close=")">
-                #{id}
-            </foreach>
+            )
         </if>
     </sql>
 

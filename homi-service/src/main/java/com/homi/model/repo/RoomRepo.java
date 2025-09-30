@@ -88,17 +88,7 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         return getBaseMapper().selectAggregatedRooms(query);
     }
 
-    public IPage<RoomItemDTO> pageRoomGridList(List<RoomAggregatedDTO> currentQueryStatistic, RoomQueryDTO query) {
-        List<Long> communityIds = currentQueryStatistic.stream().map(RoomAggregatedDTO::getCommunityId).distinct().toList();
-        List<String> buildings = currentQueryStatistic.stream().map(RoomAggregatedDTO::getBuilding).distinct().toList();
-        List<String> units = currentQueryStatistic.stream().map(RoomAggregatedDTO::getUnit).distinct().toList();
-        List<Integer> floors = currentQueryStatistic.stream().map(RoomAggregatedDTO::getFloor).distinct().toList();
-
-        query.setCommunityIds(communityIds);
-        query.setBuildings(buildings);
-        query.setUnits(units);
-        query.setFloors(floors);
-
+    public IPage<RoomItemDTO> pageRoomGridList(RoomQueryDTO query) {
         Page<RoomItemDTO> page = new Page<>(1, Integer.MAX_VALUE);
         return getBaseMapper().pageRoomList(page, query);
     }

@@ -51,4 +51,3 @@ public class RoomController {
         return ResponseResult.ok(roomGridService.getRoomGrid(query));
     }
 }
-
