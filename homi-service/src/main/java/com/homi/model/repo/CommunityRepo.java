@@ -87,29 +87,4 @@ public class CommunityRepo extends ServiceImpl<CommunityMapper, Community> {
 
         return list.getFirst();
     }
-
-    /**
-     * 根据公司id和项目类型获取小区的房间数量
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/9/26 01:23
-
-     * @param communityId 参数说明
-     * @param leaseMode 参数说明
-     * @return com.homi.domain.dto.room.grid.CommunityGroup
-     */
-    public CommunityGroup getCommunityById(Long communityId, Integer leaseMode, Long companyId) {
-        Community community = getById(communityId);
-
-        CommunityGroup communityGroup = CommunityGroup.builder()
-                .communityId(community.getId())
-                .communityName(community.getName())
-                .address(community.getAddress()).build();
-
-        Integer roomCount = getBaseMapper().getCommunityRoomCount(communityId, leaseMode, companyId);
-
-        communityGroup.setTotalRooms(roomCount);
-
-        return communityGroup;
-    }
 }

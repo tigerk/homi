@@ -1,4 +1,4 @@
-package com.homi.domain.dto.room;
+package com.homi.domain.dto.room.grid;
 
 /**
  * 应用于 homi

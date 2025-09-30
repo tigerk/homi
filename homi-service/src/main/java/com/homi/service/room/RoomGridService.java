@@ -1,10 +1,10 @@
 package com.homi.service.room;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.homi.domain.dto.room.*;
-import com.homi.domain.dto.room.grid.FloorStatisticsDTO;
-import com.homi.domain.dto.room.grid.RoomAggregatedDTO;
-import com.homi.domain.dto.room.grid.RoomGridDTO;
+import com.homi.domain.dto.room.RoomItemDTO;
+import com.homi.domain.dto.room.RoomQueryDTO;
+import com.homi.domain.dto.room.grid.*;
+import com.homi.model.entity.Community;
 import com.homi.model.mapper.HouseMapper;
 import com.homi.model.repo.CommunityRepo;
 import com.homi.model.repo.RoomRepo;
@@ -14,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 应用于 homi
@@ -44,11 +45,33 @@ public class RoomGridService {
         return roomRepo.selectAggregatedRooms(query);
     }
 
+    public record RoomGridGroupKey(Long communityId, String building, String unit, Integer floor) implements Comparable<RoomGridGroupKey> {
+        @Override
+        public int compareTo(RoomGridGroupKey o) {
+            int communityIdComparison = Long.compare(this.communityId, o.communityId);
+            if (communityIdComparison != 0) {
+                return communityIdComparison;
+            }
+            int buildingComparison = this.building.compareTo(o.building);
+            if (buildingComparison != 0) {
+                return buildingComparison;
+            }
+            int unitComparison = this.unit.compareTo(o.unit);
+            if (unitComparison != 0) {
+                return unitComparison;
+            }
+
+            return this.floor.compareTo(o.floor);
+        }
+    }
+
     /**
      * 获取聚合的房间数据
      */
     @Transactional(readOnly = true)
     public RoomGridDTO getRoomGrid(RoomQueryDTO query) {
+        RoomGridDTO result = new RoomGridDTO();
+
         // 一次只显示三个楼层的数据
         List<RoomAggregatedDTO> aggregatedRooms = getAggregatedRooms(query);
 
@@ -56,34 +79,170 @@ public class RoomGridService {
         long offset = (query.getCurrentPage() - 1) * query.getPageSize();
         List<RoomAggregatedDTO> currentQueryStatistic = aggregatedRooms.stream().skip(offset).limit(query.getPageSize()).toList();
 
+        result.setCurrentPage(query.getCurrentPage());
+        result.setPageSize(query.getPageSize());
+        result.setHasMore(offset + query.getPageSize() < currentQueryStatistic.size());
+
         // 5. 查询这些楼层的所有房间
         IPage<RoomItemDTO> roomItemDTOIPage = roomRepo.pageRoomGridList(currentQueryStatistic, query);
         List<RoomItemDTO> rooms = roomItemDTOIPage.getRecords();
 
         // 7. 构建楼层分组数据
-
+        Map<RoomGridGroupKey, List<RoomItemDTO>> roomGridGroupKeyListMap = rooms.stream().collect(Collectors.groupingBy(
+                room -> new RoomGridGroupKey(
+                        room.getCommunityId(),
+                        room.getBuilding(),
+                        room.getUnit(),
+                        room.getFloor()
+                )
+        ));
 
         // 8. 构建返回结果
-        RoomGridDTO result = new RoomGridDTO();
-        result.setCommunityGroup(propertyInfo);
-        result.setFloors(floors);
-        result.setTotalFloors(totalFloors);
-        result.setTotalRooms(floorStats.stream()
-                .mapToInt(FloorStatisticsDTO::getTotalRooms)
-                .sum());
-        result.setCurrentPage(query.getCurrentPage());
-        result.setPageSize(query.getPageSize());
-        result.setHasMore(offset + query.getFloorsPerPage() < totalFloors);
+        List<RoomGridItemDTO> roomGridItemList = new ArrayList<>();
+        for (Map.Entry<RoomGridGroupKey, List<RoomItemDTO>> entry : roomGridGroupKeyListMap.entrySet()) {
+            RoomGridItemDTO roomGridItemDTO = new RoomGridItemDTO();
+            RoomGridGroupKey key = entry.getKey();
+            roomGridItemDTO.setCommunityGroup(getCommunityGroup(key.communityId, aggregatedRooms));
+            roomGridItemDTO.setUnitGroup(getUnitGroup(key.communityId, key.building, key.unit, aggregatedRooms));
+            roomGridItemDTO.setFloorGroup(getFloorGroup(key.communityId, key.building, key.unit, key.floor, aggregatedRooms));
+            roomGridItemDTO.setRooms(entry.getValue());
 
-        // 计算总出租率
-        int totalLeased = floorStats.stream()
-                .mapToInt(FloorStatisticsDTO::getLeasedRooms)
-                .sum();
-        result.setOccupancyRate(
-                BigDecimal.valueOf(totalLeased * 100.0 / result.getTotalRooms())
+            roomGridItemList.add(roomGridItemDTO);
+        }
+
+        // 按照 community 倒序、unitGroup 正序、floor 正序排序
+        roomGridItemList.sort(Comparator.comparing((RoomGridItemDTO item) -> -item.getCommunityGroup().getCommunityId()).reversed()
+                .thenComparing(item -> item.getUnitGroup().getUnit())
+                .thenComparing(item -> item.getFloorGroup().getFloor()));
+
+
+        result.setRoomGridItemList(roomGridItemList);
+
+        return result;
+    }
+
+    /**
+     * 获取楼层的聚合数据
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/30 09:58
+     *
+     * @param communityId     参数说明
+     * @param building        参数说明
+     * @param unit            参数说明
+     * @param floor           参数说明
+     * @param aggregatedRooms 参数说明
+     * @return com.homi.domain.dto.room.grid.FloorGroup
+     */
+    private FloorGroup getFloorGroup(Long communityId, String building, String unit, Integer floor, List<RoomAggregatedDTO> aggregatedRooms) {
+        FloorGroup floorGroup = new FloorGroup();
+        floorGroup.setFloor(floor);
+
+        int roomCount = 0;
+        int leasedCount = 0;
+
+        for (RoomAggregatedDTO room : aggregatedRooms) {
+            if (communityId.equals(room.getCommunityId()) && building.equals(room.getBuilding()) && unit.equals(room.getUnit()) && floor.equals(room.getFloor())) {
+                roomCount += (room.getRoomCount() != null ? room.getRoomCount() : 0);
+                leasedCount += (room.getLeasedCount() != null ? room.getLeasedCount() : 0);
+            }
+        }
+
+        floorGroup.setRoomCount(roomCount);
+        floorGroup.setLeasedCount(leasedCount);
+
+        floorGroup.setOccupancyRate(
+                BigDecimal.valueOf(floorGroup.getLeasedCount() * 100.0 / floorGroup.getRoomCount())
                         .setScale(2, RoundingMode.HALF_UP)
         );
 
-        return result;
+        return floorGroup;
+    }
+
+    /**
+     * 获取楼栋单元的聚合数据
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/30 09:43
+     *
+     * @param communityId     参数说明
+     * @param building        参数说明
+     * @param unit            参数说明
+     * @param aggregatedRooms 参数说明
+     * @return com.homi.domain.dto.room.grid.UnitGroup
+     */
+    private UnitGroup getUnitGroup(Long communityId, String building, String unit, List<RoomAggregatedDTO> aggregatedRooms) {
+        UnitGroup unitGroup = new UnitGroup();
+        unitGroup.setBuilding(building);
+        unitGroup.setUnit(unit);
+
+        int roomCount = 0;
+        int leasedCount = 0;
+
+        for (RoomAggregatedDTO room : aggregatedRooms) {
+            if (communityId.equals(room.getCommunityId()) && building.equals(room.getBuilding()) && unit.equals(room.getUnit())) {
+                roomCount += (room.getRoomCount() != null ? room.getRoomCount() : 0);
+                leasedCount += (room.getLeasedCount() != null ? room.getLeasedCount() : 0);
+            }
+        }
+
+        unitGroup.setRoomCount(roomCount);
+        unitGroup.setLeasedCount(leasedCount);
+
+        unitGroup.setOccupancyRate(
+                BigDecimal.valueOf(unitGroup.getLeasedCount() * 100.0 / unitGroup.getRoomCount())
+                        .setScale(2, RoundingMode.HALF_UP)
+        );
+
+        return unitGroup;
+    }
+
+    /**
+     * 获取小区的单元分组数据
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/30 09:43
+     *
+     * @param communityId     参数说明
+     * @param aggregatedRooms 参数说明
+     * @return com.homi.domain.dto.room.grid.CommunityGroup
+     */
+    public CommunityGroup getCommunityGroup(Long communityId, List<RoomAggregatedDTO> aggregatedRooms) {
+        Community community = communityRepo.getById(communityId);
+
+        CommunityGroup communityGroup = new CommunityGroup();
+        communityGroup.setCommunityId(communityId);
+        communityGroup.setCommunityName(community.getName());
+        communityGroup.setAddress(community.getAddress());
+        Set<String> buildings = new HashSet<>();
+        Set<Integer> floors = new HashSet<>();
+        int roomCount = 0;
+        int leasedCount = 0;
+
+        for (RoomAggregatedDTO room : aggregatedRooms) {
+            if (communityId.equals(room.getCommunityId())) {
+                if (room.getBuilding() != null) {
+                    buildings.add(room.getBuilding());
+                }
+                if (room.getFloor() != null) {
+                    floors.add(room.getFloor());
+                }
+                roomCount += (room.getRoomCount() != null ? room.getRoomCount() : 0);
+                leasedCount += (room.getLeasedCount() != null ? room.getLeasedCount() : 0);
+            }
+        }
+
+        communityGroup.setBuildingCount(buildings.size());
+        communityGroup.setFloorCount(floors.size());
+
+        communityGroup.setRoomCount(roomCount);
+        communityGroup.setLeasedCount(leasedCount);
+
+        communityGroup.setOccupancyRate(
+                BigDecimal.valueOf(communityGroup.getLeasedCount() * 100.0 / communityGroup.getRoomCount())
+                        .setScale(2, RoundingMode.HALF_UP)
+        );
+
+        return communityGroup;
     }
 }

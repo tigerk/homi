@@ -14,6 +14,7 @@ import java.math.BigDecimal;
  */
 
 @Data
+@Schema(description = "房间聚合数据")
 public class RoomAggregatedDTO {
     @Schema(description = "小区 id")
     private Long communityId;
@@ -28,10 +29,10 @@ public class RoomAggregatedDTO {
     private Integer floor;
 
     @Schema(description = "总房间数")
-    private Integer totalRooms;
+    private Integer roomCount;
 
     @Schema(description = "已租房间数")
-    private Integer leasedRooms;
+    private Integer leasedCount;
 
     @Schema(description = "出租率")
     private BigDecimal occupancyRate;
