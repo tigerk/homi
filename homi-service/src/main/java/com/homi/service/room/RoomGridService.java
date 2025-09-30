@@ -1,14 +1,17 @@
 package com.homi.service.room;
 
+import cn.hutool.core.util.EnumUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.domain.dto.room.RoomItemDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.grid.*;
+import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.model.entity.Community;
 import com.homi.model.mapper.HouseMapper;
 import com.homi.model.repo.CommunityRepo;
 import com.homi.model.repo.RoomRepo;
 import lombok.RequiredArgsConstructor;
+import lombok.val;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -106,6 +109,14 @@ public class RoomGridService {
             roomGridItemDTO.setCommunityGroup(getCommunityGroup(key.communityId, aggregatedRooms));
             roomGridItemDTO.setUnitGroup(getUnitGroup(key.communityId, key.building, key.unit, aggregatedRooms));
             roomGridItemDTO.setFloorGroup(getFloorGroup(key.communityId, key.building, key.unit, key.floor, aggregatedRooms));
+
+            // 翻译房间状态
+            entry.getValue().forEach(room -> {
+                RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, room.getRoomStatus());
+                room.setRoomStatusName(roomStatusEnum.getName());
+                room.setRoomStatusColor(roomStatusEnum.getColor());
+            });
+
             roomGridItemDTO.setRooms(entry.getValue());
 
             roomGridItemList.add(roomGridItemDTO);
