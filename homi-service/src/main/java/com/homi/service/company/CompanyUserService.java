@@ -5,7 +5,7 @@ import com.homi.domain.dto.user.UserVO;
 import com.homi.model.entity.CompanyUser;
 import com.homi.model.entity.User;
 import com.homi.model.repo.CompanyUserRepo;
-import com.homi.model.repo.UserRepo;
+import com.homi.model.repo.SysUserRepo;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ import java.util.List;
 public class CompanyUserService {
     private final CompanyUserRepo companyUserRepo;
 
-    private final UserRepo userRepo;
+    private final SysUserRepo sysUserRepo;
 
     /**
      * 获取公司的人员
@@ -61,7 +61,7 @@ public class CompanyUserService {
 
         List<UserVO> result = new ArrayList<>();
         companyUsers.forEach(companyUser -> {
-            User user = userRepo.getById(companyUser.getUserId());
+            User user = sysUserRepo.getById(companyUser.getUserId());
             UserVO userVO = BeanCopyUtils.copyBean(user, UserVO.class);
             result.add(userVO);
         });

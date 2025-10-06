@@ -30,7 +30,7 @@ import java.util.Objects;
 @Service
 public class SysLoginLogRepo extends ServiceImpl<SysLoginLogMapper, SysLoginLog> {
     @Resource
-    private UserRepo userRepo;
+    private SysUserRepo sysUserRepo;
 
     @Resource
     private CompanyUserRepo companyUserRepo;

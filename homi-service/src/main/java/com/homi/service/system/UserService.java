@@ -14,13 +14,12 @@ import com.homi.domain.dto.user.UserVO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.common.UserTypeEnum;
-import com.homi.domain.vo.IdNameVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Dept;
 import com.homi.model.entity.SysUserRole;
 import com.homi.model.entity.User;
+import com.homi.model.mapper.SysUserMapper;
 import com.homi.model.mapper.SysUserRoleMapper;
-import com.homi.model.mapper.UserMapper;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +43,7 @@ import static com.homi.domain.constant.ConfigCacheKeyConstants.USER_DEFAULT_AVAT
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final UserMapper userMapper;
+    private final SysUserMapper sysUserMapper;
 
     private final SysUserRoleMapper userRoleMapper;
 
@@ -64,7 +63,7 @@ public class UserService {
         user.setUpdateTime(DateUtil.date());
 
         if (Objects.nonNull(user.getId())) {
-            userMapper.updateById(user);
+            sysUserMapper.updateById(user);
             return user.getId();
         }
 
@@ -78,7 +77,7 @@ public class UserService {
         user.setAvatar(sysConfigService.getConfigValueByKey(USER_DEFAULT_AVATAR));
         user.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         user.setCreateTime(DateUtil.date());
-        userMapper.insert(user);
+        sysUserMapper.insert(user);
 
         return user.getId();
     }
@@ -100,14 +99,14 @@ public class UserService {
         validateUserUniqueness(user.getId(), user.getUsername(), user.getEmail(), user.getPhone());
 
         user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        userMapper.updateById(user);
+        sysUserMapper.updateById(user);
         return user.getId();
     }
 
     public PageVO<UserVO> pageUserList(UserQueryDTO query) {
         Page<UserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
-        IPage<UserVO> userVOPage = userMapper.selectUserList(page, query);
+        IPage<UserVO> userVOPage = sysUserMapper.selectUserList(page, query);
 
         List<UserVO> records = userVOPage.getRecords();
         records.forEach(userVO -> {
@@ -135,7 +134,7 @@ public class UserService {
                 throw new BizException("无法删除自身");
             }
         }
-        userMapper.deleteBatchIds(idList);
+        sysUserMapper.deleteBatchIds(idList);
         return idList.size();
     }
 
@@ -150,14 +149,14 @@ public class UserService {
         }
 
         user.setPassword(SaSecureUtil.md5(sysUser.getPassword()));
-        userMapper.updateById(user);
+        sysUserMapper.updateById(user);
     }
 
     private User validateUserExists(Long id) {
         if (id == null) {
             return null;
         }
-        User user = userMapper.selectById(id);
+        User user = sysUserMapper.selectById(id);
         if (Objects.isNull(user)) {
             throw new BizException("用户不存在");
         }
@@ -171,18 +170,18 @@ public class UserService {
      * @param name 用户名
      */
     private void validateUserUniqueness(Long id, String name, String email, String phone) {
-        User userName = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, name));
+        User userName = sysUserMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, name));
         if (userName != null && !userName.getId().equals(id)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该用户名已存在");
         }
         if (CharSequenceUtil.isNotBlank(email)) {
-            User userEmail = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getEmail, email));
+            User userEmail = sysUserMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getEmail, email));
             if (userEmail != null && !userEmail.getId().equals(id)) {
                 throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该邮箱已被用户：" + userEmail.getUsername() + "绑定");
             }
         }
         if (CharSequenceUtil.isNotBlank((phone))) {
-            User userPhone = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone));
+            User userPhone = sysUserMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone));
             if (userPhone != null && !userPhone.getId().equals(id)) {
                 throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该手机号已被用户：" + userPhone.getUsername() + "绑定");
             }
@@ -191,10 +190,10 @@ public class UserService {
     }
 
     public User getUserById(Long id) {
-        return userMapper.selectById(id);
+        return sysUserMapper.selectById(id);
     }
 
     public User getUserByUsername(String username) {
-        return userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
+        return sysUserMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
     }
 }

@@ -31,7 +31,7 @@ import java.util.Objects;
 @Service
 public class SysOperationLogRepo extends ServiceImpl<SysOperationLogMapper, SysOperationLog> {
     @Resource
-    private UserRepo userRepo;
+    private SysUserRepo sysUserRepo;
 
     @Resource
     private CompanyUserRepo companyUserRepo;

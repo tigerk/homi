@@ -25,10 +25,10 @@ import com.homi.exception.BizException;
 import com.homi.model.entity.*;
 import com.homi.model.mapper.SysRoleMapper;
 import com.homi.model.mapper.SysUserRoleMapper;
-import com.homi.model.mapper.UserMapper;
+import com.homi.model.mapper.SysUserMapper;
 import com.homi.model.repo.CompanyRepo;
 import com.homi.model.repo.CompanyUserRepo;
-import com.homi.model.repo.UserRepo;
+import com.homi.model.repo.SysUserRepo;
 import com.homi.service.company.CompanyPackageService;
 import com.homi.service.company.CompanyService;
 import com.homi.service.system.SysMenuService;
@@ -60,7 +60,7 @@ public class AuthService {
     // refresh token userId 名称
     public static final String JWT_USER_ID = "userId";
     public static final String JWT_EXP_TIME = "exp";
-    private final UserMapper userMapper;
+    private final SysUserMapper sysUserMapper;
     private final SysUserRoleMapper sysUserRoleMapper;
     private final SysRoleMapper sysRoleMapper;
     private final SysMenuService sysMenuService;
@@ -74,7 +74,7 @@ public class AuthService {
     private final UserService userService;
 
     private final CompanyUserRepo companyUserRepo;
-    private final UserRepo userRepo;
+    private final SysUserRepo sysUserRepo;
 
     // jwt 密钥
     @Value("${jwt.secret}")
@@ -208,7 +208,7 @@ public class AuthService {
      */
     public UserLoginVO checkUserLogin(LoginDTO loginDTO) {
         // 校验用户是否存在
-        User user = userMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, loginDTO.getUsername())
+        User user = sysUserMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, loginDTO.getUsername())
             .or().eq(User::getPhone, loginDTO.getUsername()));
 
         if (Objects.isNull(user)) {
@@ -344,7 +344,7 @@ public class AuthService {
 
     public UserLoginVO loginWithCompanyId(Long userId, Long companyId) {
         // 校验用户是否存在
-        User user = userRepo.getById(userId);
+        User user = sysUserRepo.getById(userId);
 
         if (Objects.isNull(user)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);

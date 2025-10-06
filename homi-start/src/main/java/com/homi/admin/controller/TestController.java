@@ -1,7 +1,7 @@
 package com.homi.admin.controller;
 
 import com.homi.model.entity.User;
-import com.homi.model.repo.UserRepo;
+import com.homi.model.repo.SysUserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +24,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class TestController {
-    private final UserRepo userRepo;
+    private final SysUserRepo sysUserRepo;
 
     /**
      * 用户列表
@@ -33,7 +33,7 @@ public class TestController {
      */
     @GetMapping("/user")
     public List<User> list() {
-        return userRepo.list();
+        return sysUserRepo.list();
     }
 
 }

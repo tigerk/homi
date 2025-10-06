@@ -26,17 +26,17 @@ public class MybatisPlusConfig {
      * {@code @date} 2025/6/26 09:19
      */
     private final List<String> ignoreTables = Arrays.asList(
-        "sys_config",
-        "sys_user_role",
-        "sys_role_menu",
-        "sys_menu",
-        "company_package",
-        "company",
-        "company_user",
-        "dept_user",
-        "region",
-        "user",
-        "community"
+            "sys_config",
+            "sys_user_role",
+            "sys_role_menu",
+            "sys_menu",
+            "sys_user",
+            "company_package",
+            "company",
+            "company_user",
+            "dept_user",
+            "region",
+            "community"
     );
 
     /**

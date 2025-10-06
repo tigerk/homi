@@ -17,7 +17,7 @@ import org.apache.ibatis.annotations.Param;
  * @since 2025-04-17
  */
 @Mapper
-public interface UserMapper extends BaseMapper<User> {
+public interface SysUserMapper extends BaseMapper<User> {
 
     /**
      * 自定义分页查询
