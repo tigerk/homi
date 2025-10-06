@@ -12,7 +12,10 @@ import com.homi.service.room.RoomGridService;
 import com.homi.service.room.RoomSearchService;
 import com.homi.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -26,7 +29,7 @@ public class RoomController {
 
     private final RoomSearchService roomSearchService;
 
-    @GetMapping("/list")
+    @PostMapping("/list")
     public ResponseResult<PageVO<RoomItemDTO>> getRoomList(@RequestBody RoomQueryDTO query) {
         return ResponseResult.ok(roomService.getRoomList(query));
     }
@@ -41,13 +44,15 @@ public class RoomController {
     }
 
     @PostMapping("/reset/keyword")
+
     public ResponseResult<Boolean> resetKeyword() {
         Boolean result = roomSearchService.resetKeyword();
         return ResponseResult.ok(result);
     }
 
-    @GetMapping("/grid")
+    @PostMapping("/grid")
     public ResponseResult<RoomGridDTO> getRoomGrid(@RequestBody RoomQueryDTO query) {
         return ResponseResult.ok(roomGridService.getRoomGrid(query));
     }
 }
+

@@ -123,7 +123,8 @@ public class RoomGridService {
         }
 
         // 按照 community 倒序、unitGroup 正序、floor 正序排序
-        roomGridItemList.sort(Comparator.comparing((RoomGridItemDTO item) -> -item.getCommunityGroup().getCommunityId()).reversed()
+        roomGridItemList.sort(Comparator.comparing((RoomGridItemDTO item) -> -item.getCommunityGroup().getCommunityId())
+                .thenComparing(item -> item.getUnitGroup().getBuilding())
                 .thenComparing(item -> item.getUnitGroup().getUnit())
                 .thenComparing(item -> item.getFloorGroup().getFloor()));
 
