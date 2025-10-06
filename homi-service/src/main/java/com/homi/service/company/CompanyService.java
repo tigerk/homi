@@ -5,7 +5,7 @@ import com.homi.domain.dto.company.CompanyListVO;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.model.entity.Company;
 import com.homi.model.entity.CompanyUser;
-import com.homi.model.entity.User;
+import com.homi.model.entity.SysUser;
 import com.homi.model.repo.CompanyRepo;
 import com.homi.model.repo.CompanyUserRepo;
 import com.homi.service.system.UserService;
@@ -56,8 +56,8 @@ public class CompanyService {
                     .id(companyUser.getUserId())
                     .build();
 
-                User userById = userService.getUserById(companyUser.getUserId());
-                build.setName(userById.getNickname());
+                SysUser sysUserById = userService.getUserById(companyUser.getUserId());
+                build.setName(sysUserById.getNickname());
 
                 return build;
             }

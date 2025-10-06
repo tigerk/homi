@@ -3,8 +3,6 @@ package com.homi.admin.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
-import com.homi.admin.auth.vo.login.UserLoginVO;
-import com.homi.admin.config.LoginManager;
 import com.homi.annotation.Log;
 import com.homi.annotation.RepeatSubmit;
 import com.homi.config.MyBatisTenantContext;
@@ -12,8 +10,7 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.user.*;
 import com.homi.domain.enums.common.OperationTypeEnum;
-import com.homi.domain.vo.IdNameVO;
-import com.homi.model.entity.User;
+import com.homi.model.entity.SysUser;
 import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
@@ -23,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 用户表(User)表控制层
+ * 用户表(SysUser)表控制层
  *
  * @author sjh
  * @since 2024-04-25 10:36:46
@@ -60,8 +57,8 @@ public class UserController {
     @GetMapping("/detail/{id}")
     @SaCheckPermission("system:user:detail")
     public ResponseResult<UserVO> detail(@PathVariable("id") Long id) {
-        User userById = userService.getUserById(id);
-        UserVO userVO = BeanCopyUtils.copyBean(userById, UserVO.class);
+        SysUser sysUserById = userService.getUserById(id);
+        UserVO userVO = BeanCopyUtils.copyBean(sysUserById, UserVO.class);
 
         return ResponseResult.ok(userVO);
     }
@@ -76,8 +73,8 @@ public class UserController {
     @RepeatSubmit
     @Log(title = "用户管理", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<Long> create(@Valid @RequestBody UserCreateDTO createDTO) {
-        User user = BeanCopyUtils.copyBean(createDTO, User.class);
-        return ResponseResult.ok(userService.createUser(user));
+        SysUser sysUser = BeanCopyUtils.copyBean(createDTO, SysUser.class);
+        return ResponseResult.ok(userService.createUser(sysUser));
     }
 
     /**
@@ -89,9 +86,9 @@ public class UserController {
     @PutMapping("/update")
     @SaCheckPermission("system:user:update")
     public ResponseResult<Long> update(@Valid @RequestBody UserUpdateDTO updateDTO) {
-        User user = BeanCopyUtils.copyBean(updateDTO, User.class);
-        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        return ResponseResult.ok(this.userService.updateUser(user));
+        SysUser sysUser = BeanCopyUtils.copyBean(updateDTO, SysUser.class);
+        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        return ResponseResult.ok(this.userService.updateUser(sysUser));
     }
 
     /**
@@ -103,9 +100,9 @@ public class UserController {
     @PutMapping("/updateStatus")
     @SaCheckPermission("system:user:updateStatus")
     public ResponseResult<Long> updateStatus(@Valid @RequestBody UserUpdateStatusDTO updateDTO) {
-        User user = BeanCopyUtils.copyBean(updateDTO, User.class);
-        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        return ResponseResult.ok(this.userService.updateUser(user));
+        SysUser sysUser = BeanCopyUtils.copyBean(updateDTO, SysUser.class);
+        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        return ResponseResult.ok(this.userService.updateUser(sysUser));
     }
 
     /**
@@ -129,9 +126,9 @@ public class UserController {
     @PutMapping("/resetPassword")
     @SaCheckPermission("system:user:resetPwd")
     public ResponseResult<Boolean> resetPassword(@Valid @RequestBody UserResetPwdDTO updateDTO) {
-        User user = BeanCopyUtils.copyBean(updateDTO, User.class);
-        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        this.userService.resetPassword(user);
+        SysUser sysUser = BeanCopyUtils.copyBean(updateDTO, SysUser.class);
+        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        this.userService.resetPassword(sysUser);
         return ResponseResult.ok(true);
     }
 }

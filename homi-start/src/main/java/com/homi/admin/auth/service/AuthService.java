@@ -208,29 +208,29 @@ public class AuthService {
      */
     public UserLoginVO checkUserLogin(LoginDTO loginDTO) {
         // 校验用户是否存在
-        User user = sysUserMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, loginDTO.getUsername())
-            .or().eq(User::getPhone, loginDTO.getUsername()));
+        SysUser sysUser = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, loginDTO.getUsername())
+            .or().eq(SysUser::getPhone, loginDTO.getUsername()));
 
-        if (Objects.isNull(user)) {
+        if (Objects.isNull(sysUser)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
-        if (user.getStatus().equals(StatusEnum.DISABLED.getValue())) {
+        if (sysUser.getStatus().equals(StatusEnum.DISABLED.getValue())) {
             throw new BizException(ResponseCodeEnum.USER_FREEZE);
         }
         // 密码校验
         String password = SaSecureUtil.md5(loginDTO.getPassword());
-        if (!user.getPassword().equals(password)) {
+        if (!sysUser.getPassword().equals(password)) {
             throw new BizException(ResponseCodeEnum.LOGIN_ERROR);
         }
 
         // 获取绑定该用户的公司列表
-        List<CompanyUserListDTO> companyUserList = companyUserRepo.getCompanyListByUserId(user.getId());
+        List<CompanyUserListDTO> companyUserList = companyUserRepo.getCompanyListByUserId(sysUser.getId());
         if (companyUserList.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
 
         UserLoginVO userLogin = new UserLoginVO();
-        BeanUtils.copyProperties(user, userLogin);
+        BeanUtils.copyProperties(sysUser, userLogin);
 
         CompanyUserListDTO first = companyUserList.getFirst();
         userLogin.setCurCompanyId(first.getCompanyId());
@@ -320,12 +320,12 @@ public class AuthService {
     }
 
     public Boolean kickUserByUsername(String username) {
-        User user = userService.getUserByUsername(username);
-        if (Objects.isNull(user)) {
+        SysUser sysUser = userService.getUserByUsername(username);
+        if (Objects.isNull(sysUser)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
-        StpUtil.kickout(user.getId());
-        stringRedisTemplate.delete(RedisKey.LOGIN_REFRESH_TOKEN.format(user.getId()));
+        StpUtil.kickout(sysUser.getId());
+        stringRedisTemplate.delete(RedisKey.LOGIN_REFRESH_TOKEN.format(sysUser.getId()));
         return true;
     }
 
@@ -344,17 +344,17 @@ public class AuthService {
 
     public UserLoginVO loginWithCompanyId(Long userId, Long companyId) {
         // 校验用户是否存在
-        User user = sysUserRepo.getById(userId);
+        SysUser sysUser = sysUserRepo.getById(userId);
 
-        if (Objects.isNull(user)) {
+        if (Objects.isNull(sysUser)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
-        if (user.getStatus().equals(StatusEnum.DISABLED.getValue())) {
+        if (sysUser.getStatus().equals(StatusEnum.DISABLED.getValue())) {
             throw new BizException(ResponseCodeEnum.USER_FREEZE);
         }
 
         UserLoginVO userLogin = new UserLoginVO();
-        BeanUtils.copyProperties(user, userLogin);
+        BeanUtils.copyProperties(sysUser, userLogin);
 
         CompanyUser companyUser = companyUserRepo.getCompanyUser(companyId, userId);
 

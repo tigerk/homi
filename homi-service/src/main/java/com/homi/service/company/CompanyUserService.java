@@ -3,7 +3,7 @@ package com.homi.service.company;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.dto.user.UserVO;
 import com.homi.model.entity.CompanyUser;
-import com.homi.model.entity.User;
+import com.homi.model.entity.SysUser;
 import com.homi.model.repo.CompanyUserRepo;
 import com.homi.model.repo.SysUserRepo;
 import com.homi.utils.BeanCopyUtils;
@@ -35,7 +35,7 @@ public class CompanyUserService {
      * {@code @date} 2025/6/26 09:31
      *
      * @param companyId 参数说明
-     * @return java.util.List<com.homi.model.entity.User>
+     * @return java.util.List<com.homi.model.entity.SysUser>
      */
     public List<CompanyUser> getCompanyUserByCompanyId(Long companyId) {
         LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
@@ -61,8 +61,8 @@ public class CompanyUserService {
 
         List<UserVO> result = new ArrayList<>();
         companyUsers.forEach(companyUser -> {
-            User user = sysUserRepo.getById(companyUser.getUserId());
-            UserVO userVO = BeanCopyUtils.copyBean(user, UserVO.class);
+            SysUser sysUser = sysUserRepo.getById(companyUser.getUserId());
+            UserVO userVO = BeanCopyUtils.copyBean(sysUser, UserVO.class);
             result.add(userVO);
         });
 

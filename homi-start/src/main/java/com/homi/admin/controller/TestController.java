@@ -1,6 +1,6 @@
 package com.homi.admin.controller;
 
-import com.homi.model.entity.User;
+import com.homi.model.entity.SysUser;
 import com.homi.model.repo.SysUserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class TestController {
      * @return 所有数据
      */
     @GetMapping("/user")
-    public List<User> list() {
+    public List<SysUser> list() {
         return sysUserRepo.list();
     }
 

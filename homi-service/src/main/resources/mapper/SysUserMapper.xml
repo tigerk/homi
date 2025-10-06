@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.homi.model.mapper.SysUserMapper">
-    <resultMap type="com.homi.model.entity.User" id="SysUserMap">
+    <resultMap type="com.homi.model.entity.SysUser" id="SysUserMap">
         <result property="id" column="id" jdbcType="VARCHAR"/>
         <result property="username" column="username" jdbcType="VARCHAR"/>
         <result property="password" column="password" jdbcType="VARCHAR"/>
@@ -17,9 +17,6 @@
         <result property="createBy" column="create_by" jdbcType="INTEGER"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
         <result property="updateBy" column="update_by" jdbcType="INTEGER"/>
-        <result column="type" property="type"/>
-        <result column="company_id" property="companyId"/>
-        <result column="dept_id" property="deptId"/>
         <result column="register_source" property="registerSource"/>
         <result column="deleted" property="deleted"/>
     </resultMap>
@@ -38,8 +35,6 @@
         create_time,
         create_by,
         register_source,
-        company_id,
-        dept_id
         FROM sys_user
         <where>
             company_id = #{query.companyId}

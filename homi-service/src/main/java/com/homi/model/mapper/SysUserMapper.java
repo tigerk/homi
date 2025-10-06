@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.domain.dto.user.UserQueryDTO;
 import com.homi.domain.dto.user.UserVO;
-import com.homi.model.entity.User;
+import com.homi.model.entity.SysUser;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -17,7 +17,7 @@ import org.apache.ibatis.annotations.Param;
  * @since 2025-04-17
  */
 @Mapper
-public interface SysUserMapper extends BaseMapper<User> {
+public interface SysUserMapper extends BaseMapper<SysUser> {
 
     /**
      * 自定义分页查询

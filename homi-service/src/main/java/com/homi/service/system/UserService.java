@@ -16,8 +16,8 @@ import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.enums.common.UserTypeEnum;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Dept;
+import com.homi.model.entity.SysUser;
 import com.homi.model.entity.SysUserRole;
-import com.homi.model.entity.User;
 import com.homi.model.mapper.SysUserMapper;
 import com.homi.model.mapper.SysUserRoleMapper;
 import com.homi.utils.BeanCopyUtils;
@@ -57,50 +57,50 @@ public class UserService {
     private String defaultAvatar;
 
     @Transactional(rollbackFor = Exception.class)
-    public Long createUser(User user) {
-        validateUserUniqueness(user.getId(), user.getUsername(), user.getEmail(), user.getPhone());
-        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        user.setUpdateTime(DateUtil.date());
+    public Long createUser(SysUser sysUser) {
+        validateUserUniqueness(sysUser.getId(), sysUser.getUsername(), sysUser.getEmail(), sysUser.getPhone());
+        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        sysUser.setUpdateTime(DateUtil.date());
 
-        if (Objects.nonNull(user.getId())) {
-            sysUserMapper.updateById(user);
-            return user.getId();
+        if (Objects.nonNull(sysUser.getId())) {
+            sysUserMapper.updateById(sysUser);
+            return sysUser.getId();
         }
 
-        if (Objects.isNull(user.getPassword())) {
+        if (Objects.isNull(sysUser.getPassword())) {
             throw new BizException("密码不能为空");
         }
 
-        user.setUserType(UserTypeEnum.COMPANY_USER.getType());
+        sysUser.setUserType(UserTypeEnum.COMPANY_USER.getType());
         // 密码加密
-        user.setPassword(SaSecureUtil.md5(user.getPassword()));
-        user.setAvatar(sysConfigService.getConfigValueByKey(USER_DEFAULT_AVATAR));
-        user.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        user.setCreateTime(DateUtil.date());
-        sysUserMapper.insert(user);
+        sysUser.setPassword(SaSecureUtil.md5(sysUser.getPassword()));
+        sysUser.setAvatar(sysConfigService.getConfigValueByKey(USER_DEFAULT_AVATAR));
+        sysUser.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        sysUser.setCreateTime(DateUtil.date());
+        sysUserMapper.insert(sysUser);
 
-        return user.getId();
+        return sysUser.getId();
     }
 
-    public Long updateUser(User user) {
+    public Long updateUser(SysUser sysUser) {
         // 是否存在
-        validateUserExists(user.getId());
+        validateUserExists(sysUser.getId());
         // 有冻结的行为
-        if (user.getStatus().equals(StatusEnum.DISABLED.getValue())) {
-            if (Long.valueOf(StpUtil.getLoginId().toString()).equals(user.getId())) {
+        if (sysUser.getStatus().equals(StatusEnum.DISABLED.getValue())) {
+            if (Long.valueOf(StpUtil.getLoginId().toString()).equals(sysUser.getId())) {
                 throw new BizException("无法冻结自身");
             }
-            List<Long> roleIdList = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>().in(SysUserRole::getUserId, user.getId())).stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
+            List<Long> roleIdList = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>().in(SysUserRole::getUserId, sysUser.getId())).stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
             if (roleService.hasSuperAdmin(roleIdList)) {
                 throw new BizException("无法冻结超级管理员");
             }
         }
         // 邮箱这些是否有重复
-        validateUserUniqueness(user.getId(), user.getUsername(), user.getEmail(), user.getPhone());
+        validateUserUniqueness(sysUser.getId(), sysUser.getUsername(), sysUser.getEmail(), sysUser.getPhone());
 
-        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        sysUserMapper.updateById(user);
-        return user.getId();
+        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        sysUserMapper.updateById(sysUser);
+        return sysUser.getId();
     }
 
     public PageVO<UserVO> pageUserList(UserQueryDTO query) {
@@ -138,12 +138,12 @@ public class UserService {
         return idList.size();
     }
 
-    public void resetPassword(User sysUser) {
+    public void resetPassword(SysUser sysUser) {
         if (Objects.isNull(sysUser.getId()) || Objects.isNull(sysUser.getPassword())) {
             throw new BizException("参数异常");
         }
 
-        User user = validateUserExists(sysUser.getId());
+        SysUser user = validateUserExists(sysUser.getId());
         if (Objects.isNull(user)) {
             throw new BizException("用户不存在");
         }
@@ -152,15 +152,15 @@ public class UserService {
         sysUserMapper.updateById(user);
     }
 
-    private User validateUserExists(Long id) {
+    private SysUser validateUserExists(Long id) {
         if (id == null) {
             return null;
         }
-        User user = sysUserMapper.selectById(id);
-        if (Objects.isNull(user)) {
+        SysUser sysUser = sysUserMapper.selectById(id);
+        if (Objects.isNull(sysUser)) {
             throw new BizException("用户不存在");
         }
-        return user;
+        return sysUser;
     }
 
     /**
@@ -170,30 +170,30 @@ public class UserService {
      * @param name 用户名
      */
     private void validateUserUniqueness(Long id, String name, String email, String phone) {
-        User userName = sysUserMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, name));
-        if (userName != null && !userName.getId().equals(id)) {
+        SysUser sysUserName = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, name));
+        if (sysUserName != null && !sysUserName.getId().equals(id)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该用户名已存在");
         }
         if (CharSequenceUtil.isNotBlank(email)) {
-            User userEmail = sysUserMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getEmail, email));
-            if (userEmail != null && !userEmail.getId().equals(id)) {
-                throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该邮箱已被用户：" + userEmail.getUsername() + "绑定");
+            SysUser sysUserEmail = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getEmail, email));
+            if (sysUserEmail != null && !sysUserEmail.getId().equals(id)) {
+                throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该邮箱已被用户：" + sysUserEmail.getUsername() + "绑定");
             }
         }
         if (CharSequenceUtil.isNotBlank((phone))) {
-            User userPhone = sysUserMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getPhone, phone));
-            if (userPhone != null && !userPhone.getId().equals(id)) {
-                throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该手机号已被用户：" + userPhone.getUsername() + "绑定");
+            SysUser sysUserPhone = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getPhone, phone));
+            if (sysUserPhone != null && !sysUserPhone.getId().equals(id)) {
+                throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该手机号已被用户：" + sysUserPhone.getUsername() + "绑定");
             }
         }
 
     }
 
-    public User getUserById(Long id) {
+    public SysUser getUserById(Long id) {
         return sysUserMapper.selectById(id);
     }
 
-    public User getUserByUsername(String username) {
-        return sysUserMapper.selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
+    public SysUser getUserByUsername(String username) {
+        return sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, username));
     }
 }

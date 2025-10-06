@@ -2,7 +2,7 @@ package com.homi.model.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.model.entity.User;
+import com.homi.model.entity.SysUser;
 import com.homi.model.mapper.SysUserMapper;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service;
  * @since 2025-07-07
  */
 @Service
-public class SysUserRepo extends ServiceImpl<SysUserMapper, User> {
-    public User getUserByUsername(String username) {
-        return getBaseMapper().selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username));
+public class SysUserRepo extends ServiceImpl<SysUserMapper, SysUser> {
+    public SysUser getUserByUsername(String username) {
+        return getBaseMapper().selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, username));
     }
 
 }
