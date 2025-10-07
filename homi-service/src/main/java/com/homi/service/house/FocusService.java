@@ -258,7 +258,6 @@ public class FocusService {
         Optional<Community> optCommunity = communityRepo.getOptById(focus.getCommunityId());
         optCommunity.ifPresent(community -> {
             CommunityDTO communityDTO = BeanCopyUtils.copyBean(community, CommunityDTO.class);
-            assert communityDTO != null;
             communityDTO.setCommunityId(community.getId());
             focusCreateDTO.setCommunity(communityDTO);
         });

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -44,4 +45,7 @@ public class FocusBuildingDTO {
 
     @Schema(description = "关闭的楼层列表json")
     private List<FocusHouseDTO> closedHouses;
+
+    @Schema(description = "关闭的楼层列表json")
+    private Map<Integer, List<FocusHouseDTO>> housesStatusOfFloors;
 }

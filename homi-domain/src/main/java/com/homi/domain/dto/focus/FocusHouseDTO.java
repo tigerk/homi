@@ -29,6 +29,9 @@ public class FocusHouseDTO {
     @Schema(description = "户型id")
     private Long houseLayoutId;
 
+    @Schema(description = "锁定状态：是否锁定")
+    private Boolean locked;
+
     @Schema(description = "禁用状态：是否已禁用")
     private Boolean closed;
 
