@@ -24,6 +24,9 @@ public class FocusBuildingDTO {
     @Schema(description = "单元")
     private String unit;
 
+    @Schema(description = "每层房源数")
+    private Integer houseCountPerFloor;
+
     @Schema(description = "房号前缀")
     private String housePrefix;
 

@@ -8,6 +8,7 @@ import com.homi.model.mapper.HouseMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -59,5 +60,12 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         } else {
             save(house);
         }
+    }
+
+    public List<House> getHousesByModeRefId(Long modeRefId, Integer leaseMode) {
+        LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(House::getModeRefId, modeRefId);
+        queryWrapper.eq(House::getLeaseMode, leaseMode);
+        return list(queryWrapper);
     }
 }

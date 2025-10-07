@@ -7,6 +7,8 @@ import com.homi.model.mapper.FocusBuildingMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * <p>
  * 集中楼栋表 服务实现类
@@ -25,5 +27,12 @@ public class FocusBuildingRepo extends ServiceImpl<FocusBuildingMapper, FocusBui
         queryWrapper.eq(FocusBuilding::getUnit, unit);
 
         return getOne(queryWrapper);
+    }
+
+    public List<FocusBuilding> getBuildingsByFocusId(Long focusId) {
+        LambdaQueryWrapper<FocusBuilding> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FocusBuilding::getFocusId, focusId);
+
+        return list(queryWrapper);
     }
 }

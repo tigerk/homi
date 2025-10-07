@@ -49,6 +49,10 @@ public class FocusBuilding implements Serializable {
     @TableField("unit")
     private String unit;
 
+    @Schema(description = "每层房源数")
+    @TableField("house_count_per_floor")
+    private Integer houseCountPerFloor;
+
     @Schema(description = "房号前缀")
     @TableField("house_prefix")
     private String housePrefix;

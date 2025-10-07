@@ -43,6 +43,11 @@ public class FocusController {
         return ResponseResult.ok(focusId);
     }
 
+    @GetMapping("/get")
+    public ResponseResult<FocusCreateDTO> getFocus(@RequestParam("id") Long focusId) {
+        return ResponseResult.ok(focusService.getFocusById(focusId));
+    }
+
     /**
      * 集中式项目选项
      * <p>
@@ -57,8 +62,8 @@ public class FocusController {
     }
 
     @GetMapping("/code/check")
-    public ResponseResult<Boolean> checkFocusCodeExist(@RequestParam("focusCode") String focusCode) {
-        return ResponseResult.ok(focusService.checkFocusCodeExist(CharSequenceUtil.trim(focusCode)));
+    public ResponseResult<Boolean> checkFocusCodeExist(@RequestParam("id") Long id, @RequestParam("focusCode") String focusCode) {
+        return ResponseResult.ok(focusService.checkFocusCodeExist(id, CharSequenceUtil.trim(focusCode)));
     }
 }
 

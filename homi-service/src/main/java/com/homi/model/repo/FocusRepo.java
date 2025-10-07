@@ -25,12 +25,14 @@ public class FocusRepo extends ServiceImpl<FocusMapper, Focus> {
      * {@code @author} tk
      * {@code @date} 2025/9/10 21:56
      *
+     * @param id        项目ID
      * @param focusCode 参数说明
      * @return boolean
      */
-    public boolean checkFocusCodeExist(String focusCode) {
+    public boolean checkFocusCodeExist(Long id, String focusCode) {
         LambdaQueryWrapper<Focus> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Focus::getFocusCode, focusCode);
+        queryWrapper.ne(Focus::getId, id);
         return count(queryWrapper) > 0;
     }
 
