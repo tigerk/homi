@@ -51,7 +51,7 @@ public class Company implements Serializable {
     private String legalPerson;
 
     @Schema(description = "通信地址")
-    @TableField("communityAddress")
+    @TableField("address")
     private String address;
 
     @Schema(description = "区域ID")

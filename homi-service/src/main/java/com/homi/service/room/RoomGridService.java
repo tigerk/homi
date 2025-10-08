@@ -116,8 +116,8 @@ public class RoomGridService {
             RoomGridItemDTO roomGridItemDTO = new RoomGridItemDTO();
             RoomGridGroupKey key = entry.getKey();
 
-            AreaGroup areaGroup = getAreaGroup(key.modeRefId, key.leaseMode, aggregatedRooms);
-            roomGridItemDTO.setAreaGroup(areaGroup);
+            CompoundGroup compoundGroup = getCompoundGroup(key.modeRefId, key.leaseMode, aggregatedRooms);
+            roomGridItemDTO.setCompoundGroup(compoundGroup);
             roomGridItemDTO.setBuildingGroup(getBuildingGroup(key.modeRefId, key.building, key.unit, aggregatedRooms));
             roomGridItemDTO.setFloorGroup(getFloorGroup(key.modeRefId, key.building, key.unit, key.floor, aggregatedRooms));
 
@@ -134,7 +134,7 @@ public class RoomGridService {
         }
 
         // 按照 community 倒序、unitGroup 正序、floor 正序排序
-        roomGridItemList.sort(Comparator.comparing((RoomGridItemDTO item) -> -item.getAreaGroup().getCommunityId())
+        roomGridItemList.sort(Comparator.comparing((RoomGridItemDTO item) -> -item.getCompoundGroup().getCommunityId())
                 .thenComparing(item -> item.getBuildingGroup().getBuilding())
                 .thenComparing(item -> item.getBuildingGroup().getUnit())
                 .thenComparing(item -> item.getFloorGroup().getFloor()));
@@ -228,12 +228,12 @@ public class RoomGridService {
      * @param modeRefId       leaseMode=集中式时，为集中式id；leaseMode=分散式时，为小区 id
      * @param leaseMode       租房模式
      * @param aggregatedRooms 参数说明
-     * @return com.homi.domain.dto.room.grid.AreaGroup
+     * @return com.homi.domain.dto.room.grid.CompoundGroup
      */
-    public AreaGroup getAreaGroup(Long modeRefId, Integer leaseMode, List<RoomAggregatedDTO> aggregatedRooms) {
-        AreaGroup areaGroup = new AreaGroup();
-        areaGroup.setModeRefId(modeRefId);
-        areaGroup.setLeaseMode(leaseMode);
+    public CompoundGroup getCompoundGroup(Long modeRefId, Integer leaseMode, List<RoomAggregatedDTO> aggregatedRooms) {
+        CompoundGroup compoundGroup = new CompoundGroup();
+        compoundGroup.setModeRefId(modeRefId);
+        compoundGroup.setLeaseMode(leaseMode);
 
         Long communityId;
         String displayName = CharSequenceUtil.EMPTY;
@@ -246,11 +246,11 @@ public class RoomGridService {
         }
 
         Community community = communityRepo.getById(communityId);
-        areaGroup.setCommunityId(communityId);
-        areaGroup.setCommunityName(community.getName());
-        areaGroup.setCommunityAddress(community.getAddress());
+        compoundGroup.setCommunityId(communityId);
+        compoundGroup.setCommunityName(community.getName());
+        compoundGroup.setCommunityAddress(String.format("%s（%s%s）", community.getName(), community.getDistrict(), community.getAddress()));
 
-        areaGroup.setDisplayName(CharSequenceUtil.blankToDefault(displayName, community.getName()));
+        compoundGroup.setDisplayName(CharSequenceUtil.blankToDefault(displayName, community.getName()));
 
         Set<String> buildings = new HashSet<>();
         Set<Integer> floors = new HashSet<>();
@@ -266,17 +266,17 @@ public class RoomGridService {
             }
         }
 
-        areaGroup.setBuildingCount(buildings.size());
-        areaGroup.setFloorCount(floors.size());
+        compoundGroup.setBuildingCount(buildings.size());
+        compoundGroup.setFloorCount(floors.size());
 
-        areaGroup.setRoomCount(roomCount);
-        areaGroup.setLeasedCount(leasedCount);
+        compoundGroup.setRoomCount(roomCount);
+        compoundGroup.setLeasedCount(leasedCount);
 
-        areaGroup.setOccupancyRate(
-                BigDecimal.valueOf(areaGroup.getLeasedCount() * 100.0 / areaGroup.getRoomCount())
+        compoundGroup.setOccupancyRate(
+                BigDecimal.valueOf(compoundGroup.getLeasedCount() * 100.0 / compoundGroup.getRoomCount())
                         .setScale(2, RoundingMode.HALF_UP)
         );
 
-        return areaGroup;
+        return compoundGroup;
     }
 }

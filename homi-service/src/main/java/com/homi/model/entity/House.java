@@ -76,7 +76,7 @@ public class House implements Serializable {
     private String lat;
 
     @Schema(description = "房本地址")
-    @TableField("communityAddress")
+    @TableField("address")
     private String address;
 
     @Schema(description = "标签")

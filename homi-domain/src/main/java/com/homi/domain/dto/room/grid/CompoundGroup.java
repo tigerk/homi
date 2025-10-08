@@ -20,7 +20,7 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AreaGroup {
+public class CompoundGroup {
     @Schema(description = "模式引用ID")
     private Long modeRefId;
 
