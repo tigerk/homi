@@ -20,7 +20,7 @@ public class RoomGridItemDTO {
     private CommunityGroup communityGroup;
 
     @Schema(description = "楼栋单元")
-    private UnitGroup unitGroup;
+    private BuildingGroup buildingGroup;
 
     @Schema(description = "楼层")
     private FloorGroup floorGroup;

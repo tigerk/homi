@@ -18,7 +18,7 @@ import java.math.BigDecimal;
  */
 @Data
 @Schema(description = "楼栋单元分组")
-public class UnitGroup {
+public class BuildingGroup {
     @Schema(description = "楼栋号")
     private String building;
 

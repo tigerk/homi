@@ -11,7 +11,6 @@ import com.homi.model.mapper.HouseMapper;
 import com.homi.model.repo.CommunityRepo;
 import com.homi.model.repo.RoomRepo;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,7 +106,7 @@ public class RoomGridService {
             RoomGridItemDTO roomGridItemDTO = new RoomGridItemDTO();
             RoomGridGroupKey key = entry.getKey();
             roomGridItemDTO.setCommunityGroup(getCommunityGroup(key.communityId, aggregatedRooms));
-            roomGridItemDTO.setUnitGroup(getUnitGroup(key.communityId, key.building, key.unit, aggregatedRooms));
+            roomGridItemDTO.setBuildingGroup(getUnitGroup(key.communityId, key.building, key.unit, aggregatedRooms));
             roomGridItemDTO.setFloorGroup(getFloorGroup(key.communityId, key.building, key.unit, key.floor, aggregatedRooms));
 
             // 翻译房间状态
@@ -124,8 +123,8 @@ public class RoomGridService {
 
         // 按照 community 倒序、unitGroup 正序、floor 正序排序
         roomGridItemList.sort(Comparator.comparing((RoomGridItemDTO item) -> -item.getCommunityGroup().getCommunityId())
-                .thenComparing(item -> item.getUnitGroup().getBuilding())
-                .thenComparing(item -> item.getUnitGroup().getUnit())
+                .thenComparing(item -> item.getBuildingGroup().getBuilding())
+                .thenComparing(item -> item.getBuildingGroup().getUnit())
                 .thenComparing(item -> item.getFloorGroup().getFloor()));
 
 
@@ -182,12 +181,12 @@ public class RoomGridService {
      * @param building        参数说明
      * @param unit            参数说明
      * @param aggregatedRooms 参数说明
-     * @return com.homi.domain.dto.room.grid.UnitGroup
+     * @return com.homi.domain.dto.room.grid.BuildingGroup
      */
-    private UnitGroup getUnitGroup(Long communityId, String building, String unit, List<RoomAggregatedDTO> aggregatedRooms) {
-        UnitGroup unitGroup = new UnitGroup();
-        unitGroup.setBuilding(building);
-        unitGroup.setUnit(unit);
+    private BuildingGroup getUnitGroup(Long communityId, String building, String unit, List<RoomAggregatedDTO> aggregatedRooms) {
+        BuildingGroup buildingGroup = new BuildingGroup();
+        buildingGroup.setBuilding(building);
+        buildingGroup.setUnit(unit);
 
         int roomCount = 0;
         int leasedCount = 0;
@@ -199,15 +198,15 @@ public class RoomGridService {
             }
         }
 
-        unitGroup.setRoomCount(roomCount);
-        unitGroup.setLeasedCount(leasedCount);
+        buildingGroup.setRoomCount(roomCount);
+        buildingGroup.setLeasedCount(leasedCount);
 
-        unitGroup.setOccupancyRate(
-                BigDecimal.valueOf(unitGroup.getLeasedCount() * 100.0 / unitGroup.getRoomCount())
+        buildingGroup.setOccupancyRate(
+                BigDecimal.valueOf(buildingGroup.getLeasedCount() * 100.0 / buildingGroup.getRoomCount())
                         .setScale(2, RoundingMode.HALF_UP)
         );
 
-        return unitGroup;
+        return buildingGroup;
     }
 
     /**
