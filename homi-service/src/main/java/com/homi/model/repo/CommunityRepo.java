@@ -4,7 +4,6 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.domain.dto.community.CommunityDTO;
-import com.homi.domain.dto.room.grid.CommunityGroup;
 import com.homi.model.entity.Community;
 import com.homi.model.entity.Region;
 import com.homi.model.mapper.CommunityMapper;

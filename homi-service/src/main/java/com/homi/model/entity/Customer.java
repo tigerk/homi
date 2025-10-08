@@ -49,7 +49,7 @@ public class Customer implements Serializable {
     @TableField("email")
     private String email;
 
-    @TableField("address")
+    @TableField("communityAddress")
     private String address;
 
     @TableField("emergency_name")

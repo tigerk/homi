@@ -17,7 +17,7 @@ import java.util.List;
 @Schema(description = "房间网格 DTO，用于展示小区楼栋楼层及房间信息")
 public class RoomGridItemDTO {
     @Schema(description = "小区信息")
-    private CommunityGroup communityGroup;
+    private AreaGroup areaGroup;
 
     @Schema(description = "楼栋单元")
     private BuildingGroup buildingGroup;

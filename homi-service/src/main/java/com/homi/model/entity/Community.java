@@ -69,7 +69,7 @@ public class Community implements Serializable {
     private String adcode;
 
     @Schema(description = "详细地址")
-    @TableField("address")
+    @TableField("communityAddress")
     private String address;
 
     @Schema(description = "商圈")

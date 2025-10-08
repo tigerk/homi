@@ -39,46 +39,45 @@
     </resultMap>
 
     <select id="pageRoomList" resultMap="RoomDetailMap">
-        SELECT r.id AS room_id,
-        r.house_id AS house_id,
-        h.house_code,
-        h.house_name AS house_name,
-        h.community_id,
-        h.building,
-        h.unit,
-        h.floor,
-        h.lease_mode,
-        h.mode_ref_id,
-        h.dept_id,
-        d.name AS dept_name,
-        r.room_number,
-        h.building,
-        h.unit,
-        r.floor,
-        r.price,
-        r.room_status,
-        r.locked,
-        r.closed,
-        r.leased,
-        r.area,
-        r.direction,
-        h.salesman_id,
-        u.nickname,
-        u.phone,
-        hl.id AS layout_id,
-        hl.layout_name AS layout_name,
-        hl.bedroom,
-        hl.living_room,
-        hl.bathroom,
-        hl.kitchen
+        SELECT r.id           AS room_id,
+               r.house_id     AS house_id,
+               h.house_code,
+               h.house_name   AS house_name,
+               h.community_id,
+               h.building,
+               h.unit,
+               h.floor,
+               h.lease_mode,
+               h.mode_ref_id,
+               h.dept_id,
+               d.name         AS dept_name,
+               r.room_number,
+               h.building,
+               h.unit,
+               r.floor,
+               r.price,
+               r.room_status,
+               r.locked,
+               r.closed,
+               r.leased,
+               r.area,
+               r.direction,
+               h.salesman_id,
+               u.nickname,
+               u.phone,
+               hl.id          AS layout_id,
+               hl.layout_name AS layout_name,
+               hl.bedroom,
+               hl.living_room,
+               hl.bathroom,
+               hl.kitchen
         FROM room r
-        LEFT JOIN house h ON r.house_id = h.id
-        LEFT JOIN house_layout hl ON h.house_layout_id = hl.id
-        LEFT JOIN sys_user u ON u.id = h.salesman_id
-        LEFT JOIN dept d ON d.id = h.dept_id
+                 LEFT JOIN house h ON r.house_id = h.id
+                 LEFT JOIN house_layout hl ON h.house_layout_id = hl.id
+                 LEFT JOIN sys_user u ON u.id = h.salesman_id
+                 LEFT JOIN dept d ON d.id = h.dept_id
         where r.deleted = 0
-        <include refid="roomListQuery" />
-
+        <include refid="roomListQuery"/>
         order by r.id desc
     </select>
 
@@ -88,7 +87,7 @@
         LEFT JOIN house h ON r.house_id = h.id
         LEFT JOIN sys_user u ON u.id = h.salesman_id
         where r.deleted = 0
-        <include refid="roomListQuery" />
+        <include refid="roomListQuery"/>
         group by room_status
     </select>
 
@@ -117,18 +116,18 @@
             AND (
             <foreach collection="query.spatialQuery" item="item" separator="OR">
                 (
-                h.community_id = #{item.communityId, jdbcType=BIGINT}
-                AND h.building = #{item.building, jdbcType=VARCHAR}
-                AND h.unit = #{item.unit, jdbcType=VARCHAR}
-                AND h.floor = #{item.floor, jdbcType=INTEGER}
-                )
+                    h.mode_ref_id = #{item.modeRefId, jdbcType=BIGINT}
+                    AND h.building = #{item.building, jdbcType=VARCHAR}
+                    AND h.unit = #{item.unit, jdbcType=VARCHAR}
+                    AND h.floor = #{item.floor, jdbcType=INTEGER}
+                    )
             </foreach>
             )
         </if>
     </sql>
 
     <select id="selectAggregatedRooms" resultType="com.homi.domain.dto.room.grid.RoomAggregatedDTO">
-        SELECT h.community_id,
+        SELECT h.mode_ref_id,
                h.building,
                h.unit,
                h.floor,
@@ -138,14 +137,14 @@
         FROM room r
                  LEFT JOIN house h ON r.house_id = h.id
         WHERE 1 = 1
-        <include refid="roomListQuery" />
-        GROUP BY h.community_id,
+        <include refid="roomListQuery"/>
+        GROUP BY h.mode_ref_id,
                  h.building,
                  h.unit,
                  h.floor
-        ORDER BY h.community_id DESC,
-        h.building ASC,
-        h.unit ASC,
-        h.floor ASC
+        ORDER BY h.mode_ref_id DESC,
+                 h.building ASC,
+                 h.unit ASC,
+                 h.floor ASC
     </select>
 </mapper>

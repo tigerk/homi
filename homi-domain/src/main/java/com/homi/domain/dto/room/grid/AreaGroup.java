@@ -20,7 +20,16 @@ import java.math.BigDecimal;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommunityGroup {
+public class AreaGroup {
+    @Schema(description = "模式引用ID")
+    private Long modeRefId;
+
+    @Schema(description = "租赁模式")
+    private Integer leaseMode;
+
+    @Schema(description = "卡片显示名称")
+    private String displayName;
+
     @Schema(description = "小区id")
     private Long communityId;
 
@@ -28,7 +37,7 @@ public class CommunityGroup {
     private String communityName;
 
     @Schema(description = "小区地址")
-    private String address;
+    private String communityAddress;
 
     @Schema(description = "总楼栋数")
     private Integer buildingCount;

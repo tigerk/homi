@@ -46,7 +46,7 @@ public class Focus implements Serializable {
     private String focusName;
 
     @Schema(description = "项目地址")
-    @TableField("address")
+    @TableField("communityAddress")
     private String address;
 
     @Schema(description = "小区ID")

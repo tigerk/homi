@@ -16,8 +16,8 @@ import java.math.BigDecimal;
 @Data
 @Schema(description = "房间聚合数据")
 public class RoomAggregatedDTO {
-    @Schema(description = "小区 id")
-    private Long communityId;
+    @Schema(description = "模式来源id，集中式为集中式id，整租、合租为community_id")
+    private Long modeRefId;
 
     @Schema(description = "楼栋")
     private String building;
