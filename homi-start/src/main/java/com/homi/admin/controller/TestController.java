@@ -1,5 +1,6 @@
 package com.homi.admin.controller;
 
+import com.homi.external.aliyun.SmsClient;
 import com.homi.model.entity.SysUser;
 import com.homi.model.repo.SysUserRepo;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TestController {
     private final SysUserRepo sysUserRepo;
+
+    private final SmsClient smsClient;
 
     /**
      * 用户列表
