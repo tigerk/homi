@@ -85,9 +85,7 @@ public class SmsClient {
                 .build();
 
         CompletableFuture<SendSmsResponse> response = client.sendSms(sendSmsRequest);
-        response.thenAccept(resp -> {
-            log.info("短信发送成功, 手机号: {}, 短信签名: {}, 短信模板: {}, 短信参数: {}, resp: {}", phoneNumber, signName, templateCode, templateParam, JSONUtil.toJsonStr(resp));
-        }).exceptionally(throwable -> { // Handling exceptions
+        response.thenAccept(resp -> log.info("短信发送成功, 手机号: {}, 短信签名: {}, 短信模板: {}, 短信参数: {}, resp: {}", phoneNumber, signName, templateCode, templateParam, JSONUtil.toJsonStr(resp))).exceptionally(throwable -> { // Handling exceptions
             log.error("短信发送失败, 手机号: {}, 短信签名: {}, 短信模板: {}, 短信参数: {}", phoneNumber, signName, templateCode, templateParam, throwable);
             return null;
         });
