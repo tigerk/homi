@@ -196,4 +196,8 @@ public class UserService {
     public SysUser getUserByUsername(String username) {
         return sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, username));
     }
+
+    public SysUser getUserByPhone(String phone) {
+        return sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getPhone, phone));
+    }
 }

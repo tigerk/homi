@@ -34,6 +34,8 @@ import com.homi.service.company.CompanyService;
 import com.homi.service.system.SysMenuService;
 import com.homi.service.system.SysRoleService;
 import com.homi.service.system.UserService;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.BeanUtils;
@@ -362,5 +364,17 @@ public class AuthService {
         userLogin.setCompanyUserType(companyUser.getCompanyUserType());
 
         return login(userLogin);
+    }
+
+    public Boolean updateUserPassword(String phone,String password) {
+        SysUser sysUser = userService.getUserByPhone(phone);
+        if (Objects.isNull(sysUser)) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
+        }
+
+        sysUser.setPassword(password);
+        userService.resetPassword(sysUser);
+
+        return true;
     }
 }

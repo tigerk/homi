@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 @AllArgsConstructor
 public enum RedisKey {
     // 示例：短信验证码
-    SMS_CODE("sms:code:%s", 5, TimeUnit.MINUTES),
+    SMS_CODE("sms:code:%s", 10, TimeUnit.MINUTES),
 
     // 示例：图形验证码
     CAPTCHA("captcha:%s", 5, TimeUnit.MINUTES),
