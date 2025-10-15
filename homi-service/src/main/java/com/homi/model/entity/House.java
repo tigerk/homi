@@ -99,6 +99,10 @@ public class House implements Serializable {
     @TableField("house_layout_id")
     private Long houseLayoutId;
 
+    @Schema(description = "出租类型：1=整租，2=合租")
+    @TableField("rental_type")
+    private Long rentalType;
+
     @Schema(description = "出房价格")
     @TableField("price")
     private BigDecimal price;
