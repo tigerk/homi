@@ -43,9 +43,17 @@ public class SysDict implements Serializable {
     @TableField("dict_name")
     private String dictName;
 
+    @Schema(description = "排序")
+    @TableField("sort")
+    private Integer sort;
+
     @Schema(description = "状态（0开启 1关闭）")
     @TableField("status")
     private Integer status;
+
+    @Schema(description = "是否隐藏")
+    @TableField("hidden")
+    private Boolean hidden;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")

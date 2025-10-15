@@ -90,7 +90,10 @@ public class SysDictService {
         LambdaQueryWrapper<SysDict> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(CharSequenceUtil.isNotEmpty(queryDTO.getDictName()), SysDict::getDictName, queryDTO.getDictName())
                 .like(CharSequenceUtil.isNotEmpty(queryDTO.getDictCode()), SysDict::getDictCode, queryDTO.getDictCode())
+                .eq(SysDict::getHidden, Boolean.FALSE)
                 .eq(Objects.nonNull(queryDTO.getStatus()), SysDict::getStatus, queryDTO.getStatus());
+
+        queryWrapper.orderByAsc(SysDict::getSort);
 
         return sysDictRepo.list(queryWrapper);
     }

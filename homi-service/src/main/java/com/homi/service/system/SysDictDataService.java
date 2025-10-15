@@ -3,6 +3,7 @@ package com.homi.service.system;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
@@ -39,6 +40,10 @@ public class SysDictDataService {
      * @return 字典数据项ID
      */
     public Long createDictData(SysDictData sysDictData) {
+        if (CharSequenceUtil.isBlank(sysDictData.getValue())) {
+            sysDictData.setValue(SecureUtil.md5(sysDictData.getName()));
+        }
+
         validateDictDataUniqueness(null, sysDictData.getName(), sysDictData.getValue(), sysDictData.getDictId());
         sysDictData.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         sysDictData.setCreateTime(DateUtil.date());
@@ -122,8 +127,8 @@ public class SysDictDataService {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/8/13 19:57
-
-      * @param dictId 参数说明
+     *
+     * @param dictId 参数说明
      * @return java.util.List<com.homi.model.entity.SysDictData>
      */
     public List<SysDictData> listByDictId(Long dictId) {

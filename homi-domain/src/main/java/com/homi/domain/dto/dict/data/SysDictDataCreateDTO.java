@@ -26,7 +26,7 @@ public class SysDictDataCreateDTO {
     /**
      * 数据项值
      */
-    @NotBlank(message = "数据项值不能为空")
+    @Schema(description = "数据项值")
     private String value;
 
     /**
