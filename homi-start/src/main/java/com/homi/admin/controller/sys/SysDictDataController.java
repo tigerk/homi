@@ -93,8 +93,8 @@ public class SysDictDataController {
      * @return 删除结果
      */
     @Log(title = "字典数据项管理", operationType = OperationTypeEnum.DELETE)
-    @DeleteMapping("/delete")
-    @SaCheckPermission("system:dict:data:delete")
+    @PostMapping("/delete")
+//    @SaCheckPermission("system:dict:data:delete")
     public ResponseResult<Boolean> delete(@RequestBody List<Long> idList) {
         return ResponseResult.ok(sysDictDataService.deleteByIds(idList));
     }
