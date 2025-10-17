@@ -77,37 +77,44 @@ public final class ResponseResult<T> implements Serializable {
     /**
      * 业务处理成功，有数据以及成功的具体信息返回
      */
-
     public static <T> ResponseResult<T> ok(String message, T data) {
         return new ResponseResult<>(message, data);
     }
 
     /**
-     * 业务处理失败
+     * 业务处理失败（支持泛型）
      */
-    public static ResponseResult<Void> fail(ResponseCodeEnum errorCode) {
-        return new ResponseResult<>(errorCode);
+    public static <T> ResponseResult<T> fail(ResponseCodeEnum errorCode) {
+        ResponseResult<T> result = new ResponseResult<>();
+        result.setCode(errorCode.getCode());
+        result.setMessage(errorCode.getMsg());
+        return result;
     }
 
     /**
-     * 业务处理失败，返回失败码以及失败信息
+     * 业务处理失败，返回失败码以及失败信息（支持泛型）
      */
-    public static ResponseResult<Void> fail(Integer code, String message) {
+    public static <T> ResponseResult<T> fail(Integer code, String message) {
         return new ResponseResult<>(code, message);
     }
 
     /**
-     * 系统错误
+     * 系统错误（支持泛型）
      */
-    public static ResponseResult<Void> error() {
-        return new ResponseResult<>(ResponseCodeEnum.SYSTEM_ERROR);
+    public static <T> ResponseResult<T> error() {
+        ResponseResult<T> result = new ResponseResult<>();
+        result.setCode(ResponseCodeEnum.SYSTEM_ERROR.getCode());
+        result.setMessage(ResponseCodeEnum.SYSTEM_ERROR.getMsg());
+        return result;
     }
 
-
     /**
-     * 系统详细错误
+     * 系统详细错误（支持泛型）
      */
-    public static ResponseResult<Void> error(String message) {
-        return new ResponseResult<>(message);
+    public static <T> ResponseResult<T> error(String message) {
+        ResponseResult<T> result = new ResponseResult<>();
+        result.setCode(ResponseCodeEnum.SYSTEM_ERROR.getCode());
+        result.setMessage(message);
+        return result;
     }
 }
