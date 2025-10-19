@@ -3,6 +3,7 @@ package com.homi.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
@@ -34,13 +35,21 @@ public class TempFileResource implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @Schema(description = "上传标识，用于前端和后端追踪文件归属")
-    @TableField("upload_token")
-    private String uploadToken;
-
-    @Schema(description = "文件路径或URL")
+    @Schema(description = "文件存储路径或访问URL")
     @TableField("file_url")
     private String fileUrl;
+
+    @Schema(description = "文件类型，如 image/png, image/jpeg")
+    @TableField("file_type")
+    private String fileType;
+
+    @Schema(description = "文件大小（字节）")
+    @TableField("file_size")
+    private Long fileSize;
+
+    @Schema(description = "存储方式：0-本地、1-oss, qiniu, s3 等")
+    @TableField("storage_type")
+    private Integer storageType;
 
     @Schema(description = "是否已被业务使用：0=未使用，1=已使用")
     @TableField("is_used")

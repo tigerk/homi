@@ -35,6 +35,10 @@ public class FileResource implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    @Schema(description = "公司 ID")
+    @TableField("company_id")
+    private Long companyId;
+
     @Schema(description = "业务类型，如 user_avatar, house_photo, contract_scan")
     @TableField("biz_type")
     private String bizType;

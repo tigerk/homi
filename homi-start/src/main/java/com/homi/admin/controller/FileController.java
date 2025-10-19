@@ -126,6 +126,8 @@ public class FileController {
 
         // 保存上传的存储文件到表中，后期定期清理。
         TempFileResource tempFileResource = new TempFileResource();
+        tempFileResource.setFileType(detectedMimeType);
+        tempFileResource.setFileSize(file.getSize());
         tempFileResource.setFileUrl(fileUrl);
         tempFileResource.setCreateBy(LoginManager.getUserId());
         tempFileResource.setIsUsed(BooleanEnum.FALSE.getValue());

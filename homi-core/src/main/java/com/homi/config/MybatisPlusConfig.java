@@ -36,7 +36,8 @@ public class MybatisPlusConfig {
             "company_user",
             "dept_user",
             "region",
-            "community"
+            "community",
+            "temp_file_resource"
     );
 
     /**
