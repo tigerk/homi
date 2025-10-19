@@ -1,8 +1,12 @@
 package com.homi.admin.controller;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
+import com.homi.domain.enums.common.BooleanEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
+import com.homi.model.entity.TempFileResource;
+import com.homi.model.repo.TempFileResourceRepo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.NonNull;
@@ -50,11 +54,13 @@ public class FileController {
             "video/x-flv", "video/x-matroska", "video/webm"
     );
 
+    private final TempFileResourceRepo tempFileResourceRepo;
+
     /**
      * 上传文件接口
      *
      * @param request HTTP 请求
-     * @param file 上传的文件
+     * @param file    上传的文件
      * @return 返回文件访问 URL
      */
     @PostMapping("/upload")
@@ -117,6 +123,15 @@ public class FileController {
         String domain = scheme + "://" + serverName + ":" + serverPort;
 
         String fileUrl = String.format("%s/uploads/%s", domain, newFileName);
+
+        // 保存上传的存储文件到表中，后期定期清理。
+        TempFileResource tempFileResource = new TempFileResource();
+        tempFileResource.setFileUrl(fileUrl);
+        tempFileResource.setCreateBy(LoginManager.getUserId());
+        tempFileResource.setIsUsed(BooleanEnum.FALSE.getValue());
+        tempFileResource.setUpdateBy(LoginManager.getUserId());
+        tempFileResourceRepo.save(tempFileResource);
+
         return ResponseResult.ok("上传成功", fileUrl);
     }
 }
