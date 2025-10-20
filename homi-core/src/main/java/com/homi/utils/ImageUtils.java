@@ -1,5 +1,8 @@
 package com.homi.utils;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -22,8 +25,8 @@ public class ImageUtils {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/10/20 09:36
-
-      * @param file 参数说明
+     *
+     * @param file 参数说明
      * @return java.lang.String
      */
     public static String getFileMD5(File file) throws Exception {
@@ -46,8 +49,8 @@ public class ImageUtils {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/10/20 09:36
-
-      * @param inputStream 参数说明
+     *
+     * @param inputStream 参数说明
      * @return java.lang.String
      */
     public static String getFileMD5(InputStream inputStream) throws Exception {
@@ -68,12 +71,26 @@ public class ImageUtils {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/10/20 09:36
-
+     *
      * @param f1 参数说明
      * @param f2 参数说明
      * @return boolean
      */
     public static boolean isSameImage(File f1, File f2) throws Exception {
         return getFileMD5(f1).equals(getFileMD5(f2));
+    }
+
+    /**
+     * 根据 url 获取文件名
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/10/20 10:38
+
+      * @param url 参数说明
+     * @return java.lang.String
+     */
+    public static String getFileName(String url) {
+        // 1️⃣ 先获取文件名（带后缀）
+        return FileUtil.getName(url);
     }
 }

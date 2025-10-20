@@ -136,7 +136,7 @@ public class FileController {
         // 保存上传的存储文件到表中，后期定期清理。
         UploadedFile uploadedFile = new UploadedFile();
         uploadedFile.setFileUrl(fileUrl);
-        uploadedFile.setFileName(uuid);
+        uploadedFile.setFileName(newFileName);
         uploadedFile.setFileHash(fileMD5);
         uploadedFile.setFileType(detectedMimeType);
         uploadedFile.setFileSize(file.getSize());
