@@ -24,7 +24,7 @@ public class ScatterHouseDTO {
     @Schema(description = "门牌号")
     private String doorNumber;
 
-    @Schema(description = "户型id")
+    @Schema(description = "户型")
     private HouseLayoutDTO houseLayout;
 
     @Schema(description = "锁定状态：是否锁定")

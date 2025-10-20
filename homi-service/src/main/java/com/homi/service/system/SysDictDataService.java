@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.crypto.SecureUtil;
+import cn.hutool.extra.pinyin.PinyinUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
@@ -41,7 +42,12 @@ public class SysDictDataService {
      */
     public Long createDictData(SysDictData sysDictData) {
         if (CharSequenceUtil.isBlank(sysDictData.getValue())) {
-            sysDictData.setValue(SecureUtil.md5(sysDictData.getName()));
+            String cleaned = sysDictData.getName().replaceAll("[^\\u4e00-\\u9fa5a-zA-Z0-9]", "");
+            sysDictData.setValue(SecureUtil.md5(PinyinUtil.getPinyin(cleaned, CharSequenceUtil.EMPTY)));
+        }
+        // 转换后进行校验，value 不能为空
+        if(CharSequenceUtil.isBlank(sysDictData.getValue())) {
+            throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "字典数据项值不能为空");
         }
 
         validateDictDataUniqueness(null, sysDictData.getName(), sysDictData.getValue(), sysDictData.getDictId());
