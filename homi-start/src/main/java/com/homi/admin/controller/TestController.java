@@ -1,15 +1,11 @@
 package com.homi.admin.controller;
 
-import com.homi.external.aliyun.SmsClient;
-import com.homi.model.entity.SysUser;
-import com.homi.model.repo.SysUserRepo;
+import com.homi.job.FileClearJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 /**
  * 应用于 homi-boot
@@ -25,18 +21,17 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class TestController {
-    private final SysUserRepo sysUserRepo;
-
-    private final SmsClient smsClient;
+    private final FileClearJob fileClearJob;
 
     /**
-     * 用户列表
-     *
-     * @return 所有数据
+     * 测试图片清理任务
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/10/20 11:17
      */
-    @GetMapping("/user")
-    public List<SysUser> list() {
-        return sysUserRepo.list();
+    @GetMapping("/clear")
+    public void list() {
+        fileClearJob.cleanUnusedFilesTask();
     }
 
 }
