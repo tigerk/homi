@@ -159,6 +159,10 @@ public class House implements Serializable {
     @TableField("image_list")
     private String imageList;
 
+    @Schema(description = "视频列表")
+    @TableField("video_list")
+    private String videoList;
+
     @Schema(description = "房间数 为0表示未分配房间")
     @TableField("room_count")
     private Integer roomCount;
