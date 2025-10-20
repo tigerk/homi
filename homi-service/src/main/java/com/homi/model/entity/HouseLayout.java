@@ -38,7 +38,7 @@ public class HouseLayout implements Serializable {
     @TableField("company_id")
     private Long companyId;
 
-    @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
+    @Schema(description = "房源租赁类型：1=集中式，2=分散式")
     @TableField("lease_mode")
     private Integer leaseMode;
 
