@@ -5,9 +5,7 @@ import com.homi.domain.dto.dept.DeptCreateDTO;
 import com.homi.domain.dto.dept.DeptQueryDTO;
 import com.homi.domain.dto.dept.DeptVO;
 import com.homi.model.entity.Dept;
-import com.homi.model.entity.DeptUser;
 import com.homi.model.mapper.DeptMapper;
-import com.homi.model.mapper.DeptUserMapper;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,8 +24,6 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class DeptService {
-    private final DeptUserMapper deptUserMapper;
-
     private final DeptMapper deptMapper;
 
     public List<DeptVO> list(DeptQueryDTO queryDTO) {
@@ -47,19 +43,6 @@ public class DeptService {
 
     public Dept getDeptById(Long deptId) {
         return deptMapper.selectById(deptId);
-    }
-
-    public Dept getUserDept(Long userId) {
-        LambdaQueryWrapper<DeptUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(DeptUser::getUserId, userId);
-
-        DeptUser deptUser = deptUserMapper.selectOne(queryWrapper);
-
-        if (deptUser != null) {
-            return deptMapper.selectById(deptUser.getDeptId());
-        }
-
-        return null;
     }
 
     public Boolean createDept(DeptCreateDTO createDTO) {
