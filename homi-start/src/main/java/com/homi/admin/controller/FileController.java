@@ -1,12 +1,14 @@
 package com.homi.admin.controller;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.IdUtil;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.enums.common.BooleanEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
-import com.homi.model.entity.TempFileResource;
-import com.homi.model.repo.TempFileResourceRepo;
+import com.homi.model.entity.UploadedFile;
+import com.homi.model.repo.UploadedFileRepo;
+import com.homi.utils.ImageUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.NonNull;
@@ -21,11 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * 应用于 homi-boot
@@ -54,7 +55,7 @@ public class FileController {
             "video/x-flv", "video/x-matroska", "video/webm"
     );
 
-    private final TempFileResourceRepo tempFileResourceRepo;
+    private final UploadedFileRepo uploadedFileRepo;
 
     /**
      * 上传文件接口
@@ -64,7 +65,7 @@ public class FileController {
      * @return 返回文件访问 URL
      */
     @PostMapping("/upload")
-    public ResponseResult<String> uploadImage(HttpServletRequest request, @Valid @NonNull @RequestParam("file") MultipartFile file) throws IOException {
+    public ResponseResult<String> uploadImage(HttpServletRequest request, @Valid @NonNull @RequestParam("file") MultipartFile file) throws Exception {
 
         // 检测真实的 MIME 类型
         String detectedMimeType = tika.detect(file.getInputStream());
@@ -72,6 +73,13 @@ public class FileController {
         if (!ALLOWED_MIME_TYPES.contains(detectedMimeType)) {
             log.warn("不允许的文件类型: {}, 文件名: {}", detectedMimeType, file.getOriginalFilename());
             return ResponseResult.fail(ResponseCodeEnum.UPLOAD_FAIL.getCode(), "只允许上传图片或视频文件");
+        }
+
+        String fileMD5 = ImageUtils.getFileMD5(file.getInputStream());
+        // 查看是否上传过文件
+        UploadedFile fileByHash = uploadedFileRepo.searchFileByHash(fileMD5);
+        if (Objects.nonNull(fileByHash)) {
+            return ResponseResult.ok("上传成功", fileByHash.getFileUrl());
         }
 
         String originalFilename = file.getOriginalFilename();
@@ -82,7 +90,8 @@ public class FileController {
         }
 
         // 生成新文件名（只使用 UUID + 扩展名，不包含任何用户输入的路径）
-        String newFileName = UUID.randomUUID() + extension;
+        String uuid = IdUtil.simpleUUID();
+        String newFileName = uuid + extension;
 
         // 创建上传目录
         File uploadDir = new File(uploadPath);
@@ -125,14 +134,16 @@ public class FileController {
         String fileUrl = String.format("%s/uploads/%s", domain, newFileName);
 
         // 保存上传的存储文件到表中，后期定期清理。
-        TempFileResource tempFileResource = new TempFileResource();
-        tempFileResource.setFileType(detectedMimeType);
-        tempFileResource.setFileSize(file.getSize());
-        tempFileResource.setFileUrl(fileUrl);
-        tempFileResource.setCreateBy(LoginManager.getUserId());
-        tempFileResource.setIsUsed(BooleanEnum.FALSE.getValue());
-        tempFileResource.setUpdateBy(LoginManager.getUserId());
-        tempFileResourceRepo.save(tempFileResource);
+        UploadedFile uploadedFile = new UploadedFile();
+        uploadedFile.setFileUrl(fileUrl);
+        uploadedFile.setFileName(uuid);
+        uploadedFile.setFileHash(fileMD5);
+        uploadedFile.setFileType(detectedMimeType);
+        uploadedFile.setFileSize(file.getSize());
+        uploadedFile.setCreateBy(LoginManager.getUserId());
+        uploadedFile.setIsUsed(BooleanEnum.FALSE.getValue());
+        uploadedFile.setUpdateBy(LoginManager.getUserId());
+        uploadedFileRepo.save(uploadedFile);
 
         return ResponseResult.ok("上传成功", fileUrl);
     }

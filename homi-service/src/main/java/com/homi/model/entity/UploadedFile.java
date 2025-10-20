@@ -3,7 +3,6 @@ package com.homi.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
@@ -25,9 +24,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("temp_file_resource")
-@Schema(name = "TempFileResource", description = "临时文件资源表（防孤儿文件）")
-public class TempFileResource implements Serializable {
+@TableName("uploaded_file")
+@Schema(name = "UploadedFile", description = "临时文件资源表（防孤儿文件）")
+public class UploadedFile implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -38,6 +37,14 @@ public class TempFileResource implements Serializable {
     @Schema(description = "文件存储路径或访问URL")
     @TableField("file_url")
     private String fileUrl;
+
+    @Schema(description = "文件名")
+    @TableField("file_name")
+    private String fileName;
+
+    @Schema(description = "文件内容MD5")
+    @TableField("file_hash")
+    private String fileHash;
 
     @Schema(description = "文件类型，如 image/png, image/jpeg")
     @TableField("file_type")
