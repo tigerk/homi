@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.model.entity.UploadedFile;
 import com.homi.model.mapper.UploadedFileMapper;
+import com.homi.utils.ImageUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.List;
  * @since 2025-10-19
  */
 @Service
+@Slf4j
 public class UploadedFileRepo extends ServiceImpl<UploadedFileMapper, UploadedFile> {
 
     public UploadedFile searchFileByHash(String hash) {
@@ -33,16 +36,21 @@ public class UploadedFileRepo extends ServiceImpl<UploadedFileMapper, UploadedFi
      * {@code @author} tk
      * {@code @date} 2025/10/20 10:35
      *
-     * @param fileNames 参数说明
+     * @param fileUrlList 参数说明
      * @return java.lang.Boolean
      */
-    public Boolean setFileUsedByName(List<String> fileNames) {
+    public void setFileUsedByName(List<String> fileUrlList) {
+        List<String> fileNames = fileUrlList.stream().map(ImageUtils::getFileName).toList();
+
         LambdaQueryWrapper<UploadedFile> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(UploadedFile::getFileName, fileNames);
 
         UploadedFile uploadedFile = new UploadedFile();
         uploadedFile.setIsUsed(StatusEnum.ACTIVE.getValue());
-        return update(uploadedFile, queryWrapper);
+        boolean updated = update(uploadedFile, queryWrapper);
+        if (!updated) {
+            log.error("图片更新为已使用失败, fileUrlList={}", fileUrlList);
+        }
     }
 
 }

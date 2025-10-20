@@ -8,6 +8,7 @@ import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.focus.FocusCreateDTO;
 import com.homi.domain.vo.IdNameVO;
+import com.homi.model.repo.UploadedFileRepo;
 import com.homi.service.house.FocusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class FocusController {
     private final FocusService focusService;
+
+    private final UploadedFileRepo uploadedFileRepo;
 
     @PostMapping("/create")
     public ResponseResult<Long> createHouse(@RequestBody FocusCreateDTO focusCreateDTO) {
@@ -39,6 +42,9 @@ public class FocusController {
             focusCreateDTO.setCreateTime(DateUtil.date());
             focusId = focusService.createHouseFocus(focusCreateDTO);
         }
+
+        // 设置上传文件为已使用
+        uploadedFileRepo.setFileUsedByName(focusCreateDTO.getImageList());
 
         return ResponseResult.ok(focusId);
     }
