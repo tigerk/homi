@@ -103,10 +103,6 @@ public class House implements Serializable {
     @TableField("rental_type")
     private Long rentalType;
 
-    @Schema(description = "出房价格")
-    @TableField("price")
-    private BigDecimal price;
-
     @Schema(description = "套内面积")
     @TableField("area")
     private BigDecimal area;

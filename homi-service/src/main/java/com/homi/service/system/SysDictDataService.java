@@ -3,7 +3,6 @@ package com.homi.service.system;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.crypto.SecureUtil;
 import cn.hutool.extra.pinyin.PinyinUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -43,10 +42,10 @@ public class SysDictDataService {
     public Long createDictData(SysDictData sysDictData) {
         if (CharSequenceUtil.isBlank(sysDictData.getValue())) {
             String cleaned = sysDictData.getName().replaceAll("[^\\u4e00-\\u9fa5a-zA-Z0-9]", "");
-            sysDictData.setValue(SecureUtil.md5(PinyinUtil.getPinyin(cleaned, CharSequenceUtil.EMPTY)));
+            sysDictData.setValue(PinyinUtil.getPinyin(cleaned, CharSequenceUtil.EMPTY));
         }
         // 转换后进行校验，value 不能为空
-        if(CharSequenceUtil.isBlank(sysDictData.getValue())) {
+        if (CharSequenceUtil.isBlank(sysDictData.getValue())) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "字典数据项值不能为空");
         }
 
