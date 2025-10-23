@@ -67,14 +67,6 @@ public class House implements Serializable {
     @TableField("community_id")
     private Long communityId;
 
-    @Schema(description = "经度")
-    @TableField("lng")
-    private String lng;
-
-    @Schema(description = "纬度")
-    @TableField("lat")
-    private String lat;
-
     @Schema(description = "房本地址")
     @TableField("address")
     private String address;
