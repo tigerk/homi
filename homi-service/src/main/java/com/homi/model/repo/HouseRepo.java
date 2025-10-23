@@ -68,4 +68,14 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         queryWrapper.eq(House::getLeaseMode, leaseMode);
         return list(queryWrapper);
     }
+
+    public Boolean checkHouseExist(Long communityId, String building, String unit, String doorNumber) {
+        LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(House::getCommunityId, communityId);
+        queryWrapper.eq(House::getBuilding, building);
+        queryWrapper.eq(House::getUnit, unit);
+        queryWrapper.eq(House::getDoorNumber, doorNumber);
+
+        return count(queryWrapper) > 0;
+    }
 }

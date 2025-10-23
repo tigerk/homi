@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 应用于 homi
  *
@@ -34,6 +36,18 @@ public class HouseLayoutDTO {
 
     @Schema(description = "室")
     private Integer bedroom;
+
+    @Schema(description = "设施、从字典dict_data获取并配置")
+    private List<FacilityItemDTO> facilities;
+
+    @Schema(description = "标签")
+    private List<String> tags;
+
+    @Schema(description = "图片列表")
+    private List<String> imageList;
+
+    @Schema(description = "视频列表")
+    private List<String> videoList;
 
     @Schema(description = "新创建的")
     private Boolean newly;

@@ -1,5 +1,6 @@
 package com.homi.model.repo;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.domain.dto.focus.FocusCreateDTO;
@@ -62,7 +63,7 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
      * @param houseCreateDto 创建房源参数
      * @return java.util.Map<java.lang.Long, java.lang.Long>
      */
-    public Map<Long, Long> createHouseLayouts(FocusCreateDTO houseCreateDto) {
+    public Map<Long, Long> createFocusHouseLayouts(FocusCreateDTO houseCreateDto) {
         Map<Long, Long> houseLayoutIdMap = new HashMap<>();
         houseCreateDto.getHouseLayoutList().forEach(houseLayoutDTO -> {
             HouseLayout houseLayout = new HouseLayout();
@@ -74,6 +75,12 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
             houseLayout.setCreateTime(houseCreateDto.getCreateTime());
             houseLayout.setUpdateBy(houseCreateDto.getUpdateBy());
             houseLayout.setUpdateTime(houseCreateDto.getUpdateTime());
+
+            // 冗余信息
+            houseLayout.setFacilities(JSONUtil.toJsonStr(houseLayoutDTO.getFacilities()));
+            // 设置标签
+            houseLayout.setTags(JSONUtil.toJsonStr(houseLayoutDTO.getTags()));
+            houseLayout.setImageList(JSONUtil.toJsonStr(houseLayoutDTO.getImageList()));
 
             if (houseLayoutDTO.getNewly().equals(Boolean.TRUE)) {
                 getBaseMapper().insert(houseLayout);

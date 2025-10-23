@@ -54,9 +54,6 @@ public class FocusCreateDTO {
     @Schema(description = "业务员ID")
     private Long salesmanId;
 
-    @Schema(description = "设施、从字典dict_data获取并配置")
-    private List<String> facilities;
-
     @Schema(description = "水")
     private String water;
 
@@ -81,11 +78,14 @@ public class FocusCreateDTO {
     @Schema(description = "商圈介绍、广告语")
     private String businessDesc;
 
+    @Schema(description = "项目描述")
+    private String remark;
+
     @Schema(description = "标签")
     private List<String> tags;
 
-    @Schema(description = "项目描述")
-    private String remark;
+    @Schema(description = "设施、从字典dict_data获取并配置")
+    private List<String> facilities;
 
     @Schema(description = "图片列表")
     private List<String> imageList;

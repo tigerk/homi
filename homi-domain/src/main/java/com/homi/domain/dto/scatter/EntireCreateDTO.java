@@ -2,9 +2,6 @@ package com.homi.domain.dto.scatter;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.domain.dto.community.CommunityDTO;
-import com.homi.domain.dto.focus.FocusBuildingDTO;
-import com.homi.domain.dto.focus.FocusHouseDTO;
-import com.homi.domain.dto.house.HouseLayoutDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -13,7 +10,7 @@ import java.util.List;
 
 @Data
 @Schema(description = "分散式房源创建DTO")
-public class ScatterCreateDTO {
+public class EntireCreateDTO {
     /**
      * 主键ID
      */
@@ -33,7 +30,7 @@ public class ScatterCreateDTO {
     private CommunityDTO community;
 
     @Schema(description = "房间列表")
-    private List<ScatterHouseDTO> houseList;
+    private List<EntireHouseDTO> houseList;
 
     @Schema(description = "部门ID")
     private Long deptId;

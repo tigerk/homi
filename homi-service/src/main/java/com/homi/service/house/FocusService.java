@@ -85,7 +85,7 @@ public class FocusService {
         saveFocusBuildings(focus.getId(), focusCreateDto.getBuildings());
 
         // 创建集中式户型
-        Map<Long, Long> houseLayoutIdMap = houseLayoutRepo.createHouseLayouts(focusCreateDto);
+        Map<Long, Long> houseLayoutIdMap = houseLayoutRepo.createFocusHouseLayouts(focusCreateDto);
 
         // 创建集中式房源
         createFocusHouses(houseLayoutIdMap, focusCreateDto);
@@ -149,17 +149,18 @@ public class FocusService {
             String houseCode = String.format("%s%s%s%s", focusCreateDto.getFocusCode(), houseDTO.getBuilding(), houseDTO.getUnit(), houseDTO.getDoorNumber());
             house.setHouseCode(houseCode);
 
+            house.setAddress(String.format("%s%s%s%s%s", focusCreateDto.getCommunity().getDistrict(),
+                    focusCreateDto.getCommunity().getName(),
+                    houseDTO.getBuilding(),
+                    houseDTO.getUnit(),
+                    houseDTO.getDoorNumber()+"室"));
+
             house.setHouseName(String.format("%s%s%s栋%s-%s室", focusCreateDto.getCommunity().getDistrict(),
                     focusCreateDto.getCommunity().getName(),
                     houseDTO.getBuilding(),
                     CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : "" + houseDTO.getUnit() + "单元",
                     houseDTO.getDoorNumber()));
 
-            // 冗余信息
-            house.setFacilities(JSONUtil.toJsonStr(focusCreateDto.getFacilities()));
-            // 设置标签
-            house.setTags(JSONUtil.toJsonStr(focusCreateDto.getTags()));
-            house.setImageList(JSONUtil.toJsonStr(focusCreateDto.getImageList()));
             houseRepo.saveHouse(house);
 
             createFocusRoom(house);
@@ -221,7 +222,7 @@ public class FocusService {
         saveFocusBuildings(focus.getId(), focusCreateDto.getBuildings());
 
         // 创建集中式户型
-        Map<Long, Long> houseLayoutIdMap = houseLayoutRepo.createHouseLayouts(focusCreateDto);
+        Map<Long, Long> houseLayoutIdMap = houseLayoutRepo.createFocusHouseLayouts(focusCreateDto);
 
         // 创建集中式房源
         createFocusHouses(houseLayoutIdMap, focusCreateDto);

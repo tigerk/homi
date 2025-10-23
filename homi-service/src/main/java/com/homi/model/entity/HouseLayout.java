@@ -66,6 +66,22 @@ public class HouseLayout implements Serializable {
     @TableField("bedroom")
     private Integer bedroom;
 
+    @Schema(description = "标签")
+    @TableField("tags")
+    private String tags;
+
+    @Schema(description = "设施、从字典dict_data获取并配置")
+    @TableField("facilities")
+    private String facilities;
+
+    @Schema(description = "图片列表")
+    @TableField("image_list")
+    private String imageList;
+
+    @Schema(description = "视频列表")
+    @TableField("video_list")
+    private String videoList;
+
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic

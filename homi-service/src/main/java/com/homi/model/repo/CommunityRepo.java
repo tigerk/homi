@@ -39,6 +39,7 @@ public class CommunityRepo extends ServiceImpl<CommunityMapper, Community> {
 
         Community communityEntity = new Community();
         communityEntity.setName(community.getName());
+        communityEntity.setAlias(community.getName());
         communityEntity.setProvince(provinceRegion.getExtName());
         communityEntity.setCityId(community.getCityId());
         communityEntity.setCity(cityRegion.getExtName());

@@ -1,5 +1,6 @@
 package com.homi.service.room;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.model.entity.House;
 import com.homi.model.entity.HouseLayout;
@@ -55,19 +56,18 @@ public class RoomSearchService {
      */
     public String generateKeywords(Room room) {
         House house = houseRepo.getById(room.getHouseId());
-
-        List<String> tags = JSONUtil.toList(house.getTags(), String.class);
-        String tagsStr = String.join("|", tags);
-
         HouseLayout houseLayoutRepoById = null;
+        String tagsStr = CharSequenceUtil.EMPTY;
         if (Objects.nonNull(house.getHouseLayoutId())) {
             houseLayoutRepoById = houseLayoutRepo.getById(house.getHouseLayoutId());
+            List<String> tags = JSONUtil.toList(houseLayoutRepoById.getTags(), String.class);
+            tagsStr = String.join("|", tags);
         }
 
         return String.format("%s|%s|%s|%s|%s", house.getHouseCode(),
-            house.getHouseName(),
-            tagsStr,
-            Objects.isNull(houseLayoutRepoById) ? "" : houseLayoutRepoById.getLayoutName(),
-            room.getRoomNumber());
+                house.getHouseName(),
+                tagsStr,
+                Objects.isNull(houseLayoutRepoById) ? "" : houseLayoutRepoById.getLayoutName(),
+                room.getRoomNumber());
     }
 }

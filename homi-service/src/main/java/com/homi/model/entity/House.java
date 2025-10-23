@@ -79,10 +79,6 @@ public class House implements Serializable {
     @TableField("address")
     private String address;
 
-    @Schema(description = "标签")
-    @TableField("tags")
-    private String tags;
-
     @Schema(description = "座栋")
     @TableField("building")
     private String building;
@@ -101,7 +97,7 @@ public class House implements Serializable {
 
     @Schema(description = "出租类型：1=整租，2=合租")
     @TableField("rental_type")
-    private Long rentalType;
+    private Integer rentalType;
 
     @Schema(description = "套内面积")
     @TableField("area")
@@ -146,18 +142,6 @@ public class House implements Serializable {
     @Schema(description = "物业费，每月")
     @TableField("mgmt_fee")
     private BigDecimal mgmtFee;
-
-    @Schema(description = "设施、从字典dict_data获取并配置")
-    @TableField("facilities")
-    private String facilities;
-
-    @Schema(description = "图片列表")
-    @TableField("image_list")
-    private String imageList;
-
-    @Schema(description = "视频列表")
-    @TableField("video_list")
-    private String videoList;
 
     @Schema(description = "房间数 为0表示未分配房间")
     @TableField("room_count")
