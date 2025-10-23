@@ -187,12 +187,6 @@ public class FocusService {
             String houseCode = String.format("%s%s%s%s", focusCreateDto.getFocusCode(), houseDTO.getBuilding(), houseDTO.getUnit(), houseDTO.getDoorNumber());
             house.setHouseCode(houseCode);
 
-            house.setAddress(String.format("%s%s%s%s%s", focusCreateDto.getCommunity().getDistrict(),
-                    focusCreateDto.getCommunity().getName(),
-                    houseDTO.getBuilding(),
-                    houseDTO.getUnit(),
-                    houseDTO.getDoorNumber() + "室"));
-
             house.setHouseName(String.format("%s%s%s栋%s-%s室", focusCreateDto.getCommunity().getDistrict(),
                     focusCreateDto.getCommunity().getName(),
                     houseDTO.getBuilding(),
