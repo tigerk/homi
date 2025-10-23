@@ -57,16 +57,13 @@ public class RoomSearchService {
     public String generateKeywords(Room room) {
         House house = houseRepo.getById(room.getHouseId());
         HouseLayout houseLayoutRepoById = null;
-        String tagsStr = CharSequenceUtil.EMPTY;
         if (Objects.nonNull(house.getHouseLayoutId())) {
             houseLayoutRepoById = houseLayoutRepo.getById(house.getHouseLayoutId());
-            List<String> tags = JSONUtil.toList(houseLayoutRepoById.getTags(), String.class);
-            tagsStr = String.join("|", tags);
         }
 
-        return String.format("%s|%s|%s|%s|%s", house.getHouseCode(),
+        return String.format("%s|%s|%s|%s",
+                house.getHouseCode(),
                 house.getHouseName(),
-                tagsStr,
                 Objects.isNull(houseLayoutRepoById) ? "" : houseLayoutRepoById.getLayoutName(),
                 room.getRoomNumber());
     }
