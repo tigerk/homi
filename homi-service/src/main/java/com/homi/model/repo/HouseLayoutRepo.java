@@ -53,45 +53,4 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
             return houseLayoutDTO;
         }).collect(Collectors.toList());
     }
-
-    /**
-     * 创建集中式房源户型
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/8/20 13:50
-     *
-     * @param houseCreateDto 创建房源参数
-     * @return java.util.Map<java.lang.Long, java.lang.Long>
-     */
-    public Map<Long, Long> createFocusHouseLayouts(FocusCreateDTO houseCreateDto) {
-        Map<Long, Long> houseLayoutIdMap = new HashMap<>();
-        houseCreateDto.getHouseLayoutList().forEach(houseLayoutDTO -> {
-            HouseLayout houseLayout = new HouseLayout();
-            BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
-            houseLayout.setLeaseMode(LeaseModeEnum.FOCUS.getCode());
-            houseLayout.setModeRefId(houseCreateDto.getId());
-            houseLayout.setCompanyId(houseCreateDto.getCompanyId());
-            houseLayout.setCreateBy(houseCreateDto.getCreateBy());
-            houseLayout.setCreateTime(houseCreateDto.getCreateTime());
-            houseLayout.setUpdateBy(houseCreateDto.getUpdateBy());
-            houseLayout.setUpdateTime(houseCreateDto.getUpdateTime());
-
-            // 冗余信息
-            houseLayout.setFacilities(JSONUtil.toJsonStr(houseLayoutDTO.getFacilities()));
-            // 设置标签
-            houseLayout.setTags(JSONUtil.toJsonStr(houseLayoutDTO.getTags()));
-            houseLayout.setImageList(JSONUtil.toJsonStr(houseLayoutDTO.getImageList()));
-
-            if (houseLayoutDTO.getNewly().equals(Boolean.TRUE)) {
-                getBaseMapper().insert(houseLayout);
-            } else {
-                houseLayout.setId(houseLayoutDTO.getId());
-                updateById(houseLayout);
-            }
-
-            houseLayoutIdMap.put(houseLayoutDTO.getId(), houseLayout.getId());
-        });
-
-        return houseLayoutIdMap;
-    }
 }

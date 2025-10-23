@@ -22,10 +22,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 应用于 homi
@@ -85,12 +82,53 @@ public class FocusService {
         saveFocusBuildings(focus.getId(), focusCreateDto.getBuildings());
 
         // 创建集中式户型
-        Map<Long, Long> houseLayoutIdMap = houseLayoutRepo.createFocusHouseLayouts(focusCreateDto);
+        Map<Long, Long> houseLayoutIdMap = createFocusHouseLayouts(focusCreateDto);
 
         // 创建集中式房源
         createFocusHouses(houseLayoutIdMap, focusCreateDto);
 
         return focus.getId();
+    }
+
+    /**
+     * 创建集中式房源户型
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/20 13:50
+     *
+     * @param houseCreateDto 创建房源参数
+     * @return java.util.Map<java.lang.Long, java.lang.Long>
+     */
+    public Map<Long, Long> createFocusHouseLayouts(FocusCreateDTO houseCreateDto) {
+        Map<Long, Long> houseLayoutIdMap = new HashMap<>();
+        houseCreateDto.getHouseLayoutList().forEach(houseLayoutDTO -> {
+            HouseLayout houseLayout = new HouseLayout();
+            BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
+            houseLayout.setLeaseMode(LeaseModeEnum.FOCUS.getCode());
+            houseLayout.setModeRefId(houseCreateDto.getId());
+            houseLayout.setCompanyId(houseCreateDto.getCompanyId());
+            houseLayout.setCreateBy(houseCreateDto.getCreateBy());
+            houseLayout.setCreateTime(houseCreateDto.getCreateTime());
+            houseLayout.setUpdateBy(houseCreateDto.getUpdateBy());
+            houseLayout.setUpdateTime(houseCreateDto.getUpdateTime());
+
+            // 冗余信息
+            houseLayout.setFacilities(JSONUtil.toJsonStr(houseLayoutDTO.getFacilities()));
+            // 设置标签
+            houseLayout.setTags(JSONUtil.toJsonStr(houseLayoutDTO.getTags()));
+            houseLayout.setImageList(JSONUtil.toJsonStr(houseLayoutDTO.getImageList()));
+
+            if (houseLayoutDTO.getNewly().equals(Boolean.TRUE)) {
+                houseLayoutRepo.getBaseMapper().insert(houseLayout);
+            } else {
+                houseLayout.setId(houseLayoutDTO.getId());
+                houseLayoutRepo.getBaseMapper().updateById(houseLayout);
+            }
+
+            houseLayoutIdMap.put(houseLayoutDTO.getId(), houseLayout.getId());
+        });
+
+        return houseLayoutIdMap;
     }
 
     /**
@@ -153,7 +191,7 @@ public class FocusService {
                     focusCreateDto.getCommunity().getName(),
                     houseDTO.getBuilding(),
                     houseDTO.getUnit(),
-                    houseDTO.getDoorNumber()+"室"));
+                    houseDTO.getDoorNumber() + "室"));
 
             house.setHouseName(String.format("%s%s%s栋%s-%s室", focusCreateDto.getCommunity().getDistrict(),
                     focusCreateDto.getCommunity().getName(),
@@ -222,7 +260,7 @@ public class FocusService {
         saveFocusBuildings(focus.getId(), focusCreateDto.getBuildings());
 
         // 创建集中式户型
-        Map<Long, Long> houseLayoutIdMap = houseLayoutRepo.createFocusHouseLayouts(focusCreateDto);
+        Map<Long, Long> houseLayoutIdMap = createFocusHouseLayouts(focusCreateDto);
 
         // 创建集中式房源
         createFocusHouses(houseLayoutIdMap, focusCreateDto);
