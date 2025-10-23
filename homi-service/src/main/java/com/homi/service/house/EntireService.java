@@ -131,6 +131,8 @@ public class EntireService {
 
             houseRepo.saveHouse(house);
 
+            houseDTO.setId(house.getId());
+
             createEntireRoom(house, houseDTO.getPrice());
         });
     }
