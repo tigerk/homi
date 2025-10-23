@@ -19,6 +19,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -122,7 +123,6 @@ public class EntireService {
             house.setSalesmanId(entireCreateDTO.getSalesmanId());
 
             house.setHouseName(address);
-            house.setAddress(address);
 
             house.setCreateBy(entireCreateDTO.getCreateBy());
             house.setCreateTime(entireCreateDTO.getCreateTime());
@@ -131,7 +131,7 @@ public class EntireService {
 
             houseRepo.saveHouse(house);
 
-            createEntireRoom(house);
+            createEntireRoom(house, houseDTO.getPrice());
         });
     }
 
@@ -158,16 +158,26 @@ public class EntireService {
         return houseLayout.getId();
     }
 
-    private void createEntireRoom(House house) {
+    /**
+     * 设置价格
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/10/23 15:40
+     *
+     * @param house 参数说明
+     * @param price 参数说明
+     */
+    private void createEntireRoom(House house, BigDecimal price) {
         Room room = new Room();
 
         BeanUtils.copyProperties(house, room);
 
         room.setHouseId(house.getId());
+        room.setPrice(price);
+
         RoomStatusEnum roomStatusEnum = roomRepo.calculateRoomStatus(room);
         room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));
-
         room.setRoomNumber(house.getDoorNumber());
 
         Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(house.getId(), house.getDoorNumber());
