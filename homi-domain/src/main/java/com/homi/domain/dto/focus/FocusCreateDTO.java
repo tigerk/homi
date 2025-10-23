@@ -90,6 +90,9 @@ public class FocusCreateDTO {
     @Schema(description = "图片列表")
     private List<String> imageList;
 
+    @Schema(description = "创建人")
+    private Long createBy;
+
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
@@ -100,7 +103,4 @@ public class FocusCreateDTO {
     @Schema(description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
-
-    @Schema(description = "创建人")
-    private Long createBy;
 }
