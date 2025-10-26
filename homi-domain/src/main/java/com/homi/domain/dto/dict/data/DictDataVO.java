@@ -1,4 +1,4 @@
-package com.homi.domain.dto.dict;
+package com.homi.domain.dto.dict.data;
 
 import lombok.Data;
 

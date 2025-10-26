@@ -35,6 +35,14 @@ public class SysDict implements Serializable {
     @TableId("id")
     private Long id;
 
+    @Schema(description = "公司id")
+    @TableField("company_id")
+    private Long companyId;
+
+    @Schema(description = "父节点")
+    @TableField("parent_id")
+    private Long parentId;
+
     @Schema(description = "字典编码")
     @TableField("dict_code")
     private String dictCode;

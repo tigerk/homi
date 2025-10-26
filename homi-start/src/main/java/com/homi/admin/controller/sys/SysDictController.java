@@ -8,6 +8,7 @@ import com.homi.domain.dto.dict.DictWithDataVO;
 import com.homi.domain.dto.dict.SysDictCreateDTO;
 import com.homi.domain.dto.dict.SysDictUpdateDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
+import com.homi.domain.vo.dict.SysDictVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysDict;
 import com.homi.service.system.SysDictDataService;
@@ -45,7 +46,7 @@ public class SysDictController {
      */
     @GetMapping("list")
 //    @SaCheckPermission("system:dict:query")
-    public ResponseResult<List<SysDict>> list(DictQueryDTO queryDTO) {
+    public ResponseResult<List<SysDictVO>> list(DictQueryDTO queryDTO) {
         return ResponseResult.ok(sysDictService.list(queryDTO));
     }
 

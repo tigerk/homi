@@ -7,15 +7,22 @@ import com.homi.domain.dto.dict.DictQueryDTO;
 import com.homi.domain.dto.dict.DictWithDataVO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.StatusEnum;
+import com.homi.domain.vo.dict.SysDictVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysDict;
 import com.homi.model.mapper.SysDictMapper;
 import com.homi.model.repo.SysDictRepo;
+import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 字典表(SysDict)表服务实现类
@@ -86,7 +93,7 @@ public class SysDictService {
     }
 
 
-    public List<SysDict> list(DictQueryDTO queryDTO) {
+    public List<SysDictVO> list(DictQueryDTO queryDTO) {
         LambdaQueryWrapper<SysDict> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(CharSequenceUtil.isNotEmpty(queryDTO.getDictName()), SysDict::getDictName, queryDTO.getDictName())
                 .like(CharSequenceUtil.isNotEmpty(queryDTO.getDictCode()), SysDict::getDictCode, queryDTO.getDictCode())
@@ -95,7 +102,25 @@ public class SysDictService {
 
         queryWrapper.orderByAsc(SysDict::getSort);
 
-        return sysDictRepo.list(queryWrapper);
+        List<SysDict> list = sysDictRepo.list(queryWrapper);
+
+        Map<Long, SysDictVO> dictMap = list.stream().filter(dict -> dict.getParentId() == 0)
+                .map(dict -> {
+                    SysDictVO sysDictVO = new SysDictVO();
+                    BeanUtils.copyProperties(dict, sysDictVO);
+                    sysDictVO.setChildren(new ArrayList<>());
+                    return sysDictVO;
+                })
+                .collect(Collectors.toMap(SysDictVO::getId, Function.identity()));
+        list.forEach(dict -> {
+            SysDictVO parentDict = dictMap.get(dict.getParentId());
+            if (parentDict != null) {
+                SysDictVO sysDictVO = BeanCopyUtils.copyBean(dict, SysDictVO.class);
+                parentDict.getChildren().add(sysDictVO);
+            }
+        });
+
+        return new ArrayList<>(dictMap.values());
     }
 
     public Boolean removeDictById(Long id) {

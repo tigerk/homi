@@ -34,13 +34,9 @@
         remark,
         create_time,
         create_by,
-        register_source,
+        register_source
         FROM sys_user
         <where>
-            company_id = #{query.companyId}
-            <if test="query.deptId != null">
-                AND dept_id = #{query.deptId}
-            </if>
             <if test="query.username != null and query.username != ''">
                 AND username LIKE CONCAT('%', #{query.username}
                 , '%')
