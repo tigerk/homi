@@ -51,6 +51,7 @@ public class MyBatisGenerator {
                 .dbUsername("root")
                 .dbPassword("123456")
                 .tblPrefix("")
+                // 创建目录，从项目根目录开始
                 .moduleNameOfDao("homi/homi-service")
                 .entityPackageName("com.homi.model.entity")
                 .mapperPackageName("com.homi.model.mapper")
