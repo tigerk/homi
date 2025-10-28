@@ -51,13 +51,13 @@ public class MyBatisGenerator {
                 .dbUsername("root")
                 .dbPassword("123456")
                 .tblPrefix("")
-                .moduleNameOfDao("homi-service")
+                .moduleNameOfDao("homi/homi-service")
                 .entityPackageName("com.homi.model.entity")
                 .mapperPackageName("com.homi.model.mapper")
                 .servicePackageName("com.homi.model.repo")
                 .tblNameList(Arrays.asList(
-                        "temp_file_resource",
-                        "file_resource"
+                        "room_price_config",
+                        "room_price_plan"
                 )).build();
 
         myBatisGenerator.generate();
