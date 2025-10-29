@@ -1,10 +1,10 @@
 package com.homi.admin.controller.sys;
 
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.homi.annotation.Log;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
+import com.homi.domain.dto.dict.DictWithDataVO;
 import com.homi.domain.dto.dict.data.DictDataQueryDTO;
 import com.homi.domain.dto.dict.data.SysDictDataCreateDTO;
 import com.homi.domain.enums.common.OperationTypeEnum;
@@ -57,16 +57,24 @@ public class SysDictDataController {
      * @return 单条数据
      */
     @GetMapping("/get/{id}")
-    public ResponseResult<SysDictData> selectOne(@PathVariable Long id) {
+    public ResponseResult<SysDictData> getById(@PathVariable Long id) {
         return ResponseResult.ok(sysDictDataService.getDictDataById(id));
     }
 
     @GetMapping("/listByDictCode")
     @Schema(description = "通过字典编号查询数据项")
-    public ResponseResult<List<SysDictData>> selectOne(@RequestParam("dictCode") String dictCode) {
+    public ResponseResult<List<SysDictData>> listByDictCode(@RequestParam("dictCode") String dictCode) {
         SysDict dictByCode = sysDictService.getDictByCode(dictCode);
 
         return ResponseResult.ok(sysDictDataService.listByDictId(dictByCode.getId()));
+    }
+
+    @GetMapping("/listByParentCode")
+    @Schema(description = "通过父节点编号查询数据项，使用二级结构返回，children 字段包含子项")
+    public ResponseResult<List<DictWithDataVO>> listByParentCode(@RequestParam("dictCode") String dictCode) {
+        SysDict dictByCode = sysDictService.getDictByCode(dictCode);
+
+        return ResponseResult.ok(sysDictDataService.listByParentCode(dictByCode.getId()));
     }
 
     /**
@@ -79,7 +87,7 @@ public class SysDictDataController {
 //    @SaCheckPermission("system:dict:data:create")
     public ResponseResult<Long> create(@Valid @RequestBody SysDictDataCreateDTO createDTO) {
         SysDictData sysDictData = BeanCopyUtils.copyBean(createDTO, SysDictData.class);
-        if(Objects.isNull(createDTO.getId())) {
+        if (Objects.isNull(createDTO.getId())) {
             return ResponseResult.ok(sysDictDataService.createDictData(sysDictData));
         } else {
             return ResponseResult.ok(sysDictDataService.updateDictData(sysDictData));

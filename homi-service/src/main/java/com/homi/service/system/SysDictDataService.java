@@ -7,12 +7,14 @@ import cn.hutool.extra.pinyin.PinyinUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
+import com.homi.domain.dto.dict.DictWithDataVO;
 import com.homi.domain.dto.dict.data.DictDataQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.exception.BizException;
 import com.homi.model.entity.SysDictData;
 import com.homi.model.mapper.SysDictDataMapper;
 import com.homi.model.repo.SysDictDataRepo;
+import com.homi.model.repo.SysDictRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,8 @@ public class SysDictDataService {
     private final SysDictDataMapper sysDictDataMapper;
 
     private final SysDictDataRepo sysDictDataRepo;
+
+    private final SysDictRepo sysDictRepo;
 
     /**
      * 创建字典
@@ -142,6 +146,10 @@ public class SysDictDataService {
                 .orderByAsc(SysDictData::getSort);
 
         return sysDictDataRepo.list(queryWrapper);
+    }
+
+    public List<DictWithDataVO> listByParentCode(Long parentId) {
+        return sysDictRepo.getBaseMapper().listDictListWithData(parentId);
     }
 }
 

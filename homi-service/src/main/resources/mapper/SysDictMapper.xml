@@ -17,7 +17,9 @@
     <!-- 结果映射 -->
     <resultMap id="DictWithDataResultMap" type="com.homi.domain.dto.dict.DictWithDataVO">
         <id column="dictCode" property="dictCode"/>
-        <collection property="dictValue" ofType="com.homi.domain.dto.dict.data.DictDataVO">
+        <id column="dictName" property="dictName"/>
+        <collection property="dictDataList" ofType="com.homi.domain.dto.dict.data.DictDataVO">
+            <id column="id" property="id"/>
             <result column="name" property="name"/>
             <result column="value" property="value"/>
             <result column="color" property="color"/>
@@ -27,14 +29,33 @@
     <!-- 查询所有字典及其下的数据项 -->
     <select id="listAllDictWithData" resultMap="DictWithDataResultMap">
         SELECT d.dict_code AS dictCode,
-               dd.name     AS name,
+               d.dict_name AS dictName,
+               dd.id       As id,
+               dd.name     AS `name`,
                dd.value    AS `value`,
                dd.color    AS color
         FROM sys_dict d
                  LEFT JOIN
              sys_dict_data dd ON d.id = dd.dict_id
         where d.deleted = 0
-          and dd.status = 0
-        ORDER BY d.dict_code, dd.sort_order
+          and dd.status = 1
+        ORDER BY d.dict_code, dd.sort
+    </select>
+
+    <!-- 查询所有字典及其下的数据项 -->
+    <select id="listDictListWithData" resultMap="DictWithDataResultMap">
+        SELECT d.dict_code AS dictCode,
+               d.dict_name AS dictName,
+               dd.id       As id,
+               dd.name     AS `name`,
+               dd.value    AS `value`,
+               dd.color    AS color
+        FROM sys_dict d
+                 LEFT JOIN
+             sys_dict_data dd ON d.id = dd.dict_id
+        where d.deleted = 0
+          and dd.status = 1
+          and d.parent_id = #{parentId}
+        ORDER BY d.dict_code, dd.sort
     </select>
 </mapper>

@@ -11,6 +11,8 @@ import java.util.List;
 public class DictWithDataVO {
 
     private String dictCode;
+    @Schema(description = "字典名称")
+    private String dictName;
 
-    private List<DictDataVO> dictValue;
+    private List<DictDataVO> dictDataList;
 }

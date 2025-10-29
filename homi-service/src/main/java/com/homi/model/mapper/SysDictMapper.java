@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.homi.domain.dto.dict.DictWithDataVO;
 import com.homi.model.entity.SysDict;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -22,4 +23,16 @@ public interface SysDictMapper extends BaseMapper<SysDict> {
      * 获取全部字典以及字典下的数据项
      */
     List<DictWithDataVO> listAllDictWithData();
+
+
+    /**
+     * 描述
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/10/29 16:49
+
+      * @param parentId 参数说明
+     * @return java.util.List<com.homi.domain.dto.dict.DictWithDataVO>
+     */
+    List<DictWithDataVO> listDictListWithData(@Param("parentId") Long parentId);
 }

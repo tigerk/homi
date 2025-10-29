@@ -10,6 +10,7 @@ import lombok.Data;
  */
 @Data
 public class DictDataVO {
+    private String id;
 
     private String name;
 
