@@ -4,16 +4,15 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -21,7 +20,7 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-09-19
+ * @since 2025-11-03
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -111,4 +110,20 @@ public class Room implements Serializable {
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
+
+    @Schema(description = "房间特色")
+    @TableField("tags")
+    private String tags;
+
+    @Schema(description = "设施、从字典dict_data获取并配置")
+    @TableField("facilities")
+    private String facilities;
+
+    @Schema(description = "图片列表")
+    @TableField("image_list")
+    private String imageList;
+
+    @Schema(description = "视频")
+    @TableField("video_list")
+    private String videoList;
 }

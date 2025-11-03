@@ -33,6 +33,7 @@ public class ShareService {
     private final RoomSearchService roomSearchService;
     private final PriceConfigService priceConfigService;
 
+
     /**
      * 设置价格
      * <p>

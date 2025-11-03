@@ -36,7 +36,7 @@ public class MyBatisGenerator {
 
     String schema;
 
-    String moduleNameOfDao;
+    String savePath;
     String entityPackageName;
     String mapperPackageName;
     String servicePackageName;
@@ -52,13 +52,12 @@ public class MyBatisGenerator {
                 .dbPassword("123456")
                 .tblPrefix("")
                 // 创建目录，从项目根目录开始
-                .moduleNameOfDao("homi/homi-service")
+                .savePath("homi/homi-service")
                 .entityPackageName("com.homi.model.entity")
                 .mapperPackageName("com.homi.model.mapper")
                 .servicePackageName("com.homi.model.repo")
                 .tblNameList(Arrays.asList(
-                        "room_price_config",
-                        "room_price_plan"
+                        "room"
                 )).build();
 
         myBatisGenerator.generate();
@@ -78,13 +77,13 @@ public class MyBatisGenerator {
                     Map<OutputFile, String> pathInfo = new EnumMap<>(OutputFile.class);
                     String sourcePath = "/src/main/java/";
                     //entity 路径
-                    pathInfo.put(OutputFile.entity, projectPath + moduleNameOfDao + sourcePath + entityPackageName.replaceAll("\\.", "/"));
+                    pathInfo.put(OutputFile.entity, projectPath + savePath + sourcePath + entityPackageName.replaceAll("\\.", "/"));
                     //mapper 路径
-                    pathInfo.put(OutputFile.mapper, projectPath + moduleNameOfDao + sourcePath + mapperPackageName.replaceAll("\\.", "/"));
+                    pathInfo.put(OutputFile.mapper, projectPath + savePath + sourcePath + mapperPackageName.replaceAll("\\.", "/"));
                     //mapper xml文件 路径
-                    pathInfo.put(OutputFile.xml, projectPath + moduleNameOfDao + "/src/main/resources/mapper");
+                    pathInfo.put(OutputFile.xml, projectPath + savePath + "/src/main/resources/mapper");
                     //service 路径
-                    pathInfo.put(OutputFile.serviceImpl, projectPath + moduleNameOfDao + sourcePath + servicePackageName.replaceAll("\\.", "/"));
+                    pathInfo.put(OutputFile.serviceImpl, projectPath + savePath + sourcePath + servicePackageName.replaceAll("\\.", "/"));
                     /*
                      * 类文件里边的包路径：package xxx.xxx.xxx
                      */

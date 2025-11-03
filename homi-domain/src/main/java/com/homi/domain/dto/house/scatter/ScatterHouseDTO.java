@@ -51,12 +51,18 @@ public class ScatterHouseDTO {
     @Schema(description = "面积")
     private BigDecimal area;
 
+    /*
+     * 整租使用：price + priceConfig 直接在 house 中配置。
+     */
     @Schema(description = "整租使用：房间出租价格，单位：元/月")
     private BigDecimal price;
 
     @Schema(description = "整租使用：房间价格配置")
     private PriceConfigDTO priceConfig;
 
+    /*
+     * 合租使用：房间列表，每个房间包含房间号、面积、价格等信息
+     */
     @Schema(description = "合租使用：房间列表，每个房间包含房间号、面积、价格等信息")
     private List<RoomCreateDTO> roomList;
 }
