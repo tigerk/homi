@@ -4,7 +4,7 @@ package com.homi.admin.controller.sys;
 import com.homi.annotation.Log;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
-import com.homi.domain.dto.dict.DictWithDataVO;
+import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.domain.dto.dict.data.DictDataQueryDTO;
 import com.homi.domain.dto.dict.data.SysDictDataCreateDTO;
 import com.homi.domain.enums.common.OperationTypeEnum;

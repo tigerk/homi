@@ -3,9 +3,9 @@ package com.homi.admin.controller.room;
 
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
-import com.homi.domain.dto.room.RoomItemDTO;
+import com.homi.domain.vo.room.RoomItemVO;
 import com.homi.domain.dto.room.RoomQueryDTO;
-import com.homi.domain.dto.room.RoomTotalItemDTO;
+import com.homi.domain.vo.room.RoomTotalItemVO;
 import com.homi.domain.dto.room.grid.RoomGridDTO;
 import com.homi.domain.vo.room.RoomTotalVO;
 import com.homi.service.room.RoomGridService;
@@ -30,13 +30,13 @@ public class RoomController {
     private final RoomSearchService roomSearchService;
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<RoomItemDTO>> getRoomList(@RequestBody RoomQueryDTO query) {
+    public ResponseResult<PageVO<RoomItemVO>> getRoomList(@RequestBody RoomQueryDTO query) {
         return ResponseResult.ok(roomService.getRoomList(query));
     }
 
     @PostMapping("/total")
     public ResponseResult<RoomTotalVO> getRoomTotal(@RequestBody RoomQueryDTO query) {
-        List<RoomTotalItemDTO> roomStatusTotal = roomService.getRoomStatusTotal(query);
+        List<RoomTotalItemVO> roomStatusTotal = roomService.getRoomStatusTotal(query);
         RoomTotalVO roomTotalVO = new RoomTotalVO();
         roomTotalVO.setStatusList(roomStatusTotal);
 

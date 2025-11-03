@@ -1,7 +1,10 @@
 package com.homi.model.repo;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.domain.dto.community.CommunityDTO;
+import com.homi.domain.dto.house.scatter.ScatterHouseDTO;
 import com.homi.model.entity.House;
 import com.homi.model.entity.Room;
 import com.homi.model.mapper.HouseMapper;
@@ -77,5 +80,13 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         queryWrapper.eq(House::getDoorNumber, doorNumber);
 
         return count(queryWrapper) > 0;
+    }
+
+    public String getScatterAddress(CommunityDTO community, ScatterHouseDTO houseDTO) {
+        return String.format("%s%s%s栋%s-%s室", community.getDistrict(),
+                community.getName(),
+                houseDTO.getBuilding(),
+                CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : houseDTO.getUnit() + "单元",
+                houseDTO.getDoorNumber());
     }
 }

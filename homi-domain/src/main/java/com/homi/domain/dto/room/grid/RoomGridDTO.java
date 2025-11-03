@@ -1,9 +1,9 @@
 package com.homi.domain.dto.room.grid;
 
+import com.homi.domain.vo.room.grid.RoomGridItemVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -17,7 +17,7 @@ import java.util.List;
 @Schema(description = "房间网格 DTO，用于展示小区楼栋楼层及房间信息")
 public class RoomGridDTO {
     @Schema(description = "房间网格项列表")
-    private List<RoomGridItemDTO> roomGridItemList;
+    private List<RoomGridItemVO> roomGridItemList;
 
     @Schema(description = "当前页")
     private Long currentPage;

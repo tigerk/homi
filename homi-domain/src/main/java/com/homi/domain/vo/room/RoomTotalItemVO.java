@@ -1,0 +1,31 @@
+package com.homi.domain.vo.room;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * 应用于 homi
+ *
+ * @author tk
+ * @version v1.0
+ * {@code @date} 2025/8/7
+ */
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class RoomTotalItemVO {
+    @Schema(description = "房间状态")
+    private Integer roomStatus;
+
+    @Schema(description = "房间状态，参考：RoomStatusEnum")
+    private String roomStatusName;
+
+    @Schema(description = "房间状态颜色，参考：RoomStatusEnum")
+    private String roomStatusColor;
+
+    @Schema(description = "数量")
+    private Integer total;
+}

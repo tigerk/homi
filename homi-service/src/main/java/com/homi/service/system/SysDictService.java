@@ -4,7 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.dto.dict.DictQueryDTO;
-import com.homi.domain.dto.dict.DictWithDataVO;
+import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.dict.SysDictVO;

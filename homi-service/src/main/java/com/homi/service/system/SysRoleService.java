@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.dto.role.RoleQueryDTO;
-import com.homi.domain.dto.role.SysRoleVO;
+import com.homi.domain.vo.role.SysRoleVO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.enums.common.StatusEnum;

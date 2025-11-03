@@ -1,7 +1,7 @@
 package com.homi.service.company;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.domain.dto.company.CompanyListVO;
+import com.homi.domain.vo.company.CompanyListVO;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.model.entity.Company;
 import com.homi.model.entity.CompanyUser;

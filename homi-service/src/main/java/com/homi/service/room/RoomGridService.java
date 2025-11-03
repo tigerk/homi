@@ -3,11 +3,12 @@ package com.homi.service.room;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.EnumUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.homi.domain.dto.room.RoomItemDTO;
+import com.homi.domain.vo.room.RoomItemVO;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.grid.*;
 import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.domain.enums.house.LeaseModeEnum;
+import com.homi.domain.vo.room.grid.*;
 import com.homi.model.entity.Community;
 import com.homi.model.entity.Focus;
 import com.homi.model.mapper.HouseMapper;
@@ -46,9 +47,9 @@ public class RoomGridService {
      * {@code @date} 2025/9/29 14:27
      *
      * @param query 参数说明
-     * @return java.util.List<com.homi.domain.dto.room.grid.RoomAggregatedDTO>
+     * @return java.util.List<com.homi.domain.vo.room.grid.RoomAggregatedVO>
      */
-    public List<RoomAggregatedDTO> getAggregatedRooms(RoomQueryDTO query) {
+    public List<RoomAggregatedVO> getAggregatedRooms(RoomQueryDTO query) {
         return roomRepo.selectAggregatedRooms(query);
     }
 
@@ -84,11 +85,11 @@ public class RoomGridService {
         RoomGridDTO result = new RoomGridDTO();
 
         // 一次只显示三个楼层的数据
-        List<RoomAggregatedDTO> aggregatedRooms = getAggregatedRooms(query);
+        List<RoomAggregatedVO> aggregatedRooms = getAggregatedRooms(query);
 
         // 4. 获取当前页的小区、楼栋单元和楼层信息
         long offset = (query.getCurrentPage() - 1) * query.getPageSize();
-        List<RoomAggregatedDTO> currentQueryStatistic = aggregatedRooms.stream().skip(offset).limit(query.getPageSize()).toList();
+        List<RoomAggregatedVO> currentQueryStatistic = aggregatedRooms.stream().skip(offset).limit(query.getPageSize()).toList();
 
         result.setCurrentPage(query.getCurrentPage());
         result.setPageSize(query.getPageSize());
@@ -96,11 +97,11 @@ public class RoomGridService {
 
         // 5. 查询分页的小区（项目）、楼栋、单元、楼层的房间数据
         query.setSpatialQuery(currentQueryStatistic);
-        IPage<RoomItemDTO> roomItemDTOIPage = roomRepo.pageRoomGridList(query);
-        List<RoomItemDTO> rooms = roomItemDTOIPage.getRecords();
+        IPage<RoomItemVO> roomItemDTOIPage = roomRepo.pageRoomGridList(query);
+        List<RoomItemVO> rooms = roomItemDTOIPage.getRecords();
 
         // 7. 构建楼层分组数据
-        Map<RoomGridGroupKey, List<RoomItemDTO>> roomGridGroupKeyListMap = rooms.stream().collect(Collectors.groupingBy(
+        Map<RoomGridGroupKey, List<RoomItemVO>> roomGridGroupKeyListMap = rooms.stream().collect(Collectors.groupingBy(
                 room -> new RoomGridGroupKey(
                         room.getModeRefId(),
                         room.getLeaseMode(),
@@ -111,15 +112,15 @@ public class RoomGridService {
         ));
 
         // 8. 构建返回结果
-        List<RoomGridItemDTO> roomGridItemList = new ArrayList<>();
-        for (Map.Entry<RoomGridGroupKey, List<RoomItemDTO>> entry : roomGridGroupKeyListMap.entrySet()) {
-            RoomGridItemDTO roomGridItemDTO = new RoomGridItemDTO();
+        List<RoomGridItemVO> roomGridItemList = new ArrayList<>();
+        for (Map.Entry<RoomGridGroupKey, List<RoomItemVO>> entry : roomGridGroupKeyListMap.entrySet()) {
+            RoomGridItemVO roomGridItemVO = new RoomGridItemVO();
             RoomGridGroupKey key = entry.getKey();
 
             CompoundGroup compoundGroup = getCompoundGroup(key.modeRefId, key.leaseMode, aggregatedRooms);
-            roomGridItemDTO.setCompoundGroup(compoundGroup);
-            roomGridItemDTO.setBuildingGroup(getBuildingGroup(key.modeRefId, key.building, key.unit, aggregatedRooms));
-            roomGridItemDTO.setFloorGroup(getFloorGroup(key.modeRefId, key.building, key.unit, key.floor, aggregatedRooms));
+            roomGridItemVO.setCompoundGroup(compoundGroup);
+            roomGridItemVO.setBuildingGroup(getBuildingGroup(key.modeRefId, key.building, key.unit, aggregatedRooms));
+            roomGridItemVO.setFloorGroup(getFloorGroup(key.modeRefId, key.building, key.unit, key.floor, aggregatedRooms));
 
             // 翻译房间状态
             entry.getValue().forEach(room -> {
@@ -128,13 +129,13 @@ public class RoomGridService {
                 room.setRoomStatusColor(roomStatusEnum.getColor());
             });
 
-            roomGridItemDTO.setRooms(entry.getValue());
+            roomGridItemVO.setRooms(entry.getValue());
 
-            roomGridItemList.add(roomGridItemDTO);
+            roomGridItemList.add(roomGridItemVO);
         }
 
         // 按照 community 倒序、unitGroup 正序、floor 正序排序
-        roomGridItemList.sort(Comparator.comparing((RoomGridItemDTO item) -> -item.getCompoundGroup().getCommunityId())
+        roomGridItemList.sort(Comparator.comparing((RoomGridItemVO item) -> -item.getCompoundGroup().getCommunityId())
                 .thenComparing(item -> item.getBuildingGroup().getBuilding())
                 .thenComparing(item -> item.getBuildingGroup().getUnit())
                 .thenComparing(item -> item.getFloorGroup().getFloor()));
@@ -156,16 +157,16 @@ public class RoomGridService {
      * @param unit            参数说明
      * @param floor           参数说明
      * @param aggregatedRooms 参数说明
-     * @return com.homi.domain.dto.room.grid.FloorGroup
+     * @return com.homi.domain.vo.room.grid.FloorGroup
      */
-    private FloorGroup getFloorGroup(Long modRefId, String building, String unit, Integer floor, List<RoomAggregatedDTO> aggregatedRooms) {
+    private FloorGroup getFloorGroup(Long modRefId, String building, String unit, Integer floor, List<RoomAggregatedVO> aggregatedRooms) {
         FloorGroup floorGroup = new FloorGroup();
         floorGroup.setFloor(floor);
 
         int roomCount = 0;
         int leasedCount = 0;
 
-        for (RoomAggregatedDTO room : aggregatedRooms) {
+        for (RoomAggregatedVO room : aggregatedRooms) {
             if (modRefId.equals(room.getModeRefId()) && building.equals(room.getBuilding()) && unit.equals(room.getUnit()) && floor.equals(room.getFloor())) {
                 roomCount += (room.getRoomCount() != null ? room.getRoomCount() : 0);
                 leasedCount += (room.getLeasedCount() != null ? room.getLeasedCount() : 0);
@@ -191,9 +192,9 @@ public class RoomGridService {
      * @param building        参数说明
      * @param unit            参数说明
      * @param aggregatedRooms 参数说明
-     * @return com.homi.domain.dto.room.grid.BuildingGroup
+     * @return com.homi.domain.vo.room.grid.BuildingGroup
      */
-    private BuildingGroup getBuildingGroup(Long modeRefId, String building, String unit, List<RoomAggregatedDTO> aggregatedRooms) {
+    private BuildingGroup getBuildingGroup(Long modeRefId, String building, String unit, List<RoomAggregatedVO> aggregatedRooms) {
         BuildingGroup buildingGroup = new BuildingGroup();
         buildingGroup.setBuilding(building);
         buildingGroup.setUnit(unit);
@@ -201,7 +202,7 @@ public class RoomGridService {
         int roomCount = 0;
         int leasedCount = 0;
 
-        for (RoomAggregatedDTO room : aggregatedRooms) {
+        for (RoomAggregatedVO room : aggregatedRooms) {
             if (modeRefId.equals(room.getModeRefId()) && building.equals(room.getBuilding()) && unit.equals(room.getUnit())) {
                 roomCount += (room.getRoomCount() != null ? room.getRoomCount() : 0);
                 leasedCount += (room.getLeasedCount() != null ? room.getLeasedCount() : 0);
@@ -228,9 +229,9 @@ public class RoomGridService {
      * @param modeRefId       leaseMode=集中式时，为集中式id；leaseMode=分散式时，为小区 id
      * @param leaseMode       租房模式
      * @param aggregatedRooms 参数说明
-     * @return com.homi.domain.dto.room.grid.CompoundGroup
+     * @return com.homi.domain.vo.room.grid.CompoundGroup
      */
-    public CompoundGroup getCompoundGroup(Long modeRefId, Integer leaseMode, List<RoomAggregatedDTO> aggregatedRooms) {
+    public CompoundGroup getCompoundGroup(Long modeRefId, Integer leaseMode, List<RoomAggregatedVO> aggregatedRooms) {
         CompoundGroup compoundGroup = new CompoundGroup();
         compoundGroup.setModeRefId(modeRefId);
         compoundGroup.setLeaseMode(leaseMode);
@@ -257,7 +258,7 @@ public class RoomGridService {
         int roomCount = 0;
         int leasedCount = 0;
 
-        for (RoomAggregatedDTO room : aggregatedRooms) {
+        for (RoomAggregatedVO room : aggregatedRooms) {
             if (modeRefId.equals(room.getModeRefId())) {
                 Optional.ofNullable(room.getBuilding()).ifPresent(buildings::add);
                 Optional.ofNullable(room.getFloor()).ifPresent(floors::add);

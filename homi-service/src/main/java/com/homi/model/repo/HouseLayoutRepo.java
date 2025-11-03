@@ -1,20 +1,14 @@
 package com.homi.model.repo;
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.domain.dto.focus.FocusCreateDTO;
 import com.homi.domain.dto.house.HouseLayoutDTO;
-import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.model.entity.HouseLayout;
 import com.homi.model.mapper.HouseLayoutMapper;
 import com.homi.utils.BeanCopyUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**

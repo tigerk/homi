@@ -21,7 +21,7 @@
         <result column="deleted" property="deleted"/>
     </resultMap>
 
-    <select id="selectUserList" resultType="com.homi.domain.dto.user.UserVO">
+    <select id="selectUserList" resultType="com.homi.domain.vo.user.UserVO">
         SELECT id,
         username,
         email,

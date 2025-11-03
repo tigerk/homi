@@ -4,7 +4,7 @@ package com.homi.admin.controller.sys;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.dict.DictQueryDTO;
-import com.homi.domain.dto.dict.DictWithDataVO;
+import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.domain.dto.dict.SysDictCreateDTO;
 import com.homi.domain.dto.dict.SysDictUpdateDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;

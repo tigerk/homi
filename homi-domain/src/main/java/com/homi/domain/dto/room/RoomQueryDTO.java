@@ -1,7 +1,7 @@
 package com.homi.domain.dto.room;
 
 import com.homi.domain.base.PageDTO;
-import com.homi.domain.dto.room.grid.RoomAggregatedDTO;
+import com.homi.domain.vo.room.grid.RoomAggregatedVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,7 +19,7 @@ public class RoomQueryDTO extends PageDTO {
     private Long communityId;
 
     @Schema(description = "空间查询参数")
-    private List<RoomAggregatedDTO> spatialQuery;
+    private List<RoomAggregatedVO> spatialQuery;
 
     @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
     private Integer leaseMode;

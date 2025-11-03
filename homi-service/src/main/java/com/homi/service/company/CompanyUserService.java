@@ -1,7 +1,7 @@
 package com.homi.service.company;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.domain.dto.user.UserVO;
+import com.homi.domain.vo.user.UserVO;
 import com.homi.model.entity.CompanyUser;
 import com.homi.model.entity.SysUser;
 import com.homi.model.repo.CompanyUserRepo;
@@ -51,7 +51,7 @@ public class CompanyUserService {
      * {@code @date} 2025/9/12 09:46
      *
      * @param deptId 参数说明
-     * @return java.util.List<com.homi.domain.dto.user.UserVO>
+     * @return java.util.List<com.homi.domain.vo.user.UserVO>
      */
     public List<UserVO> getUserListByDeptId(Long deptId) {
         LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();

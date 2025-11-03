@@ -3,7 +3,7 @@ package com.homi.model.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.domain.dto.role.RoleQueryDTO;
-import com.homi.domain.dto.role.SysRoleVO;
+import com.homi.domain.vo.role.SysRoleVO;
 import com.homi.model.entity.SysRole;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

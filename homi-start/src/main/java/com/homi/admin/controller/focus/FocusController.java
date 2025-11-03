@@ -6,10 +6,10 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
-import com.homi.domain.dto.focus.FocusCreateDTO;
+import com.homi.domain.dto.house.focus.FocusCreateDTO;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.model.repo.UploadedFileRepo;
-import com.homi.service.house.FocusService;
+import com.homi.service.house.focus.FocusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

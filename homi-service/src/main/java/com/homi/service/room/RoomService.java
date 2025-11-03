@@ -5,9 +5,9 @@ import cn.hutool.core.util.EnumUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
-import com.homi.domain.dto.room.RoomItemDTO;
+import com.homi.domain.vo.room.RoomItemVO;
 import com.homi.domain.dto.room.RoomQueryDTO;
-import com.homi.domain.dto.room.RoomTotalItemDTO;
+import com.homi.domain.vo.room.RoomTotalItemVO;
 import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.domain.vo.room.RoomGridVO;
@@ -53,15 +53,15 @@ public class RoomService {
      * @param query 参数说明
      * @return com.homi.domain.base.ResponseResult<com.homi.domain.dto.room.RoomListVO>
      */
-    public PageVO<RoomItemDTO> getRoomList(RoomQueryDTO query) {
-        Page<RoomItemDTO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
+    public PageVO<RoomItemVO> getRoomList(RoomQueryDTO query) {
+        Page<RoomItemVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
-        IPage<RoomItemDTO> roomPage = roomRepo.getBaseMapper().pageRoomList(page, query);
+        IPage<RoomItemVO> roomPage = roomRepo.getBaseMapper().pageRoomList(page, query);
 
         roomPage.getRecords().forEach(this::format);
 
         // 封装返回结果
-        PageVO<RoomItemDTO> pageVO = new PageVO<>();
+        PageVO<RoomItemVO> pageVO = new PageVO<>();
         pageVO.setTotal(roomPage.getTotal());
         pageVO.setList(roomPage.getRecords());
         pageVO.setCurrentPage(roomPage.getCurrent());
@@ -71,7 +71,7 @@ public class RoomService {
         return pageVO;
     }
 
-    public void format(RoomItemDTO room) {
+    public void format(RoomItemVO room) {
         if(room.getLeaseMode().equals(LeaseModeEnum.FOCUS.getCode())) {
             Focus byId = focusRepo.getById(room.getModeRefId());
             room.setCommunityName(byId.getFocusName());
@@ -82,24 +82,24 @@ public class RoomService {
         room.setRoomStatusColor(roomStatusEnum.getColor());
     }
 
-    public List<RoomTotalItemDTO> getRoomStatusTotal(RoomQueryDTO query) {
-        Map<Integer, RoomTotalItemDTO> result = new HashMap<>();
+    public List<RoomTotalItemVO> getRoomStatusTotal(RoomQueryDTO query) {
+        Map<Integer, RoomTotalItemVO> result = new HashMap<>();
         RoomStatusEnum[] values = RoomStatusEnum.values();
         for (RoomStatusEnum roomStatusEnum : values) {
-            RoomTotalItemDTO roomTotalItemDTO = new RoomTotalItemDTO();
-            roomTotalItemDTO.setRoomStatus(roomStatusEnum.getCode());
-            roomTotalItemDTO.setRoomStatusName(roomStatusEnum.getName());
-            roomTotalItemDTO.setRoomStatusColor(roomStatusEnum.getColor());
-            roomTotalItemDTO.setTotal(0);
-            result.put(roomStatusEnum.getCode(), roomTotalItemDTO);
+            RoomTotalItemVO roomTotalItemVO = new RoomTotalItemVO();
+            roomTotalItemVO.setRoomStatus(roomStatusEnum.getCode());
+            roomTotalItemVO.setRoomStatusName(roomStatusEnum.getName());
+            roomTotalItemVO.setRoomStatusColor(roomStatusEnum.getColor());
+            roomTotalItemVO.setTotal(0);
+            result.put(roomStatusEnum.getCode(), roomTotalItemVO);
         }
 
         query.setRoomStatus(null);
 
-        List<RoomTotalItemDTO> statusTotal = roomRepo.getBaseMapper().getStatusTotal(query);
-        statusTotal.forEach(roomTotalItemDTO -> {
-            RoomTotalItemDTO orDefault = result.getOrDefault(roomTotalItemDTO.getRoomStatus(), roomTotalItemDTO);
-            orDefault.setTotal(roomTotalItemDTO.getTotal());
+        List<RoomTotalItemVO> statusTotal = roomRepo.getBaseMapper().getStatusTotal(query);
+        statusTotal.forEach(roomTotalItemVO -> {
+            RoomTotalItemVO orDefault = result.getOrDefault(roomTotalItemVO.getRoomStatus(), roomTotalItemVO);
+            orDefault.setTotal(roomTotalItemVO.getTotal());
         });
 
         return result.values().stream().toList();
@@ -118,16 +118,16 @@ public class RoomService {
         // 设置分页参数以获取所有房间数据
         query.setCurrentPage(1L);
         query.setPageSize(10000L);
-        PageVO<RoomItemDTO> roomPage = getRoomList(query);
+        PageVO<RoomItemVO> roomPage = getRoomList(query);
 
         Map<String, House> allHouseMap = houseRepo.list().stream()
             .collect(Collectors.toMap(House::getHouseCode, house -> house));
 
-        List<RoomItemDTO> allRooms = roomPage.getList();
+        List<RoomItemVO> allRooms = roomPage.getList();
 
         // 按houseId分组
-        Map<String, List<RoomItemDTO>> roomsGroupedByHouse = allRooms.stream()
-            .collect(Collectors.groupingBy(RoomItemDTO::getHouseCode));
+        Map<String, List<RoomItemVO>> roomsGroupedByHouse = allRooms.stream()
+            .collect(Collectors.groupingBy(RoomItemVO::getHouseCode));
 
         // 处理每个house的数据
         return roomsGroupedByHouse.entrySet().stream()
@@ -140,16 +140,16 @@ public class RoomService {
                 roomGridVO.setHouseName(allHouseMap.get(houseCode).getHouseName());
                 roomGridVO.setTotal((long) entry.getValue().size());
 
-                List<RoomItemDTO> roomsInHouse = entry.getValue();
+                List<RoomItemVO> roomsInHouse = entry.getValue();
                 // 按floor分组
-                Map<Integer, List<RoomItemDTO>> roomsGroupedByFloor = roomsInHouse.stream()
-                    .collect(Collectors.groupingBy(RoomItemDTO::getFloor));
+                Map<Integer, List<RoomItemVO>> roomsGroupedByFloor = roomsInHouse.stream()
+                    .collect(Collectors.groupingBy(RoomItemVO::getFloor));
 
                 // 创建楼层列表
                 List<RoomGridVO.HouseFloorGridDTO> floorGridList = roomsGroupedByFloor.entrySet().stream()
                     .map(floorEntry -> {
                         Integer floor = floorEntry.getKey();
-                        List<RoomItemDTO> roomsOnFloor = floorEntry.getValue();
+                        List<RoomItemVO> roomsOnFloor = floorEntry.getValue();
 
                         RoomGridVO.HouseFloorGridDTO floorDTO = new RoomGridVO.HouseFloorGridDTO();
                         floorDTO.setFloor(floor);
@@ -182,10 +182,10 @@ public class RoomService {
      * @param roomsList 参数说明
      * @return cn.hutool.core.lang.Pair<java.lang.Long,java.math.BigDecimal>
      */
-    private Pair<Long, BigDecimal> calculateLeasedRateAndCount(List<RoomItemDTO> roomsList) {
+    private Pair<Long, BigDecimal> calculateLeasedRateAndCount(List<RoomItemVO> roomsList) {
         // 计算出租率
         long leasedCount = roomsList.stream()
-            .map(RoomItemDTO::getRoomStatus)
+            .map(RoomItemVO::getRoomStatus)
             .filter(status -> status != null && status.equals(RoomStatusEnum.LEASED.getCode()))
             .count();
 

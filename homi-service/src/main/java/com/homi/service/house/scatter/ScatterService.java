@@ -1,0 +1,168 @@
+package com.homi.service.house.scatter;
+
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.json.JSONUtil;
+import com.homi.domain.dto.house.HouseLayoutDTO;
+import com.homi.domain.dto.house.scatter.ScatterCreateDTO;
+import com.homi.domain.enums.house.LeaseModeEnum;
+import com.homi.domain.enums.house.RentalTypeEnum;
+import com.homi.model.entity.Community;
+import com.homi.model.entity.House;
+import com.homi.model.entity.HouseLayout;
+import com.homi.model.repo.*;
+import com.homi.service.room.RoomSearchService;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * 应用于 homi
+ *
+ * @author tk
+ * @version v1.0
+ * {@code @date} 2025/10/23
+ */
+
+@Service
+@Slf4j
+public class ScatterService {
+    @Resource
+    private HouseRepo houseRepo;
+
+    @Resource
+    private CommunityRepo communityRepo;
+
+    @Resource
+    private RoomRepo roomRepo;
+
+    @Resource
+    private HouseLayoutRepo houseLayoutRepo;
+
+    @Resource
+    private RoomSearchService roomSearchService;
+
+    @Resource
+    private UploadedFileRepo uploadedFileRepo;
+
+    @Resource
+    private EntireService entireService;
+
+    /**
+     * 创建整租房源
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/10/23 10:19
+     *
+     * @param scatterCreateDTO 参数说明
+     * @return java.lang.Long
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean createHouse(ScatterCreateDTO scatterCreateDTO) {
+        Community community = communityRepo.createCommunity(scatterCreateDTO.getCommunity());
+        scatterCreateDTO.getCommunity().setCommunityId(community.getId());
+
+        // 创建整租房源
+        createHouseList(scatterCreateDTO);
+
+        // 设置上传文件为已使用
+        Optional<List<String>> imageList = scatterCreateDTO.getHouseList().stream()
+                .map(h -> h.getHouseLayout().getImageList())
+                .reduce((v1, v2) -> {
+                    v1.addAll(v2);
+                    return v1;
+                });
+        imageList.ifPresent(strings -> uploadedFileRepo.setFileUsedByName(strings));
+
+        return Boolean.TRUE;
+    }
+
+    private void createHouseList(ScatterCreateDTO scatterCreateDTO) {
+        scatterCreateDTO.getHouseList().forEach(houseDTO -> {
+            String address = String.format("%s%s%s栋%s-%s室", scatterCreateDTO.getCommunity().getDistrict(),
+                    scatterCreateDTO.getCommunity().getName(),
+                    houseDTO.getBuilding(),
+                    CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : houseDTO.getUnit() + "单元",
+                    houseDTO.getDoorNumber());
+
+            House house = new House();
+
+            Boolean exist = houseRepo.checkHouseExist(scatterCreateDTO.getCommunity().getCommunityId(), houseDTO.getBuilding(), houseDTO.getUnit(), houseDTO.getDoorNumber());
+            if (Boolean.TRUE.equals(exist)) {
+                throw new IllegalArgumentException(address + " 已存在！");
+            }
+
+            // 创建户型数据
+            Long layoutId = createScatterHouseLayout(scatterCreateDTO, houseDTO.getHouseLayout());
+            house.setHouseLayoutId(layoutId);
+
+            house.setLeaseMode(LeaseModeEnum.SCATTER.getCode());
+            house.setModeRefId(scatterCreateDTO.getCommunity().getCommunityId());
+            // 设置租赁类型
+            house.setRentalType(houseDTO.getRentalType());
+
+            house.setCommunityId(scatterCreateDTO.getCommunity().getCommunityId());
+            house.setHouseCode(houseDTO.getHouseCode());
+            house.setBuilding(houseDTO.getBuilding());
+            house.setUnit(houseDTO.getUnit());
+            house.setDoorNumber(houseDTO.getDoorNumber());
+            house.setFloor(houseDTO.getFloor());
+            house.setFloorTotal(houseDTO.getFloorTotal());
+            house.setArea(houseDTO.getArea());
+            house.setDirection(houseDTO.getDirection());
+            house.setWater(scatterCreateDTO.getWater());
+            house.setElectricity(scatterCreateDTO.getElectricity());
+            house.setHeating(scatterCreateDTO.getHeating());
+            house.setHasElevator(scatterCreateDTO.getHasElevator());
+
+            house.setDeptId(scatterCreateDTO.getDeptId());
+            house.setSalesmanId(scatterCreateDTO.getSalesmanId());
+
+            house.setHouseName(address);
+
+            house.setCreateBy(scatterCreateDTO.getCreateBy());
+            house.setCreateTime(scatterCreateDTO.getCreateTime());
+            house.setUpdateBy(scatterCreateDTO.getCreateBy());
+            house.setUpdateTime(scatterCreateDTO.getCreateTime());
+
+            houseRepo.saveHouse(house);
+
+            houseDTO.setId(house.getId());
+
+            if (house.getRentalType().equals(RentalTypeEnum.ENTIRE.getCode())) {
+                entireService.createEntireRoom(house, houseDTO.getPrice(), houseDTO.getPriceConfig());
+            }
+        });
+    }
+
+    public Long createScatterHouseLayout(ScatterCreateDTO scatterCreateDTO, HouseLayoutDTO houseLayoutDTO) {
+        HouseLayout houseLayout = new HouseLayout();
+        BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
+        houseLayout.setLeaseMode(LeaseModeEnum.SCATTER.getCode());
+        houseLayout.setModeRefId(scatterCreateDTO.getCommunity().getCommunityId());
+        houseLayout.setCompanyId(scatterCreateDTO.getCompanyId());
+
+        houseLayout.setFacilities(JSONUtil.toJsonStr(houseLayoutDTO.getFacilities()));
+        // 设置标签
+        houseLayout.setTags(JSONUtil.toJsonStr(houseLayoutDTO.getTags()));
+        houseLayout.setImageList(JSONUtil.toJsonStr(houseLayoutDTO.getImageList()));
+        houseLayout.setVideoList(JSONUtil.toJsonStr(houseLayoutDTO.getVideoList()));
+
+        if (houseLayoutDTO.getNewly().equals(Boolean.TRUE)) {
+            houseLayoutRepo.getBaseMapper().insert(houseLayout);
+        } else {
+            houseLayout.setId(houseLayoutDTO.getId());
+            houseLayoutRepo.getBaseMapper().updateById(houseLayout);
+        }
+
+        return houseLayout.getId();
+    }
+
+    public Boolean updateHouse(ScatterCreateDTO scatterCreateDTO) {
+        return Boolean.TRUE;
+    }
+}

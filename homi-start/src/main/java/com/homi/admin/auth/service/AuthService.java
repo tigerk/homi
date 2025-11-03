@@ -14,9 +14,9 @@ import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.login.LoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
-import com.homi.domain.RedisKey;
+import com.homi.domain.enums.RedisKey;
 import com.homi.domain.dto.company.CompanyUserListDTO;
-import com.homi.domain.dto.menu.AsyncRoutesVO;
+import com.homi.domain.vo.menu.AsyncRoutesVO;
 import com.homi.domain.enums.common.CompanyUserTypeEnum;
 import com.homi.domain.enums.common.MenuTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
@@ -34,8 +34,6 @@ import com.homi.service.company.CompanyService;
 import com.homi.service.system.SysMenuService;
 import com.homi.service.system.SysRoleService;
 import com.homi.service.system.UserService;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.BeanUtils;
@@ -248,7 +246,7 @@ public class AuthService {
      * {@code @date} 2025/9/12 09:41
      *
      * @param user 参数说明
-     * @return org.apache.commons.lang3.tuple.Triple<cn.hutool.core.lang.Pair<java.util.List<java.lang.Long>,java.util.List<java.lang.String>>,java.util.List<com.homi.domain.dto.menu.AsyncRoutesVO>,java.util.List<java.lang.String>>
+     * @return org.apache.commons.lang3.tuple.Triple<cn.hutool.core.lang.Pair<java.util.List<java.lang.Long>,java.util.List<java.lang.String>>,java.util.List<com.homi.domain.vo.menu.AsyncRoutesVO>,java.util.List<java.lang.String>>
      */
     public Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> getUserAuth(UserLoginVO user) {
         Company companyById = companyRepo.getById(user.getCurCompanyId());

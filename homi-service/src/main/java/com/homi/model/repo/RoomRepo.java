@@ -5,9 +5,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.domain.dto.focus.FocusHouseDTO;
-import com.homi.domain.dto.room.grid.RoomAggregatedDTO;
-import com.homi.domain.dto.room.RoomItemDTO;
+import com.homi.domain.dto.house.focus.FocusHouseDTO;
+import com.homi.domain.vo.room.grid.RoomAggregatedVO;
+import com.homi.domain.vo.room.RoomItemVO;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.model.entity.Room;
@@ -84,12 +84,12 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         return RoomStatusEnum.AVAILABLE;
     }
 
-    public List<RoomAggregatedDTO> selectAggregatedRooms(RoomQueryDTO query) {
+    public List<RoomAggregatedVO> selectAggregatedRooms(RoomQueryDTO query) {
         return getBaseMapper().selectAggregatedRooms(query);
     }
 
-    public IPage<RoomItemDTO> pageRoomGridList(RoomQueryDTO query) {
-        Page<RoomItemDTO> page = new Page<>(1, Integer.MAX_VALUE);
+    public IPage<RoomItemVO> pageRoomGridList(RoomQueryDTO query) {
+        Page<RoomItemVO> page = new Page<>(1, Integer.MAX_VALUE);
         return getBaseMapper().pageRoomList(page, query);
     }
 

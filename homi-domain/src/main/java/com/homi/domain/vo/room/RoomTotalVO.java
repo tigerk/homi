@@ -1,6 +1,5 @@
 package com.homi.domain.vo.room;
 
-import com.homi.domain.dto.room.RoomTotalItemDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,5 +20,5 @@ import java.util.List;
 @NoArgsConstructor
 public class RoomTotalVO {
     @Schema(description = "房间状态统计")
-    private List<RoomTotalItemDTO> statusList;
+    private List<RoomTotalItemVO> statusList;
 }

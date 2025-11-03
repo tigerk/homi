@@ -15,10 +15,10 @@
     </resultMap>
 
     <!-- 结果映射 -->
-    <resultMap id="DictWithDataResultMap" type="com.homi.domain.dto.dict.DictWithDataVO">
+    <resultMap id="DictWithDataResultMap" type="com.homi.domain.vo.dict.DictWithDataVO">
         <id column="dictCode" property="dictCode"/>
         <id column="dictName" property="dictName"/>
-        <collection property="dictDataList" ofType="com.homi.domain.dto.dict.data.DictDataVO">
+        <collection property="dictDataList" ofType="com.homi.domain.vo.dict.data.DictDataVO">
             <id column="id" property="id"/>
             <result column="name" property="name"/>
             <result column="value" property="value"/>

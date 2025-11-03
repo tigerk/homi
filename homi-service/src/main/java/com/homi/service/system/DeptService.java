@@ -3,7 +3,7 @@ package com.homi.service.system;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.dto.dept.DeptCreateDTO;
 import com.homi.domain.dto.dept.DeptQueryDTO;
-import com.homi.domain.dto.dept.DeptVO;
+import com.homi.domain.vo.dept.DeptVO;
 import com.homi.model.entity.Dept;
 import com.homi.model.mapper.DeptMapper;
 import com.homi.utils.BeanCopyUtils;

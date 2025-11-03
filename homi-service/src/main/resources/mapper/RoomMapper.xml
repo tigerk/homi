@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.homi.model.mapper.RoomMapper">
-    <resultMap id="RoomDetailMap" type="com.homi.domain.dto.room.RoomItemDTO">
+    <resultMap id="RoomDetailMap" type="com.homi.domain.vo.room.RoomItemVO">
         <id property="roomId" column="room_id"/>
         <result property="houseId" column="house_id"/>
         <result property="roomNumber" column="room_number"/>
@@ -81,7 +81,7 @@
         order by r.id desc
     </select>
 
-    <select id="getStatusTotal" resultType="com.homi.domain.dto.room.RoomTotalItemDTO">
+    <select id="getStatusTotal" resultType="com.homi.domain.vo.room.RoomTotalItemVO">
         SELECT room_status, count(room_status) AS total
         FROM room r
         LEFT JOIN house h ON r.house_id = h.id
@@ -126,7 +126,7 @@
         </if>
     </sql>
 
-    <select id="selectAggregatedRooms" resultType="com.homi.domain.dto.room.grid.RoomAggregatedDTO">
+    <select id="selectAggregatedRooms" resultType="com.homi.domain.vo.room.grid.RoomAggregatedVO">
         SELECT h.mode_ref_id,
                h.building,
                h.unit,
