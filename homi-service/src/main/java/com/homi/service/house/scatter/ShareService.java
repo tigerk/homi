@@ -6,6 +6,7 @@ import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.model.entity.House;
 import com.homi.model.entity.Room;
 import com.homi.model.repo.RoomRepo;
+import com.homi.service.price.PriceConfigService;
 import com.homi.service.room.RoomSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class ShareService {
     private final RoomRepo roomRepo;
 
     private final RoomSearchService roomSearchService;
+    private final PriceConfigService priceConfigService;
 
     /**
      * 设置价格
@@ -50,16 +52,19 @@ public class ShareService {
         room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));
 
-        Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(house.getId(), house.getDoorNumber());
+        Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(house.getId(), roomCreateDTO.getRoomNumber());
         if (Objects.nonNull(roomBefore)) {
             room.setId(roomBefore.getId());
-            roomRepo.getBaseMapper().updateById(room);
+            roomRepo.updateById(room);
         } else {
             room.setCreateBy(house.getCreateBy());
             room.setCreateTime(house.getCreateTime());
             room.setVacancyStartTime(DateUtil.date());
-            roomRepo.getBaseMapper().insert(room);
+            roomRepo.save(room);
         }
+
+        roomCreateDTO.getPriceConfig().setRoomId(room.getId());
+        priceConfigService.createPriceConfig(roomCreateDTO.getPriceConfig());
     }
 
     public void createShareRoom(House house, List<RoomCreateDTO> roomList) {

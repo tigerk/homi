@@ -6,6 +6,7 @@ import com.homi.domain.enums.RoomStatusEnum;
 import com.homi.model.entity.House;
 import com.homi.model.entity.Room;
 import com.homi.model.repo.RoomRepo;
+import com.homi.service.price.PriceConfigService;
 import com.homi.service.room.RoomSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,8 @@ public class EntireService {
 
     private final RoomSearchService roomSearchService;
 
+    private final PriceConfigService priceConfigService;
+
     /**
      * 设置价格
      * <p>
@@ -53,17 +56,19 @@ public class EntireService {
         room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));
         room.setRoomNumber(house.getDoorNumber());
-
         Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(house.getId(), house.getDoorNumber());
         if (Objects.nonNull(roomBefore)) {
             room.setId(roomBefore.getId());
-            roomRepo.getBaseMapper().updateById(room);
+            roomRepo.updateById(room);
         } else {
             room.setCreateBy(house.getCreateBy());
             room.setCreateTime(house.getCreateTime());
 
             room.setVacancyStartTime(DateUtil.date());
-            roomRepo.getBaseMapper().insert(room);
+            roomRepo.save(room);
         }
+
+        priceConfig.setRoomId(room.getId());
+        priceConfigService.createPriceConfig(priceConfig);
     }
 }

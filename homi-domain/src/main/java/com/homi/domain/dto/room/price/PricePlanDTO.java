@@ -1,6 +1,7 @@
 package com.homi.domain.dto.room.price;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 import java.math.BigDecimal;
 
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
  * {@code @date} 2025/10/28
  */
 
+@Data
 @Schema(description = "房间租金方案表")
 public class PricePlanDTO {
 
