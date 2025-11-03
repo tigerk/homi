@@ -49,9 +49,12 @@ public class ShareService {
         BeanUtils.copyProperties(roomCreateDTO, room);
 
         room.setHouseId(house.getId());
+        room.setFloor(house.getFloor());
         RoomStatusEnum roomStatusEnum = roomRepo.calculateRoomStatus(room);
         room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));
+
+        room.setUpdateBy(house.getUpdateBy());
 
         Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(house.getId(), roomCreateDTO.getRoomNumber());
         if (Objects.nonNull(roomBefore)) {

@@ -37,7 +37,9 @@ public class MybatisPlusConfig {
             "dept_user",
             "region",
             "community",
-            "uploaded_file"
+            "uploaded_file",
+            "room_price_config",
+            "room_price_plan"
     );
 
     /**

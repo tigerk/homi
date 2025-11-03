@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 应用于 homi
@@ -73,13 +74,16 @@ public class ScatterService {
         createHouseList(scatterCreateDTO);
 
         // 设置上传文件为已使用
-        Optional<List<String>> imageList = scatterCreateDTO.getHouseList().stream()
-                .map(h -> h.getHouseLayout().getImageList())
-                .reduce((v1, v2) -> {
-                    v1.addAll(v2);
-                    return v1;
-                });
-        imageList.ifPresent(strings -> uploadedFileRepo.setFileUsedByName(strings));
+        if (scatterCreateDTO.getHouseList() != null) {
+            List<String> imageList = scatterCreateDTO.getHouseList().stream()
+                    .filter(h -> h.getHouseLayout() != null && h.getHouseLayout().getImageList() != null)
+                    .flatMap(h -> h.getHouseLayout().getImageList().stream())
+                    .collect(Collectors.toList());
+
+            if (!imageList.isEmpty()) { // 确保不为空才创建 Optional
+                Optional.of(imageList).ifPresent(strings -> uploadedFileRepo.setFileUsedByName(strings));
+            }
+        }
 
         return Boolean.TRUE;
     }
@@ -99,7 +103,9 @@ public class ScatterService {
                 throw new IllegalArgumentException(address + " 已存在！");
             }
 
-            // 创建户型数据
+            /*
+             * 创建户型数据
+             */
             Long layoutId = createScatterHouseLayout(scatterCreateDTO, houseDTO.getHouseLayout());
             house.setHouseLayoutId(layoutId);
 
@@ -161,9 +167,11 @@ public class ScatterService {
         houseLayout.setVideoList(JSONUtil.toJsonStr(houseLayoutDTO.getVideoList()));
 
         if (houseLayoutDTO.getNewly().equals(Boolean.TRUE)) {
+            houseLayout.setCreateBy(scatterCreateDTO.getCreateBy());
             houseLayoutRepo.getBaseMapper().insert(houseLayout);
         } else {
             houseLayout.setId(houseLayoutDTO.getId());
+            houseLayout.setUpdateBy(scatterCreateDTO.getUpdateBy());
             houseLayoutRepo.getBaseMapper().updateById(houseLayout);
         }
 

@@ -60,22 +60,4 @@ public class RoomPriceConfig implements Serializable {
     @TableField("deleted")
     @TableLogic
     private Integer deleted;
-
-    @Schema(description = "创建人ID")
-    @TableField("create_by")
-    private Long createBy;
-
-    @Schema(description = "创建时间")
-    @TableField("create_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date createTime;
-
-    @Schema(description = "更新人ID")
-    @TableField("update_by")
-    private Long updateBy;
-
-    @Schema(description = "更新时间")
-    @TableField("update_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date updateTime;
 }

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 应用于 domix-saas
@@ -33,7 +34,7 @@ public class PricePlanDTO {
     private BigDecimal price;
 
     @Schema(description = "其他费用")
-    private String otherFees;
+    private List<OtherFeeDTO> otherFees;
 
 
 }

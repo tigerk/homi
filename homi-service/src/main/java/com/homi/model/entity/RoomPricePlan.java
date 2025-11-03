@@ -60,18 +60,4 @@ public class RoomPricePlan implements Serializable {
     @TableField("deleted")
     @TableLogic
     private Integer deleted;
-
-    @TableField("create_by")
-    private Long createBy;
-
-    @TableField("create_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date createTime;
-
-    @TableField("update_by")
-    private Long updateBy;
-
-    @TableField("update_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date updateTime;
 }

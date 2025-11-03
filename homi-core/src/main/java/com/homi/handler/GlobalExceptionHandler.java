@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseResult<Void> handlerException(Exception e) {
-        log.error("系统错误信息：" + e.getMessage(), e);
+        log.error("系统错误信息：{}", e.getMessage(), e);
         return ResponseResult.error(e.getMessage());
     }
 
