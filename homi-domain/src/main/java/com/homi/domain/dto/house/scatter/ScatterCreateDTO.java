@@ -2,8 +2,6 @@ package com.homi.domain.dto.house.scatter;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.domain.dto.community.CommunityDTO;
-import com.homi.domain.dto.house.scatter.share.ShareHouseDTO;
-import com.homi.domain.dto.room.RoomCreateDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
