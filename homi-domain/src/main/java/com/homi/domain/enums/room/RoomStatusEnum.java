@@ -1,4 +1,4 @@
-package com.homi.domain.enums;
+package com.homi.domain.enums.room;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

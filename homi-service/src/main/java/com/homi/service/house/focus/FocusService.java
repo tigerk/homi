@@ -8,7 +8,7 @@ import com.homi.domain.dto.house.HouseLayoutDTO;
 import com.homi.domain.dto.house.focus.FocusBuildingDTO;
 import com.homi.domain.dto.house.focus.FocusCreateDTO;
 import com.homi.domain.dto.house.focus.FocusHouseDTO;
-import com.homi.domain.enums.RoomStatusEnum;
+import com.homi.domain.enums.room.RoomStatusEnum;
 import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.exception.BizException;

@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.domain.dto.house.focus.FocusHouseDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
-import com.homi.domain.enums.RoomStatusEnum;
+import com.homi.domain.enums.room.RoomStatusEnum;
 import com.homi.domain.vo.room.RoomItemVO;
 import com.homi.domain.vo.room.grid.RoomAggregatedVO;
 import com.homi.model.entity.Room;
@@ -63,7 +63,7 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
      * {@code @date} 2025/9/10 22:53
      *
      * @param room 参数说明
-     * @return com.homi.domain.enums.RoomStatusEnum
+     * @return com.homi.domain.enums.room.RoomStatusEnum
      */
     public RoomStatusEnum calculateRoomStatus(Room room) {
         if (Boolean.TRUE.equals(room.getLeased())) {

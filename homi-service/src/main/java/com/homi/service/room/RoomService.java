@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.room.RoomQueryDTO;
-import com.homi.domain.enums.RoomStatusEnum;
+import com.homi.domain.enums.room.RoomStatusEnum;
 import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.domain.vo.room.RoomGridVO;
 import com.homi.domain.vo.room.RoomItemVO;

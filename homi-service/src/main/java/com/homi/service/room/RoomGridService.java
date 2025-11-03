@@ -5,7 +5,7 @@ import cn.hutool.core.util.EnumUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.grid.RoomGridDTO;
-import com.homi.domain.enums.RoomStatusEnum;
+import com.homi.domain.enums.room.RoomStatusEnum;
 import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.domain.vo.room.RoomItemVO;
 import com.homi.domain.vo.room.grid.*;

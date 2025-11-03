@@ -2,7 +2,7 @@ package com.homi.service.house.scatter;
 
 import cn.hutool.core.date.DateUtil;
 import com.homi.domain.dto.room.price.PriceConfigDTO;
-import com.homi.domain.enums.RoomStatusEnum;
+import com.homi.domain.enums.room.RoomStatusEnum;
 import com.homi.model.entity.House;
 import com.homi.model.entity.Room;
 import com.homi.model.repo.RoomRepo;
