@@ -30,7 +30,7 @@ public class RoomCreateDTO {
     private String roomNumber;
 
     @Schema(description = "房间类型")
-    private String roomType;
+    private Integer roomType;
 
     @Schema(description = "面积")
     private BigDecimal area;

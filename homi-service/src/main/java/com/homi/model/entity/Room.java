@@ -51,6 +51,10 @@ public class Room implements Serializable {
     @TableField("room_number")
     private String roomNumber;
 
+    @Schema(description = "房间类型")
+    @TableField("room_type")
+    private Integer roomType;
+
     @Schema(description = "出房价格")
     @TableField("price")
     private BigDecimal price;

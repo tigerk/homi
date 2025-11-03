@@ -52,6 +52,9 @@ public class ScatterService {
     @Resource
     private EntireService entireService;
 
+    @Resource
+    private ShareService shareService;
+
     /**
      * 创建整租房源
      * <p>
@@ -133,8 +136,13 @@ public class ScatterService {
 
             houseDTO.setId(house.getId());
 
+            /*
+             * 创建整租房源 or 合租房间
+             */
             if (house.getRentalType().equals(RentalTypeEnum.ENTIRE.getCode())) {
                 entireService.createEntireRoom(house, houseDTO.getPrice(), houseDTO.getPriceConfig());
+            } else {
+                shareService.createShareRoom(house, houseDTO.getRoomList());
             }
         });
     }
