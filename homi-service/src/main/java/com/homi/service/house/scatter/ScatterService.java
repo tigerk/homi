@@ -130,7 +130,6 @@ public class ScatterService {
             house.setRentalType(houseDTO.getRentalType());
 
             house.setCommunityId(scatterCreateDTO.getCommunity().getCommunityId());
-            house.setHouseCode(houseDTO.getHouseCode());
             house.setBuilding(houseDTO.getBuilding());
             house.setUnit(houseDTO.getUnit());
             house.setDoorNumber(houseDTO.getDoorNumber());
