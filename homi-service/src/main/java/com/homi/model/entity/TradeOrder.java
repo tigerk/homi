@@ -32,7 +32,7 @@ public class TradeOrder implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "交易订单ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId("id")
     private Long id;
 
     @TableField("company_id")

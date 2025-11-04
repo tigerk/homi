@@ -33,7 +33,7 @@ public class TenantContract implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "合同ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId("id")
     private Long id;
 
     @Schema(description = "租客ID")
