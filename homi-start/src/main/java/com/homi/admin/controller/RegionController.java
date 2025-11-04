@@ -2,6 +2,7 @@ package com.homi.admin.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.base.ResponseResult;
+import com.homi.domain.vo.IdNameVO;
 import com.homi.model.entity.Region;
 import com.homi.model.repo.RegionRepo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,7 +68,7 @@ public class RegionController {
     }
     @Operation(summary = "根据经纬度获取城市区域ID", description = "根据经纬度获取城市区域ID")
     @GetMapping("/getCityByLocation")
-    public ResponseResult<Long> getCityByLocation(@RequestParam("lat") String lat, @RequestParam("lon") String lon) {
+    public ResponseResult<IdNameVO> getCityByLocation(@RequestParam("lat") String lat, @RequestParam("lon") String lon) {
 
         return ResponseResult.ok(regionRepo.getCityByLocation(lat, lon));
     }

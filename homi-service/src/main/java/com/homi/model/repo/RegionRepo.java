@@ -5,6 +5,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.config.AmapConfig;
+import com.homi.domain.vo.IdNameVO;
 import com.homi.model.entity.Region;
 import com.homi.model.mapper.RegionMapper;
 import lombok.RequiredArgsConstructor;
@@ -107,7 +108,7 @@ public class RegionRepo extends ServiceImpl<RegionMapper, Region> {
         return getById(id);
     }
 
-    public Long getCityByLocation(String lat, String lon) {
+    public IdNameVO getCityByLocation(String lat, String lon) {
         HashMap<String, Object> paramMap = new HashMap<>();
         String key = amapConfig.getKeys().get((int) (Math.random() * amapConfig.getKeys().size()));
         paramMap.put("key", key);
@@ -121,7 +122,7 @@ public class RegionRepo extends ServiceImpl<RegionMapper, Region> {
             Region adcodeRegion = getById(Long.parseLong(adcode));
             if (adcodeRegion != null) {
                 Region city = getById(adcodeRegion.getParentId());
-                return city.getId();
+                return new IdNameVO(city.getId(), city.getName());
             }
         }
 
