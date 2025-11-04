@@ -7,13 +7,16 @@ import com.homi.domain.dto.house.scatter.ScatterCreateDTO;
 import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.domain.enums.house.RentalTypeEnum;
 import com.homi.model.entity.Community;
+import com.homi.model.entity.Company;
 import com.homi.model.entity.House;
 import com.homi.model.entity.HouseLayout;
 import com.homi.model.repo.*;
+import com.homi.service.house.HouseCodeGenerator;
 import com.homi.service.room.RoomSearchService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +59,11 @@ public class ScatterService {
     @Resource
     private ShareService shareService;
 
+    @Resource
+    private HouseCodeGenerator houseCodeGenerator;
+    @Autowired
+    private CompanyRepo companyRepo;
+
     /**
      * 创建整租房源
      * <p>
@@ -89,6 +97,9 @@ public class ScatterService {
     }
 
     private void createHouseList(ScatterCreateDTO scatterCreateDTO) {
+        Company company = companyRepo.getById(scatterCreateDTO.getCompanyId());
+        String companyCode = company.getCode();
+
         scatterCreateDTO.getHouseList().forEach(houseDTO -> {
             String address = String.format("%s%s%s栋%s-%s室", scatterCreateDTO.getCommunity().getDistrict(),
                     scatterCreateDTO.getCommunity().getName(),
@@ -102,6 +113,10 @@ public class ScatterService {
             if (Boolean.TRUE.equals(exist)) {
                 throw new IllegalArgumentException(address + " 已存在！");
             }
+
+            // 生成房源编码
+            String houseCode = houseCodeGenerator.generate(companyCode);
+            house.setHouseCode(houseCode);
 
             /*
              * 创建户型数据

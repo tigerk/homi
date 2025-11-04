@@ -35,6 +35,10 @@ public class Company implements Serializable {
     @TableId("id")
     private Long id;
 
+    @Schema(description = "公司编码")
+    @TableField("code")
+    private String code;
+
     @Schema(description = "公司名称")
     @TableField("name")
     private String name;
