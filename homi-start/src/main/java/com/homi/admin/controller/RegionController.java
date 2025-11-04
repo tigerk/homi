@@ -65,6 +65,12 @@ public class RegionController {
 
         return ResponseResult.ok(list);
     }
+    @Operation(summary = "根据经纬度获取城市区域ID", description = "根据经纬度获取城市区域ID")
+    @GetMapping("/getCityByLocation")
+    public ResponseResult<Long> getCityByLocation(@RequestParam("lat") String lat, @RequestParam("lon") String lon) {
+
+        return ResponseResult.ok(regionRepo.getCityByLocation(lat, lon));
+    }
 
     private RegionVO format(Region region) {
         RegionVO regionVO = new RegionVO();

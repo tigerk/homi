@@ -106,4 +106,25 @@ public class RegionRepo extends ServiceImpl<RegionMapper, Region> {
     public Region getRegionById(Long id) {
         return getById(id);
     }
+
+    public Long getCityByLocation(String lat, String lon) {
+        HashMap<String, Object> paramMap = new HashMap<>();
+        String key = amapConfig.getKeys().get((int) (Math.random() * amapConfig.getKeys().size()));
+        paramMap.put("key", key);
+        paramMap.put("location", lon + "," + lat);
+
+        String result = HttpUtil.get("https://restapi.amap.com/v3/geocode/regeo", paramMap);
+
+        JSONObject entries = JSONUtil.parseObj(result);
+        if (entries.getByPath("status", Integer.class) == 1) {
+            String adcode = entries.getByPath("regeocode.addressComponent.adcode", String.class);
+            Region adcodeRegion = getById(Long.parseLong(adcode));
+            if (adcodeRegion != null) {
+                Region city = getById(adcodeRegion.getParentId());
+                return city.getId();
+            }
+        }
+
+        return null;
+    }
 }
