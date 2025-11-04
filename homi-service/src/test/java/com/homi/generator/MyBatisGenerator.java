@@ -47,18 +47,24 @@ public class MyBatisGenerator {
 
     public static void main(String[] args) {
         MyBatisGenerator myBatisGenerator = MyBatisGenerator.builder()
-                .dbUrl("jdbc:mysql://localhost:3306/homi?serverTimezone=Asia/Shanghai&allowMultiQueries=true")
-                .dbUsername("root")
-                .dbPassword("123456")
-                .tblPrefix("")
-                // 创建目录，从项目根目录开始
-                .savePath("homi/homi-service")
-                .entityPackageName("com.homi.model.entity")
-                .mapperPackageName("com.homi.model.mapper")
-                .servicePackageName("com.homi.model.repo")
-                .tblNameList(Arrays.asList(
-                        "room"
-                )).build();
+            .dbUrl("jdbc:mysql://localhost:3306/homi?serverTimezone=Asia/Shanghai&allowMultiQueries=true")
+            .dbUsername("root")
+            .dbPassword("123456")
+            .tblPrefix("")
+            // 创建目录，从项目根目录开始
+            .savePath("homi/homi-service")
+            .entityPackageName("com.homi.model.entity")
+            .mapperPackageName("com.homi.model.mapper")
+            .servicePackageName("com.homi.model.repo")
+            .tblNameList(Arrays.asList(
+                "tenant",
+                "tenant_bill",
+                "tenant_bill_detail",
+                "tenant_contract",
+                "trade_order",
+                "trade_order_bill",
+                "trade_payment_record"
+            )).build();
 
         myBatisGenerator.generate();
     }
@@ -68,48 +74,48 @@ public class MyBatisGenerator {
 
         // 代码生成器
         FastAutoGenerator.create(dataSourceConfig)
-                .globalConfig(builder -> builder.author("tk").dateType(DateType.ONLY_DATE).disableOpenDir().enableSpringdoc())
-                .packageConfig(builder -> {
-                    String projectPath = System.getProperty("user.dir") + "/";
-                    /*
-                     * Java源文件的路径
-                     */
-                    Map<OutputFile, String> pathInfo = new EnumMap<>(OutputFile.class);
-                    String sourcePath = "/src/main/java/";
-                    //entity 路径
-                    pathInfo.put(OutputFile.entity, projectPath + savePath + sourcePath + entityPackageName.replaceAll("\\.", "/"));
-                    //mapper 路径
-                    pathInfo.put(OutputFile.mapper, projectPath + savePath + sourcePath + mapperPackageName.replaceAll("\\.", "/"));
-                    //mapper xml文件 路径
-                    pathInfo.put(OutputFile.xml, projectPath + savePath + "/src/main/resources/mapper");
-                    //service 路径
-                    pathInfo.put(OutputFile.serviceImpl, projectPath + savePath + sourcePath + servicePackageName.replaceAll("\\.", "/"));
-                    /*
-                     * 类文件里边的包路径：package xxx.xxx.xxx
-                     */
-                    builder.parent("").entity(entityPackageName).mapper(mapperPackageName).serviceImpl(servicePackageName).pathInfo(pathInfo);
+            .globalConfig(builder -> builder.author("tk").dateType(DateType.ONLY_DATE).disableOpenDir().enableSpringdoc())
+            .packageConfig(builder -> {
+                String projectPath = System.getProperty("user.dir") + "/";
+                /*
+                 * Java源文件的路径
+                 */
+                Map<OutputFile, String> pathInfo = new EnumMap<>(OutputFile.class);
+                String sourcePath = "/src/main/java/";
+                //entity 路径
+                pathInfo.put(OutputFile.entity, projectPath + savePath + sourcePath + entityPackageName.replaceAll("\\.", "/"));
+                //mapper 路径
+                pathInfo.put(OutputFile.mapper, projectPath + savePath + sourcePath + mapperPackageName.replaceAll("\\.", "/"));
+                //mapper xml文件 路径
+                pathInfo.put(OutputFile.xml, projectPath + savePath + "/src/main/resources/mapper");
+                //service 路径
+                pathInfo.put(OutputFile.serviceImpl, projectPath + savePath + sourcePath + servicePackageName.replaceAll("\\.", "/"));
+                /*
+                 * 类文件里边的包路径：package xxx.xxx.xxx
+                 */
+                builder.parent("").entity(entityPackageName).mapper(mapperPackageName).serviceImpl(servicePackageName).pathInfo(pathInfo);
 
-                }).strategyConfig(builder -> {
-                    /*
-                     * 设置需要生成的表名
-                     */
-                    builder.addInclude(tblNameList);
+            }).strategyConfig(builder -> {
+                /*
+                 * 设置需要生成的表名
+                 */
+                builder.addInclude(tblNameList);
 
-                    if (CharSequenceUtil.isNotBlank(tblPrefix)) {
-                        builder.addTablePrefix(tblPrefix);
-                    }
+                if (CharSequenceUtil.isNotBlank(tblPrefix)) {
+                    builder.addTablePrefix(tblPrefix);
+                }
 
-                    //mapper注解生效
-                    builder.mapperBuilder().mapperAnnotation(Mapper.class);
-                    builder.serviceBuilder().formatServiceImplFileName("%sRepo").disableService()
-                            .serviceImplTemplate("repo.template.java");
-                    builder.controllerBuilder().disable();
-                    builder.entityBuilder().enableFileOverride().enableLombok().logicDeleteColumnName("deleted")
-                            .enableTableFieldAnnotation()
-                            .naming(NamingStrategy.underline_to_camel).columnNaming(NamingStrategy.underline_to_camel)
-                            .javaTemplate("entity.template.java")
-                            .enableFileOverride();
-                }).templateEngine(new FreemarkerTemplateEngine()).execute();
+                //mapper注解生效
+                builder.mapperBuilder().mapperAnnotation(Mapper.class);
+                builder.serviceBuilder().formatServiceImplFileName("%sRepo").disableService()
+                    .serviceImplTemplate("repo.template.java");
+                builder.controllerBuilder().disable();
+                builder.entityBuilder().enableFileOverride().enableLombok().logicDeleteColumnName("deleted")
+                    .enableTableFieldAnnotation()
+                    .naming(NamingStrategy.underline_to_camel).columnNaming(NamingStrategy.underline_to_camel)
+                    .javaTemplate("entity.template.java")
+                    .enableFileOverride();
+            }).templateEngine(new FreemarkerTemplateEngine()).execute();
     }
 
     private DataSourceConfig.Builder getDataSourceConfig() {
