@@ -61,7 +61,8 @@ public class ScatterService {
 
     @Resource
     private HouseCodeGenerator houseCodeGenerator;
-    @Autowired
+
+    @Resource
     private CompanyRepo companyRepo;
 
     /**
