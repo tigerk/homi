@@ -1,25 +1,25 @@
 package com.homi.model.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 临时文件资源表（防孤儿文件）
+ * 文件资源表（防孤儿文件）
  * </p>
  *
  * @author tk
- * @since 2025-10-19
+ * @since 2025-11-05
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -31,7 +31,7 @@ public class FileMeta implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "主键ID")
-    @TableId("id")
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     @Schema(description = "文件存储路径或访问URL")

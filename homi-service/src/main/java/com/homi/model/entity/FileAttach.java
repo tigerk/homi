@@ -1,23 +1,26 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 通用文件资源表
+ * 业务附件关联表
  * </p>
  *
  * @author tk
- * @since 2025-10-19
+ * @since 2025-11-05
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -40,11 +43,11 @@ public class FileAttach implements Serializable {
     @TableField("biz_type")
     private String bizType;
 
-    @Schema(description = "关联的业务数据ID，比如用户ID、房源ID等")
+    @Schema(description = "关联的业务数据ID")
     @TableField("biz_id")
     private Long bizId;
 
-    @Schema(description = "文件存储路径或访问URL")
+    @Schema(description = "文件访问URL")
     @TableField("file_url")
     private String fileUrl;
 
@@ -56,30 +59,34 @@ public class FileAttach implements Serializable {
     @TableField("file_size")
     private Long fileSize;
 
-    @Schema(description = "存储方式：0-本地、1-oss, qiniu, s3 等")
+    @Schema(description = "存储方式：0-本地，1-OSS，2-S3，3-其他")
     @TableField("storage_type")
     private Integer storageType;
 
-    @Schema(description = "是否删除：0 否，1 是")
+    @Schema(description = "排序")
+    @TableField("sort")
+    private Integer sort;
+
+    @Schema(description = "逻辑删除标记：0 否，1 是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;
+
+    @Schema(description = "创建人ID")
+    @TableField("create_by")
+    private Long createBy;
 
     @Schema(description = "创建时间")
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date createTime;
 
-    @Schema(description = "创建人")
-    @TableField("create_by")
-    private Long createBy;
+    @Schema(description = "更新人ID")
+    @TableField("update_by")
+    private Long updateBy;
 
     @Schema(description = "更新时间")
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date updateTime;
-
-    @Schema(description = "更新人")
-    @TableField("update_by")
-    private Long updateBy;
 }
