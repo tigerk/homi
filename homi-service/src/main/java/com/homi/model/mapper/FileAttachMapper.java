@@ -1,7 +1,7 @@
 package com.homi.model.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.homi.model.entity.FileResource;
+import com.homi.model.entity.FileAttach;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -13,6 +13,6 @@ import org.apache.ibatis.annotations.Mapper;
  * @since 2025-10-19
  */
 @Mapper
-public interface FileResourceMapper extends BaseMapper<FileResource> {
+public interface FileAttachMapper extends BaseMapper<FileAttach> {
 
 }

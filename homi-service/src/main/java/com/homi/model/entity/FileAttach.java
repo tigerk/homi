@@ -22,9 +22,9 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("file_resource")
-@Schema(name = "FileResource", description = "通用文件资源表")
-public class FileResource implements Serializable {
+@TableName("file_attach")
+@Schema(name = "FileAttach", description = "业务附件关联表")
+public class FileAttach implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 

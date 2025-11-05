@@ -1,8 +1,8 @@
 package com.homi.model.repo;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.model.entity.FileResource;
-import com.homi.model.mapper.FileResourceMapper;
+import com.homi.model.entity.FileAttach;
+import com.homi.model.mapper.FileAttachMapper;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,6 +14,6 @@ import org.springframework.stereotype.Service;
  * @since 2025-10-19
  */
 @Service
-public class FileResourceRepo extends ServiceImpl<FileResourceMapper, FileResource> {
+public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
 
 }
