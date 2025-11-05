@@ -4,8 +4,8 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.enums.common.StatusEnum;
-import com.homi.model.entity.UploadedFile;
-import com.homi.model.repo.UploadedFileRepo;
+import com.homi.model.entity.FileMeta;
+import com.homi.model.repo.FileMetaRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -27,19 +27,19 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class FileClearJob {
-    private final UploadedFileRepo uploadedFileRepo;
+    private final FileMetaRepo fileMetaRepo;
 
     @Scheduled(cron = "0 0 3 * * ?") // 每天凌晨3点
     public void cleanUnusedFilesTask() {
         DateTime beforeYesterdayZero = DateUtil.beginOfDay(DateUtil.offsetDay(DateUtil.date(), -2));
 
-        LambdaQueryWrapper<UploadedFile> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.le(UploadedFile::getCreateTime, beforeYesterdayZero);
-        queryWrapper.eq(UploadedFile::getIsUsed, StatusEnum.DISABLED.getValue());
-        List<UploadedFile> uploadedFiles = uploadedFileRepo.list(queryWrapper);
-        uploadedFiles.forEach(uploadedFile -> {
-            uploadedFileRepo.getBaseMapper().deleteById(uploadedFile.getId());
-            log.info("删除未使用的图片: uploadedFile={}", uploadedFile);
+        LambdaQueryWrapper<FileMeta> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.le(FileMeta::getCreateTime, beforeYesterdayZero);
+        queryWrapper.eq(FileMeta::getIsUsed, StatusEnum.DISABLED.getValue());
+        List<FileMeta> fileMetas = fileMetaRepo.list(queryWrapper);
+        fileMetas.forEach(fileMeta -> {
+            fileMetaRepo.getBaseMapper().deleteById(fileMeta.getId());
+            log.info("删除未使用的图片: fileMeta={}", fileMeta);
         });
     }
 }

@@ -3,8 +3,8 @@ package com.homi.model.repo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.domain.enums.common.StatusEnum;
-import com.homi.model.entity.UploadedFile;
-import com.homi.model.mapper.UploadedFileMapper;
+import com.homi.model.entity.FileMeta;
+import com.homi.model.mapper.FileMetaMapper;
 import com.homi.utils.ImageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,11 +21,11 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class UploadedFileRepo extends ServiceImpl<UploadedFileMapper, UploadedFile> {
+public class FileMetaRepo extends ServiceImpl<FileMetaMapper, FileMeta> {
 
-    public UploadedFile searchFileByHash(String hash) {
-        LambdaQueryWrapper<UploadedFile> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UploadedFile::getFileHash, hash);
+    public FileMeta searchFileByHash(String hash) {
+        LambdaQueryWrapper<FileMeta> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FileMeta::getFileHash, hash);
 
         return getBaseMapper().selectOne(queryWrapper);
     }
@@ -42,12 +42,12 @@ public class UploadedFileRepo extends ServiceImpl<UploadedFileMapper, UploadedFi
     public void setFileUsedByName(List<String> fileUrlList) {
         List<String> fileNames = fileUrlList.stream().map(ImageUtils::getFileName).toList();
 
-        LambdaQueryWrapper<UploadedFile> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.in(UploadedFile::getFileName, fileNames);
+        LambdaQueryWrapper<FileMeta> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(FileMeta::getFileName, fileNames);
 
-        UploadedFile uploadedFile = new UploadedFile();
-        uploadedFile.setIsUsed(StatusEnum.ACTIVE.getValue());
-        boolean updated = update(uploadedFile, queryWrapper);
+        FileMeta fileMeta = new FileMeta();
+        fileMeta.setIsUsed(StatusEnum.ACTIVE.getValue());
+        boolean updated = update(fileMeta, queryWrapper);
         if (!updated) {
             log.error("图片更新为已使用失败, fileUrlList={}", fileUrlList);
         }

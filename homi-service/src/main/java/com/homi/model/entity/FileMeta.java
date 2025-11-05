@@ -1,6 +1,5 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -25,9 +24,9 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("uploaded_file")
-@Schema(name = "UploadedFile", description = "临时文件资源表（防孤儿文件）")
-public class UploadedFile implements Serializable {
+@TableName("file_meta")
+@Schema(name = "FileMeta", description = "文件资源表（防孤儿文件）")
+public class FileMeta implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 

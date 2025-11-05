@@ -51,7 +51,7 @@ public class ScatterService {
     private RoomSearchService roomSearchService;
 
     @Resource
-    private UploadedFileRepo uploadedFileRepo;
+    private FileMetaRepo fileMetaRepo;
 
     @Resource
     private EntireService entireService;
@@ -89,7 +89,7 @@ public class ScatterService {
                     .collect(Collectors.toList());
 
             if (!imageList.isEmpty()) { // 确保不为空才创建 Optional
-                Optional.of(imageList).ifPresent(strings -> uploadedFileRepo.setFileUsedByName(strings));
+                Optional.of(imageList).ifPresent(strings -> fileMetaRepo.setFileUsedByName(strings));
             }
         }
 

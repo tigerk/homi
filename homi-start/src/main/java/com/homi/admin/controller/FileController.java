@@ -6,8 +6,8 @@ import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.enums.common.BooleanEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
-import com.homi.model.entity.UploadedFile;
-import com.homi.model.repo.UploadedFileRepo;
+import com.homi.model.entity.FileMeta;
+import com.homi.model.repo.FileMetaRepo;
 import com.homi.utils.ImageUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -55,7 +55,7 @@ public class FileController {
             "video/x-flv", "video/x-matroska", "video/webm"
     );
 
-    private final UploadedFileRepo uploadedFileRepo;
+    private final FileMetaRepo fileMetaRepo;
 
     /**
      * 上传文件接口
@@ -77,7 +77,7 @@ public class FileController {
 
         String fileMD5 = ImageUtils.getFileMD5(file.getInputStream());
         // 查看是否上传过文件
-        UploadedFile fileByHash = uploadedFileRepo.searchFileByHash(fileMD5);
+        FileMeta fileByHash = fileMetaRepo.searchFileByHash(fileMD5);
         if (Objects.nonNull(fileByHash)) {
             return ResponseResult.ok("上传成功", fileByHash.getFileUrl());
         }
@@ -134,16 +134,16 @@ public class FileController {
         String fileUrl = String.format("%s/uploads/%s", domain, newFileName);
 
         // 保存上传的存储文件到表中，后期定期清理。
-        UploadedFile uploadedFile = new UploadedFile();
-        uploadedFile.setFileUrl(fileUrl);
-        uploadedFile.setFileName(newFileName);
-        uploadedFile.setFileHash(fileMD5);
-        uploadedFile.setFileType(detectedMimeType);
-        uploadedFile.setFileSize(file.getSize());
-        uploadedFile.setCreateBy(LoginManager.getUserId());
-        uploadedFile.setIsUsed(BooleanEnum.FALSE.getValue());
-        uploadedFile.setUpdateBy(LoginManager.getUserId());
-        uploadedFileRepo.save(uploadedFile);
+        FileMeta fileMeta = new FileMeta();
+        fileMeta.setFileUrl(fileUrl);
+        fileMeta.setFileName(newFileName);
+        fileMeta.setFileHash(fileMD5);
+        fileMeta.setFileType(detectedMimeType);
+        fileMeta.setFileSize(file.getSize());
+        fileMeta.setCreateBy(LoginManager.getUserId());
+        fileMeta.setIsUsed(BooleanEnum.FALSE.getValue());
+        fileMeta.setUpdateBy(LoginManager.getUserId());
+        fileMetaRepo.save(fileMeta);
 
         return ResponseResult.ok("上传成功", fileUrl);
     }
