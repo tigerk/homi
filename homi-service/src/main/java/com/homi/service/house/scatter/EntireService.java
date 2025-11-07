@@ -68,6 +68,12 @@ public class EntireService {
             roomRepo.save(room);
         }
 
+        if (Objects.isNull(priceConfig)) {
+            priceConfig = new PriceConfigDTO();
+            priceConfig.setRoomId(room.getId());
+            priceConfig.setPrice(price);
+        }
+
         priceConfig.setRoomId(room.getId());
         priceConfigService.createPriceConfig(priceConfig);
     }

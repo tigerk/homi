@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -181,7 +182,7 @@ public class ScatterService {
         houseLayout.setImageList(JSONUtil.toJsonStr(houseLayoutDTO.getImageList()));
         houseLayout.setVideoList(JSONUtil.toJsonStr(houseLayoutDTO.getVideoList()));
 
-        if (houseLayoutDTO.getNewly().equals(Boolean.TRUE)) {
+        if (Objects.isNull(houseLayoutDTO.getId())) {
             houseLayout.setCreateBy(scatterCreateDTO.getCreateBy());
             houseLayoutRepo.getBaseMapper().insert(houseLayout);
         } else {
