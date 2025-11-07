@@ -44,6 +44,10 @@ public class RoomItemVO {
     @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
     private Integer leaseMode;
 
+    @Schema(description = "出租类型：1-整租，2-合租，参考RentalTypeEnum")
+    private Integer rentalType;
+
+
     @Schema(description = "房型")
     private HouseLayoutDTO houseLayout;
 

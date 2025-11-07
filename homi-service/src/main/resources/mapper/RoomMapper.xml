@@ -9,6 +9,7 @@
         <result property="houseName" column="house_name"/>
         <result property="modeRefId" column="mode_ref_id"/>
         <result property="leaseMode" column="lease_mode"/>
+        <result property="rentalType" column="rental_type"/>
         <result property="deptId" column="dept_id"/>
         <result property="deptName" column="dept_name"/>
         <result property="price" column="price"/>
@@ -49,6 +50,7 @@
                h.floor,
                h.lease_mode,
                h.mode_ref_id,
+               h.rental_type,
                h.dept_id,
                d.name         AS dept_name,
                r.room_number,
