@@ -38,6 +38,9 @@ public class RoomItemVO {
     @Schema(description = "房源名称")
     private String houseName;
 
+    @Schema(description = "门牌号")
+    private String doorNumber;
+
     @Schema(description = "来源id")
     private Long modeRefId;
 
@@ -46,7 +49,6 @@ public class RoomItemVO {
 
     @Schema(description = "出租类型：1-整租，2-合租，参考RentalTypeEnum")
     private Integer rentalType;
-
 
     @Schema(description = "房型")
     private HouseLayoutDTO houseLayout;
