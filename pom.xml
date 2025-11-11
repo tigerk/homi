@@ -161,6 +161,12 @@
                 <artifactId>alibabacloud-dysmsapi20170525</artifactId>
                 <version>4.0.5</version>
             </dependency>
+            <!-- Playwright (Chromium 控制引擎) -->
+            <dependency>
+                <groupId>com.microsoft.playwright</groupId>
+                <artifactId>playwright</artifactId>
+                <version>1.56.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>

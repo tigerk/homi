@@ -50,7 +50,15 @@
             <groupId>com.aliyun</groupId>
             <artifactId>alibabacloud-dysmsapi20170525</artifactId>
         </dependency>
-
+        <!-- Playwright (Chromium 控制引擎) -->
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

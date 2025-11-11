@@ -1,9 +1,12 @@
 package com.homi.admin.controller;
 
 import com.homi.job.FileClearJob;
+import com.homi.service.pdf.PdfService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,23 +18,20 @@ import org.springframework.web.bind.annotation.RestController;
  * {@code @date} 2025/4/26
  */
 
-
 @Slf4j
 @RequestMapping("/admin/test")
 @RestController
 @RequiredArgsConstructor
 public class TestController {
-    private final FileClearJob fileClearJob;
+    private final PdfService pdfService;
 
-    /**
-     * 测试图片清理任务
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/10/20 11:17
-     */
-    @GetMapping("/clear")
-    public void list() {
-        fileClearJob.cleanUnusedFilesTask();
+    @PostMapping(value = "/generate", consumes = MediaType.TEXT_HTML_VALUE)
+    public ResponseEntity<byte[]> generate(@RequestBody String html) {
+        byte[] pdfBytes = pdfService.generatePdf(html);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.attachment().filename("contract.pdf").build());
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 
 }
