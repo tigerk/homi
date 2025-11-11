@@ -34,30 +34,68 @@ public class PdfService {
     private static final String MARGIN_RIGHT = "15mm";
 
     public byte[] generatePdf(String html) {
-        Document doc = Jsoup.parse(html);
+        // 清理和修复HTML
+        String cleanedHtml = cleanHtml(html);
+        Document doc = Jsoup.parse(cleanedHtml);
 
         // 处理外部资源
         processExternalCss(doc);
         processExternalImages(doc);
 
         try (Playwright playwright = Playwright.create()) {
-            try (Browser browser = playwright.chromium().launch(
-                new BrowserType.LaunchOptions().setHeadless(true)
-            ); Page page = browser.newPage()) {
-                String htmlWithStyle = createStyledHtml(doc.html());
-                page.setContent(htmlWithStyle, new Page.SetContentOptions().setWaitUntil(WaitUntilState.NETWORKIDLE));
+            BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
+                .setHeadless(true)
+                .setArgs(java.util.Arrays.asList(
+                    "--disable-web-security",
+                    "--disable-features=IsolateOrigins,site-per-process"
+                ));
+
+            try (Browser browser = playwright.chromium().launch(launchOptions);
+                 Page page = browser.newPage()) {
+
+                // 设置视口大小，确保内容完整显示
+                page.setViewportSize(1200, 1600);
+
+                String htmlWithStyle = doc.html();
+
+                // 使用 LOAD 而不是 NETWORKIDLE，并添加额外等待时间
+                page.setContent(htmlWithStyle, new Page.SetContentOptions()
+                    .setWaitUntil(WaitUntilState.LOAD));
+
+                // 额外等待，确保所有内容渲染完成
+                page.waitForTimeout(1000);
+
+                // 评估页面高度，确保内容完整
+                Object height = page.evaluate("() => document.body.scrollHeight");
+                log.info("页面高度: {}", height);
 
                 return page.pdf(new Page.PdfOptions()
                     .setFormat(A4_FORMAT)
                     .setPrintBackground(PRINT_BACKGROUND)
                     .setMargin(createMargin())
+                    .setPreferCSSPageSize(false)  // 使用PDF选项而不是CSS页面大小
                 );
             }
         } catch (Exception e) {
             log.error("生成PDF失败：{}", e.getMessage(), e);
-
             throw new BizException(ResponseCodeEnum.PDF_GENERATE_ERROR);
         }
+    }
+
+    /**
+     * 清理HTML中的格式问题
+     */
+    private String cleanHtml(String html) {
+        // 移除多余的闭合标签和修复格式问题
+        html = html.replaceAll("</p>\\s*</p>", "</p>");
+        html = html.replaceAll("<p>\\s*<p>", "<p>");
+
+        // 确保HTML结构完整
+        if (!html.contains("<!DOCTYPE")) {
+            html = "<!DOCTYPE html>\n" + html;
+        }
+
+        return html;
     }
 
     /**
@@ -72,6 +110,46 @@ public class PdfService {
             }
             link.remove();
         }
+
+        // 添加额外的PDF打印样式
+        addPrintStyles(doc);
+    }
+
+    /**
+     * 添加针对PDF打印的额外样式
+     */
+    private void addPrintStyles(Document doc) {
+        String printStyles = """
+            @media print {
+                body {
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+                .previewContent {
+                    page-break-inside: avoid;
+                }
+                h2, h3 {
+                    page-break-after: avoid;
+                }
+                p {
+                    orphans: 3;
+                    widows: 3;
+                }
+            }
+            /* 确保所有内容可见 */
+            html, body {
+                overflow: visible !important;
+                height: auto !important;
+            }
+            .previewContent {
+                overflow: visible !important;
+                height: auto !important;
+            }
+            """;
+
+        doc.head().appendElement("style")
+            .attr("type", "text/css")
+            .text(printStyles);
     }
 
     /**
@@ -106,7 +184,6 @@ public class PdfService {
      */
     private void convertImageToBase64(Element img, String src) {
         try {
-            // 使用 URI.toURL() 替代废弃的 URL(String) 构造函数
             byte[] bytes = URI.create(src).toURL().openStream().readAllBytes();
             String base64 = Base64.getEncoder().encodeToString(bytes);
             String mimeType = determineImageMimeType(src);
@@ -130,7 +207,7 @@ public class PdfService {
         } else if (lowerSrc.endsWith(".webp")) {
             return "webp";
         }
-        return "png"; // 默认值
+        return "png";
     }
 
     /**
@@ -142,28 +219,5 @@ public class PdfService {
             .setBottom(MARGIN_BOTTOM)
             .setLeft(MARGIN_LEFT)
             .setRight(MARGIN_RIGHT);
-    }
-
-    /**
-     * 创建带样式的完整 HTML
-     */
-    private String createStyledHtml(String html) {
-        return """
-            <html>
-              <head>
-                <meta charset='UTF-8'>
-                <style>
-                  body { font-family: "Noto Sans SC", "SimSun", sans-serif; margin: 20mm; }
-                  h1, h2, h3 { color: #333; }
-                  table { width: 100%; border-collapse: collapse; }
-                  td, th { border: 1px solid #aaa; padding: 6px; }
-                  .sign { border: 1px dashed #888; height: 80px; width: 200px; margin-top: 10px; }
-                </style>
-              </head>
-              <body>
-            """ + html + """
-                  </body>
-                </html>
-            """;
     }
 }
