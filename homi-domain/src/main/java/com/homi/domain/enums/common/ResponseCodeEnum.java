@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 系统各种状态枚举
+ * 系统各种状态枚举，0-500 是保留状态码，500 以上是自定义状态码
  * <p>
  * {@code @author} tk
  * {@code @date} 2025/4/17 01:28
@@ -21,7 +21,6 @@ public enum ResponseCodeEnum {
      * 验证码错误
      */
     VERIFICATION_CODE_ERROR(400, "验证码错误"),
-
     /**
      * 未登录
      */
@@ -30,7 +29,6 @@ public enum ResponseCodeEnum {
      * 没有操作权限
      */
     AUTHORIZED(403, "无操作权限"),
-
     /**
      * 404
      */
@@ -94,6 +92,10 @@ public enum ResponseCodeEnum {
      */
     WEIBO_LOGIN_ERROR(720, "微博登录错误"),
 
+    /**
+     * 生成PDF失败
+     */
+    PDF_GENERATE_ERROR(800, "生成PDF失败"),
     /**
      * token异常
      */
