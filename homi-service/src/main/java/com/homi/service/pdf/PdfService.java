@@ -63,7 +63,7 @@ public class PdfService {
                     .setWaitUntil(WaitUntilState.LOAD));
 
                 // 额外等待，确保所有内容渲染完成
-                page.waitForTimeout(1000);
+//                page.waitForTimeout(1000);
 
                 // 评估页面高度，确保内容完整
                 Object height = page.evaluate("() => document.body.scrollHeight");
