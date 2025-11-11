@@ -2,26 +2,25 @@ package com.homi.service.room;
 
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.EnumUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.room.RoomDetailDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
-import com.homi.domain.enums.room.RoomStatusEnum;
+import com.homi.domain.dto.room.price.OtherFeeDTO;
+import com.homi.domain.dto.room.price.PriceConfigDTO;
+import com.homi.domain.dto.room.price.PricePlanDTO;
 import com.homi.domain.enums.house.LeaseModeEnum;
-import com.homi.domain.vo.room.grid.RoomGridVO;
+import com.homi.domain.enums.room.RoomStatusEnum;
 import com.homi.domain.vo.room.RoomListVO;
 import com.homi.domain.vo.room.RoomTotalItemVO;
-import com.homi.model.entity.Focus;
-import com.homi.model.entity.House;
-import com.homi.model.entity.Room;
-import com.homi.model.entity.RoomDetail;
-import com.homi.model.repo.FocusRepo;
-import com.homi.model.repo.HouseRepo;
-import com.homi.model.repo.RoomDetailRepo;
-import com.homi.model.repo.RoomRepo;
+import com.homi.domain.vo.room.grid.RoomGridVO;
+import com.homi.model.entity.*;
+import com.homi.model.repo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +49,12 @@ public class RoomService {
     private final RoomDetailRepo roomDetailRepo;
 
     private final HouseRepo houseRepo;
+
     private final FocusRepo focusRepo;
+
+    private final RoomPriceConfigRepo roomPriceConfigRepo;
+
+    private final RoomPricePlanRepo roomPricePlanRepo;
 
     /**
      * 获取房间列表
@@ -80,7 +84,7 @@ public class RoomService {
     }
 
     public void format(RoomListVO room) {
-        if(room.getLeaseMode().equals(LeaseModeEnum.FOCUS.getCode())) {
+        if (room.getLeaseMode().equals(LeaseModeEnum.FOCUS.getCode())) {
             Focus byId = focusRepo.getById(room.getModeRefId());
             room.setCommunityName(byId.getFocusName());
         }
@@ -90,17 +94,17 @@ public class RoomService {
         room.setRoomStatusColor(roomStatusEnum.getColor());
     }
 
+    /**
+     * 获取房间状态统计
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/7 19:12
+     *
+     * @param query 查询参数
+     * @return java.util.List<com.homi.domain.vo.room.RoomTotalItemVO>
+     */
     public List<RoomTotalItemVO> getRoomStatusTotal(RoomQueryDTO query) {
-        Map<Integer, RoomTotalItemVO> result = new HashMap<>();
-        RoomStatusEnum[] values = RoomStatusEnum.values();
-        for (RoomStatusEnum roomStatusEnum : values) {
-            RoomTotalItemVO roomTotalItemVO = new RoomTotalItemVO();
-            roomTotalItemVO.setRoomStatus(roomStatusEnum.getCode());
-            roomTotalItemVO.setRoomStatusName(roomStatusEnum.getName());
-            roomTotalItemVO.setRoomStatusColor(roomStatusEnum.getColor());
-            roomTotalItemVO.setTotal(0);
-            result.put(roomStatusEnum.getCode(), roomTotalItemVO);
-        }
+        Map<Integer, RoomTotalItemVO> result = getRoomTotalItemMap();
 
         query.setRoomStatus(null);
 
@@ -114,12 +118,34 @@ public class RoomService {
     }
 
     /**
+     * 获取房间状态枚举映射
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/7 19:12
+     *
+     * @return java.util.Map<java.lang.Integer, com.homi.domain.vo.room.RoomTotalItemVO>
+     */
+    private @NotNull Map<Integer, RoomTotalItemVO> getRoomTotalItemMap() {
+        Map<Integer, RoomTotalItemVO> result = new HashMap<>();
+        RoomStatusEnum[] values = RoomStatusEnum.values();
+        for (RoomStatusEnum roomStatusEnum : values) {
+            RoomTotalItemVO roomTotalItemVO = new RoomTotalItemVO();
+            roomTotalItemVO.setRoomStatus(roomStatusEnum.getCode());
+            roomTotalItemVO.setRoomStatusName(roomStatusEnum.getName());
+            roomTotalItemVO.setRoomStatusColor(roomStatusEnum.getColor());
+            roomTotalItemVO.setTotal(0);
+            result.put(roomStatusEnum.getCode(), roomTotalItemVO);
+        }
+        return result;
+    }
+
+    /**
      * 获取房间网格视图数据
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/8/24 01:50
-
-      * @param query 参数说明
+     *
+     * @param query 参数说明
      * @return java.util.List<com.homi.domain.vo.room.grid.RoomGridVO>
      */
     public List<RoomGridVO> getRoomGrid(RoomQueryDTO query) {
@@ -207,6 +233,15 @@ public class RoomService {
         return Pair.of(leasedCount, leasedRate);
     }
 
+    /**
+     * 获取房间列表（按房源ID）
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/11 13:41
+
+      * @param id 参数说明
+     * @return java.util.List<com.homi.domain.dto.room.RoomDetailDTO>
+     */
     public List<RoomDetailDTO> getRoomListByHouseId(Long id) {
         List<Room> roomListByHouseId = roomRepo.getRoomListByHouseId(id);
 
@@ -218,7 +253,46 @@ public class RoomService {
             if (Objects.nonNull(roomDetail)) {
                 BeanUtils.copyProperties(roomDetail, roomDetailDTO);
             }
+
+            RoomPriceConfig roomPriceConfig = roomPriceConfigRepo.getByRoomId(room.getId());
+            if (Objects.nonNull(roomPriceConfig)) {
+                BeanUtils.copyProperties(roomPriceConfig, roomDetailDTO);
+            }
+
+            roomDetailDTO.setPriceConfig(getPriceConfigByRoomId(room.getId()));
+
             return roomDetailDTO;
         }).toList();
+    }
+
+    /**
+     * 获取房间价格配置（按房间ID）
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/11 13:41
+
+      * @param roomId 房间ID
+     * @return com.homi.domain.dto.room.price.PriceConfigDTO
+     */
+    public PriceConfigDTO getPriceConfigByRoomId(Long roomId) {
+        PriceConfigDTO priceConfigDTO = new PriceConfigDTO();
+
+        RoomPriceConfig roomPriceConfig = roomPriceConfigRepo.getByRoomId(roomId);
+        if (Objects.nonNull(roomPriceConfig)) {
+            BeanUtils.copyProperties(roomPriceConfig, priceConfigDTO);
+            List<OtherFeeDTO> otherFeeDTOList = JSONUtil.toList(roomPriceConfig.getOtherFees(), OtherFeeDTO.class);
+            priceConfigDTO.setOtherFees(otherFeeDTOList);
+        }
+
+        List<RoomPricePlan> roomPricePlanList = roomPricePlanRepo.listByRoomId(roomId);
+        if (!roomPricePlanList.isEmpty()) {
+            priceConfigDTO.setPricePlans(roomPricePlanList.stream().map(roomPricePlan -> {
+                PricePlanDTO pricePlanDTO = new PricePlanDTO();
+                BeanUtils.copyProperties(roomPricePlan, pricePlanDTO);
+                return pricePlanDTO;
+            }).toList());
+        }
+
+        return priceConfigDTO;
     }
 }

@@ -1,5 +1,6 @@
 package com.homi.model.repo;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.entity.RoomPriceConfig;
 import com.homi.model.mapper.RoomPriceConfigMapper;
@@ -16,4 +17,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class RoomPriceConfigRepo extends ServiceImpl<RoomPriceConfigMapper, RoomPriceConfig> {
 
+    public RoomPriceConfig getByRoomId(Long id) {
+        return baseMapper.selectOne(new LambdaQueryWrapper<RoomPriceConfig>().eq(RoomPriceConfig::getRoomId, id));
+    }
 }
