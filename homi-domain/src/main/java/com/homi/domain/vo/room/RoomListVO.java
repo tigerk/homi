@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RoomItemVO {
+public class RoomListVO {
     @Schema(description = "房间id")
     private Long roomId;
 

@@ -5,7 +5,7 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.grid.RoomGridDTO;
-import com.homi.domain.vo.room.RoomItemVO;
+import com.homi.domain.vo.room.RoomListVO;
 import com.homi.domain.vo.room.RoomTotalItemVO;
 import com.homi.domain.vo.room.RoomTotalVO;
 import com.homi.service.room.RoomGridService;
@@ -30,7 +30,7 @@ public class RoomController {
     private final RoomSearchService roomSearchService;
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<RoomItemVO>> getRoomList(@RequestBody RoomQueryDTO query) {
+    public ResponseResult<PageVO<RoomListVO>> getRoomList(@RequestBody RoomQueryDTO query) {
         return ResponseResult.ok(roomService.getRoomList(query));
     }
 

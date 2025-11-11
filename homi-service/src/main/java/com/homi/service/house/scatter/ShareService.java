@@ -1,7 +1,7 @@
 package com.homi.service.house.scatter;
 
 import cn.hutool.core.date.DateUtil;
-import com.homi.domain.dto.room.RoomCreateDTO;
+import com.homi.domain.dto.room.RoomDetailDTO;
 import com.homi.domain.enums.room.RoomStatusEnum;
 import com.homi.model.entity.House;
 import com.homi.model.entity.Room;
@@ -41,12 +41,12 @@ public class ShareService {
      * {@code @date} 2025/10/23 15:40
      *
      * @param house         参数说明
-     * @param roomCreateDTO 参数说明
+     * @param roomDetailDTO 参数说明
      */
-    public void createShareRoom(House house, RoomCreateDTO roomCreateDTO) {
+    public void createShareRoom(House house, RoomDetailDTO roomDetailDTO) {
         Room room = new Room();
 
-        BeanUtils.copyProperties(roomCreateDTO, room);
+        BeanUtils.copyProperties(roomDetailDTO, room);
 
         room.setHouseId(house.getId());
         room.setFloor(house.getFloor());
@@ -56,7 +56,7 @@ public class ShareService {
 
         room.setUpdateBy(house.getUpdateBy());
 
-        Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(house.getId(), roomCreateDTO.getRoomNumber());
+        Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(house.getId(), roomDetailDTO.getRoomNumber());
         if (Objects.nonNull(roomBefore)) {
             room.setId(roomBefore.getId());
             roomRepo.updateById(room);
@@ -67,11 +67,11 @@ public class ShareService {
             roomRepo.save(room);
         }
 
-        roomCreateDTO.getPriceConfig().setRoomId(room.getId());
-        priceConfigService.createPriceConfig(roomCreateDTO.getPriceConfig());
+        roomDetailDTO.getPriceConfig().setRoomId(room.getId());
+        priceConfigService.createPriceConfig(roomDetailDTO.getPriceConfig());
     }
 
-    public void createShareRoom(House house, List<RoomCreateDTO> roomList) {
-        roomList.forEach(roomCreateDTO -> createShareRoom(house, roomCreateDTO));
+    public void createShareRoom(House house, List<RoomDetailDTO> roomList) {
+        roomList.forEach(roomDetailDTO -> createShareRoom(house, roomDetailDTO));
     }
 }

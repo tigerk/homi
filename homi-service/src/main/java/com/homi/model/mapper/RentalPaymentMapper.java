@@ -1,7 +1,7 @@
 package com.homi.model.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.homi.model.entity.TradePaymentRecord;
+import com.homi.model.entity.RentalPayment;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -10,9 +10,9 @@ import org.apache.ibatis.annotations.Mapper;
  * </p>
  *
  * @author tk
- * @since 2025-11-04
+ * @since 2025-11-10
  */
 @Mapper
-public interface TradePaymentRecordMapper extends BaseMapper<TradePaymentRecord> {
+public interface RentalPaymentMapper extends BaseMapper<RentalPayment> {
 
 }

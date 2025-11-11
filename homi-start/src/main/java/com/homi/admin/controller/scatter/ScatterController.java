@@ -6,12 +6,10 @@ import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.house.scatter.ScatterCreateDTO;
+import com.homi.domain.vo.house.ScatterHouseVO;
 import com.homi.service.house.scatter.ScatterService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
 
@@ -39,6 +37,11 @@ public class ScatterController {
         }
 
         return ResponseResult.ok(success);
+    }
+
+    @GetMapping("/get")
+    public ResponseResult<ScatterHouseVO> getScatterId(@RequestParam("id") Long id) {
+        return ResponseResult.ok(scatterService.getScatterId(id));
     }
 }
 

@@ -3,6 +3,8 @@ package com.homi.domain.dto.community;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @Schema(description = "住宅小区DTO")
 public class CommunityDTO {
@@ -24,7 +26,12 @@ public class CommunityDTO {
     @Schema(description = "详细地址")
     private String address;
 
-    @Schema(description = "经纬度")
+    @Schema(description = "经纬度，格式：经度,纬度")
     private String location;
 
+    @Schema(description = "经度")
+    private BigDecimal longitude;
+
+    @Schema(description = "纬度")
+    private BigDecimal latitude;
 }

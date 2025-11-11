@@ -20,19 +20,18 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-11-04
+ * @since 2025-11-10
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("trade_payment_record")
-@Schema(name = "TradePaymentRecord", description = "统一交易流水表")
-public class TradePaymentRecord implements Serializable {
+@TableName("rental_payment")
+@Schema(name = "RentalPayment", description = "统一交易流水表")
+public class RentalPayment implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "主键ID")
-    @TableId("id")
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     @TableField("company_id")

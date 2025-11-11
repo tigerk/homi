@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import java.io.Serial;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -18,19 +19,18 @@ import java.io.Serial;
  * </p>
  *
  * @author tk
- * @since 2025-11-04
+ * @since 2025-11-10
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("trade_order_bill")
-@Schema(name = "TradeOrderBill", description = "交易订单与账单关联表")
-public class TradeOrderBill implements Serializable {
+@TableName("rental_order_item")
+@Schema(name = "RentalOrderItem", description = "交易订单与账单关联表")
+public class RentalOrderItem implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "主键ID")
-    @TableId("id")
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     @TableField("order_id")

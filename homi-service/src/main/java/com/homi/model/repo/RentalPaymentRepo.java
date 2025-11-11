@@ -1,7 +1,7 @@
 package com.homi.model.repo;
 
-import com.homi.model.entity.TradePaymentRecord;
-import com.homi.model.mapper.TradePaymentRecordMapper;
+import com.homi.model.entity.RentalPayment;
+import com.homi.model.mapper.RentalPaymentMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
  * </p>
  *
  * @author tk
- * @since 2025-11-04
+ * @since 2025-11-10
  */
 @Service
-public class TradePaymentRecordRepo extends ServiceImpl<TradePaymentRecordMapper, TradePaymentRecord> {
+public class RentalPaymentRepo extends ServiceImpl<RentalPaymentMapper, RentalPayment> {
 
 }

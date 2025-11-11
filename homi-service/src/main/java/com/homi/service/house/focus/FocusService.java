@@ -8,8 +8,8 @@ import com.homi.domain.dto.house.HouseLayoutDTO;
 import com.homi.domain.dto.house.focus.FocusBuildingDTO;
 import com.homi.domain.dto.house.focus.FocusCreateDTO;
 import com.homi.domain.dto.house.focus.FocusHouseDTO;
-import com.homi.domain.enums.room.RoomStatusEnum;
 import com.homi.domain.enums.house.LeaseModeEnum;
+import com.homi.domain.enums.room.RoomStatusEnum;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.*;
@@ -17,6 +17,7 @@ import com.homi.model.repo.*;
 import com.homi.service.room.RoomSearchService;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,7 @@ import java.util.*;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FocusService {
     @Resource
     private HouseRepo houseRepo;
@@ -55,6 +57,7 @@ public class FocusService {
 
     @Resource
     private CommunityRepo communityRepo;
+
 
     /**
      * 创建集中式房源
@@ -143,16 +146,16 @@ public class FocusService {
      */
     public boolean saveFocusBuildings(Long focusId, List<FocusBuildingDTO> buildingList) {
         List<FocusBuilding> focusBuildings = buildingList.stream().map(building -> {
-                    FocusBuilding focusBuilding = focusBuildingRepo.getFocusBuilding(focusId, building.getBuilding(), building.getUnit());
-                    if (Objects.isNull(focusBuilding)) {
-                        focusBuilding = BeanCopyUtils.copyBean(building, FocusBuilding.class);
-                        Objects.requireNonNull(focusBuilding).setFocusId(focusId);
-                    } else {
-                        BeanUtils.copyProperties(building, focusBuilding);
-                    }
-
-                    return focusBuilding;
+                FocusBuilding focusBuilding = focusBuildingRepo.getFocusBuilding(focusId, building.getBuilding(), building.getUnit());
+                if (Objects.isNull(focusBuilding)) {
+                    focusBuilding = BeanCopyUtils.copyBean(building, FocusBuilding.class);
+                    Objects.requireNonNull(focusBuilding).setFocusId(focusId);
+                } else {
+                    BeanUtils.copyProperties(building, focusBuilding);
                 }
+
+                return focusBuilding;
+            }
         ).toList();
 
         return focusBuildingRepo.saveOrUpdateBatch(focusBuildings);
@@ -188,10 +191,10 @@ public class FocusService {
             house.setHouseCode(houseCode);
 
             house.setHouseName(String.format("%s%s%s栋%s-%s室", focusCreateDto.getCommunity().getDistrict(),
-                    focusCreateDto.getCommunity().getName(),
-                    houseDTO.getBuilding(),
-                    CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : "" + houseDTO.getUnit() + "单元",
-                    houseDTO.getDoorNumber()));
+                focusCreateDto.getCommunity().getName(),
+                houseDTO.getBuilding(),
+                CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : "" + houseDTO.getUnit() + "单元",
+                houseDTO.getDoorNumber()));
 
             houseRepo.saveHouse(house);
 
@@ -266,9 +269,9 @@ public class FocusService {
         List<Focus> focusList = focusRepo.list();
 
         return focusList.stream().map(focus -> IdNameVO.builder()
-                .id(focus.getId())
-                .name(String.format("%s（%s）", focus.getFocusName(), focus.getFocusCode()))
-                .build()).toList();
+            .id(focus.getId())
+            .name(String.format("%s（%s）", focus.getFocusName(), focus.getFocusCode()))
+            .build()).toList();
     }
 
     public Boolean checkFocusCodeExist(Long id, String focusCode) {
@@ -288,12 +291,8 @@ public class FocusService {
 
         focusCreateDTO.setLeaseMode(LeaseModeEnum.FOCUS.getCode());
 
-        Optional<Community> optCommunity = communityRepo.getOptById(focus.getCommunityId());
-        optCommunity.ifPresent(community -> {
-            CommunityDTO communityDTO = BeanCopyUtils.copyBean(community, CommunityDTO.class);
-            communityDTO.setCommunityId(community.getId());
-            focusCreateDTO.setCommunity(communityDTO);
-        });
+        CommunityDTO communityDTO = communityRepo.getCommunityById(focus.getCommunityId());
+        focusCreateDTO.setCommunity(communityDTO);
 
         focusCreateDTO.setTags(JSONUtil.toList(focus.getTags(), String.class));
         focusCreateDTO.setFacilities(JSONUtil.toList(focus.getFacilities(), String.class));
@@ -301,8 +300,8 @@ public class FocusService {
 
         List<FocusBuilding> focusBuildings = focusBuildingRepo.getBuildingsByFocusId(focus.getId());
         List<FocusBuildingDTO> list = focusBuildings.stream()
-                .map(focusBuilding -> BeanCopyUtils.copyBean(focusBuilding, FocusBuildingDTO.class))
-                .toList();
+            .map(focusBuilding -> BeanCopyUtils.copyBean(focusBuilding, FocusBuildingDTO.class))
+            .toList();
         focusCreateDTO.setBuildings(list);
 
         List<HouseLayoutDTO> layoutListByModeRefId = houseLayoutRepo.getLayoutListByModeRefId(focusId, LeaseModeEnum.FOCUS.getCode());
@@ -310,8 +309,8 @@ public class FocusService {
 
         List<House> focusHouses = houseRepo.getHousesByModeRefId(focusId, LeaseModeEnum.FOCUS.getCode());
         List<FocusHouseDTO> houseList = focusHouses.stream()
-                .map(focusHouse -> BeanCopyUtils.copyBean(focusHouse, FocusHouseDTO.class))
-                .toList();
+            .map(focusHouse -> BeanCopyUtils.copyBean(focusHouse, FocusHouseDTO.class))
+            .toList();
         focusCreateDTO.setHouseList(houseList);
 
         return focusCreateDTO;

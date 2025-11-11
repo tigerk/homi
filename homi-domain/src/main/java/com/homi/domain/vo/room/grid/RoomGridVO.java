@@ -1,5 +1,6 @@
-package com.homi.domain.vo.room;
+package com.homi.domain.vo.room.grid;
 
+import com.homi.domain.vo.room.RoomListVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -52,7 +53,7 @@ public class RoomGridVO {
         private Integer floor;
 
         @Schema(description = "房间列表")
-        private List<RoomItemVO> roomList;
+        private List<RoomListVO> roomList;
 
     }
 }

@@ -1,7 +1,7 @@
 package com.homi.model.repo;
 
-import com.homi.model.entity.TradeOrderBill;
-import com.homi.model.mapper.TradeOrderBillMapper;
+import com.homi.model.entity.RentalOrderItem;
+import com.homi.model.mapper.RentalOrderItemMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
  * </p>
  *
  * @author tk
- * @since 2025-11-04
+ * @since 2025-11-10
  */
 @Service
-public class TradeOrderBillRepo extends ServiceImpl<TradeOrderBillMapper, TradeOrderBill> {
+public class RentalOrderItemRepo extends ServiceImpl<RentalOrderItemMapper, RentalOrderItem> {
 
 }

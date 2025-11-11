@@ -1,8 +1,8 @@
-package com.homi.domain.dto.house.scatter;
+package com.homi.domain.vo.house;
 
+import com.homi.domain.dto.community.CommunityDTO;
 import com.homi.domain.dto.house.HouseLayoutDTO;
 import com.homi.domain.dto.room.RoomDetailDTO;
-import com.homi.domain.dto.room.price.PriceConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -10,10 +10,19 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-@Schema(description = "分散式房源DTO")
-public class ScatterHouseDTO {
+@Schema(description = "分散式房源VO")
+public class ScatterHouseVO {
     @Schema(description = "房源ID")
     private Long id;
+
+    @Schema(description = "公司ID")
+    private Long companyId;
+
+    @Schema(description = "房源租赁类型：1、集d中式；2、分散式")
+    private Integer leaseMode;
+
+    @Schema(description = "住宅小区")
+    private CommunityDTO community;
 
     @Schema(description = "房源编号")
     private String houseCode;
@@ -29,6 +38,27 @@ public class ScatterHouseDTO {
 
     @Schema(description = "门牌号")
     private String doorNumber;
+
+    @Schema(description = "部门ID")
+    private Long deptId;
+
+    @Schema(description = "业务员ID")
+    private Long salesmanId;
+
+    @Schema(description = "水")
+    private String water;
+
+    @Schema(description = "电")
+    private String electricity;
+
+    @Schema(description = "供暖")
+    private String heating;
+
+    @Schema(description = "是否有电梯")
+    private Boolean hasElevator;
+
+    @Schema(description = "是否有燃气")
+    private Boolean hasGas;
 
     @Schema(description = "户型，保存合租房源的公共图片、房源配置、图片等信息")
     private HouseLayoutDTO houseLayout;
@@ -50,15 +80,6 @@ public class ScatterHouseDTO {
 
     @Schema(description = "面积")
     private BigDecimal area;
-
-    /*
-     * 整租使用：price + priceConfig 直接在 house 中配置。
-     */
-    @Schema(description = "整租使用：房间出租价格，单位：元/月")
-    private BigDecimal price;
-
-    @Schema(description = "整租使用：房间价格配置")
-    private PriceConfigDTO priceConfig;
 
     /*
      * 合租使用：房间列表，每个房间包含房间号、面积、价格等信息

@@ -22,7 +22,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "房间创建DTO，包含房间基本信息和价格配置")
-public class RoomCreateDTO {
+public class RoomDetailDTO {
     @Schema(description = "房间id")
     private Long id;
 

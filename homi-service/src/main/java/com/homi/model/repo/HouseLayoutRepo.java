@@ -47,4 +47,12 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
             return houseLayoutDTO;
         }).collect(Collectors.toList());
     }
+
+    public HouseLayoutDTO getHouseLayoutById(Long houseLayoutId) {
+        HouseLayout houseLayout = getById(houseLayoutId);
+        HouseLayoutDTO houseLayoutDTO = BeanCopyUtils.copyBean(houseLayout, HouseLayoutDTO.class);
+        assert houseLayoutDTO != null;
+
+        return houseLayoutDTO;
+    }
 }

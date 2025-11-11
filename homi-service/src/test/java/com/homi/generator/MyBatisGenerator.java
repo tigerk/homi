@@ -57,8 +57,7 @@ public class MyBatisGenerator {
             .mapperPackageName("com.homi.model.mapper")
             .servicePackageName("com.homi.model.repo")
             .tblNameList(Arrays.asList(
-                "file_attach",
-                "file_meta"
+                "room_detail"
             )).build();
 
         myBatisGenerator.generate();

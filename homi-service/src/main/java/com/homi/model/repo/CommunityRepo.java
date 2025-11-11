@@ -7,6 +7,7 @@ import com.homi.domain.dto.community.CommunityDTO;
 import com.homi.model.entity.Community;
 import com.homi.model.entity.Region;
 import com.homi.model.mapper.CommunityMapper;
+import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -86,5 +87,17 @@ public class CommunityRepo extends ServiceImpl<CommunityMapper, Community> {
         }
 
         return list.getFirst();
+    }
+
+    public CommunityDTO getCommunityById(Long communityId) {
+
+        Community community = getById(communityId);
+        CommunityDTO communityDTO = BeanCopyUtils.copyBean(community, CommunityDTO.class);
+        assert communityDTO != null;
+        communityDTO.setCommunityId(community.getId());
+
+        communityDTO.setLocation(community.getLongitude() + "," + community.getLatitude());
+
+        return communityDTO;
     }
 }

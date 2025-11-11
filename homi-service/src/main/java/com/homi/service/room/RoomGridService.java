@@ -7,7 +7,7 @@ import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.room.grid.RoomGridDTO;
 import com.homi.domain.enums.room.RoomStatusEnum;
 import com.homi.domain.enums.house.LeaseModeEnum;
-import com.homi.domain.vo.room.RoomItemVO;
+import com.homi.domain.vo.room.RoomListVO;
 import com.homi.domain.vo.room.grid.*;
 import com.homi.model.entity.Community;
 import com.homi.model.entity.Focus;
@@ -97,11 +97,11 @@ public class RoomGridService {
 
         // 5. 查询分页的小区（项目）、楼栋、单元、楼层的房间数据
         query.setSpatialQuery(currentQueryStatistic);
-        IPage<RoomItemVO> roomItemDTOIPage = roomRepo.pageRoomGridList(query);
-        List<RoomItemVO> rooms = roomItemDTOIPage.getRecords();
+        IPage<RoomListVO> roomItemDTOIPage = roomRepo.pageRoomGridList(query);
+        List<RoomListVO> rooms = roomItemDTOIPage.getRecords();
 
         // 7. 构建楼层分组数据
-        Map<RoomGridGroupKey, List<RoomItemVO>> roomGridGroupKeyListMap = rooms.stream().collect(Collectors.groupingBy(
+        Map<RoomGridGroupKey, List<RoomListVO>> roomGridGroupKeyListMap = rooms.stream().collect(Collectors.groupingBy(
                 room -> new RoomGridGroupKey(
                         room.getModeRefId(),
                         room.getLeaseMode(),
@@ -113,7 +113,7 @@ public class RoomGridService {
 
         // 8. 构建返回结果
         List<RoomGridItemVO> roomGridItemList = new ArrayList<>();
-        for (Map.Entry<RoomGridGroupKey, List<RoomItemVO>> entry : roomGridGroupKeyListMap.entrySet()) {
+        for (Map.Entry<RoomGridGroupKey, List<RoomListVO>> entry : roomGridGroupKeyListMap.entrySet()) {
             RoomGridItemVO roomGridItemVO = new RoomGridItemVO();
             RoomGridGroupKey key = entry.getKey();
 

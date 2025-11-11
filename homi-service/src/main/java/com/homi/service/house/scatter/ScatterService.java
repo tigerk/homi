@@ -2,10 +2,13 @@ package com.homi.service.house.scatter;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
+import com.homi.domain.dto.community.CommunityDTO;
 import com.homi.domain.dto.house.HouseLayoutDTO;
 import com.homi.domain.dto.house.scatter.ScatterCreateDTO;
+import com.homi.domain.dto.room.RoomDetailDTO;
 import com.homi.domain.enums.house.LeaseModeEnum;
 import com.homi.domain.enums.house.RentalTypeEnum;
+import com.homi.domain.vo.house.ScatterHouseVO;
 import com.homi.model.entity.Community;
 import com.homi.model.entity.Company;
 import com.homi.model.entity.House;
@@ -13,10 +16,11 @@ import com.homi.model.entity.HouseLayout;
 import com.homi.model.repo.*;
 import com.homi.service.house.HouseCodeGenerator;
 import com.homi.service.room.RoomSearchService;
+import com.homi.service.room.RoomService;
 import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +39,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ScatterService {
     @Resource
     private HouseRepo houseRepo;
@@ -66,6 +71,9 @@ public class ScatterService {
     @Resource
     private CompanyRepo companyRepo;
 
+    @Resource
+    private RoomService roomService;
+
     /**
      * 创建整租房源
      * <p>
@@ -86,9 +94,9 @@ public class ScatterService {
         // 设置上传文件为已使用
         if (scatterCreateDTO.getHouseList() != null) {
             List<String> imageList = scatterCreateDTO.getHouseList().stream()
-                    .filter(h -> h.getHouseLayout() != null && h.getHouseLayout().getImageList() != null)
-                    .flatMap(h -> h.getHouseLayout().getImageList().stream())
-                    .collect(Collectors.toList());
+                .filter(h -> h.getHouseLayout() != null && h.getHouseLayout().getImageList() != null)
+                .flatMap(h -> h.getHouseLayout().getImageList().stream())
+                .collect(Collectors.toList());
 
             if (!imageList.isEmpty()) { // 确保不为空才创建 Optional
                 Optional.of(imageList).ifPresent(strings -> fileMetaRepo.setFileUsedByName(strings));
@@ -104,10 +112,10 @@ public class ScatterService {
 
         scatterCreateDTO.getHouseList().forEach(houseDTO -> {
             String address = String.format("%s%s%s栋%s-%s室", scatterCreateDTO.getCommunity().getDistrict(),
-                    scatterCreateDTO.getCommunity().getName(),
-                    houseDTO.getBuilding(),
-                    CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : houseDTO.getUnit() + "单元",
-                    houseDTO.getDoorNumber());
+                scatterCreateDTO.getCommunity().getName(),
+                houseDTO.getBuilding(),
+                CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : houseDTO.getUnit() + "单元",
+                houseDTO.getDoorNumber());
 
             House house = new House();
 
@@ -196,5 +204,23 @@ public class ScatterService {
 
     public Boolean updateHouse(ScatterCreateDTO scatterCreateDTO) {
         return Boolean.TRUE;
+    }
+
+    public ScatterHouseVO getScatterId(Long houseId) {
+        House house = houseRepo.getById(houseId);
+        ScatterHouseVO scatterHouseVO = new ScatterHouseVO();
+        BeanUtils.copyProperties(house, scatterHouseVO);
+
+        CommunityDTO communityDTO = communityRepo.getCommunityById(house.getCommunityId());
+        scatterHouseVO.setCommunity(communityDTO);
+
+        HouseLayoutDTO houseLayoutById = houseLayoutRepo.getHouseLayoutById(house.getHouseLayoutId());
+        scatterHouseVO.setHouseLayout(houseLayoutById);
+
+        List<RoomDetailDTO> roomList = roomService.getRoomListByHouseId(house.getId());
+
+        scatterHouseVO.setRoomList(roomList);
+
+        return scatterHouseVO;
     }
 }

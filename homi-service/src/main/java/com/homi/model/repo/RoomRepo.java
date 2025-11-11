@@ -5,19 +5,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.domain.dto.house.focus.FocusHouseDTO;
 import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.enums.room.RoomStatusEnum;
-import com.homi.domain.vo.room.RoomItemVO;
+import com.homi.domain.vo.room.RoomListVO;
 import com.homi.domain.vo.room.grid.RoomAggregatedVO;
 import com.homi.model.entity.Room;
 import com.homi.model.mapper.RoomMapper;
-import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -47,13 +44,12 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         return getOne(queryWrapper);
     }
 
-    public List<FocusHouseDTO> getRoomListByHouseId(Long houseId) {
+    public List<Room> getRoomListByHouseId(Long houseId) {
         LambdaQueryWrapper<Room> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Room::getHouseId, houseId);
 
-        return getBaseMapper().selectList(queryWrapper).stream()
-                .map(room -> BeanCopyUtils.copyBean(room, FocusHouseDTO.class))
-                .collect(Collectors.toList());
+
+        return getBaseMapper().selectList(queryWrapper);
     }
 
     /**
@@ -88,8 +84,8 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         return getBaseMapper().selectAggregatedRooms(query);
     }
 
-    public IPage<RoomItemVO> pageRoomGridList(RoomQueryDTO query) {
-        Page<RoomItemVO> page = new Page<>(1, Integer.MAX_VALUE);
+    public IPage<RoomListVO> pageRoomGridList(RoomQueryDTO query) {
+        Page<RoomListVO> page = new Page<>(1, Integer.MAX_VALUE);
         return getBaseMapper().pageRoomList(page, query);
     }
 

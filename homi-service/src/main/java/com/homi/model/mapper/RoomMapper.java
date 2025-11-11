@@ -3,7 +3,7 @@ package com.homi.model.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.domain.dto.room.RoomQueryDTO;
-import com.homi.domain.vo.room.RoomItemVO;
+import com.homi.domain.vo.room.RoomListVO;
 import com.homi.domain.vo.room.RoomTotalItemVO;
 import com.homi.domain.vo.room.grid.RoomAggregatedVO;
 import com.homi.model.entity.Room;
@@ -31,9 +31,9 @@ public interface RoomMapper extends BaseMapper<Room> {
      *
      * @param page  参数说明
      * @param query 参数说明
-     * @return com.baomidou.mybatisplus.core.metadata.IPage<com.homi.domain.vo.room.RoomItemVO>
+     * @return com.baomidou.mybatisplus.core.metadata.IPage<com.homi.domain.vo.room.RoomListVO>
      */
-    IPage<RoomItemVO> pageRoomList(IPage<RoomItemVO> page, @Param("query") RoomQueryDTO query);
+    IPage<RoomListVO> pageRoomList(IPage<RoomListVO> page, @Param("query") RoomQueryDTO query);
 
     List<RoomTotalItemVO> getStatusTotal(@Param("query") RoomQueryDTO query);
 
