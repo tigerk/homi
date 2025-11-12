@@ -1,5 +1,6 @@
 package com.homi.model.repo;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.domain.dto.house.HouseLayoutDTO;
@@ -9,6 +10,7 @@ import com.homi.utils.BeanCopyUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +54,16 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
         HouseLayout houseLayout = getById(houseLayoutId);
         HouseLayoutDTO houseLayoutDTO = BeanCopyUtils.copyBean(houseLayout, HouseLayoutDTO.class);
         assert houseLayoutDTO != null;
+
+        if (Objects.nonNull(houseLayout.getTags()) && JSONUtil.isTypeJSON(houseLayout.getTags())) {
+            houseLayoutDTO.setTags(JSONUtil.toList(houseLayout.getTags(), String.class));
+        }
+
+        if (Objects.nonNull(houseLayout.getImageList()) && JSONUtil.isTypeJSON(houseLayout.getImageList())) {
+            houseLayoutDTO.setImageList(JSONUtil.toList(houseLayout.getImageList(), String.class));
+        }
+
+        houseLayoutDTO.setNewly(Boolean.FALSE);
 
         return houseLayoutDTO;
     }

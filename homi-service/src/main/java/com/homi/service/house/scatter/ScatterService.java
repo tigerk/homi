@@ -117,12 +117,13 @@ public class ScatterService {
                 CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : houseDTO.getUnit() + "单元",
                 houseDTO.getDoorNumber());
 
-            House house = new House();
-
             Boolean exist = houseRepo.checkHouseExist(scatterCreateDTO.getCommunity().getCommunityId(), houseDTO.getBuilding(), houseDTO.getUnit(), houseDTO.getDoorNumber());
             if (Boolean.TRUE.equals(exist)) {
                 throw new IllegalArgumentException(address + " 已存在！");
             }
+
+            House house = new House();
+            house.setId(houseDTO.getId());
 
             // 生成房源编码
             String houseCode = houseCodeGenerator.generate(companyCode);
@@ -157,14 +158,18 @@ public class ScatterService {
 
             house.setHouseName(address);
 
-            house.setCreateBy(scatterCreateDTO.getCreateBy());
-            house.setCreateTime(scatterCreateDTO.getCreateTime());
             house.setUpdateBy(scatterCreateDTO.getCreateBy());
             house.setUpdateTime(scatterCreateDTO.getCreateTime());
 
-            houseRepo.saveHouse(house);
+            if (Objects.nonNull(house.getId())) {
+                houseRepo.updateById(house);
+            } else {
+                house.setCreateBy(scatterCreateDTO.getCreateBy());
+                house.setCreateTime(scatterCreateDTO.getCreateTime());
 
-            houseDTO.setId(house.getId());
+                houseRepo.save(house);
+                houseDTO.setId(house.getId());
+            }
 
             /*
              * 创建整租房源 or 合租房间
@@ -200,10 +205,6 @@ public class ScatterService {
         }
 
         return houseLayout.getId();
-    }
-
-    public Boolean updateHouse(ScatterCreateDTO scatterCreateDTO) {
-        return Boolean.TRUE;
     }
 
     public ScatterHouseVO getScatterId(Long houseId) {

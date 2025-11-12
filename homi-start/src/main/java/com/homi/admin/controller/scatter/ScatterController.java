@@ -11,8 +11,6 @@ import com.homi.service.house.scatter.ScatterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Objects;
-
 @RequestMapping("/admin/scatter")
 @RestController
 @RequiredArgsConstructor
@@ -24,18 +22,12 @@ public class ScatterController {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         scatterCreateDTO.setCompanyId(currentUser.getCurCompanyId());
 
+        scatterCreateDTO.setCreateBy(currentUser.getId());
+        scatterCreateDTO.setCreateTime(DateUtil.date());
         scatterCreateDTO.setUpdateBy(currentUser.getId());
         scatterCreateDTO.setUpdateTime(DateUtil.date());
 
-        Boolean success;
-        if (Objects.nonNull(scatterCreateDTO.getId())) {
-            success = scatterService.updateHouse(scatterCreateDTO);
-        } else {
-            scatterCreateDTO.setCreateBy(currentUser.getId());
-            scatterCreateDTO.setCreateTime(DateUtil.date());
-            success = scatterService.createHouse(scatterCreateDTO);
-        }
-
+        Boolean success = scatterService.createHouse(scatterCreateDTO);
         return ResponseResult.ok(success);
     }
 

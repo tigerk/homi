@@ -4,16 +4,15 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -21,7 +20,7 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-09-19
+ * @since 2025-11-12
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -56,13 +55,13 @@ public class House implements Serializable {
     @TableField("salesman_id")
     private Long salesmanId;
 
-    @Schema(description = "来源id，集中式为集中式id，整租、合租为community_id")
-    @TableField("mode_ref_id")
-    private Long modeRefId;
-
     @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
     @TableField("lease_mode")
     private Integer leaseMode;
+
+    @Schema(description = "来源id，集中式为集中式id，整租、合租为community_id")
+    @TableField("mode_ref_id")
+    private Long modeRefId;
 
     @Schema(description = "小区ID")
     @TableField("community_id")
@@ -96,6 +95,10 @@ public class House implements Serializable {
     @TableField("direction")
     private String direction;
 
+    @Schema(description = "装修类型：1=豪华装，2=简装，3=精装，4=毛坯，5=清水，6=简约，7=未装修")
+    @TableField("decoration_type")
+    private Integer decorationType;
+
     @Schema(description = "楼层")
     @TableField("floor")
     private Integer floor;
@@ -123,6 +126,10 @@ public class House implements Serializable {
     @Schema(description = "是否有燃气")
     @TableField("has_gas")
     private Boolean hasGas;
+
+    @Schema(description = "物业费，每月")
+    @TableField("property_fee")
+    private BigDecimal propertyFee;
 
     @Schema(description = "暖气费，每月")
     @TableField("heating_fee")

@@ -27,6 +27,15 @@ import java.util.Objects;
 public class HouseRepo extends ServiceImpl<HouseMapper, House> {
     private final RoomRepo roomRepo;
 
+    /**
+     * 更新房源的房间数量
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/12 09:09
+     *
+     * @param houseId 参数说明
+     * @return boolean
+     */
     public boolean updateHouseRoomCount(Long houseId) {
         LambdaQueryWrapper<Room> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Room::getHouseId, houseId);
@@ -44,7 +53,7 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
     }
 
     /**
-     * 根据houseCode判断是否存在，存在更新，不存在则插入
+     * 根据id判断是否存在，存在更新，不存在则插入
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/9/10 22:45
@@ -52,19 +61,23 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
      * @param house 参数说明
      */
     public void saveHouse(House house) {
-        LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(House::getHouseCode, house.getHouseCode());
-
-        House oneHouse = getOne(queryWrapper);
-
-        if (Objects.nonNull(oneHouse)) {
-            house.setId(oneHouse.getId());
+        if (Objects.nonNull(house.getId())) {
             updateById(house);
         } else {
             save(house);
         }
     }
 
+    /**
+     * 根据模式引用id和租赁模式查询房源
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/12 09:09
+     *
+     * @param modeRefId 参数说明
+     * @param leaseMode 参数说明
+     * @return java.util.List<com.homi.model.entity.House>
+     */
     public List<House> getHousesByModeRefId(Long modeRefId, Integer leaseMode) {
         LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(House::getModeRefId, modeRefId);
@@ -72,6 +85,18 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         return list(queryWrapper);
     }
 
+    /**
+     * 检查房源是否存在
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/12 09:09
+     *
+     * @param communityId 参数说明
+     * @param building    参数说明
+     * @param unit        参数说明
+     * @param doorNumber  参数说明
+     * @return boolean
+     */
     public Boolean checkHouseExist(Long communityId, String building, String unit, String doorNumber) {
         LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(House::getCommunityId, communityId);
@@ -82,11 +107,21 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         return count(queryWrapper) > 0;
     }
 
+     /**
+     * 生成房源的详细地址
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/12 09:09
+     *
+     * @param community 参数说明
+     * @param houseDTO  参数说明
+     * @return java.lang.String
+     */
     public String getScatterAddress(CommunityDTO community, ScatterHouseDTO houseDTO) {
         return String.format("%s%s%s栋%s-%s室", community.getDistrict(),
-                community.getName(),
-                houseDTO.getBuilding(),
-                CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : houseDTO.getUnit() + "单元",
-                houseDTO.getDoorNumber());
+            community.getName(),
+            houseDTO.getBuilding(),
+            CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : houseDTO.getUnit() + "单元",
+            houseDTO.getDoorNumber());
     }
 }

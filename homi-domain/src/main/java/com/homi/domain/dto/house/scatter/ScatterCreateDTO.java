@@ -9,14 +9,8 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-@Schema(description = "分散式房源创建DTO")
+@Schema(description = "分散式房源创建DTO，包含小区等公共信息，houseList是房源具体信息，每个房间的信息都在houseList中")
 public class ScatterCreateDTO {
-    /**
-     * 主键ID
-     */
-    @Schema(description = "id，修改时需要传")
-    private Long id;
-
     @Schema(description = "公司ID")
     private Long companyId;
 

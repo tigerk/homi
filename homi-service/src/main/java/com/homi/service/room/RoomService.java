@@ -254,11 +254,6 @@ public class RoomService {
                 BeanUtils.copyProperties(roomDetail, roomDetailDTO);
             }
 
-            RoomPriceConfig roomPriceConfig = roomPriceConfigRepo.getByRoomId(room.getId());
-            if (Objects.nonNull(roomPriceConfig)) {
-                BeanUtils.copyProperties(roomPriceConfig, roomDetailDTO);
-            }
-
             roomDetailDTO.setPriceConfig(getPriceConfigByRoomId(room.getId()));
 
             return roomDetailDTO;

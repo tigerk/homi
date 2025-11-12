@@ -35,14 +35,14 @@ public class EntireService {
     private final PriceConfigService priceConfigService;
 
     /**
-     * 设置价格
+     * 创建整租房间
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/10/23 15:40
      *
-     * @param house       参数说明
-     * @param price       参数说明
-     * @param priceConfig
+     * @param house       房源数据
+     * @param price       房间价格
+     * @param priceConfig 价格配置
      */
     public void createEntireRoom(House house, BigDecimal price, PriceConfigDTO priceConfig) {
         Room room = new Room();
