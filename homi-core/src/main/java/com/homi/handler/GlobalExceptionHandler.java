@@ -8,6 +8,7 @@ import com.homi.domain.base.ResponseResult;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -52,13 +55,13 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseResult<Void> handlerNoResourceFoundException(NoResourceFoundException e) {
-        log.warn("系统资源未找到：" + e.getMessage(), e);
+        log.warn("系统资源未找到：{}", e.getMessage(), e);
         return ResponseResult.fail(ResponseCodeEnum.NO_FOUND);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseResult<Void> handlerValidationException(MethodArgumentNotValidException e) {
-        log.warn("参数校验失败：" + e.getMessage(), e);
+        log.warn("参数校验失败：{}", e.getMessage(), e);
         String errorMessage = e.getBindingResult().getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(";"));
         return ResponseResult.fail(ResponseCodeEnum.VALID_ERROR.getCode(), errorMessage);
     }

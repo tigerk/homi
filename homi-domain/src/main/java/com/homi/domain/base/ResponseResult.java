@@ -49,6 +49,12 @@ public final class ResponseResult<T> implements Serializable {
         this.message = message;
     }
 
+    private ResponseResult(Integer code, String message, T data) {
+        this.code = code;
+        this.message = message;
+        this.data = data;
+    }
+
     private ResponseResult(T data) {
         this();
         this.data = data;
@@ -96,6 +102,13 @@ public final class ResponseResult<T> implements Serializable {
      */
     public static <T> ResponseResult<T> fail(Integer code, String message) {
         return new ResponseResult<>(code, message);
+    }
+
+    /**
+     * 业务处理失败，返回失败码以及失败信息（支持泛型）
+     */
+    public static <T> ResponseResult<T> fail(ResponseCodeEnum errorCode, T data) {
+        return new ResponseResult<>(errorCode.getCode(), errorCode.getMsg(), data);
     }
 
     /**

@@ -2,6 +2,7 @@ package com.homi.domain.dto.contract;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,9 +33,11 @@ public class ContractTemplateCreateDTO {
     private Integer contractType;
 
     @Schema(description = "合同模板名称")
+    @NotBlank(message = "合同模板名称不能为空")
     private String templateName;
 
     @Schema(description = "合同模板内容，包含模板变量占位符")
+    @NotBlank(message = "合同模板内容不能为空")
     private String templateContent;
 
     @Schema(description = "合同状态：0=未生效，1=生效中")

@@ -9,12 +9,15 @@ import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.contract.ContractTemplateCreateDTO;
 import com.homi.domain.dto.contract.ContractTemplateDeleteDTO;
 import com.homi.domain.dto.contract.ContractTemplateQueryDTO;
+import com.homi.domain.dto.contract.ContractTemplateStatusDTO;
 import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.vo.contract.ContractTemplateListDTO;
 import com.homi.service.contract.ContractTemplateService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +37,7 @@ import java.util.Objects;
 @Slf4j
 @RestController
 @RequestMapping("admin/contract/template")
+@Validated
 public class TemplateController {
     private final ContractTemplateService contractTemplateService;
 
@@ -43,7 +47,8 @@ public class TemplateController {
     }
 
     @PostMapping("/create")
-    public ResponseResult<Long> createContractTemplate(@RequestBody ContractTemplateCreateDTO createDTO) {
+    @Log(title = "创建合同模板", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<Long> createContractTemplate(@Valid @RequestBody ContractTemplateCreateDTO createDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         createDTO.setCompanyId(currentUser.getCurCompanyId());
 
@@ -78,13 +83,17 @@ public class TemplateController {
     }
 
     @PostMapping("/delete")
+    @Log(title = "删除合同模板", operationType = OperationTypeEnum.DELETE)
     public ResponseResult<Boolean> deleteContractTemplate(@RequestBody ContractTemplateDeleteDTO deleteDTO) {
         return ResponseResult.ok(contractTemplateService.deleteContractTemplate(deleteDTO));
     }
 
     @PostMapping("/status/update")
     @Log(title = "修改合同模板状态", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Boolean> updateContractTemplateStatus(@RequestBody ContractTemplateCreateDTO updateDTO) {
+    public ResponseResult<Boolean> updateContractTemplateStatus(@RequestBody ContractTemplateStatusDTO updateDTO) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        updateDTO.setUpdateBy(currentUser.getId());
+        updateDTO.setUpdateTime(DateUtil.date());
         return ResponseResult.ok(contractTemplateService.updateContractTemplateStatus(updateDTO));
     }
 }

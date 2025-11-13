@@ -7,6 +7,7 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.contract.ContractTemplateCreateDTO;
 import com.homi.domain.dto.contract.ContractTemplateQueryDTO;
 import com.homi.domain.dto.contract.ContractTemplateDeleteDTO;
+import com.homi.domain.dto.contract.ContractTemplateStatusDTO;
 import com.homi.domain.enums.contract.ContractTemplateStatusEnum;
 import com.homi.domain.vo.contract.ContractTemplateListDTO;
 import com.homi.model.entity.ContractTemplate;
@@ -113,7 +114,7 @@ public class ContractTemplateService {
 
     }
 
-    public Boolean updateContractTemplateStatus(ContractTemplateCreateDTO updateDTO) {
+    public Boolean updateContractTemplateStatus(ContractTemplateStatusDTO updateDTO) {
         ContractTemplate contractTemplate = contractTemplateRepo.getById(updateDTO.getId());
         assert contractTemplate != null;
         contractTemplate.setStatus(updateDTO.getStatus());
