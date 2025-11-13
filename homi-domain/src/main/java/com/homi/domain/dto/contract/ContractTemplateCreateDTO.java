@@ -55,13 +55,13 @@ public class ContractTemplateCreateDTO {
     private Long createBy;
 
     @Schema(description = "创建时间")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     @Schema(description = "修改人ID")
     private Long updateBy;
 
     @Schema(description = "修改时间")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 }

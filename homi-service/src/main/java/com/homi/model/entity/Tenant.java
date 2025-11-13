@@ -94,7 +94,7 @@ public class Tenant implements Serializable {
 
     @Schema(description = "创建时间")
     @TableField("create_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     @Schema(description = "修改人ID")
@@ -103,6 +103,6 @@ public class Tenant implements Serializable {
 
     @Schema(description = "修改时间")
     @TableField("update_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 }

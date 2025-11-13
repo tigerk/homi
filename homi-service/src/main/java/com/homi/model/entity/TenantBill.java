@@ -58,12 +58,12 @@ public class TenantBill implements Serializable {
 
     @Schema(description = "账单租期开始日期")
     @TableField("rent_period_start")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date rentPeriodStart;
 
     @Schema(description = "账单租期结束日期")
     @TableField("rent_period_end")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date rentPeriodEnd;
 
     @Schema(description = "租金金额")
@@ -84,12 +84,12 @@ public class TenantBill implements Serializable {
 
     @Schema(description = "应收日期（根据 rent_due_xxx 计算）")
     @TableField("due_date")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date dueDate;
 
     @Schema(description = "实际支付日期")
     @TableField("paid_date")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date paidDate;
 
     @Schema(description = "支付状态：0=未支付，1=部分支付，2=已支付，3=逾期")
@@ -115,7 +115,7 @@ public class TenantBill implements Serializable {
 
     @Schema(description = "创建时间")
     @TableField("create_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     @Schema(description = "修改人ID")
@@ -124,6 +124,6 @@ public class TenantBill implements Serializable {
 
     @Schema(description = "修改时间")
     @TableField("update_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 }

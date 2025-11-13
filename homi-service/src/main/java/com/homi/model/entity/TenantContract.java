@@ -74,32 +74,32 @@ public class TenantContract implements Serializable {
 
     @Schema(description = "租赁开始时间")
     @TableField("lease_start")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date leaseStart;
 
     @Schema(description = "租赁结束时间")
     @TableField("lease_end")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date leaseEnd;
 
     @Schema(description = "实际入住时间")
     @TableField("check_in_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date checkInTime;
 
     @Schema(description = "实际搬离时间")
     @TableField("check_out_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date checkOutTime;
 
     @Schema(description = "初始录入租赁开始时间")
     @TableField("original_lease_start")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date originalLeaseStart;
 
     @Schema(description = "初始录入租赁结束时间")
     @TableField("original_lease_end")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date originalLeaseEnd;
 
     @Schema(description = "累计租房天数")
@@ -145,7 +145,7 @@ public class TenantContract implements Serializable {
 
     @Schema(description = "创建时间")
     @TableField("create_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     @Schema(description = "修改人ID")
@@ -154,6 +154,6 @@ public class TenantContract implements Serializable {
 
     @Schema(description = "修改时间")
     @TableField("update_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 }

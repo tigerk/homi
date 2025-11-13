@@ -48,6 +48,7 @@ public class ContractTemplateService {
         }
 
         wrapper.like(ContractTemplate::getTemplateName, query.getTemplateName());
+        wrapper.orderByDesc(ContractTemplate::getId);
 
         Page<ContractTemplate> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 

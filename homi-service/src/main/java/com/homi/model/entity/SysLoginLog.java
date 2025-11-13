@@ -71,6 +71,6 @@ public class SysLoginLog implements Serializable {
 
     @Schema(description = "登录时间")
     @TableField("login_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date loginTime;
 }

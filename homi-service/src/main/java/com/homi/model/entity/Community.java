@@ -83,7 +83,7 @@ public class Community implements Serializable {
 
     @Schema(description = "建成年份")
     @TableField("built_year")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date builtYear;
 
     @Schema(description = "楼栋数")
@@ -120,7 +120,7 @@ public class Community implements Serializable {
 
     @Schema(description = "创建时间")
     @TableField("create_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     @TableField("update_by")
@@ -128,6 +128,6 @@ public class Community implements Serializable {
 
     @Schema(description = "更新时间")
     @TableField("update_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 }

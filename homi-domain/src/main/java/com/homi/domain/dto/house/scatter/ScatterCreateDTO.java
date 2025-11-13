@@ -45,14 +45,14 @@ public class ScatterCreateDTO {
     private Boolean hasGas;
 
     @Schema(description = "创建时间")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     @Schema(description = "更新人")
     private Long updateBy;
 
     @Schema(description = "更新时间")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 
     @Schema(description = "创建人")

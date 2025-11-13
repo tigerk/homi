@@ -68,11 +68,11 @@ public class RentalPayment implements Serializable {
     private String currency;
 
     @TableField("payment_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date paymentTime;
 
     @TableField("confirm_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date confirmTime;
 
     @Schema(description = "0=待确认，1=成功，2=失败，3=已退款")
@@ -86,13 +86,13 @@ public class RentalPayment implements Serializable {
     private Long createBy;
 
     @TableField("create_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     @TableField("update_by")
     private Long updateBy;
 
     @TableField("update_time")
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 }
