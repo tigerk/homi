@@ -1,12 +1,13 @@
 package com.homi.service.contract;
 
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.contract.ContractTemplateCreateDTO;
-import com.homi.domain.dto.contract.ContractTemplateQueryDTO;
 import com.homi.domain.dto.contract.ContractTemplateDeleteDTO;
+import com.homi.domain.dto.contract.ContractTemplateQueryDTO;
 import com.homi.domain.dto.contract.ContractTemplateStatusDTO;
 import com.homi.domain.enums.contract.ContractTemplateStatusEnum;
 import com.homi.domain.vo.contract.ContractTemplateListDTO;
@@ -54,7 +55,14 @@ public class ContractTemplateService {
 
         PageVO<ContractTemplateListDTO> pageVO = new PageVO<>();
         pageVO.setTotal(sysDictDataPage.getTotal());
-        pageVO.setList(sysDictDataPage.getRecords().stream().map(c -> BeanCopyUtils.copyBean(c, ContractTemplateListDTO.class)).toList());
+        pageVO.setList(sysDictDataPage.getRecords().stream().map(c -> {
+            ContractTemplateListDTO contractTemplateListDTO = BeanCopyUtils.copyBean(c, ContractTemplateListDTO.class);
+            if (Objects.nonNull(c.getDeptIds())) {
+                assert contractTemplateListDTO != null;
+                contractTemplateListDTO.setDeptIds(JSONUtil.toList(c.getDeptIds(), String.class));
+            }
+            return contractTemplateListDTO;
+        }).toList());
         pageVO.setCurrentPage(sysDictDataPage.getCurrent());
         pageVO.setPageSize(sysDictDataPage.getSize());
         pageVO.setPages(sysDictDataPage.getPages());
@@ -73,6 +81,8 @@ public class ContractTemplateService {
         ContractTemplate contractTemplate = BeanCopyUtils.copyBean(createDTO, ContractTemplate.class);
 
         assert contractTemplate != null;
+
+        contractTemplate.setDeptIds(JSONUtil.toJsonStr(createDTO.getDeptIds()));
         contractTemplate.setStatus(ContractTemplateStatusEnum.UNEFFECTIVE.getCode());
 
         contractTemplateRepo.save(contractTemplate);
@@ -90,7 +100,7 @@ public class ContractTemplateService {
         ContractTemplate contractTemplate = BeanCopyUtils.copyBean(createDTO, ContractTemplate.class);
 
         assert contractTemplate != null;
-
+        contractTemplate.setDeptIds(JSONUtil.toJsonStr(createDTO.getDeptIds()));
         contractTemplateRepo.updateById(contractTemplate);
 
         return contractTemplate.getId();

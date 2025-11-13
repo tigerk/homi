@@ -1,6 +1,7 @@
 package com.homi.domain.dto.contract;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,5 +19,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class ContractTemplateDeleteDTO {
     @Schema(description = "合同模板ID")
+    @NotNull
     private Long id;
 }

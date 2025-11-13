@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 应用于 domix-saas
@@ -39,6 +40,10 @@ public class ContractTemplateCreateDTO {
     @Schema(description = "合同模板内容，包含模板变量占位符")
     @NotBlank(message = "合同模板内容不能为空")
     private String templateContent;
+
+    @Schema(description = "生效部门json，格式：[1,2,3]")
+    @NotNull(message = "生效部门不能为空")
+    private List<String> deptIds;
 
     @Schema(description = "合同状态：0=未生效，1=生效中")
     private Integer status;

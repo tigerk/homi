@@ -84,7 +84,7 @@ public class TemplateController {
 
     @PostMapping("/delete")
     @Log(title = "删除合同模板", operationType = OperationTypeEnum.DELETE)
-    public ResponseResult<Boolean> deleteContractTemplate(@RequestBody ContractTemplateDeleteDTO deleteDTO) {
+    public ResponseResult<Boolean> deleteContractTemplate(@Valid @RequestBody ContractTemplateDeleteDTO deleteDTO) {
         return ResponseResult.ok(contractTemplateService.deleteContractTemplate(deleteDTO));
     }
 

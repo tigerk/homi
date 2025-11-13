@@ -3,12 +3,14 @@ package com.homi.domain.vo.contract;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.domain.base.PageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 应用于 domix-saas
@@ -37,6 +39,9 @@ public class ContractTemplateListDTO extends PageDTO {
 
     @Schema(description = "合同模板内容，包含模板变量占位符")
     private String templateContent;
+
+    @Schema(description = "生效部门json，格式：[1,2,3]")
+    private List<String> deptIds;
 
     @Schema(description = "合同状态：0=未生效，1=生效中，-1=已作废")
     private Integer status;

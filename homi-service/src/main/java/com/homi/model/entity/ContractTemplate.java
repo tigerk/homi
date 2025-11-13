@@ -1,18 +1,15 @@
 package com.homi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
 import java.io.Serial;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <p>
@@ -50,6 +47,10 @@ public class ContractTemplate implements Serializable {
     @Schema(description = "合同模板内容，包含模板变量占位符")
     @TableField("template_content")
     private String templateContent;
+
+    @Schema(description = "生效部门json")
+    @TableField("dept_ids")
+    private String deptIds;
 
     @Schema(description = "合同状态：0=未生效，1=生效中，-1=已作废")
     @TableField("status")
