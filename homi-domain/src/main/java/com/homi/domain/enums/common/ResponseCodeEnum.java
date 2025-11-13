@@ -93,9 +93,15 @@ public enum ResponseCodeEnum {
     WEIBO_LOGIN_ERROR(720, "微博登录错误"),
 
     /**
-     * 生成PDF失败
+     * 合同 生成PDF失败
      */
     PDF_GENERATE_ERROR(800, "生成PDF失败"),
+
+    /**
+     * 合同 合同模板错误
+     */
+    CONTRACT_TEMPLATE_ERROR(800, "合同模板错误"),
+
     /**
      * token异常
      */

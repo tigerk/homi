@@ -1,6 +1,7 @@
 package com.homi.admin.controller.contract;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.lang.Pair;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.annotation.Log;
@@ -11,6 +12,11 @@ import com.homi.domain.dto.contract.ContractTemplateDeleteDTO;
 import com.homi.domain.dto.contract.ContractTemplateQueryDTO;
 import com.homi.domain.dto.contract.ContractTemplateStatusDTO;
 import com.homi.domain.enums.common.OperationTypeEnum;
+import com.homi.domain.enums.common.ResponseCodeEnum;
+import com.homi.domain.enums.contract.BookingParamsEnum;
+import com.homi.domain.enums.contract.ContractTypeEnum;
+import com.homi.domain.enums.contract.LandlordParamsEnum;
+import com.homi.domain.enums.contract.TenantParamsEnum;
 import com.homi.domain.vo.contract.ContractTemplateListDTO;
 import com.homi.service.contract.ContractTemplateService;
 import jakarta.validation.Valid;
@@ -23,6 +29,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -61,6 +69,31 @@ public class TemplateController {
             return ResponseResult.ok(contractTemplateService.createContractTemplate(createDTO));
         } else {
             return ResponseResult.ok(contractTemplateService.updateContractTemplate(createDTO));
+        }
+    }
+
+    /**
+     * 根据合同类型获取合同模板参数
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/13 23:03
+     *
+     * @param query 参数说明
+     * @return com.homi.domain.base.ResponseResult<java.util.List<cn.hutool.core.lang.Pair<java.lang.String,java.lang.String>>>
+     */
+    @PostMapping("params")
+    public ResponseResult<List<Pair<String, String>>> getTenantParams(@RequestBody ContractTemplateQueryDTO query) {
+        if (query.getContractType().equals(ContractTypeEnum.TENANT.getCode())) {
+            // 租客
+            return ResponseResult.ok(Arrays.stream(TenantParamsEnum.values()).map(p -> new Pair<>(p.getKey(), p.getValue())).toList());
+        } else if (query.getContractType().equals(ContractTypeEnum.LANDLORD.getCode())) {
+            // 房东
+            return ResponseResult.ok(Arrays.stream(LandlordParamsEnum.values()).map(p -> new Pair<>(p.getKey(), p.getValue())).toList());
+        } else if (query.getContractType().equals(ContractTypeEnum.BOOKING.getCode())) {
+            // 预定
+            return ResponseResult.ok(Arrays.stream(BookingParamsEnum.values()).map(p -> new Pair<>(p.getKey(), p.getValue())).toList());
+        } else {
+            return ResponseResult.fail(ResponseCodeEnum.CONTRACT_TEMPLATE_ERROR);
         }
     }
 
