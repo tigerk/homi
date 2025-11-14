@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum LandlordParamsEnum {
-    CONTRACT_NUMBER("${合同编号}", "${合同编号}"),
+    CONTRACT_NUMBER("${房东合同编号}", "${房东合同编号}"),
     HOUSE_ADDRESS("${房屋地址}", "${房屋地址}"),
     PROJECT_NAME("${小区/项目名称}", "${小区/项目名称}"),
     BUILDING_NUMBER("${楼栋号}", "${楼栋号}"),
