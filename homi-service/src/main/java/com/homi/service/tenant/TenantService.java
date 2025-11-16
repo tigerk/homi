@@ -2,7 +2,7 @@ package com.homi.service.tenant;
 
 import com.homi.domain.base.PageVO;
 import com.homi.domain.dto.tenant.TenantQueryDTO;
-import com.homi.domain.vo.tenant.TenantItemVO;
+import com.homi.domain.vo.tenant.TenantListVO;
 import com.homi.model.repo.TenantRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,13 @@ import org.springframework.stereotype.Service;
 public class TenantService {
     private final TenantRepo tenantRepo;
 
-    public PageVO<TenantItemVO> getTenantList(TenantQueryDTO query) {
+    /**
+     * 获取租客列表
+     *
+     * @param query 查询参数
+     * @return 租客列表
+     */
+    public PageVO<TenantListVO> getTenantList(TenantQueryDTO query) {
         return tenantRepo.queryTenantList(query);
     }
 }

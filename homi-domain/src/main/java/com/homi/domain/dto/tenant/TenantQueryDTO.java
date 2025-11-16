@@ -1,6 +1,7 @@
 package com.homi.domain.dto.tenant;
 
 import com.homi.domain.base.PageDTO;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,5 +18,9 @@ import lombok.EqualsAndHashCode;
 @Data
 @AllArgsConstructor
 public class TenantQueryDTO extends PageDTO {
+    @Schema(description = "租户名称")
     private String tenantName;
+
+    @Schema(description = "租户手机号")
+    private String tenantPhone;
 }

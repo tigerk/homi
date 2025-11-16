@@ -3,7 +3,7 @@ package com.homi.admin.controller.contract;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.tenant.TenantQueryDTO;
-import com.homi.domain.vo.tenant.TenantItemVO;
+import com.homi.domain.vo.tenant.TenantListVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public class TenantController {
     private final TenantService tenantService;
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<TenantItemVO>> getTenantList(@RequestBody TenantQueryDTO query) {
+    public ResponseResult<PageVO<TenantListVO>> getTenantList(@RequestBody TenantQueryDTO query) {
         return ResponseResult.ok(tenantService.getTenantList(query));
     }
 }
