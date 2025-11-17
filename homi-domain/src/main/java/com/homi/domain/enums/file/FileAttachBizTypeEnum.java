@@ -16,6 +16,7 @@ public enum FileAttachBizTypeEnum {
     USER_AVATAR("user_avatar"),
     HOUSE_IMAGE("house_image"),
     ROOM_IMAGE("room_image"),
+
     /**
      * 租户证件正面
      */
@@ -28,7 +29,11 @@ public enum FileAttachBizTypeEnum {
      * 租户证件手持
      */
     TENANT_ID_CARD_IN_HAND("tenant_id_card_in_hand"),
-    CONTRACT_FILE("contract_file")
+    CONTRACT_FILE("contract_file"),
+    /**
+     * 租户图片
+     */
+    TENANT_IMAGE("tenant_image"),
     ;
 
     private final String bizType;
