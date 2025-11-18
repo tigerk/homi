@@ -57,9 +57,11 @@ public class MyBatisGenerator {
             .mapperPackageName("com.homi.model.mapper")
             .servicePackageName("com.homi.model.repo")
             .tblNameList(Arrays.asList(
-                "contract_template",
+                "tenant_bill",
+                "tenant_bill_detail",
+                "tenant_company",
                 "tenant_contract",
-                "tenant"
+                "tenant_contract_room"
             )).build();
 
         myBatisGenerator.generate();

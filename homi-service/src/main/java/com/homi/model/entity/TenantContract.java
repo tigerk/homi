@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-11-18
+ * @since 2025-11-19
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -36,9 +36,13 @@ public class TenantContract implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @Schema(description = "租客ID")
-    @TableField("tenant_id")
-    private Long tenantId;
+    @Schema(description = "合同编号")
+    @TableField("contract_code")
+    private String contractCode;
+
+    @Schema(description = "合同性质：1=新签，2=续签，3=转租，4=换房")
+    @TableField("contract_nature")
+    private Integer contractNature;
 
     @Schema(description = "公司ID")
     @TableField("company_id")
@@ -48,21 +52,21 @@ public class TenantContract implements Serializable {
     @TableField("dept_id")
     private Long deptId;
 
-    @Schema(description = "房源ID")
-    @TableField("house_id")
-    private Long houseId;
+    @Schema(description = "租客ID")
+    @TableField("tenant_id")
+    private Long tenantId;
 
-    @Schema(description = "房间ID")
-    @TableField("room_id")
-    private Long roomId;
+    @Schema(description = "租客类型：0=个人，1=企业")
+    @TableField("tenant_type")
+    private Integer tenantType;
 
-    @Schema(description = "合同编号")
-    @TableField("contract_code")
-    private String contractCode;
+    @Schema(description = "租客名称（冗余字段，便于查询）")
+    @TableField("tenant_name")
+    private String tenantName;
 
-    @Schema(description = "合同性质：1=新签，2=续签，3=转租，4=换房")
-    @TableField("contract_nature")
-    private Integer contractNature;
+    @Schema(description = "租客联系电话（冗余字段）")
+    @TableField("tenant_phone")
+    private String tenantPhone;
 
     @Schema(description = "租金价格")
     @TableField("rental_price")
