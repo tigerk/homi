@@ -87,7 +87,11 @@ public class RoomService {
         if (room.getLeaseMode().equals(LeaseModeEnum.FOCUS.getCode())) {
             Focus byId = focusRepo.getById(room.getModeRefId());
             room.setCommunityName(byId.getFocusName());
+
+            room.setLeaseMode(LeaseModeEnum.FOCUS.getName());
         }
+
+
 
         RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, room.getRoomStatus());
         room.setRoomStatusName(roomStatusEnum.getName());

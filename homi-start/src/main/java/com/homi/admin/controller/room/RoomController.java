@@ -1,6 +1,7 @@
 package com.homi.admin.controller.room;
 
 
+import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.room.RoomQueryDTO;
@@ -31,6 +32,9 @@ public class RoomController {
 
     @PostMapping("/list")
     public ResponseResult<PageVO<RoomListVO>> getRoomList(@RequestBody RoomQueryDTO query) {
+        Long userId = LoginManager.getCurrentUser().getId();
+        query.setCompanyId(userId);
+
         return ResponseResult.ok(roomService.getRoomList(query));
     }
 

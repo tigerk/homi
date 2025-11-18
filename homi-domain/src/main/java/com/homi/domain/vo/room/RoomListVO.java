@@ -44,7 +44,7 @@ public class RoomListVO {
     @Schema(description = "来源id")
     private Long modeRefId;
 
-    @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
+    @Schema(description = "房源租赁类型：1、集中式；2、整/合租")
     private Integer leaseMode;
 
     @Schema(description = "出租类型：1-整租，2-合租，参考RentalTypeEnum")
