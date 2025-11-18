@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-11-04
+ * @since 2025-11-18
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -32,7 +32,7 @@ public class Tenant implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "租客ID")
-    @TableId("id")
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     @Schema(description = "公司ID")

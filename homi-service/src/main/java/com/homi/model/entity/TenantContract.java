@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-11-04
+ * @since 2025-11-18
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -33,7 +33,7 @@ public class TenantContract implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "合同ID")
-    @TableId("id")
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     @Schema(description = "租客ID")
@@ -43,6 +43,10 @@ public class TenantContract implements Serializable {
     @Schema(description = "公司ID")
     @TableField("company_id")
     private Long companyId;
+
+    @Schema(description = "部门 ID")
+    @TableField("dept_id")
+    private Long deptId;
 
     @Schema(description = "房源ID")
     @TableField("house_id")
@@ -65,12 +69,12 @@ public class TenantContract implements Serializable {
     private BigDecimal rentalPrice;
 
     @Schema(description = "押金月数")
-    @TableField("deposit_month")
-    private Integer depositMonth;
+    @TableField("deposit_months")
+    private Integer depositMonths;
 
     @Schema(description = "支付周期（月）")
-    @TableField("payment_cycle_month")
-    private Integer paymentCycleMonth;
+    @TableField("payment_months")
+    private Integer paymentMonths;
 
     @Schema(description = "租赁开始时间")
     @TableField("lease_start")
@@ -126,9 +130,25 @@ public class TenantContract implements Serializable {
     @TableField("helper_id")
     private Long helperId;
 
+    @Schema(description = "签约状态：0=待签字、1=已签字")
+    @TableField("sign_status")
+    private Integer signStatus;
+
+    @Schema(description = "租户退租状态：0=未退租、1=正常退、2=换房退、3=违约退、4=作废")
+    @TableField("check_out_status")
+    private Integer checkOutStatus;
+
     @Schema(description = "合同状态：0=未生效，1=生效中，2=已退租，3=已逾期，4=已作废")
     @TableField("status")
     private Integer status;
+
+    @Schema(description = "租客来源")
+    @TableField("tenant_source")
+    private Long tenantSource;
+
+    @Schema(description = "成交渠道")
+    @TableField("deal_channel")
+    private Long dealChannel;
 
     @Schema(description = "合同备注")
     @TableField("remark")
