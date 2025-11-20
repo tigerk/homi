@@ -2,6 +2,7 @@ package com.homi.domain.dto.user;
 
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.validator.EnumValue;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -14,7 +15,10 @@ import lombok.Data;
 @Data
 public class UserUpdateStatusDTO {
     @NotNull(message = "ID不能为空")
-    private Long id;
+    private Long companyUserId;
+
+    @Schema(description = "公司ID")
+    private Long companyId;
 
     /**
      * 状态（0正常，1禁用）

@@ -53,6 +53,12 @@ public enum ResponseCodeEnum {
      * 创建目录失败
      */
     CREATE_MKR_FAIL(540, "创建目录失败"),
+
+    /**
+     * 密码不能为空
+     */
+    PASSWORD_CANNOT_BE_EMPTY(600, "密码不能为空"),
+
     /**
      * 用户已存在
      */

@@ -11,7 +11,7 @@ import com.homi.domain.dto.dept.DeptQueryDTO;
 import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.dept.DeptVO;
-import com.homi.domain.vo.user.UserVO;
+import com.homi.domain.vo.company.user.UserVO;
 import com.homi.exception.BizException;
 import com.homi.service.company.CompanyUserService;
 import com.homi.service.system.DeptService;

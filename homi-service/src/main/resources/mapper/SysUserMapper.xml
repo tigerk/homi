@@ -20,41 +20,4 @@
         <result column="register_source" property="registerSource"/>
         <result column="deleted" property="deleted"/>
     </resultMap>
-
-    <select id="selectUserList" resultType="com.homi.domain.vo.user.UserVO">
-        SELECT id,
-        username,
-        email,
-        phone,
-        nickname,
-        avatar,
-        gender,
-        birthday,
-        status,
-        remark,
-        create_time,
-        create_by,
-        register_source
-        FROM sys_user
-        <where>
-            <if test="query.username != null and query.username != ''">
-                AND username LIKE CONCAT('%', #{query.username}
-                , '%')
-            </if>
-            <if test="query.email != null and query.email != ''">
-                AND email = #{query.email}
-            </if>
-            <if test="query.phone != null and query.phone != ''">
-                AND phone = #{query.phone}
-            </if>
-            <if test="query.nickname != null and query.nickname != ''">
-                AND nickname LIKE CONCAT('%', #{query.nickname}, '%')
-            </if>
-            <if test="query.status != null">
-                AND status = #{query.status}
-            </if>
-            and deleted = false
-        </where>
-        ORDER BY id DESC
-    </select>
 </mapper>

@@ -33,7 +33,6 @@ public class MybatisPlusConfig {
         "sys_user",
         "company_package",
         "company",
-        "company_user",
         "dept_user",
         "region",
         "community",
@@ -49,7 +48,6 @@ public class MybatisPlusConfig {
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
 
         // 添加租户插件
         interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(new TenantLineHandler() {
@@ -77,6 +75,9 @@ public class MybatisPlusConfig {
                 return ignoreTables.contains(tableName);
             }
         }));
+
+        // 分页放置在最后，才能使用租户拦截器
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
 
         return interceptor;
     }

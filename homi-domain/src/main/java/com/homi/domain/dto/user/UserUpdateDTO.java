@@ -71,10 +71,19 @@ public class UserUpdateDTO {
     @Past(message = "出生日期必须是过去的时间")
     private LocalDateTime birthday;
 
+    @Schema(description = "公司ID")
+    private Long companyId;
+
+    @Schema(description = "部门ID")
+    private Long deptId;
+
     /**
      * 状态（0正常，1禁用）
      */
     @NotNull(message = "状态不能为空")
     @EnumValue(enumClass = StatusEnum.class, message = "状态只能为0（正常）或1（冻结）")
     private Integer status;
+
+    @Schema(description = "更新者")
+    private Long updateBy;
 }

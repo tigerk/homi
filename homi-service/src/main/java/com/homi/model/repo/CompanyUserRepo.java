@@ -63,4 +63,15 @@ public class CompanyUserRepo extends ServiceImpl<CompanyUserMapper, CompanyUser>
 
         return getOne(queryWrapper);
     }
+
+    public Boolean updateCompanyUserDeptId(Long curCompanyId, Long userId, Long deptId) {
+        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CompanyUser::getCompanyId, curCompanyId)
+            .eq(CompanyUser::getUserId, userId);
+
+        CompanyUser companyUser = new CompanyUser();
+        companyUser.setDeptId(deptId);
+
+        return update(companyUser, queryWrapper);
+    }
 }

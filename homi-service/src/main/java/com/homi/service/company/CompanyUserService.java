@@ -1,17 +1,34 @@
 package com.homi.service.company;
 
+import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.domain.vo.user.UserVO;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.domain.base.PageVO;
+import com.homi.domain.dto.user.UserCreateDTO;
+import com.homi.domain.dto.user.UserQueryDTO;
+import com.homi.domain.dto.user.UserUpdateStatusDTO;
+import com.homi.domain.enums.common.StatusEnum;
+import com.homi.domain.vo.dept.DeptSimpleVO;
+import com.homi.domain.vo.company.user.UserCreateVO;
+import com.homi.domain.vo.company.user.UserVO;
+import com.homi.exception.BizException;
 import com.homi.model.entity.CompanyUser;
+import com.homi.model.entity.Dept;
 import com.homi.model.entity.SysUser;
 import com.homi.model.repo.CompanyUserRepo;
 import com.homi.model.repo.SysUserRepo;
+import com.homi.service.system.DeptService;
+import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 应用于 homi-boot
@@ -27,6 +44,10 @@ public class CompanyUserService {
     private final CompanyUserRepo companyUserRepo;
 
     private final SysUserRepo sysUserRepo;
+
+    private final DeptService deptService;
+
+    private final UserService userService;
 
     /**
      * 获取公司的人员
@@ -74,8 +95,8 @@ public class CompanyUserService {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/9/12 10:52
-
-     * @param userId 参数说明
+     *
+     * @param userId    参数说明
      * @param companyId 参数说明
      * @return boolean
      */
@@ -85,5 +106,119 @@ public class CompanyUserService {
         queryWrapper.eq(CompanyUser::getCompanyId, companyId);
 
         return companyUserRepo.exists(queryWrapper);
+    }
+
+    public PageVO<UserVO> pageUserList(UserQueryDTO query) {
+        Page<UserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
+
+        IPage<UserVO> userVOPage = companyUserRepo.getBaseMapper().selectUserList(page, query);
+
+        List<UserVO> records = userVOPage.getRecords();
+        records.forEach(userVO -> {
+            Dept deptById = deptService.getDeptById(userVO.getDeptId());
+            if (Objects.nonNull(deptById)) {
+                DeptSimpleVO deptSimpleVO = BeanCopyUtils.copyBean(deptById, DeptSimpleVO.class);
+                userVO.setDept(deptSimpleVO);
+            }
+        });
+
+        PageVO<UserVO> pageVO = new PageVO<>();
+        pageVO.setTotal(userVOPage.getTotal());
+        pageVO.setList(records);
+        pageVO.setCurrentPage(userVOPage.getCurrent());
+        pageVO.setPageSize(userVOPage.getSize());
+        pageVO.setPages(userVOPage.getPages());
+
+        return pageVO;
+    }
+
+    public UserCreateVO createUser(@Valid UserCreateDTO createDTO) {
+        boolean existed = false;
+        try {
+            userService.validateUserUniqueness(null, createDTO.getUsername(), createDTO.getEmail(), createDTO.getPhone());
+        } catch (BizException e) {
+            existed = true;
+        }
+
+        Long userId;
+        if (existed) {
+            SysUser sysUserById = userService.getUserByPhone(createDTO.getPhone());
+            userService.updateUser(createDTO);
+            userId = sysUserById.getId();
+        } else {
+            userId = userService.createUser(createDTO);
+        }
+
+        CompanyUser companyUser = new CompanyUser();
+        companyUser.setUserId(userId);
+        companyUser.setCompanyId(createDTO.getCompanyId());
+        companyUser.setDeptId(createDTO.getDeptId());
+        companyUser.setStatus(StatusEnum.ACTIVE.getValue());
+        companyUser.setCreateBy(createDTO.getUpdateBy());
+
+        companyUserRepo.save(companyUser);
+
+        return UserCreateVO.builder()
+            .companyUserId(companyUser.getId())
+            .userId(userId)
+            .phone(createDTO.getPhone())
+            .existed(existed)
+            .build();
+    }
+
+    public UserCreateVO updateUser(@Valid UserCreateDTO createDTO) {
+
+        // 有冻结的行为
+        if (createDTO.getStatus().equals(StatusEnum.DISABLED.getValue()) && Long.valueOf(StpUtil.getLoginId().toString()).equals(createDTO.getUserId())) {
+            throw new BizException("无法冻结自身");
+        }
+
+        Long userId = userService.updateUser(createDTO);
+
+        CompanyUser companyUser = new CompanyUser();
+        companyUser.setId(createDTO.getCompanyUserId());
+        companyUser.setUserId(userId);
+        companyUser.setCompanyId(createDTO.getCompanyId());
+        companyUser.setDeptId(createDTO.getDeptId());
+        companyUser.setStatus(StatusEnum.ACTIVE.getValue());
+        companyUser.setUpdateBy(createDTO.getUpdateBy());
+
+        companyUserRepo.updateById(companyUser);
+
+        return UserCreateVO.builder()
+            .companyUserId(companyUser.getId())
+            .userId(userId)
+            .phone(createDTO.getPhone())
+            .existed(true)
+            .build();
+    }
+
+    public Long updateUserUserStatus(@Valid UserUpdateStatusDTO updateDTO) {
+        CompanyUser companyUser = companyUserRepo.getById(updateDTO.getCompanyUserId());
+        if (Objects.isNull(companyUser) || !companyUser.getCompanyId().equals(updateDTO.getCompanyId())) {
+            throw new BizException("用户不再该公司任职");
+        }
+
+        companyUser.setStatus(updateDTO.getStatus());
+        companyUserRepo.updateById(companyUser);
+
+        return companyUser.getId();
+    }
+
+    public Integer deleteByIds(List<Long> idList) {
+        Long loginId = Long.valueOf(StpUtil.getLoginId().toString());
+        for (Long id : idList) {
+            if (id.equals(loginId)) {
+                throw new BizException("无法删除自身");
+            }
+        }
+
+        companyUserRepo.getBaseMapper().deleteBatchIds(idList);
+
+        return idList.size();
+    }
+
+    public CompanyUser getCompanyUserById(@NotNull(message = "ID不能为空") Long companyUserId) {
+        return companyUserRepo.getById(companyUserId);
     }
 }

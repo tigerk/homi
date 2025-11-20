@@ -1,4 +1,4 @@
-package com.homi.admin.controller;
+package com.homi.admin.controller.company;
 
 
 import com.homi.admin.auth.vo.login.UserLoginVO;

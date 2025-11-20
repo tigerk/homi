@@ -1,4 +1,4 @@
-package com.homi.domain.vo.user;
+package com.homi.domain.vo.company.user;
 
 import com.homi.domain.vo.dept.DeptSimpleVO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,21 +9,29 @@ import java.time.LocalDateTime;
 @Data
 @Schema(description = "用户返回VO")
 public class UserVO {
-    /**
-     * 主键（用户id）
-     */
-    private Long id;
+    @Schema(description = "公司用户ID")
+    private Long companyUserId;
 
-    /**
-     * 用户名（登录名）
-     */
-    private String username;
+    @Schema(description = "用户ID")
+    private Long userId;
 
     private Long companyId;
 
     private Long deptId;
 
     private DeptSimpleVO dept;
+
+    @Schema(description = "用户名（登录名）")
+    private String username;
+
+    @Schema(description = "真实姓名")
+    private String realName;
+
+    @Schema(description = "证件类型")
+    private Integer idType;
+
+    @Schema(description = "证件号")
+    private String idNo;
 
     /**
      * 邮箱号

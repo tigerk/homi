@@ -5,30 +5,22 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.homi.domain.base.PageVO;
-import com.homi.domain.dto.user.UserQueryDTO;
+import com.homi.domain.dto.user.UserCreateDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
-import com.homi.domain.enums.common.StatusEnum;
-import com.homi.domain.enums.common.UserTypeEnum;
-import com.homi.domain.vo.dept.DeptSimpleVO;
-import com.homi.domain.vo.user.UserVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.Dept;
 import com.homi.model.entity.SysUser;
-import com.homi.model.entity.SysUserRole;
 import com.homi.model.mapper.SysUserMapper;
-import com.homi.model.mapper.SysUserRoleMapper;
+import com.homi.model.repo.CompanyUserRepo;
 import com.homi.utils.BeanCopyUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static com.homi.domain.constant.ConfigCacheKeyConstants.USER_DEFAULT_AVATAR;
 
@@ -45,86 +37,64 @@ import static com.homi.domain.constant.ConfigCacheKeyConstants.USER_DEFAULT_AVAT
 public class UserService {
     private final SysUserMapper sysUserMapper;
 
-    private final SysUserRoleMapper userRoleMapper;
-
     private final SysConfigService sysConfigService;
 
-    private final SysRoleService roleService;
-
     private final DeptService deptService;
+
+    private final CompanyUserRepo companyUserRepo;
 
     @Value("${default-avatar}")
     private String defaultAvatar;
 
+    /**
+     * 创建用户
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/20 13:57
+     *
+     * @param createDTO 参数说明
+     * @return java.lang.Long
+     */
     @Transactional(rollbackFor = Exception.class)
-    public Long createUser(SysUser sysUser) {
-        validateUserUniqueness(sysUser.getId(), sysUser.getUsername(), sysUser.getEmail(), sysUser.getPhone());
+    public Long createUser(@Valid UserCreateDTO createDTO) {
+        SysUser sysUser = BeanCopyUtils.copyBean(createDTO, SysUser.class);
+        assert sysUser != null;
+
+        validateUserUniqueness(null, sysUser.getUsername(), sysUser.getEmail(), sysUser.getPhone());
         sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         sysUser.setUpdateTime(DateUtil.date());
 
-        if (Objects.nonNull(sysUser.getId())) {
-            sysUserMapper.updateById(sysUser);
-            return sysUser.getId();
+        if (Objects.nonNull(sysUser.getPassword())) {
+            // 密码加密
+            sysUser.setPassword(SaSecureUtil.md5(sysUser.getPassword()));
         }
 
-        if (Objects.isNull(sysUser.getPassword())) {
-            throw new BizException("密码不能为空");
-        }
+        sysUser.setRealName(sysUser.getRealName());
+        sysUser.setIdNo(sysUser.getIdNo());
+        sysUser.setIdType(sysUser.getIdType());
 
-        sysUser.setUserType(UserTypeEnum.COMPANY_USER.getType());
-        // 密码加密
-        sysUser.setPassword(SaSecureUtil.md5(sysUser.getPassword()));
         sysUser.setAvatar(sysConfigService.getConfigValueByKey(USER_DEFAULT_AVATAR));
-        sysUser.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        sysUser.setCreateTime(DateUtil.date());
+        sysUser.setCreateBy(createDTO.getUpdateBy());
+        sysUser.setUpdateBy(createDTO.getUpdateBy());
         sysUserMapper.insert(sysUser);
 
         return sysUser.getId();
     }
 
-    public Long updateUser(SysUser sysUser) {
+    @Transactional(rollbackFor = Exception.class)
+    public Long updateUser(@Valid UserCreateDTO updateUser) {
         // 是否存在
-        validateUserExists(sysUser.getId());
-        // 有冻结的行为
-        if (sysUser.getStatus().equals(StatusEnum.DISABLED.getValue())) {
-            if (Long.valueOf(StpUtil.getLoginId().toString()).equals(sysUser.getId())) {
-                throw new BizException("无法冻结自身");
-            }
-            List<Long> roleIdList = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>().in(SysUserRole::getUserId, sysUser.getId())).stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
-            if (roleService.hasSuperAdmin(roleIdList)) {
-                throw new BizException("无法冻结超级管理员");
-            }
-        }
+        SysUser sysUser = validateUserExists(updateUser.getUserId());
+        Objects.requireNonNull(sysUser);
+
         // 邮箱这些是否有重复
         validateUserUniqueness(sysUser.getId(), sysUser.getUsername(), sysUser.getEmail(), sysUser.getPhone());
 
-        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        BeanUtils.copyProperties(updateUser, sysUser);
+        sysUser.setUpdateBy(updateUser.getUpdateBy());
+
         sysUserMapper.updateById(sysUser);
         return sysUser.getId();
-    }
-
-    public PageVO<UserVO> pageUserList(UserQueryDTO query) {
-        Page<UserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
-
-        IPage<UserVO> userVOPage = sysUserMapper.selectUserList(page, query);
-
-        List<UserVO> records = userVOPage.getRecords();
-        records.forEach(userVO -> {
-            Dept deptById = deptService.getDeptById(userVO.getDeptId());
-            if (Objects.nonNull(deptById)) {
-                DeptSimpleVO deptSimpleVO = BeanCopyUtils.copyBean(deptById, DeptSimpleVO.class);
-                userVO.setDept(deptSimpleVO);
-            }
-        });
-
-        PageVO<UserVO> pageVO = new PageVO<>();
-        pageVO.setTotal(userVOPage.getTotal());
-        pageVO.setList(records);
-        pageVO.setCurrentPage(userVOPage.getCurrent());
-        pageVO.setPageSize(userVOPage.getSize());
-        pageVO.setPages(userVOPage.getPages());
-
-        return pageVO;
     }
 
     public Integer deleteByIds(List<Long> idList) {
@@ -169,7 +139,7 @@ public class UserService {
      * @param id   用户ID，用于排除自身
      * @param name 用户名
      */
-    private void validateUserUniqueness(Long id, String name, String email, String phone) {
+    public void validateUserUniqueness(Long id, String name, String email, String phone) {
         SysUser sysUserName = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, name));
         if (sysUserName != null && !sysUserName.getId().equals(id)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "该用户名已存在");
@@ -191,6 +161,12 @@ public class UserService {
 
     public SysUser getUserById(Long id) {
         return sysUserMapper.selectById(id);
+    }
+
+    public List<SysUser> getUserByIds(List<Long> ids) {
+        LambdaQueryWrapper<SysUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.in(SysUser::getId, ids);
+        return sysUserMapper.selectList(queryWrapper);
     }
 
     public SysUser getUserByUsername(String username) {

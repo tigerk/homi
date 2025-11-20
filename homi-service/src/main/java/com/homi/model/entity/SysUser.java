@@ -4,15 +4,14 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -20,7 +19,7 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-09-19
+ * @since 2025-11-20
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -42,6 +41,18 @@ public class SysUser implements Serializable {
     @Schema(description = "密码")
     @TableField("password")
     private String password;
+
+    @Schema(description = "真实姓名")
+    @TableField("real_name")
+    private String realName;
+
+    @Schema(description = "证件类型")
+    @TableField("id_type")
+    private Integer idType;
+
+    @Schema(description = "证件号")
+    @TableField("id_no")
+    private String idNo;
 
     @Schema(description = "用户类型，参考UserTypeEnum")
     @TableField("user_type")

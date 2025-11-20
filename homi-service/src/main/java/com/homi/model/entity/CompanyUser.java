@@ -56,8 +56,12 @@ public class CompanyUser implements Serializable {
     private String roles;
 
     @Schema(description = "可查看部门列表")
-    @TableField("deptIds")
+    @TableField("dept_ids")
     private String deptIds;
+
+    @Schema(description = "状态（0=不启用，1=启用）")
+    @TableField("status")
+    private Integer status;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")

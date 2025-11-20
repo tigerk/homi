@@ -12,13 +12,16 @@ import java.time.LocalDateTime;
 @Data
 @Schema(description = "用户创建对象")
 public class UserCreateDTO {
-    private Long id;
+    @Schema(description = "公司用户ID")
+    private Long companyUserId;
+
+    @Schema(description = "用户ID")
+    private Long userId;
 
     /**
      * 用户名（登录名）
      */
-    @NotBlank(message = "用户名不能为空")
-    @Pattern(regexp = "^[a-zA-Z0-9_]{4,16}$", message = "用户名必须为4至16位的字母、数字、下划线组成")
+    @Schema(description = "用户名，在注册时自动填充为手机号")
     private String username;
 
     /**
@@ -70,9 +73,20 @@ public class UserCreateDTO {
     @Past(message = "出生日期必须是过去的时间")
     private LocalDateTime birthday;
 
+    @Schema(description = "公司ID")
     private Long companyId;
 
+    @Schema(description = "部门ID")
     private Long deptId;
+
+    @Schema(description = "真实姓名")
+    private String realName;
+
+    @Schema(description = "证件类型")
+    private Integer idType;
+
+    @Schema(description = "证件号码")
+    private String idNo;
 
     /**
      * 状态（0正常，1禁用）
@@ -83,4 +97,7 @@ public class UserCreateDTO {
 
     @Schema(description = "备注")
     private String remark;
+
+    @Schema(description = "更新人")
+    private Long updateBy;
 }
