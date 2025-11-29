@@ -6,14 +6,12 @@
         <result property="title" column="title" jdbcType="VARCHAR"/>
         <result property="name" column="name" jdbcType="VARCHAR"/>
         <result property="parentId" column="parent_id" jdbcType="INTEGER"/>
-        <result property="sort" column="sort_order" jdbcType="INTEGER"/>
+        <result property="sortOrder" column="sort_order" jdbcType="INTEGER"/>
         <result property="path" column="path" jdbcType="VARCHAR"/>
         <result property="component" column="component" jdbcType="VARCHAR"/>
         <result property="query" column="query" jdbcType="VARCHAR"/>
-        <result property="cacheFlag" column="cache_flag" jdbcType="INTEGER"/>
         <result property="menuType" column="type" jdbcType="INTEGER"/>
         <result property="visible" column="visible" jdbcType="INTEGER"/>
-        <result property="perms" column="perms" jdbcType="VARCHAR"/>
         <result property="icon" column="icon" jdbcType="VARCHAR"/>
         <result property="createBy" column="create_by" jdbcType="INTEGER"/>
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
@@ -31,7 +29,7 @@
         m.name,
         m.title,
         m.parent_id,
-        m.sort,
+        m.sort_order,
         m.path,
         m.component,
         m.query,
@@ -54,11 +52,11 @@
         FROM menu m
         INNER JOIN role_menu rm ON m.id = rm.menu_id
         WHERE m.visible = true
-        <if test="isPerms">
-            AND m.menu_type = 3
-        </if>
-        <if test="!isPerms">
-            AND m.menu_type in (0, 1, 2)
+        <if test="menuTypeList != null">
+            and m.menu_type IN
+            <foreach item="menuType" collection="menuTypeList" open="(" separator="," close=")">
+                #{menuType}
+            </foreach>
         </if>
         and rm.role_id IN
         <foreach item="roleId" collection="roleIdList" open="(" separator="," close=")">

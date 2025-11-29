@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.domain.dto.role.RoleQueryDTO;
+import com.homi.domain.enums.common.MenuTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.enums.common.StatusEnum;
@@ -111,7 +112,7 @@ public class RoleService {
 
     public List<Role> getSimpleList(RoleQueryDTO queryDTO) {
         LambdaQueryWrapper<Role> queryWrapper = new LambdaQueryWrapper<Role>()
-                .like(StringUtils.isNotEmpty(queryDTO.getName()), Role::getName, queryDTO.getName());
+            .like(StringUtils.isNotEmpty(queryDTO.getName()), Role::getName, queryDTO.getName());
 
         return roleRepo.list(queryWrapper);
     }
@@ -126,7 +127,7 @@ public class RoleService {
      * @return java.util.Set<java.lang.String>
      */
     public List<String> getMenuPermissionByRoles(List<Long> roleIds) {
-        List<Menu> menus = menuRepo.getBaseMapper().listRoleMenuByRoles(roleIds, true);
+        List<Menu> menus = menuRepo.getBaseMapper().listRoleMenuByRoles(roleIds, MenuTypeEnum.getPermList());
         return menus.stream().map(Menu::getAuths).collect(Collectors.toList());
     }
 

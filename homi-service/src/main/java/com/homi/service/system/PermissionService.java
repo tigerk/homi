@@ -2,13 +2,17 @@ package com.homi.service.system;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.homi.domain.enums.common.MenuTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Menu;
 import com.homi.model.entity.Role;
 import com.homi.model.entity.RoleMenu;
 import com.homi.model.entity.UserRole;
-import com.homi.model.mapper.*;
+import com.homi.model.mapper.MenuMapper;
+import com.homi.model.mapper.RoleMapper;
+import com.homi.model.mapper.RoleMenuMapper;
+import com.homi.model.mapper.UserRoleMapper;
 import com.homi.model.repo.RoleMenuRepo;
 import com.homi.model.repo.UserRoleRepo;
 import com.homi.utils.CollectionUtils;
@@ -76,7 +80,7 @@ public class PermissionService {
 
         // 获得角色拥有菜单编号
         Set<Long> dbMenuIds = convertSet(roleMenuMapper.selectList(new LambdaQueryWrapper<RoleMenu>().
-                eq(RoleMenu::getRoleId, roleId)), RoleMenu::getMenuId);
+            eq(RoleMenu::getRoleId, roleId)), RoleMenu::getMenuId);
         // 计算新增和删除的菜单编号
         Set<Long> menuIdList = CollUtil.emptyIfNull(menuIds);
         Collection<Long> createMenuIds = CollUtil.subtract(menuIdList, dbMenuIds);
@@ -92,7 +96,7 @@ public class PermissionService {
         }
         if (CollUtil.isNotEmpty(deleteMenuIds)) {
             roleMenuMapper.delete(new LambdaQueryWrapper<RoleMenu>().
-                    eq(RoleMenu::getRoleId, roleId).in(RoleMenu::getMenuId, deleteMenuIds));
+                eq(RoleMenu::getRoleId, roleId).in(RoleMenu::getMenuId, deleteMenuIds));
         }
     }
 
@@ -128,7 +132,7 @@ public class PermissionService {
     public void assignRole(Long userId, Set<Long> roleIds) {
         // 获得角色拥有角色编号
         Set<Long> dbRoleIds = convertSet(userRoleMapper.selectList(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, userId)),
-                UserRole::getRoleId);
+            UserRole::getRoleId);
         // 计算新增和删除的角色编号
         Set<Long> roleIdList = CollUtil.emptyIfNull(roleIds);
         Collection<Long> createRoleIds = CollUtil.subtract(roleIdList, dbRoleIds);
@@ -141,8 +145,8 @@ public class PermissionService {
         }
         if (!CollUtil.isEmpty(deleteRoleIds)) {
             userRoleMapper.delete(new LambdaQueryWrapper<UserRole>().
-                    eq(UserRole::getUserId, userId).
-                    in(UserRole::getRoleId, deleteRoleIds));
+                eq(UserRole::getUserId, userId).
+                in(UserRole::getRoleId, deleteRoleIds));
             dbRoleIds.removeAll(deleteRoleIds);
         }
     }
@@ -154,7 +158,7 @@ public class PermissionService {
      * @return
      */
     public List<String> getMenuPermissionByRoles(List<Long> roleIds) {
-        List<Menu> menus = menuMapper.listRoleMenuByRoles(roleIds, true);
+        List<Menu> menus = menuMapper.listRoleMenuByRoles(roleIds, MenuTypeEnum.getPermList());
         return menus.stream().map(Menu::getAuths).collect(Collectors.toList());
     }
 }

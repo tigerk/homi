@@ -18,7 +18,7 @@ public class AsyncRoutesMetaVO {
     private Boolean showParent;
 
     @Schema(description = "排序")
-    private Integer rank;
+    private Integer sortOrder;
 
     private List<String> roles;
 

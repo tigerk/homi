@@ -282,11 +282,11 @@ public class AuthService {
 
 
             List<Menu> menuTreeList = menuList.stream()
-                .filter(m -> !m.getMenuType().equals(MenuTypeEnum.BUTTON.getType()))
+                .filter(m -> !m.getMenuType().equals(MenuTypeEnum.PERM.getType()))
                 .collect(Collectors.toList());
 
             List<String> permList = menuList.stream()
-                .filter(m -> m.getMenuType().equals(MenuTypeEnum.BUTTON.getType()))
+                .filter(m -> m.getMenuType().equals(MenuTypeEnum.PERM.getType()))
                 .map(Menu::getAuths)
                 .collect(Collectors.toList());
 

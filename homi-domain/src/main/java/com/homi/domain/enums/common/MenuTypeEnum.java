@@ -1,11 +1,18 @@
 package com.homi.domain.enums.common;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.util.List;
+
 /**
  * 菜单类型
  * <p>
  * {@code @author} tk
  * {@code @date} 2025/4/17 01:26
  */
+@Getter
+@AllArgsConstructor
 public enum MenuTypeEnum {
     /**
      * 菜单
@@ -25,37 +32,16 @@ public enum MenuTypeEnum {
     /**
      * 按钮
      */
-    BUTTON(3, "按钮");
+    PERM(3, "权限点");
 
     private final int type;
     private final String typeStr;
 
-    MenuTypeEnum(int type, String typeStr) {
-        this.type = type;
-        this.typeStr = typeStr;
+    public static List<Integer> getMenuList() {
+        return List.of(MENU.getType(), IFRAME.getType(), EXTERNAL_LINK.getType());
     }
 
-    /**
-     * 根据type获取对应的typeStr，如果找不到返回空字符串
-     *
-     * @param type 类型
-     * @return 类型字符串
-     */
-    public static String getTypeStrByType(int type) {
-        for (MenuTypeEnum menuType : MenuTypeEnum.values()) {
-            if (menuType.getType() == type) {
-                return menuType.getTypeStr();
-            }
-        }
-        // 返回默认的类型字符串
-        return "";
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public String getTypeStr() {
-        return typeStr;
+    public static List<Integer> getPermList() {
+        return List.of(PERM.getType());
     }
 }

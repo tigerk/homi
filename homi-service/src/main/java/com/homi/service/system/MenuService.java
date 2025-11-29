@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.dto.menu.MenuCreateDTO;
 import com.homi.domain.dto.menu.MenuQueryDTO;
 import com.homi.domain.enums.common.BooleanEnum;
+import com.homi.domain.enums.common.MenuTypeEnum;
 import com.homi.domain.vo.menu.AsyncRoutesMetaVO;
 import com.homi.domain.vo.menu.AsyncRoutesVO;
 import com.homi.domain.vo.menu.MenuVO;
@@ -63,7 +64,7 @@ public class MenuService {
     }
 
     public List<AsyncRoutesVO> buildMenuTreeByRoles(List<Long> roleIdList) {
-        List<Menu> menuList = menuMapper.listRoleMenuByRoles(roleIdList, false);
+        List<Menu> menuList = menuMapper.listRoleMenuByRoles(roleIdList, MenuTypeEnum.getMenuList());
         return buildMenuTree(menuList);
     }
 
@@ -113,7 +114,7 @@ public class MenuService {
             }
         }
         // 对根节点进行排序
-        rootNodes.sort(Comparator.comparingInt(o -> o.getMeta().getRank()));
+        rootNodes.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
         return rootNodes;
     }
 
@@ -129,7 +130,7 @@ public class MenuService {
         AsyncRoutesMetaVO meta = new AsyncRoutesMetaVO();
         meta.setTitle(menu.getTitle());
         meta.setIcon(menu.getIcon());
-        meta.setRank(menu.getSortOrder());
+        meta.setSortOrder(menu.getSortOrder());
         meta.setShowLink(menu.getShowLink());
         meta.setShowParent(menu.getShowParent());
         meta.setKeepAlive(menu.getKeepAlive());
@@ -146,7 +147,7 @@ public class MenuService {
                 children.add(buildMenuNode(childMenu, menuList));
             }
         }
-        children.sort(Comparator.comparingInt(o -> o.getMeta().getRank()));
+        children.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
         node.setChildren(children);
         return node;
     }
