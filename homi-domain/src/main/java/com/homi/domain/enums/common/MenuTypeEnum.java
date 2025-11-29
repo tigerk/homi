@@ -32,7 +32,7 @@ public enum MenuTypeEnum {
     /**
      * 按钮
      */
-    PERM(3, "权限点");
+    BUTTON(3, "按钮");
 
     private final int type;
     private final String typeStr;
@@ -41,7 +41,7 @@ public enum MenuTypeEnum {
         return List.of(MENU.getType(), IFRAME.getType(), EXTERNAL_LINK.getType());
     }
 
-    public static List<Integer> getPermList() {
-        return List.of(PERM.getType());
+    public static List<Integer> getButtonList() {
+        return List.of(BUTTON.getType());
     }
 }

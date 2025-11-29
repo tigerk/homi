@@ -127,7 +127,7 @@ public class RoleService {
      * @return java.util.Set<java.lang.String>
      */
     public List<String> getMenuPermissionByRoles(List<Long> roleIds) {
-        List<Menu> menus = menuRepo.getBaseMapper().listRoleMenuByRoles(roleIds, MenuTypeEnum.getPermList());
+        List<Menu> menus = menuRepo.getBaseMapper().listRoleMenuByRoles(roleIds, MenuTypeEnum.getButtonList());
         return menus.stream().map(Menu::getAuths).collect(Collectors.toList());
     }
 
