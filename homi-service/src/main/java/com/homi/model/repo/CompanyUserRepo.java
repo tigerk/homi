@@ -40,7 +40,11 @@ public class CompanyUserRepo extends ServiceImpl<CompanyUserMapper, CompanyUser>
         queryWrapper.eq(CompanyUser::getUserId, userId);
 
         List<CompanyUser> list = list(queryWrapper);
+        if (list.isEmpty()) {
+            return List.of();
+        }
 
+        // 获取公司名称
         List<Long> companyIdList = list.stream().map(CompanyUser::getCompanyId).toList();
         List<Company> companies = companyRepo.listByIds(companyIdList);
         Map<Long, Company> companyMap = companies.stream().collect(Collectors.toMap(Company::getId, company -> company));

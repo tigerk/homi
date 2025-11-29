@@ -1,0 +1,12 @@
+#!/bin/sh
+
+echo "Running Checkstyle..."
+mvn -q checkstyle:check -Dcheckstyle.config.location=.config/checkstyle/checkstyle.xml
+STATUS=$?
+
+if [ $STATUS -ne 0 ]; then
+  echo "❌ Checkstyle failed. Commit aborted."
+  exit 1
+fi
+
+echo "✔ Checkstyle passed."

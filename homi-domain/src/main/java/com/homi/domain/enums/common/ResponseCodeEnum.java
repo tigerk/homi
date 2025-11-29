@@ -83,7 +83,7 @@ public enum ResponseCodeEnum {
      */
     ROLE_FREEZE(650, "角色已被禁用"),
 
-    USER_NOT_BIND_COMPANY(650, "账号没有绑定公司"),
+    USER_NOT_BIND_COMPANY(650, "当前账号未绑定公司"),
 
     /**
      * 常规登录错误

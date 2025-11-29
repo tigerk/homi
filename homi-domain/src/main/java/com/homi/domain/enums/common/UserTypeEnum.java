@@ -25,5 +25,4 @@ public enum UserTypeEnum {
 
     private final int type;
     private final String typeStr;
-
 }

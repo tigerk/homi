@@ -1,20 +1,15 @@
 <?xml version="1.0"?>
 <!DOCTYPE module PUBLIC
-        "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
-        "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+    "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+    "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
 
 <module name="Checker">
-
-    <!-- 对代码模块检查进行过滤 -->
-    <module name="SuppressionFilter">
-        <property name="file" value="config/suppressions.xml"/>
-    </module>
 
     <!-- 注解方式对过滤检查 -->
     <module name="SuppressWarningsFilter"/>
 
     <!-- 检查文件是否以一个空行结束 -->
-    <module name="NewlineAtEndOfFile"/>
+    <!--    <module name="NewlineAtEndOfFile"/>-->
 
     <!-- 文件长度不超过1500行 -->
     <module name="FileLength">
@@ -86,7 +81,10 @@
         <!-- 检查在某个特定关键字之后应保留空格 -->
         <module name="NoWhitespaceAfter"/>
         <!-- 检查在某个特定关键字之前应保留空格 -->
-        <module name="NoWhitespaceBefore"/>
+        <module name="NoWhitespaceBefore">
+            <property name="allowLineBreaks" value="true"/>
+            <property name="tokens" value="COMMA,SEMI"/>
+        </module>
         <!-- 操作符换行策略检查 -->
         <module name="OperatorWrap"/>
         <!-- 圆括号空白 -->
@@ -186,11 +184,6 @@
             <message key="name.invalidPattern" value="包名 ''{0}'' 要符合 ''{1}''格式."/>
         </module>
 
-        <!-- return个数 3个-->
-        <!--<module name="ReturnCount">
-            <property name="max" value="3"/>
-        </module>-->
-
         <!-- 方法不超过150行 -->
         <module name="MethodLength">
             <property name="tokens" value="METHOD_DEF"/>
@@ -198,13 +191,13 @@
         </module>
 
         <!-- 方法的参数个数不超过5个。 并且不对构造方法进行检查-->
-        <!--<module name="ParameterNumber">
+        <module name="ParameterNumber">
             <property name="max" value="8"/>
             <property name="ignoreOverriddenMethods" value="true"/>
             <property name="tokens" value="METHOD_DEF"/>
-        </module>-->
+        </module>
 
         <!-- 检查接口是否仅定义类型 -->
-        <!--<module name="InterfaceIsType"/>-->
+        <module name="InterfaceIsType"/>
     </module>
 </module>

@@ -165,6 +165,10 @@ public class AuthService {
         user.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenTimeout()).getTime());
 
         List<CompanyUserListDTO> companyListByUserId = companyUserRepo.getCompanyListByUserId(user.getId());
+        if (companyListByUserId.isEmpty()) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
+        }
+
         user.setCompanyList(companyListByUserId);
 
         // 用户角色code与权限,用户名存入缓存
@@ -364,7 +368,7 @@ public class AuthService {
         return login(userLogin);
     }
 
-    public Boolean updateUserPassword(String phone,String password) {
+    public Boolean updateUserPassword(String phone, String password) {
         SysUser sysUser = userService.getUserByPhone(phone);
         if (Objects.isNull(sysUser)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
