@@ -19,7 +19,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Schema(description = "字典表，包含子项列表")
-public class SysDictVO implements Serializable {
+public class DictVO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -36,5 +36,5 @@ public class SysDictVO implements Serializable {
     private Integer sort;
 
     @Schema(description = "子项列表")
-    private List<SysDictVO> children;
+    private List<DictVO> children;
 }

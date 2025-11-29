@@ -4,11 +4,11 @@ package com.homi.admin.controller.sys;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.dict.DictQueryDTO;
-import com.homi.domain.dto.dict.SysDictCreateDTO;
-import com.homi.domain.dto.dict.SysDictUpdateDTO;
+import com.homi.domain.dto.dict.DictCreateDTO;
+import com.homi.domain.dto.dict.DictUpdateDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.dict.DictWithDataVO;
-import com.homi.domain.vo.dict.SysDictVO;
+import com.homi.domain.vo.dict.DictVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Dict;
 import com.homi.service.system.SysDictDataService;
@@ -46,7 +46,7 @@ public class SysDictController {
      */
     @GetMapping("list")
 //    @SaCheckPermission("system:dict:query")
-    public ResponseResult<List<SysDictVO>> list(DictQueryDTO queryDTO) {
+    public ResponseResult<List<DictVO>> list(DictQueryDTO queryDTO) {
         return ResponseResult.ok(sysDictService.list(queryDTO));
     }
 
@@ -58,7 +58,7 @@ public class SysDictController {
      */
     @PostMapping("/create")
     @SaCheckPermission("system:dict:create")
-    public ResponseResult<Long> insert(@Valid @RequestBody SysDictCreateDTO createDTO) {
+    public ResponseResult<Long> insert(@Valid @RequestBody DictCreateDTO createDTO) {
         Dict dict = BeanCopyUtils.copyBean(createDTO, Dict.class);
         return ResponseResult.ok(sysDictService.createDict(dict));
     }
@@ -71,7 +71,7 @@ public class SysDictController {
      */
     @PutMapping("/update")
     @SaCheckPermission("system:dict:update")
-    public ResponseResult<Long> update(@Valid @RequestBody SysDictUpdateDTO updateDTO) {
+    public ResponseResult<Long> update(@Valid @RequestBody DictUpdateDTO updateDTO) {
         Dict dict = BeanCopyUtils.copyBean(updateDTO, Dict.class);
         return ResponseResult.ok(this.sysDictService.updateDict(dict));
     }

@@ -2,7 +2,7 @@ package com.homi.model.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.domain.dto.company.CompanyUserListDTO;
+import com.homi.domain.dto.company.UserCompanyListDTO;
 import com.homi.model.entity.Company;
 import com.homi.model.entity.UserCompany;
 import com.homi.model.mapper.UserCompanyMapper;
@@ -35,7 +35,7 @@ public class UserCompanyRepo extends ServiceImpl<UserCompanyMapper, UserCompany>
      * @param userId 参数说明
      * @return java.util.List<com.homi.model.entity.UserCompany>
      */
-    public List<CompanyUserListDTO> getCompanyListByUserId(Long userId) {
+    public List<UserCompanyListDTO> getCompanyListByUserId(Long userId) {
         LambdaQueryWrapper<UserCompany> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserCompany::getUserId, userId);
 
@@ -50,13 +50,13 @@ public class UserCompanyRepo extends ServiceImpl<UserCompanyMapper, UserCompany>
         Map<Long, Company> companyMap = companies.stream().collect(Collectors.toMap(Company::getId, company -> company));
 
         return list.stream().map(item -> {
-            CompanyUserListDTO companyUserListDTO = new CompanyUserListDTO();
-            companyUserListDTO.setCompanyId(item.getCompanyId());
-            companyUserListDTO.setUserId(userId);
-            companyUserListDTO.setCompanyUserType(item.getCompanyUserType());
+            UserCompanyListDTO userCompanyListDTO = new UserCompanyListDTO();
+            userCompanyListDTO.setCompanyId(item.getCompanyId());
+            userCompanyListDTO.setUserId(userId);
+            userCompanyListDTO.setUserType(item.getUserType());
             Company company = companyMap.get(item.getCompanyId());
-            companyUserListDTO.setCompanyName(company.getName());
-            return companyUserListDTO;
+            userCompanyListDTO.setCompanyName(company.getName());
+            return userCompanyListDTO;
         }).toList();
     }
 

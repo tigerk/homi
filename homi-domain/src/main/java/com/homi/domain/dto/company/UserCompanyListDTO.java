@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Schema(description = "公司查询对象")
-public class CompanyUserListDTO {
+public class UserCompanyListDTO {
 
     @Schema(description = "用户ID")
     private Long userId;
@@ -16,6 +16,6 @@ public class CompanyUserListDTO {
     @Schema(description = "公司名称")
     private String companyName;
 
-    @Schema(description = "用户类型")
-    private Integer companyUserType;
+    @Schema(description = "公司用户类型：20=管理员、21=员工")
+    private Integer userType;
 }

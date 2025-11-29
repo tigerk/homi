@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.admin.role.RoleConvert;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.role.RoleQueryDTO;
-import com.homi.domain.dto.role.SysRoleCreateDTO;
+import com.homi.domain.dto.role.RoleCreateDTO;
 import com.homi.domain.dto.role.SysRoleUpdateDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
@@ -73,7 +73,7 @@ public class SysRoleController {
      */
     @PostMapping("/create")
     @SaCheckPermission("system:role:create")
-    public ResponseResult<Long> insert(@Valid @RequestBody SysRoleCreateDTO createDTO) {
+    public ResponseResult<Long> insert(@Valid @RequestBody RoleCreateDTO createDTO) {
         Role role = BeanCopyUtils.copyBean(createDTO, Role.class);
         return ResponseResult.ok(this.roleService.createRole(role));
     }

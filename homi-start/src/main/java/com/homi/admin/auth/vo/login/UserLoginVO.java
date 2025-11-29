@@ -1,6 +1,6 @@
 package com.homi.admin.auth.vo.login;
 
-import com.homi.domain.dto.company.CompanyUserListDTO;
+import com.homi.domain.dto.company.UserCompanyListDTO;
 import com.homi.domain.vo.menu.AsyncRoutesVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -38,7 +38,8 @@ public class UserLoginVO {
     private String username;
 
     /**
-     * 用户类型，参考UserTypeEnum
+     * 用户类型，对应的是 user_company的 user_type
+     * 公司用户类型：20=管理员、21=员工
      */
     private Integer userType;
 
@@ -46,10 +47,10 @@ public class UserLoginVO {
     private Long curCompanyId;
 
     @Schema(description = "是否当前公司的管理员")
-    private Integer companyUserType;
+    private Boolean isCompanyAdmin;
 
     @Schema(description = "公司列表")
-    private List<CompanyUserListDTO> companyList;
+    private List<UserCompanyListDTO> companyList;
 
     /**
      * 邮箱

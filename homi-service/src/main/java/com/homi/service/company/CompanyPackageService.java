@@ -132,7 +132,7 @@ public class CompanyPackageService {
         MenuQueryDTO queryDTO = new MenuQueryDTO();
         List<MenuVO> menuList = menuService.getPlatformMenuList(queryDTO);
 
-        return menuList.stream().map(sysMenu -> BeanCopyUtils.copyBean(sysMenu, SimpleMenuVO.class)).toList();
+        return menuList.stream().map(menuVO -> BeanCopyUtils.copyBean(menuVO, SimpleMenuVO.class)).toList();
     }
 
     public Boolean saveMenus(CompanyPackageCreateDTO createDTO) {

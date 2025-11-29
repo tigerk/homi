@@ -7,7 +7,7 @@ import com.homi.domain.dto.dict.DictQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.dict.DictWithDataVO;
-import com.homi.domain.vo.dict.SysDictVO;
+import com.homi.domain.vo.dict.DictVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Dict;
 import com.homi.model.mapper.DictMapper;
@@ -93,7 +93,7 @@ public class SysDictService {
     }
 
 
-    public List<SysDictVO> list(DictQueryDTO queryDTO) {
+    public List<DictVO> list(DictQueryDTO queryDTO) {
         LambdaQueryWrapper<Dict> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.like(CharSequenceUtil.isNotEmpty(queryDTO.getDictName()), Dict::getDictName, queryDTO.getDictName())
                 .like(CharSequenceUtil.isNotEmpty(queryDTO.getDictCode()), Dict::getDictCode, queryDTO.getDictCode())
@@ -104,19 +104,19 @@ public class SysDictService {
 
         List<Dict> list = dictRepo.list(queryWrapper);
 
-        Map<Long, SysDictVO> dictMap = list.stream().filter(dict -> dict.getParentId() == 0)
+        Map<Long, DictVO> dictMap = list.stream().filter(dict -> dict.getParentId() == 0)
                 .map(dict -> {
-                    SysDictVO sysDictVO = new SysDictVO();
-                    BeanUtils.copyProperties(dict, sysDictVO);
-                    sysDictVO.setChildren(new ArrayList<>());
-                    return sysDictVO;
+                    DictVO dictVO = new DictVO();
+                    BeanUtils.copyProperties(dict, dictVO);
+                    dictVO.setChildren(new ArrayList<>());
+                    return dictVO;
                 })
-                .collect(Collectors.toMap(SysDictVO::getId, Function.identity()));
+                .collect(Collectors.toMap(DictVO::getId, Function.identity()));
         list.forEach(dict -> {
-            SysDictVO parentDict = dictMap.get(dict.getParentId());
+            DictVO parentDict = dictMap.get(dict.getParentId());
             if (parentDict != null) {
-                SysDictVO sysDictVO = BeanCopyUtils.copyBean(dict, SysDictVO.class);
-                parentDict.getChildren().add(sysDictVO);
+                DictVO dictVO = BeanCopyUtils.copyBean(dict, DictVO.class);
+                parentDict.getChildren().add(dictVO);
             }
         });
 

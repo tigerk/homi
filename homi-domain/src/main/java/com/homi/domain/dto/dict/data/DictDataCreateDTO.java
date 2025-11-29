@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Schema(description = "字典数据项创建对象")
-public class SysDictDataCreateDTO {
+public class DictDataCreateDTO {
     @Schema(description = "字典数据ID")
     private Long id;
 

@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-11-28
+ * @since 2025-11-29
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -95,6 +95,11 @@ public class User implements Serializable {
     @TableField("status")
     private Integer status;
 
+    @Schema(description = "是否删除：0 否，1 是")
+    @TableField("deleted")
+    @TableLogic
+    private Boolean deleted;
+
     @Schema(description = "创建时间")
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
@@ -112,9 +117,4 @@ public class User implements Serializable {
     @Schema(description = "更新人")
     @TableField("update_by")
     private Long updateBy;
-
-    @Schema(description = "是否删除：0 否，1 是")
-    @TableField("deleted")
-    @TableLogic
-    private Boolean deleted;
 }

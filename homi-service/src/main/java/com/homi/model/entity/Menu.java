@@ -4,15 +4,14 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -20,12 +19,12 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-07-30
+ * @since 2025-11-29
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("sys_menu")
+@TableName("menu")
 @Schema(name = "Menu", description = "菜单表")
 public class Menu implements Serializable {
     @Serial
@@ -64,8 +63,8 @@ public class Menu implements Serializable {
     private String query;
 
     @Schema(description = "菜单排序（平台规定只有home路由的rank才能为0，所以后端在返回rank的时候需要从非0开始 点击查看更多）")
-    @TableField("sort")
-    private Integer sort;
+    @TableField("sort_order")
+    private Integer sortOrder;
 
     @Schema(description = "路由重定向")
     @TableField("redirect")

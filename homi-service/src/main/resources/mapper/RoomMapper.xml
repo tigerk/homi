@@ -78,7 +78,7 @@
         FROM room r
                  LEFT JOIN house h ON r.house_id = h.id
                  LEFT JOIN house_layout hl ON h.house_layout_id = hl.id
-                 LEFT JOIN sys_user u ON u.id = h.salesman_id
+                 LEFT JOIN user u ON u.id = h.salesman_id
                  LEFT JOIN dept d ON d.id = h.dept_id
         where r.deleted = 0
         <include refid="roomListQuery"/>
@@ -89,7 +89,7 @@
         SELECT room_status, count(room_status) AS total
         FROM room r
         LEFT JOIN house h ON r.house_id = h.id
-        LEFT JOIN sys_user u ON u.id = h.salesman_id
+        LEFT JOIN user u ON u.id = h.salesman_id
         where r.deleted = 0
         <include refid="roomListQuery"/>
         group by room_status

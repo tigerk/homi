@@ -69,14 +69,14 @@ public class OperationLogRepo extends ServiceImpl<OperationLogMapper, OperationL
         }
         lambdaQueryWrapper.orderByDesc(OperationLog::getRequestTime);
 
-        IPage<OperationLog> sysOperationLogPage = getBaseMapper().selectPage(page, lambdaQueryWrapper);
+        IPage<OperationLog> operationLogPage = getBaseMapper().selectPage(page, lambdaQueryWrapper);
 
         PageVO<OperationLog> pageVO = new PageVO<>();
-        pageVO.setTotal(sysOperationLogPage.getTotal());
-        pageVO.setList(sysOperationLogPage.getRecords());
-        pageVO.setCurrentPage(sysOperationLogPage.getCurrent());
-        pageVO.setPageSize(sysOperationLogPage.getSize());
-        pageVO.setPages(sysOperationLogPage.getPages());
+        pageVO.setTotal(operationLogPage.getTotal());
+        pageVO.setList(operationLogPage.getRecords());
+        pageVO.setCurrentPage(operationLogPage.getCurrent());
+        pageVO.setPageSize(operationLogPage.getSize());
+        pageVO.setPages(operationLogPage.getPages());
 
         return pageVO;
     }

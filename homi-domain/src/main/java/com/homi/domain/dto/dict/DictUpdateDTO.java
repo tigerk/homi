@@ -1,20 +1,21 @@
 package com.homi.domain.dto.dict;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-
+/**
+ * @author sjh
+ * @version 1.0
+ * @date 2024-06-26 22:15
+ * @description: 字典修改
+ */
 @Data
-@Schema(description = "字典创建入参")
-public class SysDictCreateDTO {
+public class DictUpdateDTO {
 
-    /**
-     * 字典编码
-     */
-    @NotBlank(message = "字典编码不能为空")
-    private String dictCode;
+    @NotNull(message = "id不能为空")
+    private Long id;
+
 
     /**
      * 字典名称

@@ -48,10 +48,6 @@ public class PermissionService {
 
     private final UserRoleRepo userRoleRepo;
 
-    private final SysNoticeRoleMapper noticeRoleMapper;
-
-    private final SysNoticeUserReadMapper noticeUserReadMapper;
-
     /**
      * 为角色分配菜单
      * <p>

@@ -22,7 +22,7 @@
         u.create_time,
         u.create_by,
         u.register_source
-        FROM company_user cu left join sys_user u ON cu.user_id = u.id
+        FROM company_user cu left join user u ON cu.user_id = u.id
         <where>
             <if test="query.username != null and query.username != ''">
                 AND u.username LIKE CONCAT('%', #{query.username}

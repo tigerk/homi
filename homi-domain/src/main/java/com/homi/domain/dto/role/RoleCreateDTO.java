@@ -1,4 +1,4 @@
-package com.homi.domain.dto.dict;
+package com.homi.domain.dto.role;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,21 +7,23 @@ import lombok.Data;
 /**
  * @author sjh
  * @version 1.0
- * @date 2024-06-26 22:15
- * @description: 字典修改
+ * @date 2024-07-01 21:11
+ * @description: 角色创建对象
  */
 @Data
-public class SysDictUpdateDTO {
-
-    @NotNull(message = "id不能为空")
-    private Long id;
-
+public class RoleCreateDTO {
 
     /**
-     * 字典名称
+     * 角色编码
      */
-    @NotBlank(message = "字典名称不能为空")
-    private String dictName;
+    @NotBlank(message = "角色编码不能为空")
+    private String code;
+
+    /**
+     * 角色名称
+     */
+    @NotBlank(message = "角色名称不能为空")
+    private String name;
 
     /**
      * 状态（0正常 1停用）

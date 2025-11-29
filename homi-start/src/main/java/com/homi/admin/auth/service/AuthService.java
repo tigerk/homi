@@ -14,7 +14,7 @@ import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.admin.auth.dto.login.LoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
-import com.homi.domain.dto.company.CompanyUserListDTO;
+import com.homi.domain.dto.company.UserCompanyListDTO;
 import com.homi.domain.enums.RedisKey;
 import com.homi.domain.enums.common.CompanyUserTypeEnum;
 import com.homi.domain.enums.common.MenuTypeEnum;
@@ -28,8 +28,8 @@ import com.homi.model.mapper.RoleMapper;
 import com.homi.model.mapper.UserMapper;
 import com.homi.model.mapper.UserRoleMapper;
 import com.homi.model.repo.CompanyRepo;
-import com.homi.model.repo.UserCompanyRepo;
 import com.homi.model.repo.MenuRepo;
+import com.homi.model.repo.UserCompanyRepo;
 import com.homi.model.repo.UserRepo;
 import com.homi.service.company.CompanyPackageService;
 import com.homi.service.company.CompanyService;
@@ -173,7 +173,7 @@ public class AuthService {
         user.setRefreshToken(refreshToken);
         user.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenTimeout()).getTime());
 
-        List<CompanyUserListDTO> companyListByUserId = userCompanyRepo.getCompanyListByUserId(user.getId());
+        List<UserCompanyListDTO> companyListByUserId = userCompanyRepo.getCompanyListByUserId(user.getId());
         if (companyListByUserId.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
@@ -235,7 +235,7 @@ public class AuthService {
             throw new BizException(ResponseCodeEnum.LOGIN_ERROR);
         }
         // 获取绑定该用户的公司列表
-        List<CompanyUserListDTO> companyUserList = userCompanyRepo.getCompanyListByUserId(user.getId());
+        List<UserCompanyListDTO> companyUserList = userCompanyRepo.getCompanyListByUserId(user.getId());
         if (companyUserList.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
@@ -243,11 +243,24 @@ public class AuthService {
         UserLoginVO userLogin = new UserLoginVO();
         BeanUtils.copyProperties(user, userLogin);
 
-        CompanyUserListDTO first = companyUserList.getFirst();
+        UserCompanyListDTO first = companyUserList.getFirst();
         userLogin.setCurCompanyId(first.getCompanyId());
-        userLogin.setCompanyUserType(first.getCompanyUserType());
+        userLogin.setIsCompanyAdmin(isCompanyAdmin(first.getUserType()));
 
         return userLogin;
+    }
+
+    /**
+     * 判断是否是公司管理员
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/12 09:41
+     *
+     * @param userType 角色类型
+     * @return java.lang.Boolean
+     */
+    private Boolean isCompanyAdmin(Integer userType) {
+        return userType.equals(CompanyUserTypeEnum.COMPANY_ADMIN.getType());
     }
 
     /**
@@ -263,7 +276,7 @@ public class AuthService {
         Company companyById = companyRepo.getById(user.getCurCompanyId());
 
         // 管理员获取所有权限点
-        if (user.getCompanyUserType().equals(CompanyUserTypeEnum.COMPANY_ADMIN.getType())) {
+        if (user.getIsCompanyAdmin().equals(Boolean.TRUE)) {
             List<Long> menusById = companyPackageService.getMenusById(companyById.getPackageId());
             List<Menu> menuList = menuService.getMenuByIds(menusById);
 
@@ -370,7 +383,7 @@ public class AuthService {
         UserCompany userCompany = userCompanyRepo.getCompanyUser(companyId, userId);
 
         userLogin.setCurCompanyId(userCompany.getCompanyId());
-        userLogin.setCompanyUserType(userCompany.getCompanyUserType());
+        userLogin.setIsCompanyAdmin(isCompanyAdmin(userCompany.getUserType()));
 
         return login(userLogin);
     }

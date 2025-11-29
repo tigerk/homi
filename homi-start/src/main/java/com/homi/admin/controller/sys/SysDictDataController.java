@@ -5,7 +5,7 @@ import com.homi.annotation.Log;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.dict.data.DictDataQueryDTO;
-import com.homi.domain.dto.dict.data.SysDictDataCreateDTO;
+import com.homi.domain.dto.dict.data.DictDataCreateDTO;
 import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.model.entity.Dict;
@@ -85,7 +85,7 @@ public class SysDictDataController {
      */
     @PostMapping("/create")
 //    @SaCheckPermission("system:dict:data:create")
-    public ResponseResult<Long> create(@Valid @RequestBody SysDictDataCreateDTO createDTO) {
+    public ResponseResult<Long> create(@Valid @RequestBody DictDataCreateDTO createDTO) {
         DictData dictData = BeanCopyUtils.copyBean(createDTO, DictData.class);
         if (Objects.isNull(createDTO.getId())) {
             return ResponseResult.ok(sysDictDataService.createDictData(dictData));

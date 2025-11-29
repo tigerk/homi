@@ -52,11 +52,11 @@ public class ContractTemplateService {
 
         Page<ContractTemplate> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
-        Page<ContractTemplate> sysDictDataPage = contractTemplateRepo.page(page, wrapper);
+        Page<ContractTemplate> dictDataPage = contractTemplateRepo.page(page, wrapper);
 
         PageVO<ContractTemplateListDTO> pageVO = new PageVO<>();
-        pageVO.setTotal(sysDictDataPage.getTotal());
-        pageVO.setList(sysDictDataPage.getRecords().stream().map(c -> {
+        pageVO.setTotal(dictDataPage.getTotal());
+        pageVO.setList(dictDataPage.getRecords().stream().map(c -> {
             ContractTemplateListDTO contractTemplateListDTO = BeanCopyUtils.copyBean(c, ContractTemplateListDTO.class);
             if (Objects.nonNull(c.getDeptIds())) {
                 assert contractTemplateListDTO != null;
@@ -64,9 +64,9 @@ public class ContractTemplateService {
             }
             return contractTemplateListDTO;
         }).toList());
-        pageVO.setCurrentPage(sysDictDataPage.getCurrent());
-        pageVO.setPageSize(sysDictDataPage.getSize());
-        pageVO.setPages(sysDictDataPage.getPages());
+        pageVO.setCurrentPage(dictDataPage.getCurrent());
+        pageVO.setPageSize(dictDataPage.getSize());
+        pageVO.setPages(dictDataPage.getPages());
 
 
         return pageVO;
