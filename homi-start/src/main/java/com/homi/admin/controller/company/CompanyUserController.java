@@ -13,7 +13,7 @@ import com.homi.domain.dto.user.UserCreateDTO;
 import com.homi.domain.dto.user.UserQueryDTO;
 import com.homi.domain.dto.user.UserResetPwdDTO;
 import com.homi.domain.dto.user.UserUpdateStatusDTO;
-import com.homi.domain.enums.common.CompanyUserTypeEnum;
+import com.homi.domain.enums.common.UserTypeEnum;
 import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.company.user.UserCreateVO;
@@ -108,7 +108,7 @@ public class CompanyUserController {
     @SaCheckPermission("system:user:updateStatus")
     public ResponseResult<Long> updateStatus(@Valid @RequestBody UserUpdateStatusDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         UserCompany userCompanyById = companyUserService.getCompanyUserById(updateDTO.getCompanyUserId());
-        if (userCompanyById.getUserType().equals(CompanyUserTypeEnum.COMPANY_ADMIN.getType())) {
+        if (userCompanyById.getUserType().equals(UserTypeEnum.COMPANY_ADMIN.getType())) {
             return ResponseResult.fail(ResponseCodeEnum.AUTHORIZED);
         }
 

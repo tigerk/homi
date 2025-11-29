@@ -16,7 +16,7 @@ import com.homi.admin.auth.dto.login.LoginDTO;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.domain.dto.company.UserCompanyListDTO;
 import com.homi.domain.enums.RedisKey;
-import com.homi.domain.enums.common.CompanyUserTypeEnum;
+import com.homi.domain.enums.common.UserTypeEnum;
 import com.homi.domain.enums.common.MenuTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.StatusEnum;
@@ -260,7 +260,7 @@ public class AuthService {
      * @return java.lang.Boolean
      */
     private Boolean isCompanyAdmin(Integer userType) {
-        return userType.equals(CompanyUserTypeEnum.COMPANY_ADMIN.getType());
+        return userType.equals(UserTypeEnum.COMPANY_ADMIN.getType());
     }
 
     /**

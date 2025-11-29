@@ -54,10 +54,6 @@ public class User implements Serializable {
     @TableField("id_no")
     private String idNo;
 
-    @Schema(description = "用户类型，参考UserTypeEnum")
-    @TableField("user_type")
-    private Integer userType;
-
     @Schema(description = "邮箱号")
     @TableField("email")
     private String email;

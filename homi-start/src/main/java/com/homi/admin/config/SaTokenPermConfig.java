@@ -14,7 +14,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class SaTokenPermsConfig implements StpInterface {
+public class SaTokenPermConfig implements StpInterface {
     private final AuthService authService;
 
     private final UserService userService;
