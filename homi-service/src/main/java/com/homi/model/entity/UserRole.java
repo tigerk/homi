@@ -5,9 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
+
 import java.io.Serial;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -24,6 +23,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @ToString(callSuper = true)
 @TableName("user_role")
 @Schema(name = "UserRole", description = "用户和角色关联表")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserRole implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

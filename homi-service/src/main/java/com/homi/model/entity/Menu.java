@@ -133,10 +133,6 @@ public class Menu implements Serializable {
     @TableField("show_parent")
     private Boolean showParent;
 
-    @Schema(description = "是不是平台的（0非平台；1：平台菜单）")
-    @TableField("is_platform")
-    private Boolean isPlatform;
-
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic

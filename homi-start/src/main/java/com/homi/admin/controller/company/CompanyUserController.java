@@ -108,7 +108,7 @@ public class CompanyUserController {
     @SaCheckPermission("system:user:updateStatus")
     public ResponseResult<Long> updateStatus(@Valid @RequestBody UserUpdateStatusDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         UserCompany userCompanyById = companyUserService.getCompanyUserById(updateDTO.getCompanyUserId());
-        if (userCompanyById.getCompanyUserType().equals(CompanyUserTypeEnum.COMPANY_ADMIN.getType())) {
+        if (userCompanyById.getUserType().equals(CompanyUserTypeEnum.COMPANY_ADMIN.getType())) {
             return ResponseResult.fail(ResponseCodeEnum.AUTHORIZED);
         }
 

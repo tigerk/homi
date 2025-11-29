@@ -52,12 +52,12 @@ public class MenuService {
             query.eq(Menu::getVisible, queryDTO.getVisible());
         }
 
-        query.orderByAsc(Menu::getSort);
+        query.orderByAsc(Menu::getSortOrder);
 
 
         return menuRepo.list(query).stream().map(m -> {
             MenuVO menuVO = BeanCopyUtils.copyBean(m, MenuVO.class);
-            menuVO.setRank(m.getSort());
+            menuVO.setRank(m.getSortOrder());
             return menuVO;
         }).collect(Collectors.toList());
     }
@@ -129,7 +129,7 @@ public class MenuService {
         AsyncRoutesMetaVO meta = new AsyncRoutesMetaVO();
         meta.setTitle(menu.getTitle());
         meta.setIcon(menu.getIcon());
-        meta.setRank(menu.getSort());
+        meta.setRank(menu.getSortOrder());
         meta.setShowLink(menu.getShowLink());
         meta.setShowParent(menu.getShowParent());
         meta.setKeepAlive(menu.getKeepAlive());
@@ -173,7 +173,6 @@ public class MenuService {
         menu.setFixedTag(dto.getFixedTag());
         menu.setShowLink(dto.getShowLink());
         menu.setShowParent(dto.getShowParent());
-        menu.setIsPlatform(dto.getIsPlatform());
 
         if (Objects.isNull(dto.getId())) {
             menuRepo.getBaseMapper().insert(menu);
@@ -186,21 +185,6 @@ public class MenuService {
 
     public void updateById(Menu menu) {
         menuRepo.updateById(menu);
-    }
-
-    /**
-     * 菜单数据
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/6/25 14:17
-     *
-     * @return java.util.List<com.homi.model.entity.Menu>
-     */
-    public List<Menu> getPlatformMenuList() {
-        LambdaQueryWrapper<Menu> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Menu::getIsPlatform, BooleanEnum.TRUE.getValue());
-
-        return menuRepo.getBaseMapper().selectList(queryWrapper);
     }
 
     /**
