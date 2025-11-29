@@ -2,8 +2,8 @@ package com.homi.service.system;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.model.entity.SysConfig;
-import com.homi.model.mapper.SysConfigMapper;
+import com.homi.model.entity.Config;
+import com.homi.model.mapper.ConfigMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +21,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class SysConfigService {
 
-    private final SysConfigMapper configMapper;
+    private final ConfigMapper configMapper;
 
     /**
      * 根据key，查询value
@@ -33,9 +33,9 @@ public class SysConfigService {
      * @return java.lang.String
      */
     public String getConfigValueByKey(String key) {
-        SysConfig config = new SysConfig();
+        Config config = new Config();
         config.setConfigKey(key);
-        SysConfig retConfig = configMapper.selectOne(new LambdaQueryWrapper<SysConfig>().eq(SysConfig::getConfigKey, key));
+        Config retConfig = configMapper.selectOne(new LambdaQueryWrapper<Config>().eq(Config::getConfigKey, key));
         if (Objects.nonNull(retConfig)) {
             return retConfig.getConfigValue();
         }

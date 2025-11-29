@@ -1,9 +1,9 @@
 package com.homi.service.system;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.model.entity.SysUserRole;
-import com.homi.model.mapper.SysUserRoleMapper;
-import com.homi.model.repo.SysUserRoleRepo;
+import com.homi.model.entity.UserRole;
+import com.homi.model.mapper.UserRoleMapper;
+import com.homi.model.repo.UserRoleRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,16 +18,16 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SysUserRoleService {
-    private final SysUserRoleMapper sysUserRoleMapper;
+    private final UserRoleMapper userRoleMapper;
 
-    private final SysUserRoleRepo userRoleRepo;
+    private final UserRoleRepo userRoleRepo;
 
 
     public long getUserCountByRoleId(Long id) {
-        return userRoleRepo.count(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getRoleId, id));
+        return userRoleRepo.count(new LambdaQueryWrapper<UserRole>().eq(UserRole::getRoleId, id));
     }
 
     public void createUserRole(Long createdUserId, Long sysRoleId) {
-        sysUserRoleMapper.insert(SysUserRole.builder().roleId(sysRoleId).userId(createdUserId).build());
+        userRoleMapper.insert(UserRole.builder().roleId(sysRoleId).userId(createdUserId).build());
     }
 }

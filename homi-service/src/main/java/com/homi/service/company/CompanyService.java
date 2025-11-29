@@ -4,10 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.domain.vo.company.CompanyListVO;
 import com.homi.model.entity.Company;
-import com.homi.model.entity.CompanyUser;
-import com.homi.model.entity.SysUser;
+import com.homi.model.entity.UserCompany;
+import com.homi.model.entity.User;
 import com.homi.model.repo.CompanyRepo;
-import com.homi.model.repo.CompanyUserRepo;
+import com.homi.model.repo.UserCompanyRepo;
 import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class CompanyService {
     private final CompanyRepo companyRepo;
     private final UserService userService;
 
-    private final CompanyUserRepo companyUserRepo;
+    private final UserCompanyRepo userCompanyRepo;
 
     /**
      * 获取公司信息
@@ -46,18 +46,18 @@ public class CompanyService {
     }
 
     public List<IdNameVO> getUserOptions(Long curCompanyId) {
-        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<CompanyUser>()
-            .eq(CompanyUser::getCompanyId, curCompanyId);
+        LambdaQueryWrapper<UserCompany> queryWrapper = new LambdaQueryWrapper<UserCompany>()
+            .eq(UserCompany::getCompanyId, curCompanyId);
 
-        List<CompanyUser> companyUsers = companyUserRepo.list(queryWrapper);
+        List<UserCompany> userCompanies = userCompanyRepo.list(queryWrapper);
 
-        return companyUsers.stream().map(companyUser -> {
+        return userCompanies.stream().map(companyUser -> {
                 IdNameVO build = IdNameVO.builder()
                     .id(companyUser.getUserId())
                     .build();
 
-                SysUser sysUserById = userService.getUserById(companyUser.getUserId());
-                build.setName(sysUserById.getNickname());
+                User userById = userService.getUserById(companyUser.getUserId());
+                build.setName(userById.getNickname());
 
                 return build;
             }

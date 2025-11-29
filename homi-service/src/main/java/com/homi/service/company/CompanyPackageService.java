@@ -17,7 +17,7 @@ import com.homi.domain.vo.menu.SimpleMenuVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.CompanyPackage;
 import com.homi.model.repo.CompanyPackageRepo;
-import com.homi.service.system.SysMenuService;
+import com.homi.service.system.MenuService;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ import java.util.Objects;
 public class CompanyPackageService {
     private final CompanyPackageRepo companyPackageRepo;
 
-    private final SysMenuService sysMenuService;
+    private final MenuService menuService;
 
     public PageVO<CompanyPackageVO> getPackageList(CompanyPackageQueryDTO queryDTO) {
         Page<CompanyPackage> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
@@ -130,7 +130,7 @@ public class CompanyPackageService {
      */
     public List<SimpleMenuVO> getMenuList() {
         MenuQueryDTO queryDTO = new MenuQueryDTO();
-        List<MenuVO> menuList = sysMenuService.getPlatformMenuList(queryDTO);
+        List<MenuVO> menuList = menuService.getPlatformMenuList(queryDTO);
 
         return menuList.stream().map(sysMenu -> BeanCopyUtils.copyBean(sysMenu, SimpleMenuVO.class)).toList();
     }

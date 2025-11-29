@@ -11,10 +11,10 @@ import com.homi.domain.dto.role.SysRoleUpdateDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.vo.role.RoleSimpleVO;
-import com.homi.domain.vo.role.SysRoleVO;
+import com.homi.domain.vo.role.RoleVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.SysRole;
-import com.homi.service.system.SysRoleService;
+import com.homi.model.entity.Role;
+import com.homi.service.system.RoleService;
 import com.homi.service.system.SysUserRoleService;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 角色信息表(SysRole)表控制层
+ * 角色信息表(Role)表控制层
  * <p>
  * {@code @author} tk
  * {@code @date} 2025/4/28 18:55
@@ -38,7 +38,7 @@ public class SysRoleController {
      * 服务对象
      */
 
-    private final SysRoleService sysRoleService;
+    private final RoleService roleService;
 
     private final SysUserRoleService sysUserRoleService;
 
@@ -50,8 +50,8 @@ public class SysRoleController {
      */
     @GetMapping("/list")
     @SaCheckPermission("system:role:query")
-    public ResponseResult<IPage<SysRoleVO>> selectPage(RoleQueryDTO queryDTO) {
-        return ResponseResult.ok(this.sysRoleService.listRolePage(queryDTO));
+    public ResponseResult<IPage<RoleVO>> selectPage(RoleQueryDTO queryDTO) {
+        return ResponseResult.ok(this.roleService.listRolePage(queryDTO));
     }
 
     /**
@@ -61,8 +61,8 @@ public class SysRoleController {
      * @return 单条数据
      */
     @GetMapping("/get/{id}")
-    public ResponseResult<SysRole> selectOne(@PathVariable Long id) {
-        return ResponseResult.ok(this.sysRoleService.getRoleById(id));
+    public ResponseResult<Role> selectOne(@PathVariable Long id) {
+        return ResponseResult.ok(this.roleService.getRoleById(id));
     }
 
     /**
@@ -74,8 +74,8 @@ public class SysRoleController {
     @PostMapping("/create")
     @SaCheckPermission("system:role:create")
     public ResponseResult<Long> insert(@Valid @RequestBody SysRoleCreateDTO createDTO) {
-        SysRole sysRole = BeanCopyUtils.copyBean(createDTO, SysRole.class);
-        return ResponseResult.ok(this.sysRoleService.createRole(sysRole));
+        Role role = BeanCopyUtils.copyBean(createDTO, Role.class);
+        return ResponseResult.ok(this.roleService.createRole(role));
     }
 
     /**
@@ -87,8 +87,8 @@ public class SysRoleController {
     @PutMapping("/update")
     @SaCheckPermission("system:role:update")
     public ResponseResult<Long> update(@Valid @RequestBody SysRoleUpdateDTO updateDTO) {
-        SysRole sysRole = BeanCopyUtils.copyBean(updateDTO, SysRole.class);
-        return ResponseResult.ok(this.sysRoleService.updateRole(sysRole));
+        Role role = BeanCopyUtils.copyBean(updateDTO, Role.class);
+        return ResponseResult.ok(this.roleService.updateRole(role));
     }
 
     /**
@@ -109,7 +109,7 @@ public class SysRoleController {
             throw new BizException(ResponseCodeEnum.FAIL.getCode(), "该角色已绑定用户，无法删除");
         }
 
-        return ResponseResult.ok(sysRoleService.deleteRoleById(id));
+        return ResponseResult.ok(roleService.deleteRoleById(id));
     }
 
     /**
@@ -121,7 +121,7 @@ public class SysRoleController {
     @GetMapping("/list/all")
 //    @SaCheckPermission("system:role:listSimpleAll")
     public ResponseResult<List<RoleSimpleVO>> listSimpleAll(RoleQueryDTO queryDTO) {
-        List<SysRole> list = sysRoleService.getSimpleList(queryDTO);
+        List<Role> list = roleService.getSimpleList(queryDTO);
         return ResponseResult.ok(RoleConvert.INSTANCE.convertSimpleList(list));
     }
 }

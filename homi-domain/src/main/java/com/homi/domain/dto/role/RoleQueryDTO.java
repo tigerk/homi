@@ -12,9 +12,9 @@ import lombok.Data;
 @Data
 public class RoleQueryDTO extends PageDTO {
 
-    private String roleName;
+    private String name;
 
-    private String roleCode;
+    private String code;
 
     private Integer status;
 }

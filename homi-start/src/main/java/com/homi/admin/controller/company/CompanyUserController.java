@@ -18,8 +18,8 @@ import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.company.user.UserCreateVO;
 import com.homi.domain.vo.company.user.UserVO;
-import com.homi.model.entity.CompanyUser;
-import com.homi.model.entity.SysUser;
+import com.homi.model.entity.UserCompany;
+import com.homi.model.entity.User;
 import com.homi.service.company.CompanyUserService;
 import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 用户表(SysUser)表控制层
+ * 用户表(User)表控制层
  *
  * @author sjh
  * @since 2024-04-25 10:36:46
@@ -71,8 +71,8 @@ public class CompanyUserController {
     @GetMapping("/detail/{id}")
     @SaCheckPermission("system:user:detail")
     public ResponseResult<UserVO> detail(@PathVariable("id") Long id) {
-        SysUser sysUserById = userService.getUserById(id);
-        UserVO userVO = BeanCopyUtils.copyBean(sysUserById, UserVO.class);
+        User userById = userService.getUserById(id);
+        UserVO userVO = BeanCopyUtils.copyBean(userById, UserVO.class);
 
         return ResponseResult.ok(userVO);
     }
@@ -107,8 +107,8 @@ public class CompanyUserController {
     @PostMapping("/updateStatus")
     @SaCheckPermission("system:user:updateStatus")
     public ResponseResult<Long> updateStatus(@Valid @RequestBody UserUpdateStatusDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        CompanyUser companyUserById = companyUserService.getCompanyUserById(updateDTO.getCompanyUserId());
-        if (companyUserById.getCompanyUserType().equals(CompanyUserTypeEnum.COMPANY_ADMIN.getType())) {
+        UserCompany userCompanyById = companyUserService.getCompanyUserById(updateDTO.getCompanyUserId());
+        if (userCompanyById.getCompanyUserType().equals(CompanyUserTypeEnum.COMPANY_ADMIN.getType())) {
             return ResponseResult.fail(ResponseCodeEnum.AUTHORIZED);
         }
 
@@ -116,7 +116,7 @@ public class CompanyUserController {
         Long updated = companyUserService.updateUserUserStatus(updateDTO);
         if (updated > 0) {
             // 修改状态后，被修改用户需要重新登录
-            SysUser userById = userService.getUserById(companyUserById.getUserId());
+            User userById = userService.getUserById(userCompanyById.getUserId());
             authService.kickUserByUsername(userById.getUsername());
         }
 
@@ -132,7 +132,7 @@ public class CompanyUserController {
     @PostMapping("/delete")
     @SaCheckPermission("system:user:delete")
     public ResponseResult<Integer> delete(@RequestBody List<Long> idList) {
-        List<SysUser> userByIds = userService.getUserByIds(idList);
+        List<User> userByIds = userService.getUserByIds(idList);
 
         Integer deleted = companyUserService.deleteByIds(idList);
 
@@ -156,10 +156,10 @@ public class CompanyUserController {
     @PutMapping("/resetPassword")
     @SaCheckPermission("system:user:resetPwd")
     public ResponseResult<Boolean> resetPassword(@Valid @RequestBody UserResetPwdDTO updateDTO) {
-        SysUser sysUser = BeanCopyUtils.copyBean(updateDTO, SysUser.class);
-        assert sysUser != null;
-        sysUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        userService.resetPassword(sysUser);
+        User user = BeanCopyUtils.copyBean(updateDTO, User.class);
+        assert user != null;
+        user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        userService.resetPassword(user);
         return ResponseResult.ok(true);
     }
 }

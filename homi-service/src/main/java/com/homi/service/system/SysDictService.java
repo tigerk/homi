@@ -9,9 +9,9 @@ import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.domain.vo.dict.SysDictVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.SysDict;
-import com.homi.model.mapper.SysDictMapper;
-import com.homi.model.repo.SysDictRepo;
+import com.homi.model.entity.Dict;
+import com.homi.model.mapper.DictMapper;
+import com.homi.model.repo.DictRepo;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -25,7 +25,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 字典表(SysDict)表服务实现类
+ * 字典表(Dict)表服务实现类
  *
  * @author sjh
  * @since 2024-04-24 10:35:55
@@ -34,44 +34,44 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SysDictService {
 
-    private final SysDictMapper sysDictMapper;
+    private final DictMapper dictMapper;
 
-    private final SysDictRepo sysDictRepo;
+    private final DictRepo dictRepo;
 
     /**
      * 创建字典
      *
-     * @param sysDict 字典对象
+     * @param dict 字典对象
      * @return 字典ID
      */
-    public Long createDict(SysDict sysDict) {
-        validateDictUniqueness(null, sysDict.getDictName(), sysDict.getDictCode());
-        sysDict.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        sysDictMapper.insert(sysDict);
-        return sysDict.getId();
+    public Long createDict(Dict dict) {
+        validateDictUniqueness(null, dict.getDictName(), dict.getDictCode());
+        dict.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        dictMapper.insert(dict);
+        return dict.getId();
     }
 
     /**
      * 更新字典
      *
-     * @param sysDict 字典对象
+     * @param dict 字典对象
      * @return 字典ID
      */
 
-    public Long updateDict(SysDict sysDict) {
-        SysDict exists = sysDictMapper.selectById(sysDict.getId());
+    public Long updateDict(Dict dict) {
+        Dict exists = dictMapper.selectById(dict.getId());
         if (exists == null) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "修改的字典不存在");
         }
-        validateDictUniqueness(sysDict.getId(), sysDict.getDictName(), sysDict.getDictCode());
-        sysDict.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        sysDictMapper.updateById(sysDict);
-        return sysDict.getId();
+        validateDictUniqueness(dict.getId(), dict.getDictName(), dict.getDictCode());
+        dict.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        dictMapper.updateById(dict);
+        return dict.getId();
     }
 
 
     public List<DictWithDataVO> listAllDictAndData() {
-        return sysDictMapper.listAllDictWithData();
+        return dictMapper.listAllDictWithData();
     }
 
     /**
@@ -82,27 +82,27 @@ public class SysDictService {
      * @param code 字典编码
      */
     private void validateDictUniqueness(Long id, String name, String code) {
-        SysDict sysDictName = sysDictMapper.selectOne(new LambdaQueryWrapper<SysDict>().eq(SysDict::getDictName, name));
-        if (sysDictName != null && !sysDictName.getId().equals(id)) {
+        Dict dictName = dictMapper.selectOne(new LambdaQueryWrapper<Dict>().eq(Dict::getDictName, name));
+        if (dictName != null && !dictName.getId().equals(id)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "字典名称不能重复");
         }
-        SysDict sysDictCode = sysDictMapper.selectOne(new LambdaQueryWrapper<SysDict>().eq(SysDict::getDictCode, code));
-        if (sysDictCode != null && !sysDictCode.getId().equals(id)) {
+        Dict dictCode = dictMapper.selectOne(new LambdaQueryWrapper<Dict>().eq(Dict::getDictCode, code));
+        if (dictCode != null && !dictCode.getId().equals(id)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "字典编码不能重复");
         }
     }
 
 
     public List<SysDictVO> list(DictQueryDTO queryDTO) {
-        LambdaQueryWrapper<SysDict> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.like(CharSequenceUtil.isNotEmpty(queryDTO.getDictName()), SysDict::getDictName, queryDTO.getDictName())
-                .like(CharSequenceUtil.isNotEmpty(queryDTO.getDictCode()), SysDict::getDictCode, queryDTO.getDictCode())
-                .eq(SysDict::getHidden, Boolean.FALSE)
-                .eq(Objects.nonNull(queryDTO.getStatus()), SysDict::getStatus, queryDTO.getStatus());
+        LambdaQueryWrapper<Dict> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(CharSequenceUtil.isNotEmpty(queryDTO.getDictName()), Dict::getDictName, queryDTO.getDictName())
+                .like(CharSequenceUtil.isNotEmpty(queryDTO.getDictCode()), Dict::getDictCode, queryDTO.getDictCode())
+                .eq(Dict::getHidden, Boolean.FALSE)
+                .eq(Objects.nonNull(queryDTO.getStatus()), Dict::getStatus, queryDTO.getStatus());
 
-        queryWrapper.orderByAsc(SysDict::getSort);
+        queryWrapper.orderByAsc(Dict::getSort);
 
-        List<SysDict> list = sysDictRepo.list(queryWrapper);
+        List<Dict> list = dictRepo.list(queryWrapper);
 
         Map<Long, SysDictVO> dictMap = list.stream().filter(dict -> dict.getParentId() == 0)
                 .map(dict -> {
@@ -124,14 +124,14 @@ public class SysDictService {
     }
 
     public Boolean removeDictById(Long id) {
-        return sysDictRepo.removeById(id);
+        return dictRepo.removeById(id);
     }
 
-    public SysDict getDictByCode(String dictCode) {
-        LambdaQueryWrapper<SysDict> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(SysDict::getDictCode, dictCode);
-        queryWrapper.eq(SysDict::getStatus, StatusEnum.ACTIVE.getValue());
-        return sysDictRepo.getOne(queryWrapper);
+    public Dict getDictByCode(String dictCode) {
+        LambdaQueryWrapper<Dict> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Dict::getDictCode, dictCode);
+        queryWrapper.eq(Dict::getStatus, StatusEnum.ACTIVE.getValue());
+        return dictRepo.getOne(queryWrapper);
     }
 }
 

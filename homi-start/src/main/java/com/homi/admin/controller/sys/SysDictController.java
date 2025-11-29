@@ -10,7 +10,7 @@ import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.domain.vo.dict.SysDictVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.SysDict;
+import com.homi.model.entity.Dict;
 import com.homi.service.system.SysDictDataService;
 import com.homi.service.system.SysDictService;
 import com.homi.utils.BeanCopyUtils;
@@ -22,7 +22,7 @@ import java.util.List;
 
 
 /**
- * 字典表(SysDict)表控制层
+ * 字典表(Dict)表控制层
  *
  * @author sjh
  * @since 2024-04-25 10:36:32
@@ -59,8 +59,8 @@ public class SysDictController {
     @PostMapping("/create")
     @SaCheckPermission("system:dict:create")
     public ResponseResult<Long> insert(@Valid @RequestBody SysDictCreateDTO createDTO) {
-        SysDict sysDict = BeanCopyUtils.copyBean(createDTO, SysDict.class);
-        return ResponseResult.ok(sysDictService.createDict(sysDict));
+        Dict dict = BeanCopyUtils.copyBean(createDTO, Dict.class);
+        return ResponseResult.ok(sysDictService.createDict(dict));
     }
 
     /**
@@ -72,8 +72,8 @@ public class SysDictController {
     @PutMapping("/update")
     @SaCheckPermission("system:dict:update")
     public ResponseResult<Long> update(@Valid @RequestBody SysDictUpdateDTO updateDTO) {
-        SysDict sysDict = BeanCopyUtils.copyBean(updateDTO, SysDict.class);
-        return ResponseResult.ok(this.sysDictService.updateDict(sysDict));
+        Dict dict = BeanCopyUtils.copyBean(updateDTO, Dict.class);
+        return ResponseResult.ok(this.sysDictService.updateDict(dict));
     }
 
     /**

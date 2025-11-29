@@ -7,8 +7,8 @@ import com.homi.admin.auth.service.AuthService;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
-import com.homi.model.entity.SysLoginLog;
-import com.homi.model.repo.SysLoginLogRepo;
+import com.homi.model.entity.LoginLog;
+import com.homi.model.repo.LoginLogRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,12 +19,12 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class OnlineUserController {
-    private final SysLoginLogRepo sysLoginLogRepo;
+    private final LoginLogRepo loginLogRepo;
 
     private final AuthService authService;
 
     @GetMapping("/users")
-    public ResponseResult<List<SysLoginLog>> getOnlineUsers() {
+    public ResponseResult<List<LoginLog>> getOnlineUsers() {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
 
         // 获取所有登录的用户ids
@@ -38,12 +38,12 @@ public class OnlineUserController {
             validTokens.addAll(sessionTokens);
         }
 
-        return ResponseResult.ok(sysLoginLogRepo.getLoginUsers(currentUser.getCurCompanyId(), validTokens));
+        return ResponseResult.ok(loginLogRepo.getLoginUsers(currentUser.getCurCompanyId(), validTokens));
     }
 
     @PostMapping("/offline")
-    public ResponseResult<Boolean> offlineUser(@RequestBody SysLoginLog sysLoginLog) {
-        return ResponseResult.ok(authService.kickUserByUsername(sysLoginLog.getUsername()));
+    public ResponseResult<Boolean> offlineUser(@RequestBody LoginLog loginLog) {
+        return ResponseResult.ok(authService.kickUserByUsername(loginLog.getUsername()));
     }
 }
 

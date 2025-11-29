@@ -51,6 +51,23 @@ public class LoginController {
     private final CompanyUserService companyUserService;
     private final SmsClient smsClient;
 
+    /**
+     * 用户登录
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/29 11:44
+
+      * @param loginDTO 参数说明
+     * @return com.homi.domain.base.ResponseResult<com.homi.admin.auth.vo.login.UserLoginVO>
+     */
+    @LoginLog
+    @PostMapping("/admin/login")
+    public ResponseResult<UserLoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
+        UserLoginVO userLogin = authService.checkUserLogin(loginDTO);
+
+        return ResponseResult.ok(authService.login(userLogin));
+    }
+
     @GetMapping("/admin/captcha/{username}")
     public void captcha(@PathVariable("username") Long username, HttpServletResponse response) throws IOException {
         // 生成验证码
@@ -65,14 +82,6 @@ public class LoginController {
         response.setContentType("image/png");
 
         ImageIO.write(lineCaptcha.getImage(), "png", response.getOutputStream());
-    }
-
-    @LoginLog
-    @PostMapping("/admin/login")
-    public ResponseResult<UserLoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
-        UserLoginVO userLogin = authService.checkUserLogin(loginDTO);
-
-        return ResponseResult.ok(authService.login(userLogin));
     }
 
     @PostMapping("/admin/token/refresh")

@@ -13,11 +13,11 @@ import com.homi.domain.vo.dept.DeptSimpleVO;
 import com.homi.domain.vo.company.user.UserCreateVO;
 import com.homi.domain.vo.company.user.UserVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.CompanyUser;
+import com.homi.model.entity.UserCompany;
 import com.homi.model.entity.Dept;
-import com.homi.model.entity.SysUser;
-import com.homi.model.repo.CompanyUserRepo;
-import com.homi.model.repo.SysUserRepo;
+import com.homi.model.entity.User;
+import com.homi.model.repo.UserCompanyRepo;
+import com.homi.model.repo.UserRepo;
 import com.homi.service.system.DeptService;
 import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
@@ -41,9 +41,9 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class CompanyUserService {
-    private final CompanyUserRepo companyUserRepo;
+    private final UserCompanyRepo userCompanyRepo;
 
-    private final SysUserRepo sysUserRepo;
+    private final UserRepo userRepo;
 
     private final DeptService deptService;
 
@@ -56,13 +56,13 @@ public class CompanyUserService {
      * {@code @date} 2025/6/26 09:31
      *
      * @param companyId 参数说明
-     * @return java.util.List<com.homi.model.entity.SysUser>
+     * @return java.util.List<com.homi.model.entity.User>
      */
-    public List<CompanyUser> getCompanyUserByCompanyId(Long companyId) {
-        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(CompanyUser::getCompanyId, companyId);
+    public List<UserCompany> getCompanyUserByCompanyId(Long companyId) {
+        LambdaQueryWrapper<UserCompany> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserCompany::getCompanyId, companyId);
 
-        return companyUserRepo.list(queryWrapper);
+        return userCompanyRepo.list(queryWrapper);
     }
 
     /**
@@ -75,15 +75,15 @@ public class CompanyUserService {
      * @return java.util.List<com.homi.domain.vo.user.UserVO>
      */
     public List<UserVO> getUserListByDeptId(Long deptId) {
-        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(CompanyUser::getDeptId, deptId);
+        LambdaQueryWrapper<UserCompany> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserCompany::getDeptId, deptId);
 
-        List<CompanyUser> companyUsers = companyUserRepo.list(queryWrapper);
+        List<UserCompany> userCompanies = userCompanyRepo.list(queryWrapper);
 
         List<UserVO> result = new ArrayList<>();
-        companyUsers.forEach(companyUser -> {
-            SysUser sysUser = sysUserRepo.getById(companyUser.getUserId());
-            UserVO userVO = BeanCopyUtils.copyBean(sysUser, UserVO.class);
+        userCompanies.forEach(companyUser -> {
+            User user = userRepo.getById(companyUser.getUserId());
+            UserVO userVO = BeanCopyUtils.copyBean(user, UserVO.class);
             result.add(userVO);
         });
 
@@ -101,17 +101,17 @@ public class CompanyUserService {
      * @return boolean
      */
     public boolean userHasCompany(Long userId, Long companyId) {
-        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(CompanyUser::getUserId, userId);
-        queryWrapper.eq(CompanyUser::getCompanyId, companyId);
+        LambdaQueryWrapper<UserCompany> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserCompany::getUserId, userId);
+        queryWrapper.eq(UserCompany::getCompanyId, companyId);
 
-        return companyUserRepo.exists(queryWrapper);
+        return userCompanyRepo.exists(queryWrapper);
     }
 
     public PageVO<UserVO> pageUserList(UserQueryDTO query) {
         Page<UserVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
-        IPage<UserVO> userVOPage = companyUserRepo.getBaseMapper().selectUserList(page, query);
+        IPage<UserVO> userVOPage = userCompanyRepo.getBaseMapper().selectUserList(page, query);
 
         List<UserVO> records = userVOPage.getRecords();
         records.forEach(userVO -> {
@@ -142,24 +142,24 @@ public class CompanyUserService {
 
         Long userId;
         if (existed) {
-            SysUser sysUserById = userService.getUserByPhone(createDTO.getPhone());
+            User userById = userService.getUserByPhone(createDTO.getPhone());
             userService.updateUser(createDTO);
-            userId = sysUserById.getId();
+            userId = userById.getId();
         } else {
             userId = userService.createUser(createDTO);
         }
 
-        CompanyUser companyUser = new CompanyUser();
-        companyUser.setUserId(userId);
-        companyUser.setCompanyId(createDTO.getCompanyId());
-        companyUser.setDeptId(createDTO.getDeptId());
-        companyUser.setStatus(StatusEnum.ACTIVE.getValue());
-        companyUser.setCreateBy(createDTO.getUpdateBy());
+        UserCompany userCompany = new UserCompany();
+        userCompany.setUserId(userId);
+        userCompany.setCompanyId(createDTO.getCompanyId());
+        userCompany.setDeptId(createDTO.getDeptId());
+        userCompany.setStatus(StatusEnum.ACTIVE.getValue());
+        userCompany.setCreateBy(createDTO.getUpdateBy());
 
-        companyUserRepo.save(companyUser);
+        userCompanyRepo.save(userCompany);
 
         return UserCreateVO.builder()
-            .companyUserId(companyUser.getId())
+            .companyUserId(userCompany.getId())
             .userId(userId)
             .phone(createDTO.getPhone())
             .existed(existed)
@@ -175,18 +175,18 @@ public class CompanyUserService {
 
         Long userId = userService.updateUser(createDTO);
 
-        CompanyUser companyUser = new CompanyUser();
-        companyUser.setId(createDTO.getCompanyUserId());
-        companyUser.setUserId(userId);
-        companyUser.setCompanyId(createDTO.getCompanyId());
-        companyUser.setDeptId(createDTO.getDeptId());
-        companyUser.setStatus(StatusEnum.ACTIVE.getValue());
-        companyUser.setUpdateBy(createDTO.getUpdateBy());
+        UserCompany userCompany = new UserCompany();
+        userCompany.setId(createDTO.getCompanyUserId());
+        userCompany.setUserId(userId);
+        userCompany.setCompanyId(createDTO.getCompanyId());
+        userCompany.setDeptId(createDTO.getDeptId());
+        userCompany.setStatus(StatusEnum.ACTIVE.getValue());
+        userCompany.setUpdateBy(createDTO.getUpdateBy());
 
-        companyUserRepo.updateById(companyUser);
+        userCompanyRepo.updateById(userCompany);
 
         return UserCreateVO.builder()
-            .companyUserId(companyUser.getId())
+            .companyUserId(userCompany.getId())
             .userId(userId)
             .phone(createDTO.getPhone())
             .existed(true)
@@ -194,15 +194,15 @@ public class CompanyUserService {
     }
 
     public Long updateUserUserStatus(@Valid UserUpdateStatusDTO updateDTO) {
-        CompanyUser companyUser = companyUserRepo.getById(updateDTO.getCompanyUserId());
-        if (Objects.isNull(companyUser) || !companyUser.getCompanyId().equals(updateDTO.getCompanyId())) {
+        UserCompany userCompany = userCompanyRepo.getById(updateDTO.getCompanyUserId());
+        if (Objects.isNull(userCompany) || !userCompany.getCompanyId().equals(updateDTO.getCompanyId())) {
             throw new BizException("用户不再该公司任职");
         }
 
-        companyUser.setStatus(updateDTO.getStatus());
-        companyUserRepo.updateById(companyUser);
+        userCompany.setStatus(updateDTO.getStatus());
+        userCompanyRepo.updateById(userCompany);
 
-        return companyUser.getId();
+        return userCompany.getId();
     }
 
     public Integer deleteByIds(List<Long> idList) {
@@ -213,12 +213,12 @@ public class CompanyUserService {
             }
         }
 
-        companyUserRepo.getBaseMapper().deleteBatchIds(idList);
+        userCompanyRepo.getBaseMapper().deleteBatchIds(idList);
 
         return idList.size();
     }
 
-    public CompanyUser getCompanyUserById(@NotNull(message = "ID不能为空") Long companyUserId) {
-        return companyUserRepo.getById(companyUserId);
+    public UserCompany getCompanyUserById(@NotNull(message = "ID不能为空") Long companyUserId) {
+        return userCompanyRepo.getById(companyUserId);
     }
 }

@@ -23,16 +23,18 @@ import com.homi.domain.enums.common.StatusEnum;
 import com.homi.domain.vo.menu.AsyncRoutesVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.*;
-import com.homi.model.mapper.SysRoleMapper;
-import com.homi.model.mapper.SysUserMapper;
-import com.homi.model.mapper.SysUserRoleMapper;
+import com.homi.model.mapper.MenuMapper;
+import com.homi.model.mapper.RoleMapper;
+import com.homi.model.mapper.UserMapper;
+import com.homi.model.mapper.UserRoleMapper;
 import com.homi.model.repo.CompanyRepo;
-import com.homi.model.repo.CompanyUserRepo;
-import com.homi.model.repo.SysUserRepo;
+import com.homi.model.repo.UserCompanyRepo;
+import com.homi.model.repo.MenuRepo;
+import com.homi.model.repo.UserRepo;
 import com.homi.service.company.CompanyPackageService;
 import com.homi.service.company.CompanyService;
-import com.homi.service.system.SysMenuService;
-import com.homi.service.system.SysRoleService;
+import com.homi.service.system.MenuService;
+import com.homi.service.system.RoleService;
 import com.homi.service.system.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
@@ -60,11 +62,15 @@ public class AuthService {
     // refresh token userId 名称
     public static final String JWT_USER_ID = "userId";
     public static final String JWT_EXP_TIME = "exp";
-    private final SysUserMapper sysUserMapper;
-    private final SysUserRoleMapper sysUserRoleMapper;
-    private final SysRoleMapper sysRoleMapper;
-    private final SysMenuService sysMenuService;
-    private final SysRoleService sysRoleService;
+
+    private final UserMapper userMapper;
+    private final UserRepo userRepo;
+
+    private final UserRoleMapper userRoleMapper;
+
+    private final RoleMapper roleMapper;
+    private final MenuService menuService;
+    private final RoleService roleService;
 
     private final CompanyPackageService companyPackageService;
 
@@ -73,8 +79,11 @@ public class AuthService {
 
     private final UserService userService;
 
-    private final CompanyUserRepo companyUserRepo;
-    private final SysUserRepo sysUserRepo;
+    private final UserCompanyRepo userCompanyRepo;
+
+    private final MenuMapper menuMapper;
+
+    private final MenuRepo menuRepo;
 
     // jwt 密钥
     @Value("${jwt.secret}")
@@ -164,7 +173,7 @@ public class AuthService {
         user.setRefreshToken(refreshToken);
         user.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenTimeout()).getTime());
 
-        List<CompanyUserListDTO> companyListByUserId = companyUserRepo.getCompanyListByUserId(user.getId());
+        List<CompanyUserListDTO> companyListByUserId = userCompanyRepo.getCompanyListByUserId(user.getId());
         if (companyListByUserId.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
@@ -212,29 +221,27 @@ public class AuthService {
      */
     public UserLoginVO checkUserLogin(LoginDTO loginDTO) {
         // 校验用户是否存在
-        SysUser sysUser = sysUserMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, loginDTO.getUsername())
-            .or().eq(SysUser::getPhone, loginDTO.getUsername()));
-
-        if (Objects.isNull(sysUser)) {
+        User user = userRepo.getUserByUserNameOrPhone(loginDTO.getUsername(), loginDTO.getUsername());
+        if (Objects.isNull(user)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
-        if (sysUser.getStatus().equals(StatusEnum.DISABLED.getValue())) {
+        // 未启用，则无法登录
+        if (user.getStatus().equals(StatusEnum.DISABLED.getValue())) {
             throw new BizException(ResponseCodeEnum.USER_FREEZE);
         }
         // 密码校验
         String password = SaSecureUtil.md5(loginDTO.getPassword());
-        if (!sysUser.getPassword().equals(password)) {
+        if (!user.getPassword().equals(password)) {
             throw new BizException(ResponseCodeEnum.LOGIN_ERROR);
         }
-
         // 获取绑定该用户的公司列表
-        List<CompanyUserListDTO> companyUserList = companyUserRepo.getCompanyListByUserId(sysUser.getId());
+        List<CompanyUserListDTO> companyUserList = userCompanyRepo.getCompanyListByUserId(user.getId());
         if (companyUserList.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
 
         UserLoginVO userLogin = new UserLoginVO();
-        BeanUtils.copyProperties(sysUser, userLogin);
+        BeanUtils.copyProperties(user, userLogin);
 
         CompanyUserListDTO first = companyUserList.getFirst();
         userLogin.setCurCompanyId(first.getCompanyId());
@@ -258,19 +265,19 @@ public class AuthService {
         // 管理员获取所有权限点
         if (user.getCompanyUserType().equals(CompanyUserTypeEnum.COMPANY_ADMIN.getType())) {
             List<Long> menusById = companyPackageService.getMenusById(companyById.getPackageId());
-            List<SysMenu> menuList = sysMenuService.getMenuByIds(menusById);
+            List<Menu> menuList = menuService.getMenuByIds(menusById);
 
 
-            List<SysMenu> menuTreeList = menuList.stream()
+            List<Menu> menuTreeList = menuList.stream()
                 .filter(m -> !m.getMenuType().equals(MenuTypeEnum.BUTTON.getType()))
                 .collect(Collectors.toList());
 
             List<String> permList = menuList.stream()
                 .filter(m -> m.getMenuType().equals(MenuTypeEnum.BUTTON.getType()))
-                .map(SysMenu::getAuths)
+                .map(Menu::getAuths)
                 .collect(Collectors.toList());
 
-            List<AsyncRoutesVO> asyncRoutesVOS = sysMenuService.buildMenuTree(menuTreeList);
+            List<AsyncRoutesVO> asyncRoutesVOS = menuService.buildMenuTree(menuTreeList);
 
             return Triple.of(Pair.of(new ArrayList<>(), new ArrayList<>()), asyncRoutesVOS, permList);
         }
@@ -278,12 +285,12 @@ public class AuthService {
         // 查询用户角色
         Pair<List<Long>, List<String>> roleList = getRoleList(user.getId());
         // 构建菜单树
-        List<AsyncRoutesVO> asyncRoutesVOList = sysMenuService.buildMenuTreeByRoles(roleList.getKey());
+        List<AsyncRoutesVO> asyncRoutesVOList = menuService.buildMenuTreeByRoles(roleList.getKey());
         if (asyncRoutesVOList.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NO_ACCESS);
         }
 
-        List<String> menuPermissionByRoles = sysRoleService.getMenuPermissionByRoles(roleList.getKey());
+        List<String> menuPermissionByRoles = roleService.getMenuPermissionByRoles(roleList.getKey());
 
         return Triple.of(roleList, asyncRoutesVOList, menuPermissionByRoles);
     }
@@ -298,21 +305,21 @@ public class AuthService {
      * @return cn.hutool.core.lang.Pair<java.util.List < java.lang.Long>,java.util.ArrayList<java.lang.String>>
      */
     public Pair<List<Long>, List<String>> getRoleList(Long userId) {
-        List<SysUserRole> userRoleList = sysUserRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, userId));
+        List<UserRole> userRoleList = userRoleMapper.selectList(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, userId));
         if (userRoleList.isEmpty()) {
             return Pair.of(new ArrayList<>(), new ArrayList<>());
         }
 
-        List<Long> roleIdList = userRoleList.stream().map(SysUserRole::getRoleId).collect(Collectors.toList());
-        List<SysRole> sysRoles = sysRoleMapper.selectList(new LambdaQueryWrapper<SysRole>().in(SysRole::getId, roleIdList)
-            .eq(SysRole::getStatus, StatusEnum.ACTIVE.getValue())
+        List<Long> roleIdList = userRoleList.stream().map(UserRole::getRoleId).collect(Collectors.toList());
+        List<Role> roles = roleMapper.selectList(new LambdaQueryWrapper<Role>().in(Role::getId, roleIdList)
+            .eq(Role::getStatus, StatusEnum.ACTIVE.getValue())
         );
 
-        if (CollUtil.isEmpty(sysRoles)) {
+        if (CollUtil.isEmpty(roles)) {
             throw new BizException(ResponseCodeEnum.USER_NO_ACCESS);
         }
 
-        List<String> roleCodeList = sysRoles.stream().map(SysRole::getRoleCode).collect(Collectors.toList());
+        List<String> roleCodeList = roles.stream().map(Role::getCode).collect(Collectors.toList());
 
         return Pair.of(roleIdList, roleCodeList);
     }
@@ -324,12 +331,12 @@ public class AuthService {
     }
 
     public Boolean kickUserByUsername(String username) {
-        SysUser sysUser = userService.getUserByUsername(username);
-        if (Objects.isNull(sysUser)) {
+        User user = userService.getUserByUsername(username);
+        if (Objects.isNull(user)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
-        StpUtil.kickout(sysUser.getId());
-        stringRedisTemplate.delete(RedisKey.LOGIN_REFRESH_TOKEN.format(sysUser.getId()));
+        StpUtil.kickout(user.getId());
+        stringRedisTemplate.delete(RedisKey.LOGIN_REFRESH_TOKEN.format(user.getId()));
         return true;
     }
 
@@ -348,34 +355,34 @@ public class AuthService {
 
     public UserLoginVO loginWithCompanyId(Long userId, Long companyId) {
         // 校验用户是否存在
-        SysUser sysUser = sysUserRepo.getById(userId);
+        User user = userRepo.getById(userId);
 
-        if (Objects.isNull(sysUser)) {
+        if (Objects.isNull(user)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
-        if (sysUser.getStatus().equals(StatusEnum.DISABLED.getValue())) {
+        if (user.getStatus().equals(StatusEnum.DISABLED.getValue())) {
             throw new BizException(ResponseCodeEnum.USER_FREEZE);
         }
 
         UserLoginVO userLogin = new UserLoginVO();
-        BeanUtils.copyProperties(sysUser, userLogin);
+        BeanUtils.copyProperties(user, userLogin);
 
-        CompanyUser companyUser = companyUserRepo.getCompanyUser(companyId, userId);
+        UserCompany userCompany = userCompanyRepo.getCompanyUser(companyId, userId);
 
-        userLogin.setCurCompanyId(companyUser.getCompanyId());
-        userLogin.setCompanyUserType(companyUser.getCompanyUserType());
+        userLogin.setCurCompanyId(userCompany.getCompanyId());
+        userLogin.setCompanyUserType(userCompany.getCompanyUserType());
 
         return login(userLogin);
     }
 
     public Boolean updateUserPassword(String phone, String password) {
-        SysUser sysUser = userService.getUserByPhone(phone);
-        if (Objects.isNull(sysUser)) {
+        User user = userService.getUserByPhone(phone);
+        if (Objects.isNull(user)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
 
-        sysUser.setPassword(password);
-        userService.resetPassword(sysUser);
+        user.setPassword(password);
+        userService.resetPassword(user);
 
         return true;
     }

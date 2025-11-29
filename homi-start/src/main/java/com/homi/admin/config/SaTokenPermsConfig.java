@@ -5,7 +5,7 @@ import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.admin.auth.service.AuthService;
 import com.homi.admin.auth.vo.login.UserLoginVO;
-import com.homi.service.system.SysRoleService;
+import com.homi.service.system.RoleService;
 import com.homi.service.system.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ public class SaTokenPermsConfig implements StpInterface {
 
     private final UserService userService;
 
-    private final SysRoleService sysRoleService;
+    private final RoleService roleService;
 
     /**
      * 返回一个账号所拥有的权限码集合

@@ -9,8 +9,8 @@ import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.monitor.LoginLogDTO;
 import com.homi.domain.enums.common.OperationTypeEnum;
-import com.homi.model.entity.SysLoginLog;
-import com.homi.model.repo.SysLoginLogRepo;
+import com.homi.model.entity.LoginLog;
+import com.homi.model.repo.LoginLogRepo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,14 +26,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "登录日志")
 public class LoginLogController {
-    private final SysLoginLogRepo sysLoginLogRepo;
+    private final LoginLogRepo loginLogRepo;
 
     private final AuthService authService;
 
     @PostMapping("/list")
     @Operation(summary = "获取登录日志列表")
-    public ResponseResult<PageVO<SysLoginLog>> getLoginLogList(@RequestBody LoginLogDTO dto) {
-        return ResponseResult.ok(sysLoginLogRepo.getLoginLogList(dto));
+    public ResponseResult<PageVO<LoginLog>> getLoginLogList(@RequestBody LoginLogDTO dto) {
+        return ResponseResult.ok(loginLogRepo.getLoginLogList(dto));
     }
 
 
@@ -42,7 +42,7 @@ public class LoginLogController {
     @Log(title = "登录日志", operationType = OperationTypeEnum.CLEAR)
     public ResponseResult<Boolean> clearAll() {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        int deleted = sysLoginLogRepo.clearAllByCompanyId(currentUser.getCurCompanyId());
+        int deleted = loginLogRepo.clearAllByCompanyId(currentUser.getCurCompanyId());
 
         return ResponseResult.ok(deleted > 0);
     }
@@ -51,7 +51,7 @@ public class LoginLogController {
     @Operation(summary = "批量删除登录日志")
     @Log(title = "登录日志", operationType = OperationTypeEnum.DELETE)
     public ResponseResult<Boolean> batchDelete(@RequestBody List<Long> ids) {
-        int deleted = sysLoginLogRepo.batchDeleteByIds(ids);
+        int deleted = loginLogRepo.batchDeleteByIds(ids);
 
         return ResponseResult.ok(deleted > 0);
     }

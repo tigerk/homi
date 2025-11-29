@@ -11,11 +11,10 @@ import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.menu.MenuVO;
 import com.homi.domain.vo.menu.SimpleMenuVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.SysMenu;
-import com.homi.model.entity.SysRoleMenu;
-import com.homi.model.repo.SysMenuRepo;
-import com.homi.model.repo.SysRoleMenuRepo;
-import com.homi.service.system.SysMenuService;
+import com.homi.model.entity.Menu;
+import com.homi.model.repo.MenuRepo;
+import com.homi.model.repo.RoleMenuRepo;
+import com.homi.service.system.MenuService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -37,10 +36,10 @@ import java.util.Objects;
 @RestController
 @RequestMapping("admin/sys/menu")
 public class SysMenuController {
-    private final SysMenuService sysMenuService;
+    private final MenuService menuService;
 
-    private final SysMenuRepo sysMenuRepo;
-    private final SysRoleMenuRepo sysRoleMenuRepo;
+    private final MenuRepo menuRepo;
+    private final RoleMenuRepo roleMenuRepo;
 
     /**
      * 返回菜单列表，树由前端构建（菜单管理）
@@ -51,7 +50,7 @@ public class SysMenuController {
     @PostMapping("/list")
 //    @SaCheckPermission("system:menu:query")
     public ResponseResult<List<MenuVO>> listMenu(MenuQueryDTO queryDTO) {
-        return ResponseResult.ok(sysMenuService.getPlatformMenuList(queryDTO));
+        return ResponseResult.ok(menuService.getPlatformMenuList(queryDTO));
     }
 
     /**
@@ -61,7 +60,7 @@ public class SysMenuController {
      */
     @GetMapping("/list/simple")
     public ResponseResult<List<SimpleMenuVO>> listSimple() {
-        List<SimpleMenuVO> simpleMenuVOS = sysMenuService.listSimpleMenu();
+        List<SimpleMenuVO> simpleMenuVOS = menuService.listSimpleMenu();
         return ResponseResult.ok(simpleMenuVOS);
     }
 
@@ -73,8 +72,8 @@ public class SysMenuController {
      */
     @GetMapping("/get/{id}")
     @SaCheckPermission("system:menu:detail")
-    public ResponseResult<SysMenu> selectOne(@PathVariable Long id) {
-        return ResponseResult.ok(sysMenuService.getMenuById(id));
+    public ResponseResult<Menu> selectOne(@PathVariable Long id) {
+        return ResponseResult.ok(menuService.getMenuById(id));
     }
 
     /**
@@ -102,7 +101,7 @@ public class SysMenuController {
             }
         }
 
-        sysMenuService.createMenu(createDTO);
+        menuService.createMenu(createDTO);
         return ResponseResult.ok();
     }
 
@@ -114,20 +113,6 @@ public class SysMenuController {
     @PostMapping("/delete/{id}")
 //    @SaCheckPermission("system:menu:delete")
     public ResponseResult<Boolean> delete(@PathVariable("id") Long id) {
-        return ResponseResult.ok(sysMenuService.deleteById(id));
-    }
-
-    @GetMapping("init")
-    public Boolean init() {
-        List<SysMenu> list = sysMenuRepo.list();
-        for (SysMenu sysMenu : list) {
-            SysRoleMenu sysRoleMenu = new SysRoleMenu();
-            sysRoleMenu.setRoleId(1L);
-            sysRoleMenu.setMenuId(sysMenu.getId());
-
-            sysRoleMenuRepo.save(sysRoleMenu);
-        }
-
-        return true;
+        return ResponseResult.ok(menuService.deleteById(id));
     }
 }

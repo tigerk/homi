@@ -11,10 +11,10 @@ import com.homi.domain.dto.dict.data.DictDataQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.SysDictData;
-import com.homi.model.mapper.SysDictDataMapper;
-import com.homi.model.repo.SysDictDataRepo;
-import com.homi.model.repo.SysDictRepo;
+import com.homi.model.entity.DictData;
+import com.homi.model.mapper.DictDataMapper;
+import com.homi.model.repo.DictDataRepo;
+import com.homi.model.repo.DictRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 字典数据表(SysDictData)表服务实现类
+ * 字典数据表(DictData)表服务实现类
  *
  * @author sjh
  * @since 2024-04-24 10:35:56
@@ -31,52 +31,52 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class SysDictDataService {
 
-    private final SysDictDataMapper sysDictDataMapper;
+    private final DictDataMapper dictDataMapper;
 
-    private final SysDictDataRepo sysDictDataRepo;
+    private final DictDataRepo dictDataRepo;
 
-    private final SysDictRepo sysDictRepo;
+    private final DictRepo dictRepo;
 
     /**
      * 创建字典
      *
-     * @param sysDictData 字典数据项对象
+     * @param dictData 字典数据项对象
      * @return 字典数据项ID
      */
-    public Long createDictData(SysDictData sysDictData) {
-        if (CharSequenceUtil.isBlank(sysDictData.getValue())) {
-            String cleaned = sysDictData.getName().replaceAll("[^\\u4e00-\\u9fa5a-zA-Z0-9]", "");
-            sysDictData.setValue(PinyinUtil.getPinyin(cleaned, CharSequenceUtil.EMPTY));
+    public Long createDictData(DictData dictData) {
+        if (CharSequenceUtil.isBlank(dictData.getValue())) {
+            String cleaned = dictData.getName().replaceAll("[^\\u4e00-\\u9fa5a-zA-Z0-9]", "");
+            dictData.setValue(PinyinUtil.getPinyin(cleaned, CharSequenceUtil.EMPTY));
         }
         // 转换后进行校验，value 不能为空
-        if (CharSequenceUtil.isBlank(sysDictData.getValue())) {
+        if (CharSequenceUtil.isBlank(dictData.getValue())) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "字典数据项值不能为空");
         }
 
-        validateDictDataUniqueness(null, sysDictData.getName(), sysDictData.getValue(), sysDictData.getDictId());
-        sysDictData.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        sysDictData.setCreateTime(DateUtil.date());
-        sysDictDataMapper.insert(sysDictData);
-        return sysDictData.getId();
+        validateDictDataUniqueness(null, dictData.getName(), dictData.getValue(), dictData.getDictId());
+        dictData.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        dictData.setCreateTime(DateUtil.date());
+        dictDataMapper.insert(dictData);
+        return dictData.getId();
     }
 
     /**
      * 更新字典数据项
      *
-     * @param sysDictData 字典数据项对象
+     * @param dictData 字典数据项对象
      * @return 字典数据项ID
      */
-    public Long updateDictData(SysDictData sysDictData) {
-        SysDictData exists = sysDictDataMapper.selectById(sysDictData.getId());
+    public Long updateDictData(DictData dictData) {
+        DictData exists = dictDataMapper.selectById(dictData.getId());
         if (exists == null) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "修改的字典不存在");
         }
-        validateDictDataUniqueness(sysDictData.getId(), sysDictData.getName(), sysDictData.getValue(), sysDictData.getDictId());
-        sysDictData.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        sysDictData.setUpdateTime(DateUtil.date());
-        sysDictDataMapper.updateById(sysDictData);
+        validateDictDataUniqueness(dictData.getId(), dictData.getName(), dictData.getValue(), dictData.getDictId());
+        dictData.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+        dictData.setUpdateTime(DateUtil.date());
+        dictDataMapper.updateById(dictData);
 
-        return sysDictData.getId();
+        return dictData.getId();
     }
 
     /**
@@ -87,33 +87,33 @@ public class SysDictDataService {
      * @param value 字典数据项值
      */
     private void validateDictDataUniqueness(Long id, String name, String value, Long dictId) {
-        SysDictData sysDictDataName = sysDictDataMapper.selectOne(new LambdaQueryWrapper<SysDictData>().eq(SysDictData::getName, name).eq(SysDictData::getDictId, dictId));
-        if (sysDictDataName != null && !sysDictDataName.getId().equals(id)) {
+        DictData dictDataName = dictDataMapper.selectOne(new LambdaQueryWrapper<DictData>().eq(DictData::getName, name).eq(DictData::getDictId, dictId));
+        if (dictDataName != null && !dictDataName.getId().equals(id)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "字典数据项名称不能重复");
         }
-        SysDictData sysDictDataCode = sysDictDataMapper.selectOne(new LambdaQueryWrapper<SysDictData>().eq(SysDictData::getValue, value).eq(SysDictData::getDictId, dictId));
-        if (sysDictDataCode != null && !sysDictDataCode.getId().equals(id)) {
+        DictData dictDataCode = dictDataMapper.selectOne(new LambdaQueryWrapper<DictData>().eq(DictData::getValue, value).eq(DictData::getDictId, dictId));
+        if (dictDataCode != null && !dictDataCode.getId().equals(id)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "字典数据项值不能重复");
         }
     }
 
     public long getCountByDictId(Long id) {
-        return sysDictDataRepo.count(new LambdaQueryWrapper<SysDictData>().eq(SysDictData::getDictId, id));
+        return dictDataRepo.count(new LambdaQueryWrapper<DictData>().eq(DictData::getDictId, id));
     }
 
-    public PageVO<SysDictData> list(DictDataQueryDTO queryDTO) {
-        LambdaQueryWrapper<SysDictData> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(SysDictData::getDictId, queryDTO.getDictId())
-                .like(CharSequenceUtil.isNotEmpty(queryDTO.getName()), SysDictData::getName, queryDTO.getName())
-                .like(CharSequenceUtil.isNotEmpty(queryDTO.getValue()), SysDictData::getValue, queryDTO.getValue())
-                .eq(Objects.nonNull(queryDTO.getStatus()), SysDictData::getStatus, queryDTO.getStatus())
-                .orderByAsc(SysDictData::getSort);
+    public PageVO<DictData> list(DictDataQueryDTO queryDTO) {
+        LambdaQueryWrapper<DictData> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(DictData::getDictId, queryDTO.getDictId())
+                .like(CharSequenceUtil.isNotEmpty(queryDTO.getName()), DictData::getName, queryDTO.getName())
+                .like(CharSequenceUtil.isNotEmpty(queryDTO.getValue()), DictData::getValue, queryDTO.getValue())
+                .eq(Objects.nonNull(queryDTO.getStatus()), DictData::getStatus, queryDTO.getStatus())
+                .orderByAsc(DictData::getSort);
 
-        Page<SysDictData> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
+        Page<DictData> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
 
-        Page<SysDictData> sysDictDataPage = sysDictDataRepo.page(page, queryWrapper);
+        Page<DictData> sysDictDataPage = dictDataRepo.page(page, queryWrapper);
 
-        PageVO<SysDictData> pageVO = new PageVO<>();
+        PageVO<DictData> pageVO = new PageVO<>();
         pageVO.setTotal(sysDictDataPage.getTotal());
         pageVO.setList(sysDictDataPage.getRecords());
         pageVO.setCurrentPage(sysDictDataPage.getCurrent());
@@ -123,12 +123,12 @@ public class SysDictDataService {
         return pageVO;
     }
 
-    public SysDictData getDictDataById(Long id) {
-        return sysDictDataRepo.getById(id);
+    public DictData getDictDataById(Long id) {
+        return dictDataRepo.getById(id);
     }
 
     public Boolean deleteByIds(List<Long> idList) {
-        return sysDictDataRepo.removeByIds(idList);
+        return dictDataRepo.removeByIds(idList);
     }
 
     /**
@@ -138,18 +138,18 @@ public class SysDictDataService {
      * {@code @date} 2025/8/13 19:57
      *
      * @param dictId 参数说明
-     * @return java.util.List<com.homi.model.entity.SysDictData>
+     * @return java.util.List<com.homi.model.entity.DictData>
      */
-    public List<SysDictData> listByDictId(Long dictId) {
-        LambdaQueryWrapper<SysDictData> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(SysDictData::getDictId, dictId)
-                .orderByAsc(SysDictData::getSort);
+    public List<DictData> listByDictId(Long dictId) {
+        LambdaQueryWrapper<DictData> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(DictData::getDictId, dictId)
+                .orderByAsc(DictData::getSort);
 
-        return sysDictDataRepo.list(queryWrapper);
+        return dictDataRepo.list(queryWrapper);
     }
 
     public List<DictWithDataVO> listByParentCode(Long parentId) {
-        return sysDictRepo.getBaseMapper().listDictListWithData(parentId);
+        return dictRepo.getBaseMapper().listDictListWithData(parentId);
     }
 }
 

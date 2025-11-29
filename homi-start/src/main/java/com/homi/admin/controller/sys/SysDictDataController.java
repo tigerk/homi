@@ -8,8 +8,8 @@ import com.homi.domain.dto.dict.data.DictDataQueryDTO;
 import com.homi.domain.dto.dict.data.SysDictDataCreateDTO;
 import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.vo.dict.DictWithDataVO;
-import com.homi.model.entity.SysDict;
-import com.homi.model.entity.SysDictData;
+import com.homi.model.entity.Dict;
+import com.homi.model.entity.DictData;
 import com.homi.service.system.SysDictDataService;
 import com.homi.service.system.SysDictService;
 import com.homi.utils.BeanCopyUtils;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 字典数据表(SysDictData)表控制层
+ * 字典数据表(DictData)表控制层
  *
  * @author sjh
  * @since 2024-04-25 10:36:43
@@ -46,7 +46,7 @@ public class SysDictDataController {
      */
     @GetMapping("/list")
 //    @SaCheckPermission("system:dict:data:query")
-    public ResponseResult<PageVO<SysDictData>> list(@Valid DictDataQueryDTO queryDTO) {
+    public ResponseResult<PageVO<DictData>> list(@Valid DictDataQueryDTO queryDTO) {
         return ResponseResult.ok(sysDictDataService.list(queryDTO));
     }
 
@@ -57,14 +57,14 @@ public class SysDictDataController {
      * @return 单条数据
      */
     @GetMapping("/get/{id}")
-    public ResponseResult<SysDictData> getById(@PathVariable Long id) {
+    public ResponseResult<DictData> getById(@PathVariable Long id) {
         return ResponseResult.ok(sysDictDataService.getDictDataById(id));
     }
 
     @GetMapping("/listByDictCode")
     @Schema(description = "通过字典编号查询数据项")
-    public ResponseResult<List<SysDictData>> listByDictCode(@RequestParam("dictCode") String dictCode) {
-        SysDict dictByCode = sysDictService.getDictByCode(dictCode);
+    public ResponseResult<List<DictData>> listByDictCode(@RequestParam("dictCode") String dictCode) {
+        Dict dictByCode = sysDictService.getDictByCode(dictCode);
 
         return ResponseResult.ok(sysDictDataService.listByDictId(dictByCode.getId()));
     }
@@ -72,7 +72,7 @@ public class SysDictDataController {
     @GetMapping("/listByParentCode")
     @Schema(description = "通过父节点编号查询数据项，使用二级结构返回，children 字段包含子项")
     public ResponseResult<List<DictWithDataVO>> listByParentCode(@RequestParam("dictCode") String dictCode) {
-        SysDict dictByCode = sysDictService.getDictByCode(dictCode);
+        Dict dictByCode = sysDictService.getDictByCode(dictCode);
 
         return ResponseResult.ok(sysDictDataService.listByParentCode(dictByCode.getId()));
     }
@@ -86,11 +86,11 @@ public class SysDictDataController {
     @PostMapping("/create")
 //    @SaCheckPermission("system:dict:data:create")
     public ResponseResult<Long> create(@Valid @RequestBody SysDictDataCreateDTO createDTO) {
-        SysDictData sysDictData = BeanCopyUtils.copyBean(createDTO, SysDictData.class);
+        DictData dictData = BeanCopyUtils.copyBean(createDTO, DictData.class);
         if (Objects.isNull(createDTO.getId())) {
-            return ResponseResult.ok(sysDictDataService.createDictData(sysDictData));
+            return ResponseResult.ok(sysDictDataService.createDictData(dictData));
         } else {
-            return ResponseResult.ok(sysDictDataService.updateDictData(sysDictData));
+            return ResponseResult.ok(sysDictDataService.updateDictData(dictData));
         }
     }
 
