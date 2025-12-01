@@ -47,8 +47,8 @@ public class DictData implements Serializable {
     private String value;
 
     @Schema(description = "排序")
-    @TableField("sort")
-    private Integer sort;
+    @TableField("sort_order")
+    private Integer sortOrder;
 
     @Schema(description = "颜色值")
     @TableField("color")

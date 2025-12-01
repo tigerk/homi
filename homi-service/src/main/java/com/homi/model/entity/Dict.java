@@ -52,8 +52,8 @@ public class Dict implements Serializable {
     private String dictName;
 
     @Schema(description = "排序")
-    @TableField("sort")
-    private Integer sort;
+    @TableField("sort_order")
+    private Integer sortOrder;
 
     @Schema(description = "状态（0开启 1关闭）")
     @TableField("status")

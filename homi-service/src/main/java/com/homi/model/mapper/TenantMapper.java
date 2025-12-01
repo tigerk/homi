@@ -24,5 +24,5 @@ public interface TenantMapper extends BaseMapper<Tenant> {
      * @param query 查询参数
      * @return 租客列表
      */
-    IPage<TenantListVO> pageTenantList(IPage<TenantListVO> page, @Param("query")TenantQueryDTO query);
+    IPage<TenantListVO> pageTenantList(IPage<TenantListVO> page, @Param("query") TenantQueryDTO query);
 }

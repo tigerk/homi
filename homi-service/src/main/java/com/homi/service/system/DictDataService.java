@@ -29,7 +29,7 @@ import java.util.Objects;
  */
 @Service
 @RequiredArgsConstructor
-public class SysDictDataService {
+public class DictDataService {
 
     private final DictDataMapper dictDataMapper;
 
@@ -107,7 +107,7 @@ public class SysDictDataService {
                 .like(CharSequenceUtil.isNotEmpty(queryDTO.getName()), DictData::getName, queryDTO.getName())
                 .like(CharSequenceUtil.isNotEmpty(queryDTO.getValue()), DictData::getValue, queryDTO.getValue())
                 .eq(Objects.nonNull(queryDTO.getStatus()), DictData::getStatus, queryDTO.getStatus())
-                .orderByAsc(DictData::getSort);
+                .orderByAsc(DictData::getSortOrder);
 
         Page<DictData> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
 
@@ -143,7 +143,7 @@ public class SysDictDataService {
     public List<DictData> listByDictId(Long dictId) {
         LambdaQueryWrapper<DictData> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictData::getDictId, dictId)
-                .orderByAsc(DictData::getSort);
+                .orderByAsc(DictData::getSortOrder);
 
         return dictDataRepo.list(queryWrapper);
     }

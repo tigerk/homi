@@ -4,20 +4,22 @@
 
     <select id="pageTenantList" resultType="com.homi.domain.vo.tenant.TenantListVO">
         select
-        t.tenant_id,
-        t.tenant_name,
-        t.tenant_phone,
-        t.tenant_email,
-        t.tenant_status,
+        t.id,
+        t.name,
+        t.gender,
+        t.id_type,
+        t.id_no,
+        t.phone,
+        t.status,
         t.create_time,
         t.update_time
         from tenant t
         <where>
-            <if test="tenantName != null">
-                and t.tenant_name like concat('%', #{tenantName}, '%')
+            <if test="query.tenantName != null">
+                and t.name like concat('%', #{query.tenantName}, '%')
             </if>
-            <if test="tenantPhone != null">
-                and t.tenant_phone like concat('%', #{tenantPhone}, '%')
+            <if test="query.tenantPhone != null">
+                and t.phone like concat('%', #{query.tenantPhone}, '%')
             </if>
         </where>
         order by t.create_time desc

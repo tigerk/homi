@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-public class SysDictService {
+public class DictService {
 
     private final DictMapper dictMapper;
 
@@ -100,7 +100,7 @@ public class SysDictService {
                 .eq(Dict::getHidden, Boolean.FALSE)
                 .eq(Objects.nonNull(queryDTO.getStatus()), Dict::getStatus, queryDTO.getStatus());
 
-        queryWrapper.orderByAsc(Dict::getSort);
+        queryWrapper.orderByAsc(Dict::getSortOrder);
 
         List<Dict> list = dictRepo.list(queryWrapper);
 

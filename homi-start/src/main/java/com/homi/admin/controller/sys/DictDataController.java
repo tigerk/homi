@@ -4,14 +4,16 @@ package com.homi.admin.controller.sys;
 import com.homi.annotation.Log;
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
-import com.homi.domain.dto.dict.data.DictDataQueryDTO;
+import com.homi.domain.dto.dict.DictCodeDTO;
 import com.homi.domain.dto.dict.data.DictDataCreateDTO;
+import com.homi.domain.dto.dict.data.DictDataQueryDTO;
 import com.homi.domain.enums.common.OperationTypeEnum;
+import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.model.entity.Dict;
 import com.homi.model.entity.DictData;
-import com.homi.service.system.SysDictDataService;
-import com.homi.service.system.SysDictService;
+import com.homi.service.system.DictDataService;
+import com.homi.service.system.DictService;
 import com.homi.utils.BeanCopyUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -31,12 +33,12 @@ import java.util.Objects;
 @RequestMapping("admin/sys/dict/data")
 @RequiredArgsConstructor
 @RestController
-public class SysDictDataController {
+public class DictDataController {
     /**
      * 服务对象
      */
-    private final SysDictDataService sysDictDataService;
-    private final SysDictService sysDictService;
+    private final DictDataService dictDataService;
+    private final DictService dictService;
 
     /**
      * 分页查询字典数据项
@@ -47,7 +49,7 @@ public class SysDictDataController {
     @GetMapping("/list")
 //    @SaCheckPermission("system:dict:data:query")
     public ResponseResult<PageVO<DictData>> list(@Valid DictDataQueryDTO queryDTO) {
-        return ResponseResult.ok(sysDictDataService.list(queryDTO));
+        return ResponseResult.ok(dictDataService.list(queryDTO));
     }
 
     /**
@@ -58,23 +60,26 @@ public class SysDictDataController {
      */
     @GetMapping("/get/{id}")
     public ResponseResult<DictData> getById(@PathVariable Long id) {
-        return ResponseResult.ok(sysDictDataService.getDictDataById(id));
+        return ResponseResult.ok(dictDataService.getDictDataById(id));
     }
 
-    @GetMapping("/listByDictCode")
+    @PostMapping("/listByDictCode")
     @Schema(description = "通过字典编号查询数据项")
-    public ResponseResult<List<DictData>> listByDictCode(@RequestParam("dictCode") String dictCode) {
-        Dict dictByCode = sysDictService.getDictByCode(dictCode);
+    public ResponseResult<List<DictData>> listByDictCode(@RequestBody DictCodeDTO dictCodeQuery) {
+        Dict dictByCode = dictService.getDictByCode(dictCodeQuery.getDictCode());
+        if (Objects.isNull(dictByCode)) {
+            return ResponseResult.fail(ResponseCodeEnum.DICT_NOT_FOUND);
+        }
 
-        return ResponseResult.ok(sysDictDataService.listByDictId(dictByCode.getId()));
+        return ResponseResult.ok(dictDataService.listByDictId(dictByCode.getId()));
     }
 
     @GetMapping("/listByParentCode")
     @Schema(description = "通过父节点编号查询数据项，使用二级结构返回，children 字段包含子项")
     public ResponseResult<List<DictWithDataVO>> listByParentCode(@RequestParam("dictCode") String dictCode) {
-        Dict dictByCode = sysDictService.getDictByCode(dictCode);
+        Dict dictByCode = dictService.getDictByCode(dictCode);
 
-        return ResponseResult.ok(sysDictDataService.listByParentCode(dictByCode.getId()));
+        return ResponseResult.ok(dictDataService.listByParentCode(dictByCode.getId()));
     }
 
     /**
@@ -88,9 +93,9 @@ public class SysDictDataController {
     public ResponseResult<Long> create(@Valid @RequestBody DictDataCreateDTO createDTO) {
         DictData dictData = BeanCopyUtils.copyBean(createDTO, DictData.class);
         if (Objects.isNull(createDTO.getId())) {
-            return ResponseResult.ok(sysDictDataService.createDictData(dictData));
+            return ResponseResult.ok(dictDataService.createDictData(dictData));
         } else {
-            return ResponseResult.ok(sysDictDataService.updateDictData(dictData));
+            return ResponseResult.ok(dictDataService.updateDictData(dictData));
         }
     }
 
@@ -104,7 +109,7 @@ public class SysDictDataController {
     @PostMapping("/delete")
 //    @SaCheckPermission("system:dict:data:delete")
     public ResponseResult<Boolean> delete(@RequestBody List<Long> idList) {
-        return ResponseResult.ok(sysDictDataService.deleteByIds(idList));
+        return ResponseResult.ok(dictDataService.deleteByIds(idList));
     }
 }
 

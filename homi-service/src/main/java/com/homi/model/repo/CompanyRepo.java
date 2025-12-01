@@ -1,9 +1,13 @@
 package com.homi.model.repo;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.domain.enums.common.StatusEnum;
 import com.homi.model.entity.Company;
 import com.homi.model.mapper.CompanyMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * <p>
@@ -16,4 +20,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class CompanyRepo extends ServiceImpl<CompanyMapper, Company> {
 
+    public List<Company> getValidCompanyList(List<Long> companyIds) {
+        return getBaseMapper().selectList(new LambdaQueryWrapper<Company>()
+            .eq(Company::getStatus, StatusEnum.ACTIVE.getValue())
+            .in(Company::getId, companyIds));
+    }
 }

@@ -39,7 +39,7 @@
              dict_data dd ON d.id = dd.dict_id
         where d.deleted = 0
           and dd.status = 1
-        ORDER BY d.dict_code, dd.sort
+        ORDER BY d.dict_code, dd.sort_order
     </select>
 
     <!-- 查询所有字典及其下的数据项 -->
@@ -56,6 +56,6 @@
         where d.deleted = 0
           and dd.status = 1
           and d.parent_id = #{parentId}
-        ORDER BY d.dict_code, dd.sort
+        ORDER BY d.dict_code, dd.sort_order
     </select>
 </mapper>

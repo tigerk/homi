@@ -11,8 +11,8 @@ import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.domain.vo.dict.DictVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Dict;
-import com.homi.service.system.SysDictDataService;
-import com.homi.service.system.SysDictService;
+import com.homi.service.system.DictDataService;
+import com.homi.service.system.DictService;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -34,9 +34,9 @@ public class SysDictController {
     /**
      * 服务对象
      */
-    private final SysDictService sysDictService;
+    private final DictService dictService;
 
-    private final SysDictDataService sysDictDataService;
+    private final DictDataService dictDataService;
 
     /**
      * 查询字典列表数据
@@ -47,7 +47,7 @@ public class SysDictController {
     @GetMapping("list")
 //    @SaCheckPermission("system:dict:query")
     public ResponseResult<List<DictVO>> list(DictQueryDTO queryDTO) {
-        return ResponseResult.ok(sysDictService.list(queryDTO));
+        return ResponseResult.ok(dictService.list(queryDTO));
     }
 
     /**
@@ -60,7 +60,7 @@ public class SysDictController {
     @SaCheckPermission("system:dict:create")
     public ResponseResult<Long> insert(@Valid @RequestBody DictCreateDTO createDTO) {
         Dict dict = BeanCopyUtils.copyBean(createDTO, Dict.class);
-        return ResponseResult.ok(sysDictService.createDict(dict));
+        return ResponseResult.ok(dictService.createDict(dict));
     }
 
     /**
@@ -73,7 +73,7 @@ public class SysDictController {
     @SaCheckPermission("system:dict:update")
     public ResponseResult<Long> update(@Valid @RequestBody DictUpdateDTO updateDTO) {
         Dict dict = BeanCopyUtils.copyBean(updateDTO, Dict.class);
-        return ResponseResult.ok(this.sysDictService.updateDict(dict));
+        return ResponseResult.ok(this.dictService.updateDict(dict));
     }
 
     /**
@@ -85,16 +85,16 @@ public class SysDictController {
     @DeleteMapping("/delete/{id}")
     @SaCheckPermission("system:dict:delete")
     public ResponseResult<Boolean> delete(@PathVariable Long id) {
-        long count = sysDictDataService.getCountByDictId(id);
+        long count = dictDataService.getCountByDictId(id);
         if (count > 0) {
             throw new BizException(ResponseCodeEnum.FAIL.getCode(), "该字典下存在数据项，无法删除");
         }
-        return ResponseResult.ok(this.sysDictService.removeDictById(id));
+        return ResponseResult.ok(this.dictService.removeDictById(id));
     }
 
     @GetMapping("/getAllDictAndData")
     public ResponseResult<List<DictWithDataVO>> getDict() {
-        return ResponseResult.ok(sysDictService.listAllDictAndData());
+        return ResponseResult.ok(dictService.listAllDictAndData());
     }
 }
 

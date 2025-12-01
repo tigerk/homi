@@ -109,6 +109,11 @@ public enum ResponseCodeEnum {
     CONTRACT_TEMPLATE_ERROR(800, "合同模板错误"),
 
     /**
+     * 系统错统一使用 900 开头
+     */
+    DICT_NOT_FOUND(900, "字典不存在"),
+
+    /**
      * token异常
      */
     TOKEN_ERROR(9999, "token异常");

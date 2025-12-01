@@ -46,10 +46,11 @@ public class UserCompanyRepo extends ServiceImpl<UserCompanyMapper, UserCompany>
 
         // 获取公司名称
         List<Long> companyIdList = list.stream().map(UserCompany::getCompanyId).toList();
-        List<Company> companies = companyRepo.listByIds(companyIdList);
+        List<Company> companies = companyRepo.getValidCompanyList(companyIdList);
         Map<Long, Company> companyMap = companies.stream().collect(Collectors.toMap(Company::getId, company -> company));
 
-        return list.stream().map(item -> {
+        return list.stream().filter(item -> companyMap.containsKey(item.getCompanyId()))
+            .map(item -> {
             UserCompanyListDTO userCompanyListDTO = new UserCompanyListDTO();
             userCompanyListDTO.setCompanyId(item.getCompanyId());
             userCompanyListDTO.setUserId(userId);
