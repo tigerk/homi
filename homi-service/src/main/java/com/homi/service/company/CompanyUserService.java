@@ -9,13 +9,15 @@ import com.homi.domain.dto.user.UserCreateDTO;
 import com.homi.domain.dto.user.UserQueryDTO;
 import com.homi.domain.dto.user.UserUpdateStatusDTO;
 import com.homi.domain.enums.common.StatusEnum;
-import com.homi.domain.vo.dept.DeptSimpleVO;
 import com.homi.domain.vo.company.user.UserCreateVO;
 import com.homi.domain.vo.company.user.UserVO;
+import com.homi.domain.vo.dept.DeptSimpleVO;
 import com.homi.exception.BizException;
+import com.homi.model.entity.Company;
 import com.homi.model.entity.CompanyUser;
 import com.homi.model.entity.Dept;
 import com.homi.model.entity.User;
+import com.homi.model.repo.CompanyRepo;
 import com.homi.model.repo.CompanyUserRepo;
 import com.homi.model.repo.UserRepo;
 import com.homi.service.system.DeptService;
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 应用于 homi-boot
@@ -48,6 +51,7 @@ public class CompanyUserService {
     private final DeptService deptService;
 
     private final UserService userService;
+    private final CompanyRepo companyRepo;
 
     /**
      * 获取公司的人员
@@ -220,5 +224,33 @@ public class CompanyUserService {
 
     public CompanyUser getCompanyUserById(@NotNull(message = "ID不能为空") Long companyUserId) {
         return companyUserRepo.getById(companyUserId);
+    }
+
+    public Optional<User> getUsernameByCompanyUserId(Long companyUserId) {
+        Optional<CompanyUser> optById = companyUserRepo.getOptById(companyUserId);
+
+        return optById.map(companyUser -> userService.getUserById(companyUser.getUserId()));
+    }
+
+    public User deleteCompanyUser(Long companyUserId) {
+        CompanyUser companyUser = companyUserRepo.getById(companyUserId);
+        if (Objects.isNull(companyUser)) {
+            throw new BizException("用户不再该公司任职");
+        }
+
+        Company company = companyRepo.getById(companyUser.getCompanyId());
+        if (Objects.isNull(company)) {
+            throw new BizException("公司不存在");
+        }
+
+        if (company.getAdminUserId().equals(companyUser.getUserId())) {
+            throw new BizException("无法删除公司的超级管理员");
+        }
+
+        User user = userService.getUserById(companyUser.getUserId());
+
+        companyUserRepo.getBaseMapper().deleteById(companyUserId);
+
+        return user;
     }
 }

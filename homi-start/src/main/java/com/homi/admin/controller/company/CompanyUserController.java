@@ -5,6 +5,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.admin.auth.service.AuthService;
 import com.homi.admin.auth.vo.login.UserLoginVO;
+import com.homi.admin.config.LoginManager;
 import com.homi.annotation.Log;
 import com.homi.annotation.RepeatSubmit;
 import com.homi.domain.base.PageVO;
@@ -13,9 +14,9 @@ import com.homi.domain.dto.user.UserCreateDTO;
 import com.homi.domain.dto.user.UserQueryDTO;
 import com.homi.domain.dto.user.UserResetPwdDTO;
 import com.homi.domain.dto.user.UserUpdateStatusDTO;
-import com.homi.domain.enums.common.UserTypeEnum;
 import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
+import com.homi.domain.enums.common.UserTypeEnum;
 import com.homi.domain.vo.company.user.UserCreateVO;
 import com.homi.domain.vo.company.user.UserVO;
 import com.homi.model.entity.CompanyUser;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 用户表(User)表控制层
@@ -59,6 +61,8 @@ public class CompanyUserController {
     @PostMapping("/list")
     @SaCheckPermission("system:user:query")
     public ResponseResult<PageVO<UserVO>> list(@RequestBody UserQueryDTO queryDTO) {
+        queryDTO.setCompanyId(LoginManager.getCurrentUser().getCurCompanyId());
+
         return ResponseResult.ok(companyUserService.pageUserList(queryDTO));
     }
 
@@ -132,19 +136,15 @@ public class CompanyUserController {
     @PostMapping("/delete")
     @SaCheckPermission("system:user:delete")
     public ResponseResult<Integer> delete(@RequestBody List<Long> idList) {
-        List<User> userByIds = userService.getUserByIds(idList);
+        // 删除后，被删除用户需要重新登录
+        AtomicReference<Integer> deleted = new AtomicReference<>(0);
+        idList.forEach(companyUserId -> {
+            User user = companyUserService.deleteCompanyUser(companyUserId);
+            authService.kickUserByUsername(user.getUsername());
+            deleted.getAndSet(deleted.get() + 1);
+        });
 
-        Integer deleted = companyUserService.deleteByIds(idList);
-
-        if (deleted > 0) {
-            // 删除后，被删除用户需要重新登录
-            userByIds.forEach(user -> {
-                authService.kickUserByUsername(user.getUsername());
-            });
-        }
-
-
-        return ResponseResult.ok(deleted);
+        return ResponseResult.ok(deleted.get());
     }
 
     /**

@@ -24,6 +24,7 @@
         u.register_source
         FROM company_user cu left join user u ON cu.user_id = u.id
         <where>
+            cu.company_id = #{query.companyId}
             <if test="query.username != null and query.username != ''">
                 AND u.username LIKE CONCAT('%', #{query.username}
                 , '%')

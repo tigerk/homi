@@ -30,9 +30,10 @@ public class MybatisPlusConfig {
         "user_role",
         "role_menu",
         "menu",
+        // 系统用户表
         "user",
         // 用户公司关联表
-        "user_company",
+        "company_user",
         "company_package",
         "company",
         "region",
