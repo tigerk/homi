@@ -64,8 +64,8 @@ public class Dept implements Serializable {
     private String treePath;
 
     @Schema(description = "显示顺序")
-    @TableField("sort")
-    private Integer sort;
+    @TableField("sort_order")
+    private Integer sortOrder;
 
     @Schema(description = "状态（1，0不启用）")
     @TableField("status")

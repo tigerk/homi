@@ -64,8 +64,8 @@ public class FileAttach implements Serializable {
     private Integer storageType;
 
     @Schema(description = "排序")
-    @TableField("sort")
-    private Integer sort;
+    @TableField("sort_order")
+    private Integer sortOrder;
 
     @Schema(description = "逻辑删除标记：0 否，1 是")
     @TableField("deleted")

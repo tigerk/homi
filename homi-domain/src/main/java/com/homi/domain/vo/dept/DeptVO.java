@@ -67,7 +67,7 @@ public class DeptVO implements Serializable {
     /**
      * 显示顺序
      */
-    private Integer sort;
+    private Integer sortOrder;
 
     /**
      * 状态（1，0不启用）
