@@ -10,7 +10,7 @@ import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.exception.BizException;
 import com.homi.model.entity.User;
 import com.homi.model.mapper.UserMapper;
-import com.homi.model.repo.UserCompanyRepo;
+import com.homi.model.repo.CompanyUserRepo;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class UserService {
 
     private final DeptService deptService;
 
-    private final UserCompanyRepo userCompanyRepo;
+    private final CompanyUserRepo companyUserRepo;
 
     @Value("${default-avatar}")
     private String defaultAvatar;

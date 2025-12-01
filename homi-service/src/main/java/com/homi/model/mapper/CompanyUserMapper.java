@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.domain.dto.user.UserQueryDTO;
 import com.homi.domain.vo.company.user.UserVO;
-import com.homi.model.entity.UserCompany;
+import com.homi.model.entity.CompanyUser;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -17,7 +17,7 @@ import org.apache.ibatis.annotations.Param;
  * @since 2025-09-10
  */
 @Mapper
-public interface UserCompanyMapper extends BaseMapper<UserCompany> {
+public interface CompanyUserMapper extends BaseMapper<CompanyUser> {
     /**
      * 自定义分页查询
      *

@@ -29,7 +29,7 @@ import com.homi.model.mapper.UserMapper;
 import com.homi.model.mapper.UserRoleMapper;
 import com.homi.model.repo.CompanyRepo;
 import com.homi.model.repo.MenuRepo;
-import com.homi.model.repo.UserCompanyRepo;
+import com.homi.model.repo.CompanyUserRepo;
 import com.homi.model.repo.UserRepo;
 import com.homi.service.company.CompanyPackageService;
 import com.homi.service.company.CompanyService;
@@ -79,7 +79,7 @@ public class AuthService {
 
     private final UserService userService;
 
-    private final UserCompanyRepo userCompanyRepo;
+    private final CompanyUserRepo companyUserRepo;
 
     private final MenuMapper menuMapper;
 
@@ -173,7 +173,7 @@ public class AuthService {
         user.setRefreshToken(refreshToken);
         user.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenTimeout()).getTime());
 
-        List<UserCompanyListDTO> companyListByUserId = userCompanyRepo.getCompanyListByUserId(user.getId());
+        List<UserCompanyListDTO> companyListByUserId = companyUserRepo.getCompanyListByUserId(user.getId());
         if (companyListByUserId.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
@@ -235,7 +235,7 @@ public class AuthService {
             throw new BizException(ResponseCodeEnum.LOGIN_ERROR);
         }
         // 获取绑定该用户的公司列表
-        List<UserCompanyListDTO> companyUserList = userCompanyRepo.getCompanyListByUserId(user.getId());
+        List<UserCompanyListDTO> companyUserList = companyUserRepo.getCompanyListByUserId(user.getId());
         if (companyUserList.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
@@ -380,10 +380,10 @@ public class AuthService {
         UserLoginVO userLogin = new UserLoginVO();
         BeanUtils.copyProperties(user, userLogin);
 
-        UserCompany userCompany = userCompanyRepo.getCompanyUser(companyId, userId);
+        CompanyUser companyUser = companyUserRepo.getCompanyUser(companyId, userId);
 
-        userLogin.setCurCompanyId(userCompany.getCompanyId());
-        userLogin.setIsCompanyAdmin(isCompanyAdmin(userCompany.getUserType()));
+        userLogin.setCurCompanyId(companyUser.getCompanyId());
+        userLogin.setIsCompanyAdmin(isCompanyAdmin(companyUser.getUserType()));
 
         return login(userLogin);
     }

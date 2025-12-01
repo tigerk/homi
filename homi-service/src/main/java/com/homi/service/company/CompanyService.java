@@ -4,10 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.domain.vo.IdNameVO;
 import com.homi.domain.vo.company.CompanyListVO;
 import com.homi.model.entity.Company;
-import com.homi.model.entity.UserCompany;
+import com.homi.model.entity.CompanyUser;
 import com.homi.model.entity.User;
 import com.homi.model.repo.CompanyRepo;
-import com.homi.model.repo.UserCompanyRepo;
+import com.homi.model.repo.CompanyUserRepo;
 import com.homi.service.system.UserService;
 import com.homi.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class CompanyService {
     private final CompanyRepo companyRepo;
     private final UserService userService;
 
-    private final UserCompanyRepo userCompanyRepo;
+    private final CompanyUserRepo companyUserRepo;
 
     /**
      * 获取公司信息
@@ -46,10 +46,10 @@ public class CompanyService {
     }
 
     public List<IdNameVO> getUserOptions(Long curCompanyId) {
-        LambdaQueryWrapper<UserCompany> queryWrapper = new LambdaQueryWrapper<UserCompany>()
-            .eq(UserCompany::getCompanyId, curCompanyId);
+        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<CompanyUser>()
+            .eq(CompanyUser::getCompanyId, curCompanyId);
 
-        List<UserCompany> userCompanies = userCompanyRepo.list(queryWrapper);
+        List<CompanyUser> userCompanies = companyUserRepo.list(queryWrapper);
 
         return userCompanies.stream().map(companyUser -> {
                 IdNameVO build = IdNameVO.builder()

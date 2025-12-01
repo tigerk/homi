@@ -18,7 +18,7 @@ import com.homi.domain.enums.common.OperationTypeEnum;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.company.user.UserCreateVO;
 import com.homi.domain.vo.company.user.UserVO;
-import com.homi.model.entity.UserCompany;
+import com.homi.model.entity.CompanyUser;
 import com.homi.model.entity.User;
 import com.homi.service.company.CompanyUserService;
 import com.homi.service.system.UserService;
@@ -107,8 +107,8 @@ public class CompanyUserController {
     @PostMapping("/updateStatus")
     @SaCheckPermission("system:user:updateStatus")
     public ResponseResult<Long> updateStatus(@Valid @RequestBody UserUpdateStatusDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        UserCompany userCompanyById = companyUserService.getCompanyUserById(updateDTO.getCompanyUserId());
-        if (userCompanyById.getUserType().equals(UserTypeEnum.COMPANY_ADMIN.getType())) {
+        CompanyUser companyUserById = companyUserService.getCompanyUserById(updateDTO.getCompanyUserId());
+        if (companyUserById.getUserType().equals(UserTypeEnum.COMPANY_ADMIN.getType())) {
             return ResponseResult.fail(ResponseCodeEnum.AUTHORIZED);
         }
 
@@ -116,7 +116,7 @@ public class CompanyUserController {
         Long updated = companyUserService.updateUserUserStatus(updateDTO);
         if (updated > 0) {
             // 修改状态后，被修改用户需要重新登录
-            User userById = userService.getUserById(userCompanyById.getUserId());
+            User userById = userService.getUserById(companyUserById.getUserId());
             authService.kickUserByUsername(userById.getUsername());
         }
 

@@ -34,7 +34,7 @@ public class OperationLogRepo extends ServiceImpl<OperationLogMapper, OperationL
     private UserRepo userRepo;
 
     @Resource
-    private UserCompanyRepo userCompanyRepo;
+    private CompanyUserRepo companyUserRepo;
 
     /**
      * 操作日志记录

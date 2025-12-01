@@ -33,7 +33,7 @@ public class LoginLogRepo extends ServiceImpl<LoginLogMapper, LoginLog> {
     private UserRepo userRepo;
 
     @Resource
-    private UserCompanyRepo userCompanyRepo;
+    private CompanyUserRepo companyUserRepo;
 
     /**
      * 登录日志记录
