@@ -1,9 +1,13 @@
 package com.homi.domain.dto.tenant;
 
+import com.homi.domain.dto.contract.ContractDTO;
+import com.homi.domain.dto.room.price.OtherFeeDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * 应用于 domix-saas
@@ -17,9 +21,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TenantCreateDTO {
-    @Schema(description = "租户名称")
-    private String tenantName;
+    @Schema(description = "个人租户信息")
+    private TenantDTO tenant;
 
-    @Schema(description = "租户手机号")
-    private String tenantPhone;
+    @Schema(description = "企业租户信息")
+    private TenantCompanyDTO tenantCompany;
+
+    private List<TenantMateDTO> tenantMateList;
+
+    private ContractDTO contract;
+
+    private List<OtherFeeDTO> otherFees;
 }
