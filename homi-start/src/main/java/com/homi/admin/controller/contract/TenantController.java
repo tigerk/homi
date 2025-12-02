@@ -2,9 +2,14 @@ package com.homi.admin.controller.contract;
 
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
+import com.homi.domain.dto.room.RoomQueryDTO;
 import com.homi.domain.dto.tenant.TenantCreateDTO;
 import com.homi.domain.dto.tenant.TenantQueryDTO;
+import com.homi.domain.vo.room.RoomTotalItemVO;
+import com.homi.domain.vo.room.RoomTotalVO;
 import com.homi.domain.vo.tenant.TenantListVO;
+import com.homi.domain.vo.tenant.TenantTotalItemVO;
+import com.homi.domain.vo.tenant.TenantTotalVO;
 import com.homi.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 应用于 homi-boot
@@ -27,6 +34,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("admin/contract/tenant")
 public class TenantController {
     private final TenantService tenantService;
+
+    @PostMapping("/total")
+    public ResponseResult<TenantTotalVO> getTenantTotal(@RequestBody TenantQueryDTO query) {
+        List<TenantTotalItemVO> tenantStatusTotal = tenantService.getTenantStatusTotal(query);
+        TenantTotalVO tenantTotalVO = new TenantTotalVO();
+        tenantTotalVO.setStatusList(tenantStatusTotal);
+
+        return ResponseResult.ok(tenantTotalVO);
+    }
 
     @PostMapping("/list")
     public ResponseResult<PageVO<TenantListVO>> getTenantList(@RequestBody TenantQueryDTO query) {

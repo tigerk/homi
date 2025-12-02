@@ -17,11 +17,10 @@ public enum TenantContractStatusEnum {
     /**
      * 合同状态：0=未生效，1=生效中，2=已退租，3=已逾期，4=已作废
      */
-    UN_EFFECTIVE(0, "未生效"),
-    EFFECTIVE(1, "生效中"),
+    UN_EFFECTIVE(0, "待签字"),
+    EFFECTIVE(1, "在租中"),
     TERMINATED(2, "已退租"),
-    OVERDUE(3, "已逾期"),
-    CANCELLED(4, "已作废");
+    CANCELLED(-1, "已作废");
 
     private final Integer code;
     private final String name;

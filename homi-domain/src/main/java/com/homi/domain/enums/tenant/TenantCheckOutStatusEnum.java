@@ -15,13 +15,15 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum TenantCheckOutStatusEnum {
     /*
-     * 租户退租状态：0=未退租、1=正常退、2=换房退、3=违约退、4=作废
+     * 租户退租状态：0=未退租、1=正常退、2=违约退、3=续约退、4=换房退、5=转租退
      */
     UN_CHECK_OUT(0, "未退租"),
     NORMAL_CHECK_OUT(1, "正常退"),
-    RELOCATION_CHECK_OUT(2, "换房退"),
-    BREAK_CHECK_OUT(3, "违约退"),
-    CANCELLED(4, "作废");
+    BREAK_CHECK_OUT(2, "违约退"),
+    RENEW_CHECK_OUT(3, "续约退"),
+    RELOCATION_CHECK_OUT(4, "换房退"),
+    SUBLET_CHECK_OUT(5, "转租退"),
+    ;
 
     private final Integer code;
     private final String name;

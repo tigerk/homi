@@ -1,8 +1,13 @@
 package com.homi.model.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.homi.domain.dto.tenant.TenantQueryDTO;
+import com.homi.domain.vo.tenant.TenantTotalItemVO;
 import com.homi.model.entity.TenantContract;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -15,4 +20,11 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface TenantContractMapper extends BaseMapper<TenantContract> {
 
+    /**
+     * 获取租客状态统计
+     *
+     * @param tenantQueryDTO 查询参数
+     * @return 租客状态统计
+     */
+    List<TenantTotalItemVO> getStatusTotal(@Param("query") TenantQueryDTO tenantQueryDTO);
 }
