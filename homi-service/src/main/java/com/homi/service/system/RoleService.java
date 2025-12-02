@@ -51,7 +51,7 @@ public class RoleService {
         return roleMapper.selectRolePage(page, queryDTO);
     }
 
-    public Long createRole(Role role) {
+    public Long saveRole(Role role) {
         validateRoleUniqueness(null, role.getCompanyId(), role.getName(), role.getCode());
         role.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         roleMapper.insert(role);

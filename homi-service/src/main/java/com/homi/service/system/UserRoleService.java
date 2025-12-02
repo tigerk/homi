@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class SysUserRoleService {
+public class UserRoleService {
     private final UserRoleMapper userRoleMapper;
 
     private final UserRoleRepo userRoleRepo;

@@ -1,6 +1,7 @@
 package com.homi.service.tenant;
 
 import com.homi.domain.base.PageVO;
+import com.homi.domain.dto.tenant.TenantCreateDTO;
 import com.homi.domain.dto.tenant.TenantQueryDTO;
 import com.homi.domain.vo.tenant.TenantListVO;
 import com.homi.model.repo.TenantRepo;
@@ -28,5 +29,9 @@ public class TenantService {
      */
     public PageVO<TenantListVO> getTenantList(TenantQueryDTO query) {
         return tenantRepo.queryTenantList(query);
+    }
+
+    public Long createTenant(TenantCreateDTO createDTO) {
+        return null;
     }
 }

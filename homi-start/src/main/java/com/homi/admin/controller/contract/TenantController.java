@@ -2,12 +2,16 @@ package com.homi.admin.controller.contract;
 
 import com.homi.domain.base.PageVO;
 import com.homi.domain.base.ResponseResult;
+import com.homi.domain.dto.tenant.TenantCreateDTO;
 import com.homi.domain.dto.tenant.TenantQueryDTO;
 import com.homi.domain.vo.tenant.TenantListVO;
+import com.homi.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-import com.homi.service.tenant.TenantService;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 应用于 homi-boot
@@ -27,5 +31,11 @@ public class TenantController {
     @PostMapping("/list")
     public ResponseResult<PageVO<TenantListVO>> getTenantList(@RequestBody TenantQueryDTO query) {
         return ResponseResult.ok(tenantService.getTenantList(query));
+    }
+
+    @PostMapping("/create")
+    public ResponseResult<Long> createTenant(@RequestBody TenantCreateDTO createDTO) {
+        log.info("createTenant: {}", createDTO);
+        return ResponseResult.ok(tenantService.createTenant(createDTO));
     }
 }

@@ -5,8 +5,8 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.admin.role.RoleConvert;
 import com.homi.domain.base.ResponseResult;
-import com.homi.domain.dto.role.RoleQueryDTO;
 import com.homi.domain.dto.role.RoleCreateDTO;
+import com.homi.domain.dto.role.RoleQueryDTO;
 import com.homi.domain.dto.role.SysRoleUpdateDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.enums.common.RoleDefaultEnum;
@@ -15,7 +15,7 @@ import com.homi.domain.vo.role.RoleVO;
 import com.homi.exception.BizException;
 import com.homi.model.entity.Role;
 import com.homi.service.system.RoleService;
-import com.homi.service.system.SysUserRoleService;
+import com.homi.service.system.UserRoleService;
 import com.homi.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,14 +33,14 @@ import java.util.Objects;
 
 @RequestMapping("admin/sys/role")
 @RequiredArgsConstructor
-public class SysRoleController {
+public class RoleController {
     /**
      * 服务对象
      */
 
     private final RoleService roleService;
 
-    private final SysUserRoleService sysUserRoleService;
+    private final UserRoleService userRoleService;
 
     /**
      * 查询角色列表
@@ -71,11 +71,11 @@ public class SysRoleController {
      * @param createDTO 实体对象
      * @return 新增结果
      */
-    @PostMapping("/create")
-    @SaCheckPermission("system:role:create")
-    public ResponseResult<Long> insert(@Valid @RequestBody RoleCreateDTO createDTO) {
+    @PostMapping("/save")
+//    @SaCheckPermission("system:role:create")
+    public ResponseResult<Long> save(@Valid @RequestBody RoleCreateDTO createDTO) {
         Role role = BeanCopyUtils.copyBean(createDTO, Role.class);
-        return ResponseResult.ok(this.roleService.createRole(role));
+        return ResponseResult.ok(this.roleService.saveRole(role));
     }
 
     /**
@@ -103,7 +103,7 @@ public class SysRoleController {
         if (Objects.nonNull(RoleDefaultEnum.fromValue(id))) {
             throw new BizException(ResponseCodeEnum.FAIL.getCode(), "系统内置角色无法删除");
         }
-        long count = sysUserRoleService.getUserCountByRoleId(id);
+        long count = userRoleService.getUserCountByRoleId(id);
 
         if (count > 0) {
             throw new BizException(ResponseCodeEnum.FAIL.getCode(), "该角色已绑定用户，无法删除");

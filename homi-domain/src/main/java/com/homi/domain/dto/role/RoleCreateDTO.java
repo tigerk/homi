@@ -1,16 +1,11 @@
 package com.homi.domain.dto.role;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-/**
- * @author sjh
- * @version 1.0
- * @date 2024-07-01 21:11
- * @description: 角色创建对象
- */
 @Data
+@Schema(description = "角色创建对象")
 public class RoleCreateDTO {
 
     /**
@@ -24,12 +19,6 @@ public class RoleCreateDTO {
      */
     @NotBlank(message = "角色名称不能为空")
     private String name;
-
-    /**
-     * 状态（0正常 1停用）
-     */
-    @NotNull(message = "状态不能为空")
-    private Integer status;
 
     /**
      * 备注
