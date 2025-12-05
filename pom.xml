@@ -6,9 +6,8 @@
     <artifactId>homi</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>homi</name>
-    <description>homi是一个基于spring boot的服务</description>
-
+    <name>homi-boot</name>
+    <description>homi-boot是一个基于spring boot的服务</description>
     <modules>
         <module>homi-start</module>
         <module>homi-service</module>
