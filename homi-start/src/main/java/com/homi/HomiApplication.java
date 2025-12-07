@@ -15,7 +15,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 @SpringBootApplication
-//@MapperScan("com.halcyon.dao.mapper")
 @RestController
 @EnableAsync
 @Slf4j
