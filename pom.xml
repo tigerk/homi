@@ -12,7 +12,7 @@
         <module>homi-start</module>
         <module>homi-service</module>
         <module>homi-domain</module>
-        <module>homi-core</module>
+        <module>homi-common</module>
     </modules>
 
     <properties>
@@ -74,7 +74,7 @@
             </dependency>
             <dependency>
                 <groupId>com.homi</groupId>
-                <artifactId>homi-core</artifactId>
+                <artifactId>homi-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

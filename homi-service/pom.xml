@@ -39,7 +39,7 @@
         </dependency>
         <dependency>
             <groupId>com.homi</groupId>
-            <artifactId>homi-core</artifactId>
+            <artifactId>homi-common</artifactId>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
         <dependency>

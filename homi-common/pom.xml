@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>homi-core</artifactId>
+    <artifactId>homi-common</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.homi</groupId>
