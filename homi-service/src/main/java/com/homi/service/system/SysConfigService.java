@@ -2,8 +2,8 @@ package com.homi.service.system;
 
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.model.entity.Config;
-import com.homi.model.mapper.ConfigMapper;
+import com.homi.dao.entity.Config;
+import com.homi.dao.mapper.ConfigMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -7,8 +7,8 @@ import com.homi.admin.auth.service.AuthService;
 import com.homi.admin.auth.vo.login.UserLoginVO;
 import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
-import com.homi.model.entity.LoginLog;
-import com.homi.model.repo.LoginLogRepo;
+import com.homi.dao.entity.LoginLog;
+import com.homi.dao.repo.LoginLogRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

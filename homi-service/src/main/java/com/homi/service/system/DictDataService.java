@@ -11,10 +11,10 @@ import com.homi.domain.dto.dict.data.DictDataQueryDTO;
 import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.DictData;
-import com.homi.model.mapper.DictDataMapper;
-import com.homi.model.repo.DictDataRepo;
-import com.homi.model.repo.DictRepo;
+import com.homi.dao.entity.DictData;
+import com.homi.dao.mapper.DictDataMapper;
+import com.homi.dao.repo.DictDataRepo;
+import com.homi.dao.repo.DictRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

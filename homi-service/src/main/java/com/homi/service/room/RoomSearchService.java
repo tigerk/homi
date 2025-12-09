@@ -1,11 +1,11 @@
 package com.homi.service.room;
 
-import com.homi.model.entity.House;
-import com.homi.model.entity.HouseLayout;
-import com.homi.model.entity.Room;
-import com.homi.model.repo.HouseLayoutRepo;
-import com.homi.model.repo.HouseRepo;
-import com.homi.model.repo.RoomRepo;
+import com.homi.dao.entity.House;
+import com.homi.dao.entity.HouseLayout;
+import com.homi.dao.entity.Room;
+import com.homi.dao.repo.HouseLayoutRepo;
+import com.homi.dao.repo.HouseRepo;
+import com.homi.dao.repo.RoomRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

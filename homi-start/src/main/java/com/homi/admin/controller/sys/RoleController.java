@@ -13,7 +13,7 @@ import com.homi.domain.enums.common.RoleDefaultEnum;
 import com.homi.domain.vo.role.RoleSimpleVO;
 import com.homi.domain.vo.role.RoleVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.Role;
+import com.homi.dao.entity.Role;
 import com.homi.service.system.RoleService;
 import com.homi.service.system.UserRoleService;
 import com.homi.utils.BeanCopyUtils;

@@ -8,7 +8,7 @@ import com.homi.admin.config.LoginManager;
 import com.homi.domain.base.ResponseResult;
 import com.homi.domain.dto.house.focus.FocusCreateDTO;
 import com.homi.domain.vo.IdNameVO;
-import com.homi.model.repo.FileMetaRepo;
+import com.homi.dao.repo.FileMetaRepo;
 import com.homi.service.house.focus.FocusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

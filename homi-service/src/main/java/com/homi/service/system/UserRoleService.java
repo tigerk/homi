@@ -1,9 +1,9 @@
 package com.homi.service.system;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.model.entity.UserRole;
-import com.homi.model.mapper.UserRoleMapper;
-import com.homi.model.repo.UserRoleRepo;
+import com.homi.dao.entity.UserRole;
+import com.homi.dao.mapper.UserRoleMapper;
+import com.homi.dao.repo.UserRoleRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

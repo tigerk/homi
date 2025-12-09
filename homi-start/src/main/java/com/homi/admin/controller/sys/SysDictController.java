@@ -10,7 +10,7 @@ import com.homi.domain.enums.common.ResponseCodeEnum;
 import com.homi.domain.vo.dict.DictWithDataVO;
 import com.homi.domain.vo.dict.DictVO;
 import com.homi.exception.BizException;
-import com.homi.model.entity.Dict;
+import com.homi.dao.entity.Dict;
 import com.homi.service.system.DictDataService;
 import com.homi.service.system.DictService;
 import com.homi.utils.BeanCopyUtils;

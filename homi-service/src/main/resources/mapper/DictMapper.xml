@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.homi.model.mapper.DictMapper">
-    <resultMap type="com.homi.model.entity.Dict" id="DictMap">
+<mapper namespace="com.homi.dao.mapper.DictMapper">
+    <resultMap type="com.homi.dao.entity.Dict" id="DictMap">
         <result property="id" column="id" jdbcType="INTEGER"/>
         <result property="dictCode" column="dict_code" jdbcType="VARCHAR"/>
         <result property="dictName" column="dict_name" jdbcType="VARCHAR"/>
