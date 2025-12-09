@@ -33,3 +33,5 @@ build/
 
 ### logs
 logs/
+
+homi-start/src/main/resources/application.yml
