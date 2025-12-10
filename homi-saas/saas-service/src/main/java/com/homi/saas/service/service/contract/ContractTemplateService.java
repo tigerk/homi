@@ -1,0 +1,146 @@
+package com.homi.saas.service.service.contract;
+
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.vo.PageVO;
+import com.homi.model.dto.contract.ContractTemplateCreateDTO;
+import com.homi.model.dto.contract.ContractTemplateDeleteDTO;
+import com.homi.model.dto.contract.ContractTemplateQueryDTO;
+import com.homi.model.dto.contract.ContractTemplateStatusDTO;
+import com.homi.common.lib.enums.contract.ContractTemplateStatusEnum;
+import com.homi.model.vo.contract.ContractTemplateListDTO;
+import com.homi.model.dao.entity.ContractTemplate;
+import com.homi.model.dao.repo.ContractTemplateRepo;
+import com.homi.saas.service.service.pdf.PdfService;
+import com.homi.common.lib.utils.BeanCopyUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+
+/**
+ * 应用于 domix-saas
+ *
+ * @author tk
+ * @version v1.0
+ * {@code @date} 2025/11/12
+ */
+
+@Service
+@RequiredArgsConstructor
+public class ContractTemplateService {
+    private final ContractTemplateRepo contractTemplateRepo;
+
+    private final PdfService pdfService;
+
+    public PageVO<ContractTemplateListDTO> getContractTemplateList(ContractTemplateQueryDTO query) {
+
+        LambdaQueryWrapper<ContractTemplate> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ContractTemplate::getContractType, query.getContractType());
+
+        if (CharSequenceUtil.isNotBlank(query.getTemplateName())) {
+            wrapper.like(ContractTemplate::getTemplateName, query.getTemplateName());
+        }
+        if (Objects.nonNull(query.getStatus())) {
+            wrapper.eq(ContractTemplate::getStatus, query.getStatus());
+        }
+
+        wrapper.like(ContractTemplate::getTemplateName, query.getTemplateName());
+        wrapper.orderByDesc(ContractTemplate::getId);
+
+        Page<ContractTemplate> page = new Page<>(query.getCurrentPage(), query.getPageSize());
+
+        Page<ContractTemplate> dictDataPage = contractTemplateRepo.page(page, wrapper);
+
+        PageVO<ContractTemplateListDTO> pageVO = new PageVO<>();
+        pageVO.setTotal(dictDataPage.getTotal());
+        pageVO.setList(dictDataPage.getRecords().stream().map(c -> {
+            ContractTemplateListDTO contractTemplateListDTO = BeanCopyUtils.copyBean(c, ContractTemplateListDTO.class);
+            if (Objects.nonNull(c.getDeptIds())) {
+                assert contractTemplateListDTO != null;
+                contractTemplateListDTO.setDeptIds(JSONUtil.toList(c.getDeptIds(), String.class));
+            }
+            return contractTemplateListDTO;
+        }).toList());
+        pageVO.setCurrentPage(dictDataPage.getCurrent());
+        pageVO.setPageSize(dictDataPage.getSize());
+        pageVO.setPages(dictDataPage.getPages());
+
+
+        return pageVO;
+    }
+
+    /**
+     * 创建合同模板
+     *
+     * @param createDTO 合同模板创建DTO
+     * @return 是否创建成功
+     */
+    public Long createContractTemplate(ContractTemplateCreateDTO createDTO) {
+        ContractTemplate contractTemplate = BeanCopyUtils.copyBean(createDTO, ContractTemplate.class);
+
+        assert contractTemplate != null;
+
+        contractTemplate.setDeptIds(JSONUtil.toJsonStr(createDTO.getDeptIds()));
+        contractTemplate.setStatus(ContractTemplateStatusEnum.UNEFFECTIVE.getCode());
+
+        contractTemplateRepo.save(contractTemplate);
+
+        return contractTemplate.getId();
+    }
+
+    /**
+     * 更新合同模板
+     *
+     * @param createDTO 合同模板创建DTO
+     * @return 是否更新成功
+     */
+    public Long updateContractTemplate(ContractTemplateCreateDTO createDTO) {
+        ContractTemplate contractTemplate = BeanCopyUtils.copyBean(createDTO, ContractTemplate.class);
+
+        assert contractTemplate != null;
+        contractTemplate.setDeptIds(JSONUtil.toJsonStr(createDTO.getDeptIds()));
+        contractTemplateRepo.updateById(contractTemplate);
+
+        return contractTemplate.getId();
+    }
+
+    /**
+     * 合同模板预览功能
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/12 17:33
+     *
+     * @param query 参数说明
+     * @return java.lang.String
+     */
+    public byte[] previewContractTemplate(ContractTemplateQueryDTO query) {
+        ContractTemplate contractTemplate = contractTemplateRepo.getById(query.getId());
+
+        assert contractTemplate != null;
+
+        return pdfService.generatePdf(contractTemplate.getTemplateContent());
+
+    }
+
+    public Boolean updateContractTemplateStatus(ContractTemplateStatusDTO updateDTO) {
+        ContractTemplate contractTemplate = contractTemplateRepo.getById(updateDTO.getId());
+        assert contractTemplate != null;
+        contractTemplate.setStatus(updateDTO.getStatus());
+
+        contractTemplateRepo.updateById(contractTemplate);
+
+        return true;
+    }
+
+    public Boolean deleteContractTemplate(ContractTemplateDeleteDTO deleteDTO) {
+        ContractTemplate contractTemplate = contractTemplateRepo.getById(deleteDTO.getId());
+        assert contractTemplate != null;
+
+        contractTemplateRepo.removeById(contractTemplate);
+
+        return true;
+    }
+}

@@ -9,10 +9,10 @@
     <name>homi-boot</name>
     <description>homi-boot是一个基于spring boot的服务</description>
     <modules>
-        <module>homi-start</module>
-        <module>homi-service</module>
-        <module>homi-domain</module>
+        <module>homi-model</module>
         <module>homi-common</module>
+        <module>homi-saas</module>
+        <module>homi-nest</module>
     </modules>
 
     <properties>
@@ -46,6 +46,35 @@
 
     <dependencyManagement>
         <dependencies>
+            <!--项目依赖包 start-->
+            <dependency>
+                <groupId>com.homi</groupId>
+                <artifactId>common-lib</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.homi</groupId>
+                <artifactId>homi-model</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.homi</groupId>
+                <artifactId>saas-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.homi</groupId>
+                <artifactId>nest-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!--项目依赖包 end-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <!--转换器-->
             <dependency>
                 <groupId>org.mapstruct</groupId>
@@ -56,38 +85,6 @@
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.homi</groupId>
-                <artifactId>homi-admin</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.homi</groupId>
-                <artifactId>homi-start</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.homi</groupId>
-                <artifactId>homi-domain</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.homi</groupId>
-                <artifactId>homi-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.homi</groupId>
-                <artifactId>homi-service</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
@@ -104,12 +101,19 @@
                 <artifactId>TinyPinyin</artifactId>
                 <version>2.0.3.RELEASE</version>
             </dependency>
-            <!-- mybatis-plus -->
+            <!-- mybatis-plus start-->
             <dependency>
                 <groupId>com.baomidou</groupId>
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${mybatis-plus.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- mybatis-plus end-->
             <!-- Sa-Token 权限认证，在线文档：https://sa-token.cc -->
             <dependency>
                 <groupId>cn.dev33</groupId>

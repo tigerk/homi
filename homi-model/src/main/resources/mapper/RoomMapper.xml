@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.homi.model.dao.mapper.RoomMapper">
+    <resultMap id="RoomDetailMap" type="com.homi.model.vo.room.RoomListVO">
+        <id property="roomId" column="room_id"/>
+        <result property="houseId" column="house_id"/>
+        <result property="roomNumber" column="room_number"/>
+        <result property="houseCode" column="house_code"/>
+        <result property="houseName" column="house_name"/>
+        <result property="doorNumber" column="door_number"/>
+        <result property="modeRefId" column="mode_ref_id"/>
+        <result property="leaseMode" column="lease_mode"/>
+        <result property="rentalType" column="rental_type"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="deptName" column="dept_name"/>
+        <result property="price" column="price"/>
+        <result property="salesmanId" column="salesman_id"/>
+        <result property="salesmanName" column="nickname"/>
+        <result property="salesmanPhone" column="phone"/>
+        <result property="area" column="area"/>
+        <result property="direction" column="direction"/>
+        <result property="roomStatus" column="room_status"/>
+        <result property="locked" column="locked"/>
+        <result property="closed" column="closed"/>
+        <result property="leased" column="leased"/>
+        <!-- 添加floor字段 -->
+        <result property="communityId" column="community_id"/>
+        <result property="building" column="building"/>
+        <result property="unit" column="unit"/>
+        <result property="floor" column="floor"/>
+
+        <!-- 如果需要包含房型信息等集合 -->
+        <collection property="houseLayout" ofType="com.homi.model.dto.house.HouseLayoutDTO">
+            <id property="id" column="layout_id"/>
+            <result property="layoutName" column="layout_name"/>
+            <result property="livingRoom" column="living_room"/>
+            <result property="bedroom" column="bedroom"/>
+            <result property="bathroom" column="bathroom"/>
+            <result property="kitchen" column="kitchen"/>
+        </collection>
+    </resultMap>
+
+    <select id="pageRoomList" resultMap="RoomDetailMap">
+        SELECT r.id           AS room_id,
+               r.house_id     AS house_id,
+               h.house_code,
+               h.house_name   AS house_name,
+               h.door_number  AS door_number,
+               h.community_id,
+               h.building,
+               h.unit,
+               h.floor,
+               h.lease_mode,
+               h.mode_ref_id,
+               h.rental_type,
+               h.dept_id,
+               d.name         AS dept_name,
+               r.room_number,
+               h.building,
+               h.unit,
+               r.floor,
+               r.price,
+               r.room_status,
+               r.locked,
+               r.closed,
+               r.leased,
+               r.area,
+               r.direction,
+               h.salesman_id,
+               u.nickname,
+               u.phone,
+               hl.id          AS layout_id,
+               hl.layout_name AS layout_name,
+               hl.bedroom,
+               hl.living_room,
+               hl.bathroom,
+               hl.kitchen
+        FROM room r
+                 LEFT JOIN house h ON r.house_id = h.id
+                 LEFT JOIN house_layout hl ON h.house_layout_id = hl.id
+                 LEFT JOIN user u ON u.id = h.salesman_id
+                 LEFT JOIN dept d ON d.id = h.dept_id
+        where r.deleted = 0
+        <include refid="roomListQuery"/>
+        order by r.id desc
+    </select>
+
+    <select id="getStatusTotal" resultType="com.homi.model.vo.room.RoomTotalItemVO">
+        SELECT room_status, count(room_status) AS total
+        FROM room r
+        LEFT JOIN house h ON r.house_id = h.id
+        LEFT JOIN user u ON u.id = h.salesman_id
+        where r.deleted = 0
+        <include refid="roomListQuery"/>
+        group by room_status
+    </select>
+
+    <sql id="roomListQuery">
+        <if test="query.keywords != null and query.keywords != ''">
+            and r.keywords like concat('%', #{query.keywords,jdbcType=VARCHAR}, '%')
+        </if>
+
+        <if test="query.roomStatus != null">
+            and r.room_status = #{query.roomStatus,jdbcType=INTEGER}
+        </if>
+
+        <if test="query.modeRefId != null">
+            and h.mode_ref_id = #{query.modeRefId,jdbcType=BIGINT}
+        </if>
+
+        <if test="query.communityId != null">
+            and h.community_id = #{query.communityId,jdbcType=BIGINT}
+        </if>
+
+        <if test="query.leaseMode != null">
+            and h.lease_mode = #{query.leaseMode,jdbcType=INTEGER}
+        </if>
+
+        <if test="query.spatialQuery != null and query.spatialQuery.size > 0">
+            AND (
+            <foreach collection="query.spatialQuery" item="item" separator="OR">
+                (
+                    h.mode_ref_id = #{item.modeRefId, jdbcType=BIGINT}
+                    AND h.building = #{item.building, jdbcType=VARCHAR}
+                    AND h.unit = #{item.unit, jdbcType=VARCHAR}
+                    AND h.floor = #{item.floor, jdbcType=INTEGER}
+                    )
+            </foreach>
+            )
+        </if>
+    </sql>
+
+    <select id="selectAggregatedRooms" resultType="com.homi.model.vo.room.grid.RoomAggregatedVO">
+        SELECT h.mode_ref_id,
+               h.building,
+               h.unit,
+               h.floor,
+               COUNT(*)                                                 AS roomCount,
+               SUM(IF(r.leased = 1, 1, 0))                              AS leasedCount,
+               ROUND(SUM(IF(r.leased = 1, 1, 0)) * 100.0 / COUNT(*), 2) AS occupancyRate
+        FROM room r
+                 LEFT JOIN house h ON r.house_id = h.id
+        WHERE 1 = 1
+        <include refid="roomListQuery"/>
+        GROUP BY h.mode_ref_id,
+                 h.building,
+                 h.unit,
+                 h.floor
+        ORDER BY h.mode_ref_id DESC,
+                 h.building ASC,
+                 h.unit ASC,
+                 h.floor ASC
+    </select>
+</mapper>
