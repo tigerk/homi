@@ -19,6 +19,9 @@ import java.util.List;
  */
 @Service
 public class CompanyRepo extends ServiceImpl<CompanyMapper, Company> {
+    public Boolean existsByCode(String code) {
+        return baseMapper.selectCount(new LambdaQueryWrapper<Company>().eq(Company::getCode, code)) > 0;
+    }
 
     public List<Company> getValidCompanyList(List<Long> companyIds) {
         return getBaseMapper().selectList(new LambdaQueryWrapper<Company>()

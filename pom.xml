@@ -13,6 +13,7 @@
         <module>homi-common</module>
         <module>homi-saas</module>
         <module>homi-nest</module>
+        <module>homi-domain</module>
     </modules>
 
     <properties>
@@ -65,6 +66,11 @@
             <dependency>
                 <groupId>com.homi</groupId>
                 <artifactId>nest-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.homi</groupId>
+                <artifactId>domain-saas-facade</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!--项目依赖包 end-->
@@ -181,7 +187,11 @@
                 <artifactId>spring-security-core</artifactId>
                 <version>6.4.10</version> <!-- 根据你的 Spring Boot 版本调整 -->
             </dependency>
-
+            <dependency>
+                <groupId>com.qiniu</groupId>
+                <artifactId>qiniu-java-sdk</artifactId>
+                <version>[7.19.0, 7.19.99]</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>

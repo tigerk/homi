@@ -1,0 +1,63 @@
+--- #---------------------数据库配置---------------------------
+spring:
+  web:
+    resources:
+      static-locations: file:/Users/tigerkim/Downloads/icon
+  datasource:
+    url: jdbc:mysql://localhost:3306/homi?serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      minimum-idle: 5
+      # 空闲连接存活最大时间，默认600000（10分钟）
+      idle-timeout: 180000
+      # 连接池最大连接数，默认是10
+      maximum-pool-size: 10
+      # 此属性控制从池返回的连接的默认自动提交行为,默认值：true
+      auto-commit: true
+      # 连接池名称
+      pool-name: MyHikariCP
+      # 此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认1800000即30分钟
+      max-lifetime: 1800000
+      # 数据库连接超时时间,默认30秒，即30000
+      connection-timeout: 30000
+--- #---------------------redis配置---------------------------
+spring:
+  cache:
+    type: redis
+  # Redis 配置
+  data:
+    # redis配置
+    redis:
+      # Redis数据库索引（默认为0）
+      database: 0
+      # Redis服务器地址
+      host: 127.0.0.1
+      # Redis服务器连接端口
+      port: 6379
+      # Redis服务器连接密码（默认为空）
+      password: 123456
+      # 连接超时时间
+      timeout: 10s
+      lettuce:
+        pool:
+          # 连接池最大连接数
+          max-active: 200
+          # 连接池最大阻塞等待时间（使用负值表示没有限制）
+          max-wait: -1ms
+          # 连接池中的最大空闲连接
+          max-idle: 10
+          # 连接池中的最小空闲连接
+          min-idle: 0
+
+--- #------------------------Sa-Token 配置--------------------------------
+sa-token:
+  # token有效期，单位s 默认30天, -1代表永不过期； # 设置为一个小时；1个小时未登录则自动退出
+  timeout: 86400
+
+--- #---------------------日志配置---------------------------
+logging:
+  file:
+    path: /Users/tigerkim/Projects/domix/homi/logs

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.homi.model.dao.mapper.PlatformUserMapper">
+    <resultMap type="com.homi.model.dao.entity.PlatformUser" id="SysUserMap">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="nickname" column="nickname" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="remark" column="remark" jdbcType="VARCHAR"/>
+        <result property="gender" column="gender" jdbcType="INTEGER"/>
+        <result property="birthday" column="birthday" jdbcType="TIMESTAMP"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createBy" column="create_by" jdbcType="INTEGER"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateBy" column="update_by" jdbcType="INTEGER"/>
+        <result column="register_source" property="registerSource"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <select id="selectUserList" resultType="com.homi.model.platform.vo.PlatformUserVO">
+        SELECT platformUser.id,
+               platformUser.username,
+               platformUser.email,
+               platformUser.phone,
+               platformUser.nickname,
+               platformUser.avatar,
+               platformUser.gender,
+               platformUser.birthday,
+               platformUser.status,
+               platformUser.remark,
+               platformUser.create_time,
+               platformUser.create_by,
+               platformUser.register_source,
+        FROM platform_user platformUser
+        <where>
+            <if test="query.email != null and query.email != ''">
+                AND platformUser.email = #{query.email}
+            </if>
+            <if test="query.phone != null and query.phone != ''">
+                AND platformUser.phone = #{query.phone}
+            </if>
+            <if test="query.nickname != null and query.nickname != ''">
+                AND platformUser.nickname LIKE CONCAT('%', #{query.nickname}, '%')
+            </if>
+            <if test="query.status != null">
+                AND platformUser.status = #{query.status}
+            </if>
+            and platformUser.deleted = 0
+        </where>
+        ORDER BY platformUser.id DESC
+    </select>
+</mapper>

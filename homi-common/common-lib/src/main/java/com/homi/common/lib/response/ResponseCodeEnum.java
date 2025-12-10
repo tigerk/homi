@@ -63,6 +63,12 @@ public enum ResponseCodeEnum {
      * 用户已存在
      */
     USER_EXIST(610, "用户已存在"),
+
+    /**
+     * 账号无权限进入后台
+     */
+    USER_NO_MENU_ACCESS(614, "此账号无任何菜单权限，无法进入后台"),
+
     /**
      * 用户不存在
      */
@@ -89,6 +95,12 @@ public enum ResponseCodeEnum {
      * 常规登录错误
      */
     LOGIN_ERROR(700, "用户名或密码错误"),
+
+    /**
+     * 账号已存在，请使用账号登录即可。
+     */
+    ADMIN_EXIST(701, "账号已存在，请使用该账号登录即可。"),
+
     /**
      * qq登录错误
      */
@@ -116,7 +128,9 @@ public enum ResponseCodeEnum {
     /**
      * token异常
      */
-    TOKEN_ERROR(9999, "token异常");
+    TOKEN_ERROR(9999, "token异常"),
+
+    ;
 
     /**
      * 状态码

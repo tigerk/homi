@@ -34,6 +34,10 @@ public class DictData implements Serializable {
     @TableId("id")
     private Long id;
 
+    @Schema(description = "公司ID")
+    @TableField("company_id")
+    private Long companyId;
+
     @Schema(description = "字典ID")
     @TableField("dict_id")
     private Long dictId;

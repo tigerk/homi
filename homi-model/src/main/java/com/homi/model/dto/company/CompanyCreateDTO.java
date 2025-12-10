@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Schema(description = "公司创建对象")
@@ -20,19 +21,19 @@ public class CompanyCreateDTO {
     private String name;
 
     /**
-     * 城市编码
+     * 公司简称
      */
-    private String cityCode;
+    private String abbr;
+
+    /**
+     * 区域ID
+     */
+    private List<Long> regionIds;
 
     /**
      * 公司LOGO
      */
     private String logo;
-
-    /**
-     * 公司简称
-     */
-    private String abbr;
 
     /**
      * 公司网站
@@ -53,6 +54,12 @@ public class CompanyCreateDTO {
      * 邮箱号
      */
     private String email;
+
+    @Schema(description = "公司管理员手机号")
+    private String adminPhone;
+
+    @Schema(description = "公司管理员密码")
+    private String adminPassword;
 
     /**
      * 账号数量
@@ -93,12 +100,6 @@ public class CompanyCreateDTO {
      * 备注
      */
     private String remark;
-
-    @Schema(description = "公司超管账号")
-    private String username;
-
-    @Schema(description = "公司超管账号密码")
-    private String password;
 
     /**
      * 创建时间

@@ -58,7 +58,7 @@ public class MenuService {
 
         return menuRepo.list(query).stream().map(m -> {
             MenuVO menuVO = BeanCopyUtils.copyBean(m, MenuVO.class);
-            menuVO.setRank(m.getSortOrder());
+            menuVO.setSortOrder(m.getSortOrder());
             return menuVO;
         }).collect(Collectors.toList());
     }

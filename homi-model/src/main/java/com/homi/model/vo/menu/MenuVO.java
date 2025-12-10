@@ -55,7 +55,7 @@ public class MenuVO {
     /**
      * 显示顺序
      */
-    private Integer rank;
+    private Integer sortOrder;
 
     /**
      * 路由重定向

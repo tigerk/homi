@@ -2,6 +2,8 @@ package com.homi.model.dao.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.enums.StatusEnum;
+import com.homi.common.lib.enums.UserType4CompanyEnum;
 import com.homi.model.dto.company.UserCompanyListDTO;
 import com.homi.model.dao.entity.Company;
 import com.homi.model.dao.entity.CompanyUser;
@@ -25,6 +27,80 @@ import java.util.stream.Collectors;
 public class CompanyUserRepo extends ServiceImpl<CompanyUserMapper, CompanyUser> {
     @Resource
     private CompanyRepo companyRepo;
+
+    /**
+     * 设置公司管理员
+     *
+     * @param companyId 公司ID
+     * @param userId    用户ID
+     * @return com.nest.model.entity.CompanyUser
+     */
+    public CompanyUser createUserCompanyAdmin(Long companyId, Long userId) {
+        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CompanyUser::getCompanyId, companyId);
+        queryWrapper.eq(CompanyUser::getUserId, userId);
+        CompanyUser companyUser = getOne(queryWrapper);
+        if (companyUser != null) {
+            companyUser.setUserType(UserType4CompanyEnum.COMPANY_ADMIN.getType());
+            updateById(companyUser);
+        } else {
+            companyUser = new CompanyUser();
+            companyUser.setCompanyId(companyId);
+            companyUser.setUserId(userId);
+            companyUser.setUserType(UserType4CompanyEnum.COMPANY_ADMIN.getType());
+            companyUser.setStatus(StatusEnum.ACTIVE.getValue());
+
+            getBaseMapper().insert(companyUser);
+        }
+
+        return companyUser;
+    }
+
+    /**
+     * 更新管理员
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/28 17:52
+     *
+     * @param companyId 参数说明
+     * @param userId    参数说明
+     * @return com.nest.model.entity.CompanyUser
+     */
+    public CompanyUser updateUserCompanyAdmin(Long companyId, Long userId) {
+        CompanyUser companyUserAdmin = getUserCompanyAdmin(companyId);
+        // 判断是否是同一个用户，如果是则直接返回
+        if (companyUserAdmin.getUserId().equals(userId)) {
+            return companyUserAdmin;
+        }
+
+        deleteUserCompanyAdmin(companyId);
+
+        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CompanyUser::getCompanyId, companyId);
+        queryWrapper.eq(CompanyUser::getUserId, userId);
+        CompanyUser companyUser = getOne(queryWrapper);
+        if (companyUser != null) {
+            companyUser.setUserType(UserType4CompanyEnum.COMPANY_ADMIN.getType());
+            updateById(companyUser);
+            return companyUser;
+        } else {
+            return createUserCompanyAdmin(companyId, userId);
+        }
+    }
+
+    public void deleteUserCompanyAdmin(Long companyId) {
+        CompanyUser companyUserAdmin = getUserCompanyAdmin(companyId);
+        if (companyUserAdmin != null) {
+            getBaseMapper().deleteById(companyUserAdmin.getId());
+        }
+    }
+
+    public CompanyUser getUserCompanyAdmin(Long companyId) {
+        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CompanyUser::getCompanyId, companyId);
+        queryWrapper.eq(CompanyUser::getUserType, UserType4CompanyEnum.COMPANY_ADMIN.getType());
+        return getOne(queryWrapper);
+    }
 
     /**
      * 获取用户的公司列表

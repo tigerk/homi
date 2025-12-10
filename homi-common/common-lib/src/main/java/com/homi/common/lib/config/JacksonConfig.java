@@ -1,4 +1,4 @@
-package com.homi.saas.web.config;
+package com.homi.common.lib.config;
 
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
