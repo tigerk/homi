@@ -1,6 +1,6 @@
 package com.homi.saas.web.controller;
 
-import com.homi.saas.service.service.pdf.PdfService;
+import com.homi.service.service.pdf.PdfService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;

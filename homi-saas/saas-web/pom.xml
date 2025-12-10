@@ -68,6 +68,10 @@
             <groupId>com.homi</groupId>
             <artifactId>domain-saas-facade</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.homi</groupId>
+            <artifactId>homi-service</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

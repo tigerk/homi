@@ -18,7 +18,7 @@ import com.homi.common.lib.enums.contract.ContractTypeEnum;
 import com.homi.common.lib.enums.contract.LandlordParamsEnum;
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
 import com.homi.model.vo.contract.ContractTemplateListDTO;
-import com.homi.saas.service.service.contract.ContractTemplateService;
+import com.homi.service.service.contract.ContractTemplateService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

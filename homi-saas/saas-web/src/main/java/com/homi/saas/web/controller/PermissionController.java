@@ -4,7 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.dto.role.RoleMenuAssignDTO;
 import com.homi.model.dto.user.UserRoleAssignDTO;
-import com.homi.saas.service.service.system.PermissionService;
+import com.homi.service.service.system.PermissionService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

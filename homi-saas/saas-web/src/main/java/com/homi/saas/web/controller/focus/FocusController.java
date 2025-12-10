@@ -9,7 +9,7 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.dto.house.focus.FocusCreateDTO;
 import com.homi.model.vo.IdNameVO;
 import com.homi.model.dao.repo.FileMetaRepo;
-import com.homi.saas.service.service.house.focus.FocusService;
+import com.homi.service.service.house.focus.FocusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

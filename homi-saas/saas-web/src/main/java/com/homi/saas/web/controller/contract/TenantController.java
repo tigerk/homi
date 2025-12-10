@@ -7,7 +7,7 @@ import com.homi.model.dto.tenant.TenantQueryDTO;
 import com.homi.model.vo.tenant.TenantListVO;
 import com.homi.model.vo.tenant.TenantTotalItemVO;
 import com.homi.model.vo.tenant.TenantTotalVO;
-import com.homi.saas.service.service.tenant.TenantService;
+import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -5,8 +5,8 @@ import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.saas.web.auth.service.AuthService;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
-import com.homi.saas.service.service.system.RoleService;
-import com.homi.saas.service.service.system.UserService;
+import com.homi.service.service.system.RoleService;
+import com.homi.service.service.system.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

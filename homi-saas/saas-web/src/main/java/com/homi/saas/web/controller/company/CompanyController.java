@@ -3,7 +3,7 @@ package com.homi.saas.web.controller.company;
 
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.vo.IdNameVO;
-import com.homi.saas.service.service.company.CompanyService;
+import com.homi.service.service.company.CompanyService;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import lombok.RequiredArgsConstructor;
