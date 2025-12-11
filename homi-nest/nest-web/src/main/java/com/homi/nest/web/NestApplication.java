@@ -31,7 +31,7 @@ public class NestApplication extends SpringBootServletInitializer {
         String port = env.getProperty("server.port");
 
         log.info("项目名称：{}", env.getProperty("spring.application.name") +
-            "\n----------------------------------------------------------" +
+            "\n----------------------------------------------------------\n" +
             "  _  _     ___     ___    _____  \n" +
             " | \\| |   | __|   / __|  |_   _| \n" +
             " | .` |   | _|    \\__ \\    | |   \n" +
