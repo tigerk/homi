@@ -4,7 +4,7 @@ import cn.dev33.satoken.stp.StpInterface;
 import cn.hutool.core.lang.Pair;
 import com.homi.model.dao.entity.PlatformUser;
 import com.homi.model.vo.menu.AsyncRoutesVO;
-import com.homi.nest.service.service.platform.PlatformUserService;
+import com.homi.nest.service.service.perms.NestUserService;
 import com.homi.nest.web.service.NestAuthService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
@@ -17,14 +17,14 @@ import java.util.List;
 public class SaTokenPermsConfig implements StpInterface {
     private final NestAuthService nestAuthService;
 
-    private final PlatformUserService platformUserService;
+    private final NestUserService nestUserService;
 
     /**
      * 返回一个账号所拥有的权限码集合
      */
     @Override
     public List<String> getPermissionList(Object loginId, String loginType) {
-        PlatformUser platformUserById = platformUserService.getUserById(Long.valueOf(loginId.toString()));
+        PlatformUser platformUserById = nestUserService.getUserById(Long.valueOf(loginId.toString()));
 
         Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = nestAuthService.getUserAuth(platformUserById);
 
@@ -36,7 +36,7 @@ public class SaTokenPermsConfig implements StpInterface {
      */
     @Override
     public List<String> getRoleList(Object loginId, String loginType) {
-        PlatformUser platformUserById = platformUserService.getUserById(Long.valueOf(loginId.toString()));
+        PlatformUser platformUserById = nestUserService.getUserById(Long.valueOf(loginId.toString()));
 
         Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = nestAuthService.getUserAuth(platformUserById);
 

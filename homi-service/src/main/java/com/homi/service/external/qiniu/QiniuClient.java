@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  */
 
 @Component
-public class QiuniuClient {
+public class QiniuClient {
     @Value("${qiniu.accessKey}")
     private String accessKey;
 

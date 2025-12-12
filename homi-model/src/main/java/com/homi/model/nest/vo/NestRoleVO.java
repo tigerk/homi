@@ -1,4 +1,4 @@
-package com.homi.model.platform.vo;
+package com.homi.model.nest.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.util.Date;
 
 
 @Data
-public class PlatformRoleVO {
+public class NestRoleVO {
 
     /**
      * 角色ID

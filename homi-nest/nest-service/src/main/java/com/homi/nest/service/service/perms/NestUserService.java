@@ -1,4 +1,4 @@
-package com.homi.nest.service.service.platform;
+package com.homi.nest.service.service.perms;
 
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.StpUtil;
@@ -20,8 +20,8 @@ import com.homi.model.dao.mapper.PlatformUserMapper;
 import com.homi.model.dao.repo.PlatformUserRepo;
 import com.homi.model.dao.repo.PlatformUserRoleRepo;
 import com.homi.model.dto.user.UserQueryDTO;
-import com.homi.model.dto.user.UserRoleAssignDTO;
-import com.homi.model.platform.vo.PlatformUserVO;
+import com.homi.model.nest.dto.NestUserRoleAssignDTO;
+import com.homi.model.nest.vo.NestUserVO;
 import com.homi.model.vo.IdNameVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PlatformUserService {
+public class NestUserService {
     private final PlatformUserMapper platformUserMapper;
 
     private final PlatformUserRepo platformUserRepo;
@@ -170,7 +170,7 @@ public class PlatformUserService {
         return platformUserMapper.selectList(queryWrapper);
     }
 
-    public PageVO<PlatformUserVO> getUserList(UserQueryDTO query) {
+    public PageVO<NestUserVO> getUserList(UserQueryDTO query) {
         Page<PlatformUser> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
         LambdaQueryWrapper<PlatformUser> queryWrapper = new LambdaQueryWrapper<>();
@@ -190,9 +190,9 @@ public class PlatformUserService {
 
         IPage<PlatformUser> userVOPage = platformUserRepo.page(page, queryWrapper);
 
-        List<PlatformUserVO> records = userVOPage.getRecords().stream().map(user -> BeanCopyUtils.copyBean(user, PlatformUserVO.class)).collect(Collectors.toList());
+        List<NestUserVO> records = userVOPage.getRecords().stream().map(user -> BeanCopyUtils.copyBean(user, NestUserVO.class)).collect(Collectors.toList());
 
-        PageVO<PlatformUserVO> pageVO = new PageVO<>();
+        PageVO<NestUserVO> pageVO = new PageVO<>();
         pageVO.setTotal(userVOPage.getTotal());
         pageVO.setList(records);
         pageVO.setCurrentPage(userVOPage.getCurrent());
@@ -230,7 +230,7 @@ public class PlatformUserService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Boolean updateUserRole(@Valid UserRoleAssignDTO userRoleAssignDTO) {
+    public Boolean updateUserRole(@Valid NestUserRoleAssignDTO userRoleAssignDTO) {
         List<PlatformUserRole> platformUserRoles = platformUserRoleRepo.getRoleListByUserId(userRoleAssignDTO.getUserId());
         if (!platformUserRoles.isEmpty()) {
             platformUserRoleRepo.remove(new LambdaQueryWrapper<PlatformUserRole>().eq(PlatformUserRole::getUserId, userRoleAssignDTO.getUserId()));

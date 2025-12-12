@@ -7,7 +7,7 @@ import com.homi.saas.web.role.RoleConvert;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.dto.role.RoleCreateDTO;
 import com.homi.model.dto.role.RoleQueryDTO;
-import com.homi.model.dto.role.SysRoleUpdateDTO;
+import com.homi.model.dto.role.RoleUpdateDTO;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.enums.RoleDefaultEnum;
 import com.homi.model.vo.role.RoleSimpleVO;
@@ -86,7 +86,7 @@ public class RoleController {
      */
     @PutMapping("/update")
     @SaCheckPermission("system:role:update")
-    public ResponseResult<Long> update(@Valid @RequestBody SysRoleUpdateDTO updateDTO) {
+    public ResponseResult<Long> update(@Valid @RequestBody RoleUpdateDTO updateDTO) {
         Role role = BeanCopyUtils.copyBean(updateDTO, Role.class);
         return ResponseResult.ok(this.roleService.updateRole(role));
     }

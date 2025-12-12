@@ -1,17 +1,13 @@
 package com.homi.model.dto.role;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-/**
- * @author tigerk
- * @version 1.0
- * @date 2024-07-01 22:20
- * @description: 角色修改对象
- */
 @Data
-public class SysRoleUpdateDTO {
+@Schema(description = "角色修改对象 DTO")
+public class RoleUpdateDTO {
 
     /**
      * ID
@@ -23,7 +19,7 @@ public class SysRoleUpdateDTO {
      * 角色名称
      */
     @NotBlank(message = "角色名称不能为空")
-    private String roleName;
+    private String name;
 
     /**
      * 状态（0正常 1停用）

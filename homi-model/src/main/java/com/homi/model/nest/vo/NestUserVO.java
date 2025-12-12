@@ -1,4 +1,4 @@
-package com.homi.model.platform.vo;
+package com.homi.model.nest.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Data
 @Schema(description = "用户返回VO")
-public class PlatformUserVO {
+public class NestUserVO {
     /**
      * 主键（用户id）
      */

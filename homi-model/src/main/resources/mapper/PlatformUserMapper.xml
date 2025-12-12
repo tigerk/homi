@@ -21,7 +21,7 @@
         <result column="deleted" property="deleted"/>
     </resultMap>
 
-    <select id="selectUserList" resultType="com.homi.model.platform.vo.PlatformUserVO">
+    <select id="selectUserList" resultType="com.homi.model.nest.vo.NestUserVO">
         SELECT platformUser.id,
                platformUser.username,
                platformUser.email,

@@ -23,8 +23,8 @@ import com.homi.model.dao.mapper.PlatformUserMapper;
 import com.homi.model.dao.repo.PlatformRoleRepo;
 import com.homi.model.dao.repo.PlatformUserRoleRepo;
 import com.homi.model.vo.menu.AsyncRoutesVO;
-import com.homi.nest.service.service.platform.PlatformMenuService;
-import com.homi.nest.service.service.platform.PlatformUserService;
+import com.homi.nest.service.service.perms.NestMenuService;
+import com.homi.nest.service.service.perms.NestUserService;
 import com.homi.nest.web.config.NestLoginManager;
 import com.homi.nest.web.dto.login.UserLoginDTO;
 import com.homi.nest.web.vo.login.NestUserLoginVO;
@@ -56,8 +56,8 @@ public class NestAuthService {
     public static final String JWT_EXP_TIME = "exp";
 
     private final PlatformUserMapper platformUserMapper;
-    private final PlatformMenuService platformMenuService;
-    private final PlatformUserService platformUserService;
+    private final NestMenuService nestMenuService;
+    private final NestUserService nestUserService;
     private final PlatformUserRoleRepo platformUserRoleRepo;
 
     private final PlatformRoleRepo platformRoleRepo;
@@ -181,7 +181,7 @@ public class NestAuthService {
             }
 
             // 构建菜单树
-            List<AsyncRoutesVO> asyncRoutesVOList = platformMenuService.buildMenuTreeByRoles(roleList.getKey());
+            List<AsyncRoutesVO> asyncRoutesVOList = nestMenuService.buildMenuTreeByRoles(roleList.getKey());
             if (asyncRoutesVOList.isEmpty()) {
                 throw new BizException(ResponseCodeEnum.USER_NO_MENU_ACCESS);
             }
@@ -192,7 +192,7 @@ public class NestAuthService {
             return Triple.of(roleList, asyncRoutesVOList, menuPermissionByRoles);
         } else {
             // 平台管理员 获取 所有菜单
-            List<PlatformMenu> menuList = platformMenuService.getMenuList();
+            List<PlatformMenu> menuList = nestMenuService.getMenuList();
 
             // 获取菜单树
             List<PlatformMenu> menuTreeList = menuList.stream()
@@ -204,7 +204,7 @@ public class NestAuthService {
                     .map(PlatformMenu::getAuths)
                     .collect(Collectors.toList());
 
-            List<AsyncRoutesVO> asyncRoutesVOS = platformMenuService.buildMenuTree(menuTreeList);
+            List<AsyncRoutesVO> asyncRoutesVOS = nestMenuService.buildMenuTree(menuTreeList);
 
             return Triple.of(Pair.of(new ArrayList<>(), new ArrayList<>()), asyncRoutesVOS, permList);
         }
@@ -243,7 +243,7 @@ public class NestAuthService {
     }
 
     public List<AsyncRoutesVO> getUserRoutes(Long userId) {
-        PlatformUser platformUserById = platformUserService.getUserById(userId);
+        PlatformUser platformUserById = nestUserService.getUserById(userId);
 
         Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = getUserAuth(platformUserById);
         // 构建菜单树
@@ -260,7 +260,7 @@ public class NestAuthService {
      * @param currentUser 参数说明
      */
     public void canUpdateUser(Long userId, NestUserLoginVO currentUser) {
-        PlatformUser platformUserById = platformUserService.getUserById(userId);
+        PlatformUser platformUserById = nestUserService.getUserById(userId);
         // 只有超管才能重置超管的账号
         if (platformUserById.getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())
                 && !NestLoginManager.getCurrentUser().getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())) {

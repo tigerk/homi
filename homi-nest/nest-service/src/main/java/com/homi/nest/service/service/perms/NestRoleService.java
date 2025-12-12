@@ -1,4 +1,4 @@
-package com.homi.nest.service.service.platform;
+package com.homi.nest.service.service.perms;
 
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.collection.CollUtil;
@@ -19,7 +19,7 @@ import com.homi.model.dao.repo.PlatformRoleRepo;
 import com.homi.model.dao.repo.PlatformUserRoleRepo;
 import com.homi.model.dto.role.RoleMenuAssignDTO;
 import com.homi.model.dto.role.RoleQueryDTO;
-import com.homi.model.platform.vo.PlatformRoleVO;
+import com.homi.model.nest.vo.NestRoleVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,17 +40,17 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PlatformRoleService {
+public class NestRoleService {
     private final PlatformRoleRepo platformRoleRepo;
     private final PlatformRoleMenuRepo platformRoleMenuRepo;
 
     private final PlatformUserRoleRepo platformUserRoleRepo;
 
-    public List<PlatformRoleVO> listAllRole() {
-        return platformRoleRepo.list().stream().map(r -> BeanCopyUtils.copyBean(r, PlatformRoleVO.class)).collect(Collectors.toList());
+    public List<NestRoleVO> listAllRole() {
+        return platformRoleRepo.list().stream().map(r -> BeanCopyUtils.copyBean(r, NestRoleVO.class)).collect(Collectors.toList());
     }
 
-    public PageVO<PlatformRoleVO> pageRoleList(RoleQueryDTO query) {
+    public PageVO<NestRoleVO> pageRoleList(RoleQueryDTO query) {
         Page<PlatformRole> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
         LambdaQueryWrapper<PlatformRole> queryWrapper = new LambdaQueryWrapper<>();
@@ -71,9 +71,9 @@ public class PlatformRoleService {
 
         IPage<PlatformRole> userVOPage = platformRoleRepo.page(page, queryWrapper);
 
-        List<PlatformRoleVO> records = userVOPage.getRecords().stream().map(user -> BeanCopyUtils.copyBean(user, PlatformRoleVO.class)).collect(Collectors.toList());
+        List<NestRoleVO> records = userVOPage.getRecords().stream().map(user -> BeanCopyUtils.copyBean(user, NestRoleVO.class)).collect(Collectors.toList());
 
-        PageVO<PlatformRoleVO> pageVO = new PageVO<>();
+        PageVO<NestRoleVO> pageVO = new PageVO<>();
         pageVO.setTotal(userVOPage.getTotal());
         pageVO.setList(records);
         pageVO.setCurrentPage(userVOPage.getCurrent());
@@ -218,12 +218,12 @@ public class PlatformRoleService {
         return null;
     }
 
-    public List<PlatformRoleVO> listRoleOptions() {
+    public List<NestRoleVO> listRoleOptions() {
         LambdaQueryWrapper<PlatformRole> queryWrapper = new LambdaQueryWrapper<>();
 //        queryWrapper.eq(PlatformRole::getStatus, StatusEnum.ACTIVE.getValue());
         queryWrapper.orderByDesc(PlatformRole::getCreateTime);
 
         return platformRoleRepo.list(queryWrapper)
-                .stream().map(role -> BeanCopyUtils.copyBean(role, PlatformRoleVO.class)).collect(Collectors.toList());
+                .stream().map(role -> BeanCopyUtils.copyBean(role, NestRoleVO.class)).collect(Collectors.toList());
     }
 }

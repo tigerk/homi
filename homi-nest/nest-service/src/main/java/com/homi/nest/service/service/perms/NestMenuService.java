@@ -1,4 +1,4 @@
-package com.homi.nest.service.service.platform;
+package com.homi.nest.service.service.perms;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-public class PlatformMenuService {
+public class NestMenuService {
     private final PlatformMenuMapper platformMenuMapper;
 
     private final PlatformMenuRepo platformMenuRepo;
