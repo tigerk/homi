@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.model.dao.entity.PlatformUser;
 import com.homi.model.dto.user.UserQueryDTO;
-import com.homi.model.nest.vo.NestUserVO;
+import com.homi.model.platform.vo.PlatformUserVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -26,5 +26,5 @@ public interface PlatformUserMapper extends BaseMapper<PlatformUser> {
      * @param query 查询对象
      * @return 查询结果
      */
-    IPage<NestUserVO> selectUserList(IPage<NestUserVO> page, @Param("query") UserQueryDTO query);
+    IPage<PlatformUserVO> selectUserList(IPage<PlatformUserVO> page, @Param("query") UserQueryDTO query);
 }

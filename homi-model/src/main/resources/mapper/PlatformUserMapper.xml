@@ -21,7 +21,7 @@
         <result column="deleted" property="deleted"/>
     </resultMap>
 
-    <select id="selectUserList" resultType="com.homi.model.nest.vo.NestUserVO">
+    <select id="selectUserList" resultType="com.homi.model.platform.vo.PlatformUserVO">
         SELECT platformUser.id,
                platformUser.username,
                platformUser.email,
@@ -34,7 +34,7 @@
                platformUser.remark,
                platformUser.create_time,
                platformUser.create_by,
-               platformUser.register_source,
+               platformUser.register_source
         FROM platform_user platformUser
         <where>
             <if test="query.email != null and query.email != ''">

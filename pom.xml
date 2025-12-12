@@ -12,7 +12,7 @@
         <module>homi-model</module>
         <module>homi-common</module>
         <module>homi-saas</module>
-        <module>homi-nest</module>
+        <module>homi-platform</module>
         <module>homi-domain</module>
         <module>homi-service</module>
     </modules>
@@ -71,7 +71,7 @@
             </dependency>
             <dependency>
                 <groupId>com.homi</groupId>
-                <artifactId>nest-service</artifactId>
+                <artifactId>platform-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
