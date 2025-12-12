@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Objects;
 
-@RequestMapping("/admin/company/package")
+@RequestMapping("/platform/company/package")
 @RestController
 @RequiredArgsConstructor
 public class CompanyPackageController {

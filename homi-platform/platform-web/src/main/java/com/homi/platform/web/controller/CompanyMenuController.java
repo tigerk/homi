@@ -32,7 +32,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 @RestController
-@RequestMapping("admin/company/menu")
+@RequestMapping("/platform/company/menu")
 public class CompanyMenuController {
     private final MenuService menuService;
 

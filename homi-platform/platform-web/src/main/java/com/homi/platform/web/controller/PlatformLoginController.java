@@ -12,10 +12,7 @@ import com.homi.platform.web.vo.login.PlatformUserLoginVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,24 +27,25 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @RestController
+@RequestMapping("/platform")
 public class PlatformLoginController {
 
     private final PlatformAuthService platformAuthService;
 
     @LoginLog
-    @PostMapping("/platform/login")
+    @PostMapping("/login")
     public ResponseResult<PlatformUserLoginVO> login(@Valid @RequestBody UserLoginDTO user) {
         return ResponseResult.ok(platformAuthService.login(user));
     }
 
-    @PostMapping("/platform/token/refresh")
+    @PostMapping("/token/refresh")
     public ResponseResult<PlatformUserLoginVO> refresh(@RequestBody TokenRefreshDTO req) {
         Long userId = platformAuthService.getUserIdByToken(req.getRefreshToken());
 
         return ResponseResult.ok(platformAuthService.loginSession(userId));
     }
 
-    @PostMapping("/platform/logout")
+    @PostMapping("/logout")
     public ResponseResult<Void> logout() {
         StpUtil.getSession().clear();
         StpUtil.logout();
@@ -63,12 +61,12 @@ public class PlatformLoginController {
      * @return com.nest.domain.base.ResponseResult<com.nest.admin.auth.vo.login.PlatformUserLoginVO>
      */
     @LoginLog
-    @PostMapping("/platform/login/current")
+    @PostMapping("/login/current")
     public ResponseResult<PlatformUserLoginVO> getCurrentUser() {
         return ResponseResult.ok(PlatformLoginManager.getCurrentUser());
     }
 
-    @GetMapping("/platform/get-async-routes")
+    @GetMapping("/get-async-routes")
     public ResponseResult<List<AsyncRoutesVO>> getUserRoutes() {
         return ResponseResult.ok(platformAuthService.getUserRoutes(PlatformLoginManager.getUserId()));
     }
