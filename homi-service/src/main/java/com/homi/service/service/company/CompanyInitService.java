@@ -1,8 +1,7 @@
-package com.homi.domain.saas.service.company;
+package com.homi.service.service.company;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.entity.CompanyInit;

@@ -1,4 +1,4 @@
-package com.homi.domain.saas.service.company;
+package com.homi.service.service.company;
 
 import cn.hutool.extra.pinyin.PinyinUtil;
 import com.homi.model.dao.repo.CompanyRepo;
@@ -25,7 +25,7 @@ public class CompanyCodeService {
         String code = base;
 
         int index = 1;
-        while (companyRepo.existsByCode(code)) {
+        while (Boolean.TRUE.equals(companyRepo.existsByCode(code))) {
             code = base + index;
             index++;
         }

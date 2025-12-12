@@ -13,7 +13,6 @@
         <module>homi-common</module>
         <module>homi-saas</module>
         <module>homi-platform</module>
-        <module>homi-domain</module>
         <module>homi-service</module>
     </modules>
 

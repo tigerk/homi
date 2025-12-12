@@ -58,6 +58,7 @@ public class MenuService {
 
         return menuRepo.list(query).stream().map(m -> {
             MenuVO menuVO = BeanCopyUtils.copyBean(m, MenuVO.class);
+            assert menuVO != null;
             menuVO.setSortOrder(m.getSortOrder());
             return menuVO;
         }).collect(Collectors.toList());
@@ -168,6 +169,7 @@ public class MenuService {
     public Boolean createMenu(MenuCreateDTO dto) {
         Menu menu = BeanCopyUtils.copyBean(dto, Menu.class);
 
+        assert menu != null;
         menu.setFrameLoading(dto.getFrameLoading());
         menu.setKeepAlive(dto.getKeepAlive());
         menu.setHiddenTag(dto.getHiddenTag());
@@ -199,5 +201,28 @@ public class MenuService {
      */
     public List<Menu> getMenuByIds(List<Long> menuIdList) {
         return menuMapper.selectBatchIds(menuIdList);
+    }
+
+    /**
+     * 返回菜单列表，树由前端构建（菜单管理）
+     *
+     * @param queryDTO 查询实体
+     * @return 所有数据
+     */
+    public List<MenuVO> getMenuList(MenuQueryDTO queryDTO) {
+        LambdaQueryWrapper<Menu> query = new LambdaQueryWrapper<>();
+
+        if (Objects.nonNull(queryDTO.getVisible())) {
+            query.eq(Menu::getVisible, queryDTO.getVisible());
+        }
+
+        query.orderByAsc(Menu::getSortOrder);
+
+        return menuRepo.list(query).stream().map(m -> {
+            MenuVO menuVO = BeanCopyUtils.copyBean(m, MenuVO.class);
+            assert menuVO != null;
+            menuVO.setSortOrder(m.getSortOrder());
+            return menuVO;
+        }).collect(Collectors.toList());
     }
 }

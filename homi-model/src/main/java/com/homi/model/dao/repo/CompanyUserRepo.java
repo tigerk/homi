@@ -1,6 +1,7 @@
 package com.homi.model.dao.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.UserType4CompanyEnum;
@@ -154,5 +155,12 @@ public class CompanyUserRepo extends ServiceImpl<CompanyUserMapper, CompanyUser>
         companyUser.setDeptId(deptId);
 
         return update(companyUser, queryWrapper);
+    }
+
+    public void updateAllUserStatusByCompanyId(Long companyId, int value) {
+        LambdaUpdateWrapper<CompanyUser> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.set(CompanyUser::getStatus, value);
+        updateWrapper.eq(CompanyUser::getCompanyId, companyId);
+        update(updateWrapper);
     }
 }
