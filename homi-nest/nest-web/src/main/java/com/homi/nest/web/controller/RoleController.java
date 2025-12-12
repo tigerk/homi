@@ -52,6 +52,7 @@ public class RoleController {
     public ResponseResult<Long> create(@Valid @RequestBody RoleCreateDTO createDTO) {
         PlatformRole platformRole = BeanCopyUtils.copyBean(createDTO, PlatformRole.class);
 
+        assert platformRole != null;
         platformRole.setCreateBy(NestLoginManager.getUserId());
         platformRole.setUpdateBy(NestLoginManager.getUserId());
         platformRole.setCreateTime(DateUtil.date());
@@ -72,6 +73,7 @@ public class RoleController {
     public ResponseResult<Long> update(@Valid @RequestBody RoleUpdateDTO updateDTO) {
         PlatformRole platformRole = BeanCopyUtils.copyBean(updateDTO, PlatformRole.class);
 
+        assert platformRole != null;
         platformRole.setUpdateBy(NestLoginManager.getUserId());
         platformRole.setUpdateTime(DateUtil.date());
 

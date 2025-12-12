@@ -58,6 +58,7 @@ public class NestMenuService {
 
         return platformMenuRepo.list(query).stream().map(m -> {
             MenuVO menuVO = BeanCopyUtils.copyBean(m, MenuVO.class);
+            assert menuVO != null;
             menuVO.setSortOrder(m.getSortOrder());
             return menuVO;
         }).collect(Collectors.toList());
