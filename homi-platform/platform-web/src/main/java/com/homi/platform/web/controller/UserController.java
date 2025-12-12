@@ -44,6 +44,7 @@ public class UserController {
      * @return 所有数据
      */
     @PostMapping("/list")
+    @SaCheckPermission("platform:user:list")
     public ResponseResult<PageVO<PlatformUserVO>> list(@RequestBody UserQueryDTO queryDTO) {
         PageVO<PlatformUserVO> userList = platformUserService.getUserList(queryDTO);
         PlatformUserLoginVO currentUser = PlatformLoginManager.getCurrentUser();

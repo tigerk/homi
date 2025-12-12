@@ -1,6 +1,7 @@
 package com.homi.platform.web.controller;
 
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.date.DateUtil;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.exception.BizException;
@@ -29,7 +30,7 @@ public class RoleController {
     private final PlatformRoleService platformRoleService;
 
     @PostMapping("/list")
-//    @SaCheckPermission("admin:role:list")
+    @SaCheckPermission("platform:role:list")
     public ResponseResult<PageVO<PlatformRoleVO>> list(@RequestBody RoleQueryDTO queryDTO) {
         return ResponseResult.ok(platformRoleService.pageRoleList(queryDTO));
     }
