@@ -250,7 +250,7 @@ public class CompanyService {
         companyCreateVO.setName(company.getName());
         companyCreateVO.setMessage(user.getValue().getMsg());
 
-        log.info("创建了新公司, company={}；创建了公司的管理员账号", company);
+        log.info("创建了新公司, company={}；创建了公司的管理员账号, user={}", company, user);
 
         return companyCreateVO;
     }
