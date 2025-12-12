@@ -30,7 +30,14 @@ public class PlatformUserRoleRepo extends ServiceImpl<PlatformUserRoleMapper, Pl
      */
     public List<PlatformUserRole> getRoleListByUserId(Long userId) {
         LambdaQueryWrapper<PlatformUserRole> queryWrapper = new LambdaQueryWrapper<PlatformUserRole>()
-                .eq(PlatformUserRole::getUserId, userId);
+            .eq(PlatformUserRole::getUserId, userId);
         return baseMapper.selectList(queryWrapper);
+    }
+
+    public void deleteUserRoleByUserId(Long userId) {
+        LambdaQueryWrapper<PlatformUserRole> queryWrapper = new LambdaQueryWrapper<PlatformUserRole>()
+            .eq(PlatformUserRole::getUserId, userId);
+
+        remove(queryWrapper);
     }
 }

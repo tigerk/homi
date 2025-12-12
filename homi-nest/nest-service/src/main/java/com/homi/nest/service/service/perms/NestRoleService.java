@@ -85,7 +85,8 @@ public class NestRoleService {
     }
 
     public long getUserCountByRoleId(Long roleId) {
-        return platformUserRoleRepo.count(new LambdaQueryWrapper<PlatformUserRole>().eq(PlatformUserRole::getRoleId, roleId));
+        LambdaQueryWrapper<PlatformUserRole> queryWrapper = new LambdaQueryWrapper<PlatformUserRole>().eq(PlatformUserRole::getRoleId, roleId);
+        return platformUserRoleRepo.count(queryWrapper);
     }
 
     /**

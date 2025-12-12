@@ -84,15 +84,16 @@ public class NestUserService {
         return platformUser.getId();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public Integer deleteByIds(List<Long> idList) {
-        Long loginId = Long.valueOf(StpUtil.getLoginId().toString());
-        for (Long id : idList) {
-            if (id.equals(loginId)) {
-                throw new BizException("无法删除自身");
-            }
-        }
-        platformUserMapper.deleteBatchIds(idList);
+        idList.forEach(this::deleteUserById);
+
         return idList.size();
+    }
+
+    public void deleteUserById(Long id) {
+        platformUserRepo.removeById(id);
+        platformUserRoleRepo.deleteUserRoleByUserId(id);
     }
 
     public void resetPassword(PlatformUser sysPlatformUser) {

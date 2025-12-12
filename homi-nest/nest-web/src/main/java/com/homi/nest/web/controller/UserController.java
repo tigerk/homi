@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Objects;
 
-@RequestMapping("/admin/user")
+@RequestMapping("/nest/user")
 @RestController
 @RequiredArgsConstructor
 public class UserController {
@@ -124,6 +124,7 @@ public class UserController {
         nestAuthService.canUpdateUser(updateDTO.getId(), NestLoginManager.getCurrentUser());
 
         PlatformUser platformUser = BeanCopyUtils.copyBean(updateDTO, PlatformUser.class);
+        assert platformUser != null;
         platformUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         return ResponseResult.ok(this.nestUserService.updateUser(platformUser));
     }
@@ -138,6 +139,11 @@ public class UserController {
 //    @SaCheckPermission("system:user:delete")
     public ResponseResult<Integer> delete(@RequestBody List<Long> idList) {
         idList.forEach(id -> nestAuthService.canUpdateUser(id, NestLoginManager.getCurrentUser()));
+
+        Long currentUserId = NestLoginManager.getCurrentUser().getId();
+        if (idList.contains(currentUserId)) {
+            throw new BizException("无法删除自身");
+        }
 
         return ResponseResult.ok(this.nestUserService.deleteByIds(idList));
     }
