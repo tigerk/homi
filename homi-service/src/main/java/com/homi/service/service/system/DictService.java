@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 /**
  * 字典表(Dict)表服务实现类
  *
- * @author sjh
+ * @author tigerk
  * @since 2024-04-24 10:35:55
  */
 @Service

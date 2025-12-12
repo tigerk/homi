@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * 字典数据表(DictData)表服务实现类
  *
- * @author sjh
+ * @author tigerk
  * @since 2024-04-24 10:35:56
  */
 @Service

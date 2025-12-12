@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * @author sjh
+ * @author tigerk
  * @version 1.0
  * @date 2024-07-01 22:20
  * @description: 角色修改对象

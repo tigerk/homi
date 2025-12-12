@@ -3,7 +3,7 @@ package com.homi.model.vo.role;
 import lombok.Data;
 
 /**
- * @author sjh
+ * @author tigerk
  * @version 1.0
  * @date 2024-08-01 21:57
  * @description: 角色简单对象

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * @author sjh
+ * @author tigerk
  * @version 1.0
  * @date 2024-06-26 22:15
  * @description: 字典修改

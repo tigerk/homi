@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * @author sjh
+ * @author tigerk
  * @version 1.0
  * @date 2024-07-01 21:04
  * @description: 角色查询对象

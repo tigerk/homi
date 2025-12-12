@@ -26,7 +26,7 @@ import java.util.Objects;
 /**
  * 字典数据表(DictData)表控制层
  *
- * @author sjh
+ * @author tigerk
  * @since 2024-04-25 10:36:43
  */
 

@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * 字典表(Dict)表控制层
  *
- * @author sjh
+ * @author tigerk
  * @since 2024-04-25 10:36:32
  */
 @RequestMapping("admin/sys/dict")

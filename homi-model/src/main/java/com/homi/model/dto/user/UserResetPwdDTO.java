@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * @author sjh
+ * @author tigerk
  * @version 1.0
  * @date 2024-08-01 17:33
  * @description: 密码重置

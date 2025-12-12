@@ -3,7 +3,7 @@ package com.homi.model.vo.dict.data;
 import lombok.Data;
 
 /**
- * @author sjh
+ * @author tigerk
  * @version 1.0
  * @date 2024-09-03 10:36
  * @description: 字典数据
