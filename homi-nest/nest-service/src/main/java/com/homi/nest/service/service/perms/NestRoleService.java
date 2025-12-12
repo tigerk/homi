@@ -21,6 +21,7 @@ import com.homi.model.dto.role.RoleMenuAssignDTO;
 import com.homi.model.dto.role.RoleQueryDTO;
 import com.homi.model.nest.vo.NestRoleVO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,12 +39,12 @@ import java.util.stream.Collectors;
  * {@code @date} 2025/11/25
  */
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NestRoleService {
     private final PlatformRoleRepo platformRoleRepo;
     private final PlatformRoleMenuRepo platformRoleMenuRepo;
-
     private final PlatformUserRoleRepo platformUserRoleRepo;
 
     public List<NestRoleVO> listAllRole() {
@@ -87,9 +88,34 @@ public class NestRoleService {
         return platformUserRoleRepo.count(new LambdaQueryWrapper<PlatformUserRole>().eq(PlatformUserRole::getRoleId, roleId));
     }
 
-    public int deleteRole(List<Long> roleIds) {
-        int deletedCount = platformRoleRepo.getBaseMapper().deleteBatchIds(roleIds);
-        return deletedCount;
+    /**
+     * 删除角色列表
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/13 03:27
+     *
+     * @param roleIds 参数说明
+     * @return int
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteRoleByIds(List<Long> roleIds) {
+        roleIds.forEach(this::deleteRoleById);
+
+        return roleIds.size();
+    }
+
+    /**
+     * 删除角色
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/27 12:31
+     *
+     * @param roleId 角色ID
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteRoleById(Long roleId) {
+        platformRoleRepo.getBaseMapper().deleteById(roleId);
+        platformRoleMenuRepo.deleteRoleMenuByRoleId(roleId);
     }
 
     public Long createRole(PlatformRole platformRole) {
@@ -160,9 +186,9 @@ public class NestRoleService {
         queryWrapper.eq(PlatformRoleMenu::getRoleId, roleId);
 
         return platformRoleMenuRepo.list(queryWrapper)
-                .stream()
-                .map(PlatformRoleMenu::getMenuId)
-                .collect(Collectors.toList());
+            .stream()
+            .map(PlatformRoleMenu::getMenuId)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -196,7 +222,7 @@ public class NestRoleService {
 
         // 获得角色拥有菜单编号
         Set<Long> dbMenuIds = CollectionUtils.convertSet(platformRoleMenuRepo.getBaseMapper().selectList(new LambdaQueryWrapper<PlatformRoleMenu>().
-                eq(PlatformRoleMenu::getRoleId, roleId)), PlatformRoleMenu::getMenuId);
+            eq(PlatformRoleMenu::getRoleId, roleId)), PlatformRoleMenu::getMenuId);
         // 计算新增和删除的菜单编号
         Set<Long> menuIdList = CollUtil.emptyIfNull(menuIds);
         Collection<Long> createMenuIds = CollUtil.subtract(menuIdList, dbMenuIds);
@@ -212,7 +238,7 @@ public class NestRoleService {
         }
         if (CollUtil.isNotEmpty(deleteMenuIds)) {
             platformRoleMenuRepo.getBaseMapper().delete(new LambdaQueryWrapper<PlatformRoleMenu>().
-                    eq(PlatformRoleMenu::getRoleId, roleId).in(PlatformRoleMenu::getMenuId, deleteMenuIds));
+                eq(PlatformRoleMenu::getRoleId, roleId).in(PlatformRoleMenu::getMenuId, deleteMenuIds));
         }
 
         return null;
@@ -220,10 +246,9 @@ public class NestRoleService {
 
     public List<NestRoleVO> listRoleOptions() {
         LambdaQueryWrapper<PlatformRole> queryWrapper = new LambdaQueryWrapper<>();
-//        queryWrapper.eq(PlatformRole::getStatus, StatusEnum.ACTIVE.getValue());
         queryWrapper.orderByDesc(PlatformRole::getCreateTime);
 
         return platformRoleRepo.list(queryWrapper)
-                .stream().map(role -> BeanCopyUtils.copyBean(role, NestRoleVO.class)).collect(Collectors.toList());
+            .stream().map(role -> BeanCopyUtils.copyBean(role, NestRoleVO.class)).collect(Collectors.toList());
     }
 }

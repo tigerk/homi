@@ -1,9 +1,12 @@
 package com.homi.model.dao.repo;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.dao.entity.PlatformRoleMenu;
 import com.homi.model.dao.mapper.PlatformRoleMenuMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * <p>
@@ -16,4 +19,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class PlatformRoleMenuRepo extends ServiceImpl<PlatformRoleMenuMapper, PlatformRoleMenu> {
 
+    /**
+     * 根据角色id获取角色菜单列表
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/13 03:18
+     *
+     * @param roleId 参数说明
+     * @return java.util.List<com.homi.model.dao.entity.PlatformRoleMenu>
+     */
+    public List<PlatformRoleMenu> getRoleMenuListByRoleId(Long roleId) {
+        LambdaQueryWrapper<PlatformRoleMenu> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PlatformRoleMenu::getRoleId, roleId);
+
+        return list(queryWrapper);
+    }
+
+    public Boolean deleteRoleMenuByRoleId(Long roleId) {
+        LambdaQueryWrapper<PlatformRoleMenu> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PlatformRoleMenu::getRoleId, roleId);
+
+        return remove(queryWrapper);
+    }
 }

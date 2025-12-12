@@ -111,7 +111,7 @@ public class RoleController {
             }
         });
 
-        return ResponseResult.ok(nestRoleService.deleteRole(roleIds));
+        return ResponseResult.ok(nestRoleService.deleteRoleByIds(roleIds));
     }
 
     @PostMapping("/menu/assign")
