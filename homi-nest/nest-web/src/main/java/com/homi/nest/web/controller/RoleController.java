@@ -107,7 +107,7 @@ public class RoleController {
         roleIds.forEach(id -> {
             long count = nestRoleService.getUserCountByRoleId(id);
             if (count > 0) {
-                throw new BizException(ResponseCodeEnum.FAIL.getCode(), "角色已绑定用户，无法删除");
+                throw new BizException(ResponseCodeEnum.FAIL.getCode(), "角色已绑定用户，无法删除，请先解绑用户");
             }
         });
 
