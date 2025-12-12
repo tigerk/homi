@@ -20,7 +20,7 @@ import java.util.Objects;
 public class MybatisPlusConfig {
 
     /**
-     * 设计到平台、公司管理功能的公共表，不做租户隔离
+     * 涉及到平台、公司管理功能的公共表，不做租户隔离
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/6/26 09:19

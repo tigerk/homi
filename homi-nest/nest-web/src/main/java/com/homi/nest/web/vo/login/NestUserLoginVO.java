@@ -14,7 +14,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserLoginVO {
+public class NestUserLoginVO {
 
     /**
      * token值

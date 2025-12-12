@@ -8,7 +8,7 @@ import com.homi.nest.web.config.LoginManager;
 import com.homi.nest.web.dto.login.TokenRefreshDTO;
 import com.homi.nest.web.dto.login.UserLoginDTO;
 import com.homi.nest.web.service.AuthService;
-import com.homi.nest.web.vo.login.UserLoginVO;
+import com.homi.nest.web.vo.login.NestUserLoginVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,12 +36,12 @@ public class NestLoginController {
 
     @LoginLog
     @PostMapping("/nest/login")
-    public ResponseResult<UserLoginVO> login(@Valid @RequestBody UserLoginDTO user) {
+    public ResponseResult<NestUserLoginVO> login(@Valid @RequestBody UserLoginDTO user) {
         return ResponseResult.ok(authService.login(user));
     }
 
     @PostMapping("/nest/token/refresh")
-    public ResponseResult<UserLoginVO> refresh(@RequestBody TokenRefreshDTO req) {
+    public ResponseResult<NestUserLoginVO> refresh(@RequestBody TokenRefreshDTO req) {
         Long userId = authService.getUserIdByToken(req.getRefreshToken());
 
         return ResponseResult.ok(authService.loginSession(userId));
@@ -60,11 +60,11 @@ public class NestLoginController {
      * {@code @author} tk
      * {@code @date} 2025/6/9 13:48
      *
-     * @return com.nest.domain.base.ResponseResult<com.nest.admin.auth.vo.login.UserLoginVO>
+     * @return com.nest.domain.base.ResponseResult<com.nest.admin.auth.vo.login.NestUserLoginVO>
      */
     @LoginLog
     @PostMapping("/nest/login/current")
-    public ResponseResult<UserLoginVO> getCurrentUser() {
+    public ResponseResult<NestUserLoginVO> getCurrentUser() {
         return ResponseResult.ok(LoginManager.getCurrentUser());
     }
 

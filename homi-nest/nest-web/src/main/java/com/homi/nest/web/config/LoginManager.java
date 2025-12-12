@@ -6,7 +6,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.PlatformUser;
-import com.homi.nest.web.vo.login.UserLoginVO;
+import com.homi.nest.web.vo.login.NestUserLoginVO;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -40,20 +40,20 @@ public final class LoginManager {
     /**
      * 获取当前登录的用户对象（登录时需手动 set 进去）
      */
-    public static UserLoginVO getCurrentUser() {
+    public static NestUserLoginVO getCurrentUser() {
         PlatformUser platformUser = (PlatformUser) StpUtil.getSession().get(SaSession.USER);
         if (platformUser == null) {
             throw new BizException("未找到当前登录用户信息");
         }
 
-        UserLoginVO userLoginVO = BeanCopyUtils.copyBean(platformUser, UserLoginVO.class);
-        assert userLoginVO != null;
-        userLoginVO.setRoles(getCurrentRoles());
-        userLoginVO.setPermissions(getCurrentPermissions());
+        NestUserLoginVO nestUserLoginVO = BeanCopyUtils.copyBean(platformUser, NestUserLoginVO.class);
+        assert nestUserLoginVO != null;
+        nestUserLoginVO.setRoles(getCurrentRoles());
+        nestUserLoginVO.setPermissions(getCurrentPermissions());
 
-        userLoginVO.setAccessToken(getTokenInfo().getTokenValue());
+        nestUserLoginVO.setAccessToken(getTokenInfo().getTokenValue());
 
-        return userLoginVO;
+        return nestUserLoginVO;
     }
 
     @SuppressWarnings("unchecked")

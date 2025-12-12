@@ -27,7 +27,7 @@ import com.homi.nest.service.service.platform.PlatformMenuService;
 import com.homi.nest.service.service.platform.PlatformUserService;
 import com.homi.nest.web.config.LoginManager;
 import com.homi.nest.web.dto.login.UserLoginDTO;
-import com.homi.nest.web.vo.login.UserLoginVO;
+import com.homi.nest.web.vo.login.NestUserLoginVO;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.BeanUtils;
@@ -103,7 +103,7 @@ public class AuthService {
         return Long.valueOf(jwt.getPayload(JWT_USER_ID).toString());
     }
 
-    public UserLoginVO loginSession(Long userId) {
+    public NestUserLoginVO loginSession(Long userId) {
         // 验证成功后的登录处理
         StpUtil.login(userId, "web");
 
@@ -120,11 +120,11 @@ public class AuthService {
 
         // 获取当前回话的token
         String token = StpUtil.getTokenValue();
-        UserLoginVO userLoginVO = new UserLoginVO();
-        userLoginVO.setAccessToken(token);
-        userLoginVO.setRefreshToken(refreshToken);
-        userLoginVO.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenTimeout()).getTime());
-        return userLoginVO;
+        NestUserLoginVO nestUserLoginVO = new NestUserLoginVO();
+        nestUserLoginVO.setAccessToken(token);
+        nestUserLoginVO.setRefreshToken(refreshToken);
+        nestUserLoginVO.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenTimeout()).getTime());
+        return nestUserLoginVO;
     }
 
     /**
@@ -134,10 +134,10 @@ public class AuthService {
      * {@code @date} 2025/4/19 23:43
      *
      * @param userLoginDTO 参数说明
-     * @return com.nest.admin.auth.vo.login.UserLoginVO
+     * @return com.nest.admin.auth.vo.login.NestUserLoginVO
      */
     @Transactional(rollbackFor = Exception.class)
-    public UserLoginVO login(UserLoginDTO userLoginDTO) {
+    public NestUserLoginVO login(UserLoginDTO userLoginDTO) {
         // 校验手机号 or 用户名
         PlatformUser platformUser = platformUserMapper.selectOne(new LambdaQueryWrapper<PlatformUser>()
                 .eq(PlatformUser::getUsername, userLoginDTO.getUsername())
@@ -158,17 +158,17 @@ public class AuthService {
         // 获取用户权限和菜单树
         Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = getUserAuth(platformUser);
 
-        UserLoginVO userLoginVO = loginSession(platformUser.getId());
-        BeanUtils.copyProperties(platformUser, userLoginVO);
-        userLoginVO.setRoles(userAuth.getLeft().getValue());
-        userLoginVO.setPermissions(userAuth.getRight());
+        NestUserLoginVO nestUserLoginVO = loginSession(platformUser.getId());
+        BeanUtils.copyProperties(platformUser, nestUserLoginVO);
+        nestUserLoginVO.setRoles(userAuth.getLeft().getValue());
+        nestUserLoginVO.setPermissions(userAuth.getRight());
 
         // 用户角色code与权限,用户名存入缓存
         SaSession currentSession = StpUtil.getSession();
         currentSession.set(SaSession.ROLE_LIST, userAuth.getLeft().getValue());
         currentSession.set(SaSession.PERMISSION_LIST, userAuth.getRight());
 
-        return userLoginVO;
+        return nestUserLoginVO;
     }
 
     public Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> getUserAuth(PlatformUser platformUser) {
@@ -259,7 +259,7 @@ public class AuthService {
      * @param userId      参数说明
      * @param currentUser 参数说明
      */
-    public void canUpdateUser(Long userId, UserLoginVO currentUser) {
+    public void canUpdateUser(Long userId, NestUserLoginVO currentUser) {
         PlatformUser platformUserById = platformUserService.getUserById(userId);
         // 只有超管才能重置超管的账号
         if (platformUserById.getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())
