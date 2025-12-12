@@ -5,7 +5,7 @@ import cn.hutool.core.lang.Pair;
 import com.homi.model.dao.entity.PlatformUser;
 import com.homi.model.vo.menu.AsyncRoutesVO;
 import com.homi.nest.service.service.platform.PlatformUserService;
-import com.homi.nest.web.service.AuthService;
+import com.homi.nest.web.service.NestAuthService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class SaTokenPermsConfig implements StpInterface {
-    private final AuthService authService;
+    private final NestAuthService nestAuthService;
 
     private final PlatformUserService platformUserService;
 
@@ -26,7 +26,7 @@ public class SaTokenPermsConfig implements StpInterface {
     public List<String> getPermissionList(Object loginId, String loginType) {
         PlatformUser platformUserById = platformUserService.getUserById(Long.valueOf(loginId.toString()));
 
-        Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = authService.getUserAuth(platformUserById);
+        Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = nestAuthService.getUserAuth(platformUserById);
 
         return userAuth.getRight();
     }
@@ -38,7 +38,7 @@ public class SaTokenPermsConfig implements StpInterface {
     public List<String> getRoleList(Object loginId, String loginType) {
         PlatformUser platformUserById = platformUserService.getUserById(Long.valueOf(loginId.toString()));
 
-        Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = authService.getUserAuth(platformUserById);
+        Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = nestAuthService.getUserAuth(platformUserById);
 
         return userAuth.getLeft().getValue();
     }

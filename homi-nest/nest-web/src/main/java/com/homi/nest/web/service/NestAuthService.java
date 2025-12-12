@@ -25,7 +25,7 @@ import com.homi.model.dao.repo.PlatformUserRoleRepo;
 import com.homi.model.vo.menu.AsyncRoutesVO;
 import com.homi.nest.service.service.platform.PlatformMenuService;
 import com.homi.nest.service.service.platform.PlatformUserService;
-import com.homi.nest.web.config.LoginManager;
+import com.homi.nest.web.config.NestLoginManager;
 import com.homi.nest.web.dto.login.UserLoginDTO;
 import com.homi.nest.web.vo.login.NestUserLoginVO;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class NestAuthService {
 
     // refresh token userId 名称
     public static final String JWT_USER_ID = "userId";
@@ -263,7 +263,7 @@ public class AuthService {
         PlatformUser platformUserById = platformUserService.getUserById(userId);
         // 只有超管才能重置超管的账号
         if (platformUserById.getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())
-                && !LoginManager.getCurrentUser().getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())) {
+                && !NestLoginManager.getCurrentUser().getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())) {
             throw new BizException("无权限操作");
         }
     }

@@ -18,8 +18,8 @@ import java.util.List;
  * {@code @date} 2025/4/17 12:16
  */
 @Slf4j
-public final class LoginManager {
-    private LoginManager() {
+public final class NestLoginManager {
+    private NestLoginManager() {
         throw new IllegalStateException("Utility class");
     }
 

@@ -4,10 +4,10 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.homi.common.lib.annotation.LoginLog;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.vo.menu.AsyncRoutesVO;
-import com.homi.nest.web.config.LoginManager;
+import com.homi.nest.web.config.NestLoginManager;
 import com.homi.nest.web.dto.login.TokenRefreshDTO;
 import com.homi.nest.web.dto.login.UserLoginDTO;
-import com.homi.nest.web.service.AuthService;
+import com.homi.nest.web.service.NestAuthService;
 import com.homi.nest.web.vo.login.NestUserLoginVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,19 +32,19 @@ import java.util.List;
 @RestController
 public class NestLoginController {
 
-    private final AuthService authService;
+    private final NestAuthService nestAuthService;
 
     @LoginLog
     @PostMapping("/nest/login")
     public ResponseResult<NestUserLoginVO> login(@Valid @RequestBody UserLoginDTO user) {
-        return ResponseResult.ok(authService.login(user));
+        return ResponseResult.ok(nestAuthService.login(user));
     }
 
     @PostMapping("/nest/token/refresh")
     public ResponseResult<NestUserLoginVO> refresh(@RequestBody TokenRefreshDTO req) {
-        Long userId = authService.getUserIdByToken(req.getRefreshToken());
+        Long userId = nestAuthService.getUserIdByToken(req.getRefreshToken());
 
-        return ResponseResult.ok(authService.loginSession(userId));
+        return ResponseResult.ok(nestAuthService.loginSession(userId));
     }
 
     @PostMapping("/nest/logout")
@@ -65,11 +65,11 @@ public class NestLoginController {
     @LoginLog
     @PostMapping("/nest/login/current")
     public ResponseResult<NestUserLoginVO> getCurrentUser() {
-        return ResponseResult.ok(LoginManager.getCurrentUser());
+        return ResponseResult.ok(NestLoginManager.getCurrentUser());
     }
 
     @GetMapping("/nest/get-async-routes")
     public ResponseResult<List<AsyncRoutesVO>> getUserRoutes() {
-        return ResponseResult.ok(authService.getUserRoutes(LoginManager.getUserId()));
+        return ResponseResult.ok(nestAuthService.getUserRoutes(NestLoginManager.getUserId()));
     }
 }
