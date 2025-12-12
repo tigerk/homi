@@ -163,6 +163,7 @@ public class UserController {
         nestAuthService.canUpdateUser(updateDTO.getId(), NestLoginManager.getCurrentUser());
 
         PlatformUser platformUser = BeanCopyUtils.copyBean(updateDTO, PlatformUser.class);
+        assert platformUser != null;
         platformUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         platformUser.setUpdateTime(DateUtil.date());
         nestUserService.resetPassword(platformUser);

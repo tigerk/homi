@@ -140,9 +140,9 @@ public class NestAuthService {
     public NestUserLoginVO login(UserLoginDTO userLoginDTO) {
         // 校验手机号 or 用户名
         PlatformUser platformUser = platformUserMapper.selectOne(new LambdaQueryWrapper<PlatformUser>()
-                .eq(PlatformUser::getUsername, userLoginDTO.getUsername())
-                .or()
-                .eq(PlatformUser::getPhone, userLoginDTO.getUsername()));
+            .eq(PlatformUser::getUsername, userLoginDTO.getUsername())
+            .or()
+            .eq(PlatformUser::getPhone, userLoginDTO.getUsername()));
         if (Objects.isNull(platformUser)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
@@ -190,23 +190,25 @@ public class NestAuthService {
             List<String> menuPermissionByRoles = platformRoleRepo.getMenuPermissionByRoles(roleList.getKey());
 
             return Triple.of(roleList, asyncRoutesVOList, menuPermissionByRoles);
-        } else {
+        } else if (platformUser.getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())) {
             // 平台管理员 获取 所有菜单
             List<PlatformMenu> menuList = nestMenuService.getMenuList();
 
             // 获取菜单树
             List<PlatformMenu> menuTreeList = menuList.stream()
-                    .filter(m -> MenuTypeEnum.getMenuList().contains(m.getMenuType()))
-                    .collect(Collectors.toList());
+                .filter(m -> MenuTypeEnum.getMenuList().contains(m.getMenuType()))
+                .collect(Collectors.toList());
             // 获取按钮权限
             List<String> permList = menuList.stream()
-                    .filter(m -> MenuTypeEnum.getButtonList().contains(m.getMenuType()))
-                    .map(PlatformMenu::getAuths)
-                    .collect(Collectors.toList());
+                .filter(m -> MenuTypeEnum.getButtonList().contains(m.getMenuType()))
+                .map(PlatformMenu::getAuths)
+                .collect(Collectors.toList());
 
             List<AsyncRoutesVO> asyncRoutesVOS = nestMenuService.buildMenuTree(menuTreeList);
 
             return Triple.of(Pair.of(new ArrayList<>(), new ArrayList<>()), asyncRoutesVOS, permList);
+        } else {
+            throw new BizException(ResponseCodeEnum.AUTHORIZED);
         }
     }
 
@@ -263,7 +265,7 @@ public class NestAuthService {
         PlatformUser platformUserById = nestUserService.getUserById(userId);
         // 只有超管才能重置超管的账号
         if (platformUserById.getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())
-                && !NestLoginManager.getCurrentUser().getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())) {
+            && !NestLoginManager.getCurrentUser().getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())) {
             throw new BizException("无权限操作");
         }
     }
