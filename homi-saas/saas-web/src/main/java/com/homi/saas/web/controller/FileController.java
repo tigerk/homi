@@ -40,7 +40,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Slf4j
 @RestController
-@RequestMapping("admin/file")
+@RequestMapping("/saas/file")
 public class FileController {
 
     // 使用系统临时目录或指定的绝对路径

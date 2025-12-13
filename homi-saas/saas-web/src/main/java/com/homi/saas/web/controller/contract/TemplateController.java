@@ -44,7 +44,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 @RestController
-@RequestMapping("admin/contract/template")
+@RequestMapping("/saas/contract/template")
 @Validated
 public class TemplateController {
     private final ContractTemplateService contractTemplateService;

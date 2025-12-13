@@ -40,9 +40,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 2024-04-25 10:36:46
  */
 
-@RequestMapping("/saas/company/user")
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/saas/company/user")
 public class CompanyUserController {
     /**
      * 服务对象

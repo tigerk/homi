@@ -11,9 +11,9 @@ import com.homi.service.service.house.scatter.ScatterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/saas/scatter")
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/saas/scatter")
 public class ScatterController {
     private final ScatterService scatterService;
 

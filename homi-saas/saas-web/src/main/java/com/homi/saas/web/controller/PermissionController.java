@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 @RequestMapping("admin/permission")
 @Schema(description = "权限管理")
 public class PermissionController {

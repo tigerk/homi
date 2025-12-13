@@ -1,6 +1,5 @@
 package com.homi.saas.web.controller.company;
 
-
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.vo.IdNameVO;
 import com.homi.service.service.company.CompanyService;
@@ -13,9 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RequestMapping("/saas/company")
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/saas/company")
 public class CompanyController {
     /**
      * 服务对象
@@ -33,4 +32,6 @@ public class CompanyController {
         return ResponseResult.ok(companyService.getUserOptions(currentUser.getCurCompanyId()));
     }
 }
+
+
 

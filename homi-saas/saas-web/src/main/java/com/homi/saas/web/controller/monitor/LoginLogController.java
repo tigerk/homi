@@ -21,9 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RequestMapping("/saas/monitor/login/log")
+
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/saas/monitor/login/log")
 @Tag(name = "登录日志")
 public class LoginLogController {
     private final LoginLogRepo loginLogRepo;

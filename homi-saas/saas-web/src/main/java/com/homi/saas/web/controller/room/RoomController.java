@@ -20,9 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RequestMapping("/saas/room")
+
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/saas/room")
 public class RoomController {
     private final RoomService roomService;
 

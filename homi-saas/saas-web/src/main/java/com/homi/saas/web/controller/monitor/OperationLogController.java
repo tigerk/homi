@@ -1,6 +1,5 @@
 package com.homi.saas.web.controller.monitor;
 
-
 import com.homi.saas.web.auth.service.AuthService;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
@@ -20,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RequestMapping("/saas/monitor/operation/log")
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/saas/monitor/operation/log")
 @Schema(description = "操作日志")
 public class OperationLogController {
     private final OperationLogRepo operationLogRepo;

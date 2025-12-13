@@ -18,9 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @Slf4j
-@RequestMapping("/saas/test")
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/saas/test")
 public class TestController {
     private final PdfService pdfService;
 

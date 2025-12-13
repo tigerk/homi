@@ -29,9 +29,9 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-@RequestMapping("/saas/region")
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/saas/region")
 public class RegionController {
     private final RegionRepo regionRepo;
 

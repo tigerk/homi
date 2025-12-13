@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Objects;
 
-@RequestMapping("/saas/focus")
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/saas/focus")
 public class FocusController {
     private final FocusService focusService;
 

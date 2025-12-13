@@ -1,6 +1,5 @@
 package com.homi.saas.web.controller.monitor;
 
-
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.saas.web.auth.service.AuthService;
@@ -15,9 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@RequestMapping("/saas/monitor/online")
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/saas/monitor/online")
 public class OnlineUserController {
     private final LoginLogRepo loginLogRepo;
 
