@@ -30,7 +30,7 @@
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
         <!--权限校验-->
         <sa-token.version>1.44.0</sa-token.version>
-        <mysql-connector.version>9.2.0</mysql-connector.version>
+        <mysql-connector.version>9.5.0</mysql-connector.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <transmittable-thread-local.version>2.14.5</transmittable-thread-local.version>
         <tika-core.version>3.2.3</tika-core.version>
