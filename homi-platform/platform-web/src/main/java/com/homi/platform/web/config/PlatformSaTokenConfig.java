@@ -25,8 +25,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-public class SaTokenConfig implements WebMvcConfigurer {
-    private static final String ADMIN_PREFIX = "/nest";
+public class PlatformSaTokenConfig implements WebMvcConfigurer {
+    private static final String ADMIN_PREFIX = "/platform";
 
 
     /**
