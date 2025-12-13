@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 /**
  * 应用于 domix-saas
  *
@@ -39,6 +41,15 @@ public class TenantListVO {
     @Schema(description = "租客标签")
     private String tags;
 
+    @Schema(description = "租客状态：0=正常，1=禁用")
+    private Integer status;
+
     @Schema(description = "租客备注")
     private String remark;
+
+    @Schema(description = "创建时间")
+    private Date createTime;
+
+    @Schema(description = "更新时间")
+    private Date updateTime;
 }

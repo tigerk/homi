@@ -27,9 +27,10 @@ import java.util.List;
  * @author tigerk
  * @since 2024-04-25 10:36:32
  */
-@RequestMapping("admin/sys/dict")
+
 @RequiredArgsConstructor
 @RestController
+@RequestMapping("/saas/sys/dict")
 public class SysDictController {
     /**
      * 服务对象
@@ -60,6 +61,7 @@ public class SysDictController {
     @SaCheckPermission("system:dict:create")
     public ResponseResult<Long> insert(@Valid @RequestBody DictCreateDTO createDTO) {
         Dict dict = BeanCopyUtils.copyBean(createDTO, Dict.class);
+        assert dict != null;
         return ResponseResult.ok(dictService.createDict(dict));
     }
 
@@ -73,6 +75,7 @@ public class SysDictController {
     @SaCheckPermission("system:dict:update")
     public ResponseResult<Long> update(@Valid @RequestBody DictUpdateDTO updateDTO) {
         Dict dict = BeanCopyUtils.copyBean(updateDTO, Dict.class);
+        assert dict != null;
         return ResponseResult.ok(this.dictService.updateDict(dict));
     }
 

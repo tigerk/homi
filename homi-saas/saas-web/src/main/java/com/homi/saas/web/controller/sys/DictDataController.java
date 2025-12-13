@@ -30,9 +30,10 @@ import java.util.Objects;
  * @since 2024-04-25 10:36:43
  */
 
-@RequestMapping("admin/sys/dict/data")
+
 @RequiredArgsConstructor
 @RestController
+@RequestMapping("/saas/sys/dict/data")
 public class DictDataController {
     /**
      * 服务对象
@@ -92,6 +93,7 @@ public class DictDataController {
 //    @SaCheckPermission("system:dict:data:create")
     public ResponseResult<Long> create(@Valid @RequestBody DictDataCreateDTO createDTO) {
         DictData dictData = BeanCopyUtils.copyBean(createDTO, DictData.class);
+        assert dictData != null;
         if (Objects.isNull(createDTO.getId())) {
             return ResponseResult.ok(dictDataService.createDictData(dictData));
         } else {

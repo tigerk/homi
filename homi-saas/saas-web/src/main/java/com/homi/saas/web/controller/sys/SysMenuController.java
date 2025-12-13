@@ -2,18 +2,16 @@ package com.homi.saas.web.controller.sys;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.date.DateUtil;
-import com.homi.saas.web.auth.vo.login.UserLoginVO;
-import com.homi.saas.web.config.LoginManager;
+import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
+import com.homi.model.dao.entity.Menu;
 import com.homi.model.dto.menu.MenuCreateDTO;
 import com.homi.model.dto.menu.MenuQueryDTO;
-import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.model.vo.menu.MenuVO;
 import com.homi.model.vo.menu.SimpleMenuVO;
-import com.homi.common.lib.exception.BizException;
-import com.homi.model.dao.entity.Menu;
-import com.homi.model.dao.repo.MenuRepo;
-import com.homi.model.dao.repo.RoleMenuRepo;
+import com.homi.saas.web.auth.vo.login.UserLoginVO;
+import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.system.MenuService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,12 +32,9 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 @RestController
-@RequestMapping("admin/sys/menu")
+@RequestMapping("/saas/sys/menu")
 public class SysMenuController {
     private final MenuService menuService;
-
-    private final MenuRepo menuRepo;
-    private final RoleMenuRepo roleMenuRepo;
 
     /**
      * 返回菜单列表，树由前端构建（菜单管理）

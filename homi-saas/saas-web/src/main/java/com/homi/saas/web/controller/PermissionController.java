@@ -15,7 +15,7 @@ import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("admin/permission")
+@RequestMapping("/saas/permission")
 @Schema(description = "权限管理")
 public class PermissionController {
 

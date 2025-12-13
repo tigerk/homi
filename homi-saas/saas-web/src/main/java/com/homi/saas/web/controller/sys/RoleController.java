@@ -3,20 +3,20 @@ package com.homi.saas.web.controller.sys;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.homi.saas.web.role.RoleConvert;
+import com.homi.common.lib.enums.RoleDefaultEnum;
+import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
+import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.model.dao.entity.Role;
 import com.homi.model.dto.role.RoleCreateDTO;
 import com.homi.model.dto.role.RoleQueryDTO;
 import com.homi.model.dto.role.RoleUpdateDTO;
-import com.homi.common.lib.response.ResponseCodeEnum;
-import com.homi.common.lib.enums.RoleDefaultEnum;
 import com.homi.model.vo.role.RoleSimpleVO;
 import com.homi.model.vo.role.RoleVO;
-import com.homi.common.lib.exception.BizException;
-import com.homi.model.dao.entity.Role;
+import com.homi.saas.web.role.RoleConvert;
 import com.homi.service.service.system.RoleService;
 import com.homi.service.service.system.UserRoleService;
-import com.homi.common.lib.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +31,7 @@ import java.util.Objects;
  * {@code @date} 2025/4/28 18:55
  */
 
-@RequestMapping("admin/sys/role")
+@RequestMapping("/saas/sys/role")
 @RequiredArgsConstructor
 public class RoleController {
     /**
