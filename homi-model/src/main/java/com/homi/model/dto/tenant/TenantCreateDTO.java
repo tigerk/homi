@@ -31,4 +31,7 @@ public class TenantCreateDTO {
     private ContractDTO contract;
 
     private List<OtherFeeDTO> otherFees;
+
+    @Schema(description = "创建人ID", hidden = true)
+    private Long createBy;
 }

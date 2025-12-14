@@ -41,7 +41,8 @@ public class MybatisPlusConfig {
         "file_meta",
         "room_price_config",
         "room_price_plan",
-        "room_detail"
+        "room_detail",
+        "tenant_contract_room"
     );
 
     /**

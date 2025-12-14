@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import java.io.Serial;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -17,7 +18,7 @@ import java.io.Serial;
  * </p>
  *
  * @author tk
- * @since 2025-11-19
+ * @since 2025-12-14
  */
 @EqualsAndHashCode(callSuper = false)
 @Data

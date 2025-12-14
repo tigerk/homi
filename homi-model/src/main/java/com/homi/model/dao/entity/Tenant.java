@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-11-18
+ * @since 2025-12-14
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -58,18 +58,6 @@ public class Tenant implements Serializable {
     @Schema(description = "联系电话")
     @TableField("phone")
     private String phone;
-
-    @Schema(description = "租客类型：0=个人，1=企业")
-    @TableField("tenant_type")
-    private Integer tenantType;
-
-    @Schema(description = "租客来源")
-    @TableField("tenant_source")
-    private Long tenantSource;
-
-    @Schema(description = "成交渠道")
-    @TableField("deal_channel")
-    private Long dealChannel;
 
     @Schema(description = "租客标签")
     @TableField("tags")

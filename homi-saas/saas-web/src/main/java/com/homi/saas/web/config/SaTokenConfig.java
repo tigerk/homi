@@ -51,8 +51,6 @@ public class SaTokenConfig implements WebMvcConfigurer {
                     ADMIN_PREFIX.concat("/sysFile/check-file/**")
             ).check(r -> {
                 StpUtil.checkLogin();
-                // 续签
-                StpUtil.renewTimeout(SaManager.getConfig().getTimeout());
 
                 // 获取用户信息，注入到当前上下文
                 UserLoginVO currentUser = LoginManager.getCurrentUser();

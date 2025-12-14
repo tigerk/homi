@@ -53,4 +53,10 @@ public class FileMetaRepo extends ServiceImpl<FileMetaMapper, FileMeta> {
         }
     }
 
+    public FileMeta getFileMetaByUrl(String url) {
+        LambdaQueryWrapper<FileMeta> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FileMeta::getFileUrl, url);
+
+        return getBaseMapper().selectOne(queryWrapper);
+    }
 }

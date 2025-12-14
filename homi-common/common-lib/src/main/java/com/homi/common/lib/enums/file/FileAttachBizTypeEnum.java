@@ -29,6 +29,11 @@ public enum FileAttachBizTypeEnum {
      * 租户证件手持
      */
     TENANT_ID_CARD_IN_HAND("tenant_id_card_in_hand"),
+    /**
+     * 租户其他照片
+     */
+    TENANT_OTHER_IMAGE("tenant_other_image"),
+
     CONTRACT_FILE("contract_file"),
     /**
      * 租户图片

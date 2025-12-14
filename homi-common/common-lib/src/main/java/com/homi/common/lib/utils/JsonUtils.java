@@ -1,7 +1,9 @@
 package com.homi.common.lib.utils;
 
 import cn.hutool.core.lang.Dict;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.PrimitiveArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -68,7 +70,7 @@ public class JsonUtils {
     }
 
     public static <T> T parseObject(String text, Class<T> clazz) {
-        if (StrUtil.isEmpty(text)) {
+        if (CharSequenceUtil.isEmpty(text)) {
             return null;
         }
         try {
@@ -80,7 +82,7 @@ public class JsonUtils {
     }
 
     public static <T> T parseObject(String text, String path, Class<T> clazz) {
-        if (StrUtil.isEmpty(text)) {
+        if (CharSequenceUtil.isEmpty(text)) {
             return null;
         }
         try {
@@ -94,7 +96,7 @@ public class JsonUtils {
     }
 
     public static <T> T parseObject(String text, Type type) {
-        if (StrUtil.isEmpty(text)) {
+        if (CharSequenceUtil.isEmpty(text)) {
             return null;
         }
         try {
@@ -115,14 +117,14 @@ public class JsonUtils {
      * @return 对象
      */
     public static <T> T parseObject2(String text, Class<T> clazz) {
-        if (StrUtil.isEmpty(text)) {
+        if (CharSequenceUtil.isEmpty(text)) {
             return null;
         }
         return JSONUtil.toBean(text, clazz);
     }
 
     public static <T> T parseObject(byte[] bytes, Class<T> clazz) {
-        if (ArrayUtil.isEmpty(bytes)) {
+        if (PrimitiveArrayUtil.isEmpty(bytes)) {
             return null;
         }
         try {
@@ -158,7 +160,7 @@ public class JsonUtils {
     }
 
     public static <T> List<T> parseArray(String text, Class<T> clazz) {
-        if (StrUtil.isEmpty(text)) {
+        if (CharSequenceUtil.isEmpty(text)) {
             return new ArrayList<>();
         }
         try {
@@ -170,7 +172,7 @@ public class JsonUtils {
     }
 
     public static <T> List<T> parseArray(String text, String path, Class<T> clazz) {
-        if (StrUtil.isEmpty(text)) {
+        if (CharSequenceUtil.isEmpty(text)) {
             return null;
         }
         try {

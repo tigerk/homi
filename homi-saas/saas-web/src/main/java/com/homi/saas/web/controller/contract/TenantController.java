@@ -1,15 +1,19 @@
 package com.homi.saas.web.controller.contract;
 
-import com.homi.common.lib.vo.PageVO;
+import com.homi.common.lib.annotation.Log;
+import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseResult;
+import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dto.tenant.TenantCreateDTO;
 import com.homi.model.dto.tenant.TenantQueryDTO;
 import com.homi.model.vo.tenant.TenantListVO;
 import com.homi.model.vo.tenant.TenantTotalItemVO;
 import com.homi.model.vo.tenant.TenantTotalVO;
+import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,8 +51,11 @@ public class TenantController {
     }
 
     @PostMapping("/create")
-    public ResponseResult<Long> createTenant(@RequestBody TenantCreateDTO createDTO) {
-        log.info("createTenant: {}", createDTO);
+    @Log(title = "创建租客", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<Long> createTenant(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        createDTO.setCreateBy(loginUser.getId());
+        createDTO.getContract().setCompanyId(loginUser.getCurCompanyId());
+
         return ResponseResult.ok(tenantService.createTenant(createDTO));
     }
 }

@@ -55,4 +55,7 @@ public class TenantMateDTO {
 
     @Schema(description = "其他照片列表",  example = "[\"https://example.com/otherImage1.jpg\", \"https://example.com/otherImage2.jpg\"]")
     private List<String> otherImageList;
+
+    @Schema(description = "创建人ID", hidden = true)
+    private Long createBy;
 }

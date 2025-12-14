@@ -1,5 +1,6 @@
 package com.homi.generator;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.generator.FastAutoGenerator;
 import com.baomidou.mybatisplus.generator.config.DataSourceConfig;
@@ -52,15 +53,14 @@ public class MyBatisGenerator {
             .dbPassword("123456")
             .tblPrefix("")
             // 创建目录，从项目根目录开始
-            .savePath("homi/homi-service")
-            .entityPackageName("com.homi.model.entity")
-            .mapperPackageName("com.homi.model.mapper")
-            .servicePackageName("com.homi.model.repo")
-            .tblNameList(Arrays.asList(
-                "user",
-                "user_role",
-                "role",
-                "menu"
+            .savePath("homi-model")
+            .entityPackageName("com.homi.model.dao.entity")
+            .mapperPackageName("com.homi.model.dao.mapper")
+            .servicePackageName("com.homi.model.dao.repo")
+            .tblNameList(ListUtil.of(
+                "tenant",
+                "tenant_contract",
+                "tenant_contract_room"
             )).build();
 
         myBatisGenerator.generate();
@@ -103,11 +103,17 @@ public class MyBatisGenerator {
                 }
 
                 //mapper注解生效
-                builder.mapperBuilder().mapperAnnotation(Mapper.class);
-                builder.serviceBuilder().formatServiceImplFileName("%sRepo").disableService()
+                builder.mapperBuilder()
+                    .mapperAnnotation(Mapper.class);
+                builder.serviceBuilder()
+                    .formatServiceImplFileName("%sRepo")
+                    .disableService()
                     .serviceImplTemplate("repo.template.java");
                 builder.controllerBuilder().disable();
-                builder.entityBuilder().enableFileOverride().enableLombok().logicDeleteColumnName("deleted")
+                builder.entityBuilder()
+                    .enableFileOverride()
+                    .enableLombok()
+                    .logicDeleteColumnName("deleted")
                     .enableTableFieldAnnotation()
                     .naming(NamingStrategy.underline_to_camel).columnNaming(NamingStrategy.underline_to_camel)
                     .javaTemplate("entity.template.java")

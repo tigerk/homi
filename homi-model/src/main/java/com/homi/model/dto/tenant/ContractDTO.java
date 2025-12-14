@@ -3,6 +3,7 @@ package com.homi.model.dto.tenant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
@@ -27,22 +28,28 @@ public class ContractDTO {
     private Integer contractNature;
 
     @Schema(description = "公司ID", example = "1")
-    private BigInteger companyId;
+    private Long companyId;
 
     @Schema(description = "部门ID", example = "D001")
-    private String deptId;
+    private Long deptId;
 
     @Schema(description = "房间ID列表", example = "[\"R001\", \"R002\"]")
     private List<String> roomIds;
 
-    @Schema(description = "租客ID", example = "1")
-    private BigInteger tenantId;
+    @Schema(description = "租客ID", example = "1", hidden = true)
+    private Long tenantId;
 
     @Schema(description = "租客类型：1=个人，2=企业", example = "1")
     private Integer tenantType;
 
+    @Schema(description = "租客名称（冗余字段，便于查询）", example = "张三")
+    private String tenantName;
+
+    @Schema(description = "租客联系电话（冗余字段）", example = "13800000000")
+    private String tenantPhone;
+
     @Schema(description = "租金价格", example = "5000.00")
-    private Double rentalPrice;
+    private BigDecimal rentalPrice;
 
     @Schema(description = "押金月数", example = "3")
     private Integer depositMonths;
@@ -84,10 +91,10 @@ public class ContractDTO {
     private Integer rentDueOffsetDays;
 
     @Schema(description = "业务人员ID", example = "1")
-    private BigInteger salesmanId;
+    private Long salesmanId;
 
     @Schema(description = "协助人员ID", example = "2")
-    private BigInteger helperId;
+    private Long helperId;
 
     @Schema(description = "签约状态：0=待签字、1=已签字", example = "1")
     private Integer signStatus;
@@ -106,4 +113,7 @@ public class ContractDTO {
 
     @Schema(description = "合同备注", example = "这是一个测试备注")
     private String remark;
+
+    @Schema(description = "创建人ID", hidden = true)
+    private Long createBy;
 }

@@ -3,6 +3,8 @@ package com.homi.model.dto.tenant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 企业租客数据传输对象
  *
@@ -44,11 +46,14 @@ public class TenantCompanyDTO {
     private String businessLicenseUrl;
 
     @Schema(description = "租客标签 (JSON 格式)", example = "{\"key\":\"value\"}")
-    private String tags;
+    private List<String> tags;
 
     @Schema(description = "租客备注", example = "这是一个测试备注")
     private String remark;
 
     @Schema(description = "租客状态：0=停用，1=启用", example = "1")
     private Integer status;
+
+    @Schema(description = "创建人ID", hidden = true)
+    private Long createBy;
 }

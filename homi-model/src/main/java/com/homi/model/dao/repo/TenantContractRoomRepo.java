@@ -1,9 +1,11 @@
 package com.homi.model.dao.repo;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.dao.entity.TenantContractRoom;
 import com.homi.model.dao.mapper.TenantContractRoomMapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * <p>
@@ -15,5 +17,4 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TenantContractRoomRepo extends ServiceImpl<TenantContractRoomMapper, TenantContractRoom> {
-
 }

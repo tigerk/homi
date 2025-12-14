@@ -40,7 +40,7 @@ public class TenantDTO {
 
     @Schema(description = "备注")
     private String remark;
-
+//
     @Schema(description = "身份证正面照片")
     private List<String> idCardFrontList;
 
@@ -52,4 +52,7 @@ public class TenantDTO {
 
     @Schema(description = "其他照片")
     private List<String> otherImageList;
+
+    @Schema(description = "创建人ID", hidden = true)
+    private Long createBy;
 }

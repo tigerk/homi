@@ -2,8 +2,13 @@ package com.homi.model.dao.repo;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.dao.entity.FileAttach;
+import com.homi.model.dao.entity.FileMeta;
 import com.homi.model.dao.mapper.FileAttachMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <p>
@@ -14,6 +19,37 @@ import org.springframework.stereotype.Service;
  * @since 2025-10-19
  */
 @Service
+@RequiredArgsConstructor
 public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
+    private final FileMetaRepo fileMetaRepo;
 
+    /**
+     * 添加文件附件批量
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/14 04:13
+     *
+     * @param id             参数说明
+     * @param bizType        参数说明
+     * @param idCardBackList 参数说明
+     */
+    public void addFileAttachBatch(Long id, String bizType, List<String> idCardBackList) {
+        AtomicInteger i = new AtomicInteger();
+        idCardBackList.forEach(idCardBack -> {
+            FileAttach fileAttach = new FileAttach();
+            fileAttach.setBizId(id);
+            fileAttach.setBizType(bizType);
+            fileAttach.setFileUrl(idCardBack);
+            fileAttach.setSortOrder(i.getAndIncrement());
+
+            FileMeta fileMeta = fileMetaRepo.getFileMetaByUrl(idCardBack);
+            if (fileMeta != null) {
+                fileAttach.setFileSize(fileMeta.getFileSize());
+                fileAttach.setFileType(fileMeta.getFileType());
+                fileAttach.setStorageType(fileMeta.getStorageType());
+            }
+
+            save(fileAttach);
+        });
+    }
 }
