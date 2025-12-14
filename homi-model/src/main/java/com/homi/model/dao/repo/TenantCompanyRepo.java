@@ -1,8 +1,11 @@
 package com.homi.model.dao.repo;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.TenantCompany;
 import com.homi.model.dao.mapper.TenantCompanyMapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.model.vo.tenant.TenantCompanyVO;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,4 +19,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class TenantCompanyRepo extends ServiceImpl<TenantCompanyMapper, TenantCompany> {
 
+    public TenantCompanyVO getTenantCompanyById(Long tenantId) {
+        TenantCompany one = getOne(new LambdaQueryWrapper<TenantCompany>().eq(TenantCompany::getId, tenantId));
+
+        return BeanCopyUtils.copyBean(one, TenantCompanyVO.class);
+    }
 }

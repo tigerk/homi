@@ -12,30 +12,26 @@ import cn.hutool.json.JSONUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.homi.common.lib.enums.MenuTypeEnum;
+import com.homi.common.lib.enums.StatusEnum;
+import com.homi.common.lib.enums.UserTypeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.redis.RedisKey;
+import com.homi.common.lib.response.ResponseCodeEnum;
+import com.homi.model.dao.entity.*;
+import com.homi.model.dao.mapper.RoleMapper;
+import com.homi.model.dao.mapper.UserRoleMapper;
+import com.homi.model.dao.repo.CompanyRepo;
+import com.homi.model.dao.repo.CompanyUserRepo;
+import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.dto.company.UserCompanyListDTO;
+import com.homi.model.vo.menu.AsyncRoutesVO;
+import com.homi.saas.web.auth.dto.login.LoginDTO;
+import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.company.CompanyPackageService;
-import com.homi.service.service.company.CompanyService;
 import com.homi.service.service.system.MenuService;
 import com.homi.service.service.system.RoleService;
 import com.homi.service.service.system.UserService;
-import com.homi.saas.web.auth.dto.login.LoginDTO;
-import com.homi.saas.web.auth.vo.login.UserLoginVO;
-import com.homi.model.dao.entity.*;
-import com.homi.model.dto.company.UserCompanyListDTO;
-import com.homi.common.lib.enums.UserTypeEnum;
-import com.homi.common.lib.enums.MenuTypeEnum;
-import com.homi.common.lib.response.ResponseCodeEnum;
-import com.homi.common.lib.enums.StatusEnum;
-import com.homi.model.vo.menu.AsyncRoutesVO;
-import com.homi.model.dao.mapper.MenuMapper;
-import com.homi.model.dao.mapper.RoleMapper;
-import com.homi.model.dao.mapper.UserMapper;
-import com.homi.model.dao.mapper.UserRoleMapper;
-import com.homi.model.dao.repo.CompanyRepo;
-import com.homi.model.dao.repo.MenuRepo;
-import com.homi.model.dao.repo.CompanyUserRepo;
-import com.homi.model.dao.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.BeanUtils;
@@ -47,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -63,27 +60,16 @@ public class AuthService {
     public static final String JWT_USER_ID = "userId";
     public static final String JWT_EXP_TIME = "exp";
 
-    private final UserMapper userMapper;
     private final UserRepo userRepo;
-
     private final UserRoleMapper userRoleMapper;
-
     private final RoleMapper roleMapper;
-    private final MenuService menuService;
-    private final RoleService roleService;
-
-    private final CompanyPackageService companyPackageService;
-
     private final CompanyRepo companyRepo;
-    private final CompanyService companyService;
-
-    private final UserService userService;
-
     private final CompanyUserRepo companyUserRepo;
 
-    private final MenuMapper menuMapper;
-
-    private final MenuRepo menuRepo;
+    private final MenuService menuService;
+    private final RoleService roleService;
+    private final CompanyPackageService companyPackageService;
+    private final UserService userService;
 
     // jwt 密钥
     @Value("${jwt.secret}")
@@ -177,6 +163,23 @@ public class AuthService {
         if (companyListByUserId.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
+
+        // 默认登录是第一个公司
+        AtomicReference<Long> curCompanyId = new AtomicReference<>(companyListByUserId.getFirst().getCompanyId());
+        AtomicReference<Integer> userType = new AtomicReference<>(companyListByUserId.getFirst().getUserType());
+
+        String companyIdStr = stringRedisTemplate.opsForValue().get(RedisKey.LOGIN_USER_COMPANY.format(user.getId()));
+        if (CharSequenceUtil.isNotBlank(companyIdStr)) {
+            companyListByUserId.forEach(item -> {
+                if (item.getCompanyId().equals(Long.valueOf(companyIdStr))) {
+                    curCompanyId.set(item.getCompanyId());
+                    userType.set(item.getUserType());
+                }
+            });
+        }
+
+        user.setCurCompanyId(curCompanyId.get());
+        user.setIsCompanyAdmin(isCompanyAdmin(userType.get()));
 
         user.setCompanyList(companyListByUserId);
 
@@ -384,6 +387,12 @@ public class AuthService {
 
         userLogin.setCurCompanyId(companyUser.getCompanyId());
         userLogin.setIsCompanyAdmin(isCompanyAdmin(companyUser.getUserType()));
+
+        // 保存登录用户公司
+        stringRedisTemplate.opsForValue().set(RedisKey.LOGIN_USER_COMPANY.format(user.getId()),
+            String.valueOf(companyUser.getCompanyId()),
+            RedisKey.LOGIN_USER_COMPANY.getTimeout(),
+            RedisKey.LOGIN_USER_COMPANY.getUnit());
 
         return login(userLogin);
     }

@@ -5,6 +5,8 @@ import cn.hutool.core.util.EnumUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.enums.house.LeaseModeEnum;
+import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
@@ -13,8 +15,6 @@ import com.homi.model.dto.room.RoomQueryDTO;
 import com.homi.model.dto.room.price.OtherFeeDTO;
 import com.homi.model.dto.room.price.PriceConfigDTO;
 import com.homi.model.dto.room.price.PricePlanDTO;
-import com.homi.common.lib.enums.house.LeaseModeEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.model.vo.room.RoomListVO;
 import com.homi.model.vo.room.RoomTotalItemVO;
 import com.homi.model.vo.room.grid.RoomGridVO;
@@ -26,10 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -88,7 +85,6 @@ public class RoomService {
             Focus byId = focusRepo.getById(room.getModeRefId());
             room.setCommunityName(byId.getFocusName());
         }
-
 
 
         RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, room.getRoomStatus());
@@ -240,8 +236,8 @@ public class RoomService {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/11/11 13:41
-
-      * @param id 参数说明
+     *
+     * @param id 参数说明
      * @return java.util.List<com.homi.domain.dto.room.RoomDetailDTO>
      */
     public List<RoomDetailDTO> getRoomListByHouseId(Long id) {
@@ -267,8 +263,8 @@ public class RoomService {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/11/11 13:41
-
-      * @param roomId 房间ID
+     *
+     * @param roomId 房间ID
      * @return com.homi.domain.dto.room.price.PriceConfigDTO
      */
     public PriceConfigDTO getPriceConfigByRoomId(Long roomId) {
@@ -291,5 +287,37 @@ public class RoomService {
         }
 
         return priceConfigDTO;
+    }
+
+    public List<RoomListVO> getRoomListByRoomIds(List<Long> roomIds) {
+        if (roomIds == null || roomIds.isEmpty()) {
+            return Collections.emptyList(); // 直接返回空列表，避免后续处理。
+        }
+
+        List<RoomListVO> roomListVOList = new ArrayList<>();
+
+        List<Room> roomList = roomRepo.listByIds(roomIds);
+
+        if (roomList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<House> houseList = houseRepo.listByIds(roomList.stream().map(Room::getHouseId).collect(Collectors.toList()));
+
+        if (!roomList.isEmpty()) {
+            roomListVOList = roomList.stream().map(room -> {
+                RoomListVO roomListVO = new RoomListVO();
+                BeanUtils.copyProperties(room, roomListVO);
+
+                House house = houseList.stream().filter(h -> h.getId().equals(room.getHouseId())).findFirst().orElse(null);
+                if (Objects.nonNull(house)) {
+                    BeanUtils.copyProperties(house, roomListVO);
+                }
+
+                return roomListVO;
+            }).toList();
+        }
+
+        return roomListVOList;
     }
 }

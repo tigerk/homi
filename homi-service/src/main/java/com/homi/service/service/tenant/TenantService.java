@@ -12,11 +12,13 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.TenantCompany;
 import com.homi.model.dao.entity.TenantContract;
-import com.homi.model.dao.entity.TenantContractRoom;
 import com.homi.model.dao.repo.*;
 import com.homi.model.dto.tenant.*;
-import com.homi.model.vo.tenant.TenantListVO;
+import com.homi.model.vo.tenant.TenantCompanyVO;
+import com.homi.model.vo.tenant.TenantContractListVO;
+import com.homi.model.vo.tenant.TenantPersonalVO;
 import com.homi.model.vo.tenant.TenantTotalItemVO;
+import com.homi.service.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +44,8 @@ public class TenantService {
     private final TenantRepo tenantRepo;
     private final TenantCompanyRepo tenantCompanyRepo;
     private final TenantContractRepo tenantContractRepo;
-    private final TenantContractRoomRepo tenantContractRoomRepo;
     private final FileAttachRepo fileAttachRepo;
+    private final RoomService roomService;
 
     /**
      * 获取租客列表
@@ -51,8 +53,23 @@ public class TenantService {
      * @param query 查询参数
      * @return 租客列表
      */
-    public PageVO<TenantListVO> getTenantList(TenantQueryDTO query) {
-        return tenantRepo.queryTenantList(query);
+    public PageVO<TenantContractListVO> getTenantList(TenantQueryDTO query) {
+        PageVO<TenantContractListVO> tenantContractListVOPageVO = tenantContractRepo.queryTenantContractList(query);
+
+        tenantContractListVOPageVO.getList().forEach(tenantContractListVO -> {
+            TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, tenantContractListVO.getTenantType());
+            if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
+                TenantPersonalVO tenantPersonalVO = tenantRepo.getTenantById(tenantContractListVO.getTenantId());
+                tenantContractListVO.setTenantPersonal(tenantPersonalVO);
+            } else {
+                TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenantContractListVO.getTenantId());
+                tenantContractListVO.setTenantCompany(tenantCompanyVO);
+            }
+
+            tenantContractListVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(tenantContractListVO.getRoomIds(), Long.class)));
+        });
+
+        return tenantContractListVOPageVO;
     }
 
     /**
@@ -101,22 +118,11 @@ public class TenantService {
         TenantContract tenantContract = new TenantContract();
         BeanUtils.copyProperties(contract, tenantContract);
 
+        tenantContract.setRoomIds(JSONUtil.toJsonStr(contract.getRoomIds()));
+
         tenantContract.setStatus(TenantContractStatusEnum.TO_SIGN.getCode());
         tenantContract.setCreateTime(DateUtil.date());
         tenantContractRepo.save(tenantContract);
-
-        // 保存合同房间
-        List<TenantContractRoom> tenantContractRooms = contract.getRoomIds().stream()
-            .map(roomId -> {
-                TenantContractRoom tenantContractRoom = new TenantContractRoom();
-                tenantContractRoom.setContractId(tenantContract.getId());
-                tenantContractRoom.setRoomId(Long.parseLong(roomId));
-
-                return tenantContractRoom;
-            })
-            .toList();
-
-        tenantContractRoomRepo.saveOrUpdateBatch(tenantContractRooms);
     }
 
     /**

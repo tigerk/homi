@@ -3,29 +3,35 @@
 <mapper namespace="com.homi.model.dao.mapper.TenantContractMapper">
 
     <select id="getStatusTotal" resultType="com.homi.model.vo.tenant.TenantTotalItemVO">
-        select
-            tc.status,
-            count(*) as total
-        from
-            tenant_contract tc left join tenant t on tc.tenant_id = t.id
+        select tc.status,
+               count(*) as total
+        from tenant_contract tc
+                 left join tenant t on tc.tenant_id = t.id
         where tc.deleted = false
           and t.deleted = false
         <include refid="tenantListQuery"/>
-        group by
-            tc.status
+        group by tc.status
     </select>
 
     <sql id="tenantListQuery">
         <if test="query.name != null and query.name != ''">
-            and t.name like concat('%', #{query.name,jdbcType=VARCHAR}, '%')
+            and tc.tenant_name like concat('%', #{query.name,jdbcType=VARCHAR}, '%')
         </if>
 
-        <if test="query.phone != null">
-            and t.phone = #{query.phone,jdbcType=VARCHAR}
+        <if test="query.phone != null and query.phone != ''">
+            and tc.tenant_phone =
+                #{query.phone,jdbcType=VARCHAR}
         </if>
         <if test="query.tenantType != null">
             and tc.tenant_type = #{query.tenantType,jdbcType=INTEGER}
         </if>
-
     </sql>
+
+    <select id="pageTenantList" resultType="com.homi.model.vo.tenant.TenantContractListVO">
+        SELECT tc.*
+        FROM tenant_contract tc
+        where tc.deleted = false
+        <include refid="tenantListQuery"/>
+        order by tc.id DESC
+    </select>
 </mapper>

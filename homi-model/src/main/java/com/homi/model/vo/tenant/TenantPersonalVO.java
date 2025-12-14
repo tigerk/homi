@@ -2,26 +2,27 @@ package com.homi.model.vo.tenant;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-
 /**
- * 应用于 domix-saas
+ * 应用于 homi
  *
  * @author tk
  * @version v1.0
- * {@code @date} 2025/11/9
+ * {@code @date} 2025/12/14
  */
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TenantListVO {
-    @Schema(description = "租客 ID")
+@Builder
+public class TenantPersonalVO {
+    @Schema(description = "租客ID")
     private Long id;
 
+    @Schema(description = "公司ID")
+    private Long companyId;
 
     @Schema(description = "租客姓名")
     private String name;
@@ -41,15 +42,9 @@ public class TenantListVO {
     @Schema(description = "租客标签")
     private String tags;
 
-    @Schema(description = "租客状态：0=正常，1=禁用")
-    private Integer status;
-
     @Schema(description = "租客备注")
     private String remark;
 
-    @Schema(description = "创建时间")
-    private Date createTime;
-
-    @Schema(description = "更新时间")
-    private Date updateTime;
+    @Schema(description = "租客状态：0=停用，1=启用")
+    private Integer status;
 }

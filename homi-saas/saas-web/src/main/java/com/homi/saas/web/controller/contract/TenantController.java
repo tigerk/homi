@@ -6,7 +6,7 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dto.tenant.TenantCreateDTO;
 import com.homi.model.dto.tenant.TenantQueryDTO;
-import com.homi.model.vo.tenant.TenantListVO;
+import com.homi.model.vo.tenant.TenantContractListVO;
 import com.homi.model.vo.tenant.TenantTotalItemVO;
 import com.homi.model.vo.tenant.TenantTotalVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -46,7 +46,7 @@ public class TenantController {
     }
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<TenantListVO>> getTenantList(@RequestBody TenantQueryDTO query) {
+    public ResponseResult<PageVO<TenantContractListVO>> getTenantList(@RequestBody TenantQueryDTO query) {
         return ResponseResult.ok(tenantService.getTenantList(query));
     }
 

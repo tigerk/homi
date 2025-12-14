@@ -14,7 +14,6 @@ import lombok.Data;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.type.JdbcType;
 
-import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +58,7 @@ public class MyBatisGenerator {
             .servicePackageName("com.homi.model.dao.repo")
             .tblNameList(ListUtil.of(
                 "tenant",
-                "tenant_contract",
-                "tenant_contract_room"
+                "tenant_contract"
             )).build();
 
         myBatisGenerator.generate();

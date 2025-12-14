@@ -1,25 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.homi.model.dao.mapper.TenantMapper">
-    <select id="pageTenantList" resultType="com.homi.model.vo.tenant.TenantListVO">
-        select t.id,
-               t.name,
-               t.gender,
-               t.id_type,
-               t.id_no,
-               t.phone,
-               t.status,
-               t.create_time,
-               t.update_time
-        from tenant t
-        <where>
-            <if test="query.name != null">
-                and t.name like concat('%', #{query.name}, '%')
-            </if>
-            <if test="query.phone != null">
-                and t.phone like concat('%', #{query.phone}, '%')
-            </if>
-        </where>
-        order by t.create_time desc
-    </select>
 </mapper>

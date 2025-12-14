@@ -20,7 +20,10 @@ public enum RedisKey {
     LOGIN_TOKEN("login:token:%s", 30, TimeUnit.DAYS),
 
     // 房源编号计数器
-    HOUSE_CODE_COUNTER("house:count:%s:%s", 86400, TimeUnit.SECONDS);
+    HOUSE_CODE_COUNTER("house:count:%s:%s", 86400, TimeUnit.SECONDS),
+
+    // 登录用户公司
+    LOGIN_USER_COMPANY("login:user:company:%s", 30, TimeUnit.DAYS);
 
 
     private final String keyPattern;
