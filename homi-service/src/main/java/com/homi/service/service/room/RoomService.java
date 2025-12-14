@@ -294,30 +294,10 @@ public class RoomService {
             return Collections.emptyList(); // 直接返回空列表，避免后续处理。
         }
 
-        List<RoomListVO> roomListVOList = new ArrayList<>();
+        RoomQueryDTO roomQueryDTO = new RoomQueryDTO();
+        roomQueryDTO.setRoomIds(roomIds);
 
-        List<Room> roomList = roomRepo.listByIds(roomIds);
-
-        if (roomList.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<House> houseList = houseRepo.listByIds(roomList.stream().map(Room::getHouseId).collect(Collectors.toList()));
-
-        if (!roomList.isEmpty()) {
-            roomListVOList = roomList.stream().map(room -> {
-                RoomListVO roomListVO = new RoomListVO();
-                BeanUtils.copyProperties(room, roomListVO);
-
-                House house = houseList.stream().filter(h -> h.getId().equals(room.getHouseId())).findFirst().orElse(null);
-                if (Objects.nonNull(house)) {
-                    BeanUtils.copyProperties(house, roomListVO);
-                }
-
-                return roomListVO;
-            }).toList();
-        }
-
-        return roomListVOList;
+        IPage<RoomListVO> roomListVOIPage = roomRepo.pageRoomGridList(roomQueryDTO);
+        return roomListVOIPage.getRecords();
     }
 }

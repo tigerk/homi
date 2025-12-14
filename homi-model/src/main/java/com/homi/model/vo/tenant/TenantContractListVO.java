@@ -74,11 +74,11 @@ public class TenantContractListVO {
     private Integer paymentMonths;
 
     @Schema(description = "租赁开始时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date leaseStart;
 
     @Schema(description = "租赁结束时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date leaseEnd;
 
     @Schema(description = "实际入住时间")

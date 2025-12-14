@@ -146,7 +146,7 @@ public class TenantContract implements Serializable {
     @TableField("check_out_status")
     private Integer checkOutStatus;
 
-    @Schema(description = "合同状态：0=未生效，1=生效中，2=已退租，3=已逾期，4=已作废")
+    @Schema(description = "合同状态：0=待签字，1=在租中，2=已退租，3=已作废")
     @TableField("status")
     private Integer status;
 

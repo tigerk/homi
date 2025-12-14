@@ -18,6 +18,9 @@ public class RoomQueryDTO extends PageDTO {
     @Schema(description = "小区ID")
     private Long communityId;
 
+    @Schema(description = "房间ID列表")
+    private List<Long> roomIds;
+
     @Schema(description = "空间查询参数")
     private List<RoomAggregatedVO> spatialQuery;
 

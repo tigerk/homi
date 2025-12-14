@@ -8,6 +8,8 @@
         <result property="houseCode" column="house_code"/>
         <result property="houseName" column="house_name"/>
         <result property="doorNumber" column="door_number"/>
+        <result property="communityId" column="community_id"/>
+        <result property="communityName" column="community_name"/>
         <result property="modeRefId" column="mode_ref_id"/>
         <result property="leaseMode" column="lease_mode"/>
         <result property="rentalType" column="rental_type"/>
@@ -47,6 +49,7 @@
                h.house_name   AS house_name,
                h.door_number  AS door_number,
                h.community_id,
+               cm.name        AS community_name,
                h.building,
                h.unit,
                h.floor,
@@ -80,6 +83,7 @@
                  LEFT JOIN house_layout hl ON h.house_layout_id = hl.id
                  LEFT JOIN user u ON u.id = h.salesman_id
                  LEFT JOIN dept d ON d.id = h.dept_id
+                 LEFT JOIN community cm ON h.community_id = cm.id
         where r.deleted = 0
         <include refid="roomListQuery"/>
         order by r.id desc
@@ -88,8 +92,8 @@
     <select id="getStatusTotal" resultType="com.homi.model.vo.room.RoomTotalItemVO">
         SELECT room_status, count(room_status) AS total
         FROM room r
-        LEFT JOIN house h ON r.house_id = h.id
-        LEFT JOIN user u ON u.id = h.salesman_id
+                 LEFT JOIN house h ON r.house_id = h.id
+                 LEFT JOIN user u ON u.id = h.salesman_id
         where r.deleted = 0
         <include refid="roomListQuery"/>
         group by room_status
@@ -98,6 +102,13 @@
     <sql id="roomListQuery">
         <if test="query.keywords != null and query.keywords != ''">
             and r.keywords like concat('%', #{query.keywords,jdbcType=VARCHAR}, '%')
+        </if>
+
+        <if test="query.roomIds != null and query.roomIds.size > 0">
+            AND r.id in
+            <foreach collection="query.roomIds" item="item" separator="," open="(" close=")">
+                #{item,jdbcType=BIGINT}
+            </foreach>
         </if>
 
         <if test="query.roomStatus != null">
