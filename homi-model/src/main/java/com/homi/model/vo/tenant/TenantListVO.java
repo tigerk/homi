@@ -24,8 +24,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TenantContractListVO {
-    @Schema(description = "合同ID")
+public class TenantListVO {
+    @Schema(description = "租客 ID")
     private Long id;
 
     @Schema(description = "合同编号")

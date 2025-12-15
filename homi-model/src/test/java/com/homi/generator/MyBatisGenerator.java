@@ -52,13 +52,17 @@ public class MyBatisGenerator {
             .dbPassword("123456")
             .tblPrefix("")
             // 创建目录，从项目根目录开始
-            .savePath("homi-model")
+            .savePath("homi/homi-model")
             .entityPackageName("com.homi.model.dao.entity")
             .mapperPackageName("com.homi.model.dao.mapper")
             .servicePackageName("com.homi.model.dao.repo")
             .tblNameList(ListUtil.of(
-                "tenant",
-                "tenant_contract"
+                "tenant_personal",
+                "tenant_contract",
+                "tenant_bill",
+                "tenant_bill_detail",
+                "tenant_personal",
+                "tenant_company"
             )).build();
 
         myBatisGenerator.generate();

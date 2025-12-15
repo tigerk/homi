@@ -11,11 +11,11 @@ import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.TenantCompany;
-import com.homi.model.dao.entity.TenantContract;
+import com.homi.model.dao.entity.TenantPersonal;
 import com.homi.model.dao.repo.*;
 import com.homi.model.dto.tenant.*;
 import com.homi.model.vo.tenant.TenantCompanyVO;
-import com.homi.model.vo.tenant.TenantContractListVO;
+import com.homi.model.vo.tenant.TenantListVO;
 import com.homi.model.vo.tenant.TenantPersonalVO;
 import com.homi.model.vo.tenant.TenantTotalItemVO;
 import com.homi.service.service.room.RoomService;
@@ -42,6 +42,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TenantService {
     private final TenantRepo tenantRepo;
+    private final TenantPersonalRepo tenantPersonalRepo;
     private final TenantCompanyRepo tenantCompanyRepo;
     private final TenantContractRepo tenantContractRepo;
     private final FileAttachRepo fileAttachRepo;
@@ -53,20 +54,20 @@ public class TenantService {
      * @param query 查询参数
      * @return 租客列表
      */
-    public PageVO<TenantContractListVO> getTenantList(TenantQueryDTO query) {
-        PageVO<TenantContractListVO> tenantContractListVOPageVO = tenantContractRepo.queryTenantContractList(query);
+    public PageVO<TenantListVO> getTenantList(TenantQueryDTO query) {
+        PageVO<TenantListVO> tenantContractListVOPageVO = tenantRepo.queryTenantList(query);
 
-        tenantContractListVOPageVO.getList().forEach(tenantContractListVO -> {
-            TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, tenantContractListVO.getTenantType());
+        tenantContractListVOPageVO.getList().forEach(tenantListVO -> {
+            TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, tenantListVO.getTenantType());
             if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
-                TenantPersonalVO tenantPersonalVO = tenantRepo.getTenantById(tenantContractListVO.getTenantId());
-                tenantContractListVO.setTenantPersonal(tenantPersonalVO);
+                TenantPersonalVO tenantPersonalVO = tenantPersonalRepo.getTenantById(tenantListVO.getTenantId());
+                tenantListVO.setTenantPersonal(tenantPersonalVO);
             } else {
-                TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenantContractListVO.getTenantId());
-                tenantContractListVO.setTenantCompany(tenantCompanyVO);
+                TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenantListVO.getTenantId());
+                tenantListVO.setTenantCompany(tenantCompanyVO);
             }
 
-            tenantContractListVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(tenantContractListVO.getRoomIds(), Long.class)));
+            tenantListVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(tenantListVO.getRoomIds(), Long.class)));
         });
 
         return tenantContractListVOPageVO;
@@ -90,21 +91,21 @@ public class TenantService {
 
         Triple<Long, String, String> addedTenant;
         if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
-            createDTO.getTenant().setCreateBy(createDTO.getCreateBy());
+            createDTO.getTenantPersonal().setCreateBy(createDTO.getCreateBy());
             // 保存个人租客
-            addedTenant = addTenantPersonal(createDTO.getTenant());
+            addedTenant = addTenantPersonal(createDTO.getTenantPersonal());
         } else {
             createDTO.getTenantCompany().setCreateBy(createDTO.getCreateBy());
             // 保存企业租客
             addedTenant = addTenantEnterprise(createDTO.getTenantCompany());
         }
 
-        createDTO.getContract().setTenantId(addedTenant.getLeft());
+        createDTO.getContract().setTenantTypeId(addedTenant.getLeft());
         createDTO.getContract().setTenantName(addedTenant.getMiddle());
         createDTO.getContract().setTenantPhone(addedTenant.getRight());
 
         createDTO.getContract().setCreateBy(createDTO.getCreateBy());
-        addTenantContract(createDTO.getContract());
+        addTenant(createDTO.getContract());
 
         return addedTenant.getLeft();
     }
@@ -114,15 +115,15 @@ public class TenantService {
      *
      * @param contract 合同信息
      */
-    private void addTenantContract(ContractDTO contract) {
-        TenantContract tenantContract = new TenantContract();
-        BeanUtils.copyProperties(contract, tenantContract);
+    private void addTenant(ContractDTO contract) {
+        Tenant tenant = new Tenant();
+        BeanUtils.copyProperties(contract, tenant);
 
-        tenantContract.setRoomIds(JSONUtil.toJsonStr(contract.getRoomIds()));
+        tenant.setRoomIds(JSONUtil.toJsonStr(contract.getRoomIds()));
 
-        tenantContract.setStatus(TenantContractStatusEnum.TO_SIGN.getCode());
-        tenantContract.setCreateTime(DateUtil.date());
-        tenantContractRepo.save(tenantContract);
+        tenant.setStatus(TenantContractStatusEnum.TO_SIGN.getCode());
+        tenant.setCreateTime(DateUtil.date());
+        tenantRepo.save(tenant);
     }
 
     /**
@@ -153,48 +154,45 @@ public class TenantService {
      * {@code @author} tk
      * {@code @date} 2025/12/14 16:51
      *
-     * @param tenantDTO 参数说明
+     * @param tenantPersonalDTO 参数说明
      * @return java.lang.Long
      */
-    private Triple<Long, String, String> addTenantPersonal(TenantDTO tenantDTO) {
-        Tenant tenant = new Tenant();
-        Tenant tenantExist = tenantRepo.getTenantByIdNo(tenantDTO.getIdNo());
-        if (tenantExist != null) {
-            tenantExist.setUpdateBy(tenantDTO.getCreateBy());
-            tenantExist.setUpdateTime(DateUtil.date());
-
-            tenant = tenantExist;
+    private Triple<Long, String, String> addTenantPersonal(TenantPersonalDTO tenantPersonalDTO) {
+        TenantPersonal tenantPersonal = new TenantPersonal();
+        TenantPersonal tenantPersonalExist = tenantPersonalRepo.getTenantByIdNo(tenantPersonalDTO.getIdNo());
+        if (tenantPersonalExist != null) {
+            tenantPersonal = tenantPersonalExist;
         } else {
-            tenant.setCreateBy(tenantDTO.getCreateBy());
-            tenant.setCreateTime(DateUtil.date());
+            tenantPersonal.setCreateBy(tenantPersonalDTO.getCreateBy());
+            tenantPersonal.setCreateTime(DateUtil.date());
         }
 
-        BeanUtils.copyProperties(tenantDTO, tenant);
-        tenant.setTags(JSONUtil.toJsonStr(tenantDTO.getTags()));
-        tenant.setStatus(StatusEnum.ACTIVE.getValue());
-        tenantRepo.save(tenant);
+        BeanUtils.copyProperties(tenantPersonalDTO, tenantPersonal);
+        tenantPersonal.setTags(JSONUtil.toJsonStr(tenantPersonalDTO.getTags()));
+        tenantPersonal.setStatus(StatusEnum.ACTIVE.getValue());
+        tenantPersonalRepo.save(tenantPersonal);
 
         // 保存租客身份证反面
-        if (CollUtil.isNotEmpty(tenantDTO.getIdCardBackList())) {
-            fileAttachRepo.addFileAttachBatch(tenant.getId(), FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType(), tenantDTO.getIdCardBackList());
+        if (CollUtil.isNotEmpty(tenantPersonalDTO.getIdCardBackList())) {
+            fileAttachRepo.addFileAttachBatch(tenantPersonal.getId(), FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType(), tenantPersonalDTO.getIdCardBackList());
         }
 
         // 保存租客身份证正面
-        if (CollUtil.isNotEmpty(tenantDTO.getIdCardFrontList())) {
-            fileAttachRepo.addFileAttachBatch(tenant.getId(), FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(), tenantDTO.getIdCardFrontList());
+        if (CollUtil.isNotEmpty(tenantPersonalDTO.getIdCardFrontList())) {
+            fileAttachRepo.addFileAttachBatch(tenantPersonal.getId(), FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(), tenantPersonalDTO.getIdCardFrontList());
         }
 
         // 保存租客手持照片
-        if (CollUtil.isNotEmpty(tenantDTO.getIdCardInHandList())) {
-            fileAttachRepo.addFileAttachBatch(tenant.getId(), FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(), tenantDTO.getIdCardInHandList());
+        if (CollUtil.isNotEmpty(tenantPersonalDTO.getIdCardInHandList())) {
+            fileAttachRepo.addFileAttachBatch(tenantPersonal.getId(), FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(), tenantPersonalDTO.getIdCardInHandList());
         }
 
         // 保存租客其他照片
-        if (CollUtil.isNotEmpty(tenantDTO.getOtherImageList())) {
-            fileAttachRepo.addFileAttachBatch(tenant.getId(), FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType(), tenantDTO.getOtherImageList());
+        if (CollUtil.isNotEmpty(tenantPersonalDTO.getOtherImageList())) {
+            fileAttachRepo.addFileAttachBatch(tenantPersonal.getId(), FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType(), tenantPersonalDTO.getOtherImageList());
         }
 
-        return Triple.of(tenant.getId(), tenant.getName(), tenant.getPhone());
+        return Triple.of(tenantPersonal.getId(), tenantPersonal.getName(), tenantPersonal.getPhone());
     }
 
 
@@ -205,12 +203,12 @@ public class TenantService {
      * {@code @date} 2025/12/14 04:00
      *
      * @param query 参数说明
-     * @return java.util.List<com.homi.model.vo.tenant.TenantTotalItemVO>
+     * @return java.util.List<com.homi.model.vo.tenantPersonal.TenantTotalItemVO>
      */
     public List<TenantTotalItemVO> getTenantStatusTotal(TenantQueryDTO query) {
         Map<Integer, TenantTotalItemVO> result = initTenantTotalItemMap();
 
-        List<TenantTotalItemVO> statusTotal = tenantContractRepo.getBaseMapper().getStatusTotal(query);
+        List<TenantTotalItemVO> statusTotal = tenantRepo.getBaseMapper().getStatusTotal(query);
         statusTotal.forEach(tenantTotalItemVO -> {
             TenantTotalItemVO orDefault = result.getOrDefault(tenantTotalItemVO.getStatus(), tenantTotalItemVO);
             orDefault.setTotal(tenantTotalItemVO.getTotal());

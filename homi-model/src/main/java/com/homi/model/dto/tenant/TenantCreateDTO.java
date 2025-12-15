@@ -21,7 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 public class TenantCreateDTO {
     @Schema(description = "个人租户信息")
-    private TenantDTO tenant;
+    private TenantPersonalDTO tenantPersonal;
 
     @Schema(description = "企业租户信息")
     private TenantCompanyDTO tenantCompany;

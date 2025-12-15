@@ -1,12 +1,13 @@
 package com.homi.model.dao.repo;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.mapper.TenantMapper;
-import com.homi.model.vo.tenant.TenantPersonalVO;
-import org.springframework.cache.annotation.Cacheable;
+import com.homi.model.dto.tenant.TenantQueryDTO;
+import com.homi.model.vo.tenant.TenantListVO;
 import org.springframework.stereotype.Service;
 
 /**
@@ -19,15 +20,19 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TenantRepo extends ServiceImpl<TenantMapper, Tenant> {
-    public Tenant getTenantByIdNo(String idNo) {
-        return getOne(new LambdaQueryWrapper<Tenant>().eq(Tenant::getIdNo, idNo));
-    }
+    public PageVO<TenantListVO> queryTenantList(TenantQueryDTO query) {
+        Page<TenantListVO> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
+        IPage<TenantListVO> tenantList = getBaseMapper().pageTenantList(page, query);
 
-    @Cacheable(cacheNames = "tenant-personal", key = "#id")
-    public TenantPersonalVO getTenantById(Long id) {
-        Tenant one = getOne(new LambdaQueryWrapper<Tenant>().eq(Tenant::getId, id));
+        // 封装返回结果
+        PageVO<TenantListVO> pageResult = new PageVO<>();
+        pageResult.setTotal(tenantList.getTotal());
+        pageResult.setList(tenantList.getRecords());
+        pageResult.setCurrentPage(tenantList.getCurrent());
+        pageResult.setPageSize(tenantList.getSize());
+        pageResult.setPages(tenantList.getPages());
 
-        return BeanCopyUtils.copyBean(one, TenantPersonalVO.class);
+        return pageResult;
     }
 }

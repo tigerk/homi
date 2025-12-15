@@ -13,7 +13,7 @@ import java.util.List;
  * {@code @date} 2025/12/2
  */
 @Data
-public class TenantDTO {
+public class TenantPersonalDTO {
     @Schema(description = "租户ID")
     private Integer id;
 

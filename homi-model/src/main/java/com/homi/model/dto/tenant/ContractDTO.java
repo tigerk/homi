@@ -37,9 +37,9 @@ public class ContractDTO {
     private List<String> roomIds;
 
     @Schema(description = "租客ID", example = "1", hidden = true)
-    private Long tenantId;
+    private Long tenantTypeId;
 
-    @Schema(description = "租客类型：1=个人，2=企业", example = "1")
+    @Schema(description = "租客类型：0=个人，1=企业", example = "0")
     private Integer tenantType;
 
     @Schema(description = "租客名称（冗余字段，便于查询）", example = "张三")

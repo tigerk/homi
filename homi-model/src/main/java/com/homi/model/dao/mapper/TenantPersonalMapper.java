@@ -1,17 +1,18 @@
 package com.homi.model.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.homi.model.dao.entity.TenantContract;
+import com.homi.model.dao.entity.TenantPersonal;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 租赁合同信息表 Mapper 接口
+ * 租客个人信息表 Mapper 接口
  * </p>
  *
  * @author tk
- * @since 2025-11-04
+ * @since 2025-12-15
  */
 @Mapper
-public interface TenantContractMapper extends BaseMapper<TenantContract> {
+public interface TenantPersonalMapper extends BaseMapper<TenantPersonal> {
+
 }
