@@ -63,6 +63,10 @@ public class House implements Serializable {
     @TableField("mode_ref_id")
     private Long modeRefId;
 
+    @Schema(description = "来源id，集中式为集中式id，整租、合租为community_id")
+    @TableField("lease_mode_id")
+    private Long leaseModeId;
+
     @Schema(description = "小区ID")
     @TableField("community_id")
     private Long communityId;

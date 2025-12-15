@@ -26,6 +26,9 @@
         <if test="query.status != null">
             and t.status = #{query.status,jdbcType=INTEGER}
         </if>
+        <if test="query.roomId != null">
+            WHERE JSON_CONTAINS(t.room_ids, CAST(#{query.roomId} AS JSON))
+        </if>
     </sql>
 
     <select id="pageTenantList" resultType="com.homi.model.vo.tenant.TenantListVO">
