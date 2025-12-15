@@ -136,7 +136,7 @@ public class ScatterService {
             house.setHouseLayoutId(layoutId);
 
             house.setLeaseMode(LeaseModeEnum.SCATTER.getCode());
-            house.setModeRefId(scatterCreateDTO.getCommunity().getCommunityId());
+            house.setLeaseModeId(scatterCreateDTO.getCommunity().getCommunityId());
             // 设置租赁类型
             house.setRentalType(houseDTO.getRentalType());
 
@@ -186,7 +186,7 @@ public class ScatterService {
         HouseLayout houseLayout = new HouseLayout();
         BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
         houseLayout.setLeaseMode(LeaseModeEnum.SCATTER.getCode());
-        houseLayout.setModeRefId(scatterCreateDTO.getCommunity().getCommunityId());
+        houseLayout.setLeaseModeId(scatterCreateDTO.getCommunity().getCommunityId());
         houseLayout.setCompanyId(scatterCreateDTO.getCompanyId());
 
         houseLayout.setFacilities(JSONUtil.toJsonStr(houseLayoutDTO.getFacilities()));

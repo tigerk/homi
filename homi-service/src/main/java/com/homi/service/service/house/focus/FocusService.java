@@ -108,7 +108,7 @@ public class FocusService {
             HouseLayout houseLayout = new HouseLayout();
             BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
             houseLayout.setLeaseMode(LeaseModeEnum.FOCUS.getCode());
-            houseLayout.setModeRefId(houseCreateDto.getId());
+            houseLayout.setLeaseModeId(houseCreateDto.getId());
             houseLayout.setCompanyId(houseCreateDto.getCompanyId());
             houseLayout.setCreateBy(houseCreateDto.getCreateBy());
             houseLayout.setCreateTime(houseCreateDto.getCreateTime());
@@ -181,7 +181,7 @@ public class FocusService {
             house.setCommunityId(focusCreateDto.getCommunity().getCommunityId());
 
             // 集中式标记
-            house.setModeRefId(focusCreateDto.getId());
+            house.setLeaseModeId(focusCreateDto.getId());
             house.setLeaseMode(LeaseModeEnum.FOCUS.getCode());
 
             house.setHouseLayoutId(houseLayoutIdMap.get(houseDTO.getHouseLayoutId()));
@@ -304,10 +304,10 @@ public class FocusService {
             .toList();
         focusCreateDTO.setBuildings(list);
 
-        List<HouseLayoutDTO> layoutListByModeRefId = houseLayoutRepo.getLayoutListByModeRefId(focusId, LeaseModeEnum.FOCUS.getCode());
-        focusCreateDTO.setHouseLayoutList(layoutListByModeRefId);
+        List<HouseLayoutDTO> layoutListByLeaseModeId = houseLayoutRepo.getLayoutListByLeaseModeId(focusId, LeaseModeEnum.FOCUS.getCode());
+        focusCreateDTO.setHouseLayoutList(layoutListByLeaseModeId);
 
-        List<House> focusHouses = houseRepo.getHousesByModeRefId(focusId, LeaseModeEnum.FOCUS.getCode());
+        List<House> focusHouses = houseRepo.getHousesByLeaseModeId(focusId, LeaseModeEnum.FOCUS.getCode());
         List<FocusHouseDTO> houseList = focusHouses.stream()
             .map(focusHouse -> BeanCopyUtils.copyBean(focusHouse, FocusHouseDTO.class))
             .toList();

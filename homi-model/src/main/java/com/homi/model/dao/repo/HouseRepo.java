@@ -74,13 +74,13 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
      * {@code @author} tk
      * {@code @date} 2025/11/12 09:09
      *
-     * @param modeRefId 参数说明
+     * @param leaseModeId 参数说明
      * @param leaseMode 参数说明
      * @return java.util.List<com.homi.model.entity.House>
      */
-    public List<House> getHousesByModeRefId(Long modeRefId, Integer leaseMode) {
+    public List<House> getHousesByLeaseModeId(Long leaseModeId, Integer leaseMode) {
         LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(House::getModeRefId, modeRefId);
+        queryWrapper.eq(House::getLeaseModeId, leaseModeId);
         queryWrapper.eq(House::getLeaseMode, leaseMode);
         return list(queryWrapper);
     }

@@ -34,7 +34,7 @@ public class ScatterHouseVO {
     private Integer leaseMode;
 
     @Schema(description = "来源id，集中式为集中式id，整租、合租为community_id")
-    private Long modeRefId;
+    private Long leaseModeId;
 
     @Schema(description = "小区ID")
     private Long communityId;

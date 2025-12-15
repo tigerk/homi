@@ -23,7 +23,7 @@ import java.math.BigDecimal;
 @Schema(description = "组合模式")
 public class CompoundGroup {
     @Schema(description = "模式引用ID")
-    private Long modeRefId;
+    private Long leaseModeId;
 
     @Schema(description = "租赁模式")
     private Integer leaseMode;

@@ -10,7 +10,7 @@
         <result property="doorNumber" column="door_number"/>
         <result property="communityId" column="community_id"/>
         <result property="communityName" column="community_name"/>
-        <result property="modeRefId" column="mode_ref_id"/>
+        <result property="leaseModeId" column="lease_mode_id"/>
         <result property="leaseMode" column="lease_mode"/>
         <result property="rentalType" column="rental_type"/>
         <result property="deptId" column="dept_id"/>
@@ -54,7 +54,7 @@
                h.unit,
                h.floor,
                h.lease_mode,
-               h.mode_ref_id,
+               h.lease_mode_id,
                h.rental_type,
                h.dept_id,
                d.name         AS dept_name,
@@ -115,8 +115,8 @@
             and r.room_status = #{query.roomStatus,jdbcType=INTEGER}
         </if>
 
-        <if test="query.modeRefId != null">
-            and h.mode_ref_id = #{query.modeRefId,jdbcType=BIGINT}
+        <if test="query.leaseModeId != null">
+            and h.lease_mode_id = #{query.leaseModeId,jdbcType=BIGINT}
         </if>
 
         <if test="query.communityId != null">
@@ -131,7 +131,7 @@
             AND (
             <foreach collection="query.spatialQuery" item="item" separator="OR">
                 (
-                    h.mode_ref_id = #{item.modeRefId, jdbcType=BIGINT}
+                    h.lease_mode_id = #{item.leaseModeId, jdbcType=BIGINT}
                     AND h.building = #{item.building, jdbcType=VARCHAR}
                     AND h.unit = #{item.unit, jdbcType=VARCHAR}
                     AND h.floor = #{item.floor, jdbcType=INTEGER}
@@ -142,7 +142,7 @@
     </sql>
 
     <select id="selectAggregatedRooms" resultType="com.homi.model.vo.room.grid.RoomAggregatedVO">
-        SELECT h.mode_ref_id,
+        SELECT h.lease_mode_id,
                h.building,
                h.unit,
                h.floor,
@@ -153,11 +153,11 @@
                  LEFT JOIN house h ON r.house_id = h.id
         WHERE 1 = 1
         <include refid="roomListQuery"/>
-        GROUP BY h.mode_ref_id,
+        GROUP BY h.lease_mode_id,
                  h.building,
                  h.unit,
                  h.floor
-        ORDER BY h.mode_ref_id DESC,
+        ORDER BY h.lease_mode_id DESC,
                  h.building ASC,
                  h.unit ASC,
                  h.floor ASC

@@ -42,7 +42,7 @@ public class RoomListVO {
     private String doorNumber;
 
     @Schema(description = "来源id")
-    private Long modeRefId;
+    private Long leaseModeId;
 
     @Schema(description = "房源租赁类型：1、集中式；2、整/合租")
     private Integer leaseMode;

@@ -82,7 +82,7 @@ public class RoomService {
 
     public void format(RoomListVO room) {
         if (room.getLeaseMode().equals(LeaseModeEnum.FOCUS.getCode())) {
-            Focus byId = focusRepo.getById(room.getModeRefId());
+            Focus byId = focusRepo.getById(room.getLeaseModeId());
             room.setCommunityName(byId.getFocusName());
         }
 

@@ -53,12 +53,12 @@ public class RoomGridService {
         return roomRepo.selectAggregatedRooms(query);
     }
 
-    public record RoomGridGroupKey(Long modeRefId, Integer leaseMode, String building, String unit, Integer floor) implements Comparable<RoomGridGroupKey> {
+    public record RoomGridGroupKey(Long leaseModeId, Integer leaseMode, String building, String unit, Integer floor) implements Comparable<RoomGridGroupKey> {
         @Override
         public int compareTo(RoomGridGroupKey o) {
-            int modeRefIdComparison = Long.compare(this.modeRefId, o.modeRefId);
-            if (modeRefIdComparison != 0) {
-                return modeRefIdComparison;
+            int leaseModeIdComparison = Long.compare(this.leaseModeId, o.leaseModeId);
+            if (leaseModeIdComparison != 0) {
+                return leaseModeIdComparison;
             }
             int leaseModeComparison = Integer.compare(this.leaseMode, o.leaseMode);
             if (leaseModeComparison != 0) {
@@ -103,7 +103,7 @@ public class RoomGridService {
         // 7. 构建楼层分组数据
         Map<RoomGridGroupKey, List<RoomListVO>> roomGridGroupKeyListMap = rooms.stream().collect(Collectors.groupingBy(
                 room -> new RoomGridGroupKey(
-                        room.getModeRefId(),
+                        room.getLeaseModeId(),
                         room.getLeaseMode(),
                         room.getBuilding(),
                         room.getUnit(),
@@ -117,10 +117,10 @@ public class RoomGridService {
             RoomGridItemVO roomGridItemVO = new RoomGridItemVO();
             RoomGridGroupKey key = entry.getKey();
 
-            CompoundGroup compoundGroup = getCompoundGroup(key.modeRefId, key.leaseMode, aggregatedRooms);
+            CompoundGroup compoundGroup = getCompoundGroup(key.leaseModeId, key.leaseMode, aggregatedRooms);
             roomGridItemVO.setCompoundGroup(compoundGroup);
-            roomGridItemVO.setBuildingGroup(getBuildingGroup(key.modeRefId, key.building, key.unit, aggregatedRooms));
-            roomGridItemVO.setFloorGroup(getFloorGroup(key.modeRefId, key.building, key.unit, key.floor, aggregatedRooms));
+            roomGridItemVO.setBuildingGroup(getBuildingGroup(key.leaseModeId, key.building, key.unit, aggregatedRooms));
+            roomGridItemVO.setFloorGroup(getFloorGroup(key.leaseModeId, key.building, key.unit, key.floor, aggregatedRooms));
 
             // 翻译房间状态
             entry.getValue().forEach(room -> {
@@ -167,7 +167,7 @@ public class RoomGridService {
         int leasedCount = 0;
 
         for (RoomAggregatedVO room : aggregatedRooms) {
-            if (modRefId.equals(room.getModeRefId()) && building.equals(room.getBuilding()) && unit.equals(room.getUnit()) && floor.equals(room.getFloor())) {
+            if (modRefId.equals(room.getLeaseModeId()) && building.equals(room.getBuilding()) && unit.equals(room.getUnit()) && floor.equals(room.getFloor())) {
                 roomCount += (room.getRoomCount() != null ? room.getRoomCount() : 0);
                 leasedCount += (room.getLeasedCount() != null ? room.getLeasedCount() : 0);
             }
@@ -188,13 +188,13 @@ public class RoomGridService {
      * {@code @author} tk
      * {@code @date} 2025/9/30 09:43
      *
-     * @param modeRefId       参数说明
+     * @param leaseModeId       参数说明
      * @param building        参数说明
      * @param unit            参数说明
      * @param aggregatedRooms 参数说明
      * @return com.homi.domain.vo.room.grid.BuildingGroup
      */
-    private BuildingGroup getBuildingGroup(Long modeRefId, String building, String unit, List<RoomAggregatedVO> aggregatedRooms) {
+    private BuildingGroup getBuildingGroup(Long leaseModeId, String building, String unit, List<RoomAggregatedVO> aggregatedRooms) {
         BuildingGroup buildingGroup = new BuildingGroup();
         buildingGroup.setBuilding(building);
         buildingGroup.setUnit(unit);
@@ -203,7 +203,7 @@ public class RoomGridService {
         int leasedCount = 0;
 
         for (RoomAggregatedVO room : aggregatedRooms) {
-            if (modeRefId.equals(room.getModeRefId()) && building.equals(room.getBuilding()) && unit.equals(room.getUnit())) {
+            if (leaseModeId.equals(room.getLeaseModeId()) && building.equals(room.getBuilding()) && unit.equals(room.getUnit())) {
                 roomCount += (room.getRoomCount() != null ? room.getRoomCount() : 0);
                 leasedCount += (room.getLeasedCount() != null ? room.getLeasedCount() : 0);
             }
@@ -226,24 +226,24 @@ public class RoomGridService {
      * {@code @author} tk
      * {@code @date} 2025/9/30 09:43
      *
-     * @param modeRefId       leaseMode=集中式时，为集中式id；leaseMode=分散式时，为小区 id
+     * @param leaseModeId       leaseMode=集中式时，为集中式id；leaseMode=分散式时，为小区 id
      * @param leaseMode       租房模式
      * @param aggregatedRooms 参数说明
      * @return com.homi.domain.vo.room.grid.CompoundGroup
      */
-    public CompoundGroup getCompoundGroup(Long modeRefId, Integer leaseMode, List<RoomAggregatedVO> aggregatedRooms) {
+    public CompoundGroup getCompoundGroup(Long leaseModeId, Integer leaseMode, List<RoomAggregatedVO> aggregatedRooms) {
         CompoundGroup compoundGroup = new CompoundGroup();
-        compoundGroup.setModeRefId(modeRefId);
+        compoundGroup.setLeaseModeId(leaseModeId);
         compoundGroup.setLeaseMode(leaseMode);
 
         Long communityId;
         String displayName = CharSequenceUtil.EMPTY;
         if (leaseMode.equals(LeaseModeEnum.FOCUS.getCode())) {
-            Focus focus = focusRepo.getById(modeRefId);
+            Focus focus = focusRepo.getById(leaseModeId);
             displayName = focus.getFocusName();
             communityId = focus.getCommunityId();
         } else {
-            communityId = modeRefId;
+            communityId = leaseModeId;
         }
 
         Community community = communityRepo.getById(communityId);
@@ -259,7 +259,7 @@ public class RoomGridService {
         int leasedCount = 0;
 
         for (RoomAggregatedVO room : aggregatedRooms) {
-            if (modeRefId.equals(room.getModeRefId())) {
+            if (leaseModeId.equals(room.getLeaseModeId())) {
                 Optional.ofNullable(room.getBuilding()).ifPresent(buildings::add);
                 Optional.ofNullable(room.getFloor()).ifPresent(floors::add);
                 roomCount += Optional.ofNullable(room.getRoomCount()).orElse(0);

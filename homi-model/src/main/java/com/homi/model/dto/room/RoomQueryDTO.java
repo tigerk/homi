@@ -28,7 +28,7 @@ public class RoomQueryDTO extends PageDTO {
     private Integer leaseMode;
 
     @Schema(description = "模式引用ID")
-    private Long modeRefId;
+    private Long leaseModeId;
 
     @Schema(description = "搜索关键字")
     private String keywords;

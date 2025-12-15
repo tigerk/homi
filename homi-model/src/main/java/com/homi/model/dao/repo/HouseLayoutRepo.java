@@ -30,14 +30,14 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
      * {@code @author} tk
      * {@code @date} 2025/9/17 21:46
      *
-     * @param modeRefId 参数说明
+     * @param leaseModeId 参数说明
      * @param leaseMode 参数说明
      * @return java.util.List<com.homi.domain.dto.house.HouseLayoutDTO>
      */
-    public List<HouseLayoutDTO> getLayoutListByModeRefId(Long modeRefId, Integer leaseMode) {
+    public List<HouseLayoutDTO> getLayoutListByLeaseModeId(Long leaseModeId, Integer leaseMode) {
         LambdaQueryWrapper<HouseLayout> queryWrapper = new LambdaQueryWrapper<>();
 
-        queryWrapper.eq(HouseLayout::getModeRefId, modeRefId);
+        queryWrapper.eq(HouseLayout::getLeaseModeId, leaseModeId);
         queryWrapper.eq(HouseLayout::getLeaseMode, leaseMode);
         return getBaseMapper().selectList(queryWrapper).stream().map(layout -> {
 

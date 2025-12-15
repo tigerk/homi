@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 @Schema(description = "房间聚合数据")
 public class RoomAggregatedVO {
     @Schema(description = "模式来源id，集中式为集中式id，整租、合租为community_id")
-    private Long modeRefId;
+    private Long leaseModeId;
 
     @Schema(description = "楼栋")
     private String building;
