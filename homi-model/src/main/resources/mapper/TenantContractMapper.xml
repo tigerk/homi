@@ -6,9 +6,7 @@
         select tc.status,
                count(*) as total
         from tenant_contract tc
-                 left join tenant t on tc.tenant_id = t.id
         where tc.deleted = false
-          and t.deleted = false
         <include refid="tenantListQuery"/>
         group by tc.status
     </select>
@@ -24,6 +22,9 @@
         </if>
         <if test="query.tenantType != null">
             and tc.tenant_type = #{query.tenantType,jdbcType=INTEGER}
+        </if>
+        <if test="query.status != null">
+            and tc.status = #{query.status,jdbcType=INTEGER}
         </if>
     </sql>
 

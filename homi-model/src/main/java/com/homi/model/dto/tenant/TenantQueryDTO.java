@@ -23,4 +23,7 @@ public class TenantQueryDTO extends PageDTO {
 
     @Schema(description = "租客类型：1=个人，2=企业", example = "1")
     private Integer tenantType;
+
+    @Schema(description = "合同状态：0=待签字，1=在租中，2=已退租，3=已作废", example = "0")
+    private Integer status;
 }
