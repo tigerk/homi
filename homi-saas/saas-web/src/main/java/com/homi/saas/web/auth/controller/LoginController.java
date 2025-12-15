@@ -41,14 +41,11 @@ import java.util.List;
 @Slf4j
 @RestController
 public class LoginController {
-
     private final AuthService authService;
+    private final CompanyService companyService;
+    private final CompanyUserService companyUserService;
 
     private final StringRedisTemplate redisTemplate;
-
-    private final CompanyService companyService;
-
-    private final CompanyUserService companyUserService;
 
     // 短信客户端
     private final SmsClient smsClient;
