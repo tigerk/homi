@@ -16,9 +16,9 @@ import java.util.List;
  * {@code @date} 2025/12/2
  */
 @Data
-public class ContractDTO {
+public class TenantDTO {
 
-    @Schema(description = "合同ID", example = "1")
+    @Schema(description = "租客ID", example = "1")
     private BigInteger id;
 
     @Schema(description = "合同编号", example = "C001")

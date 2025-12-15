@@ -54,7 +54,7 @@ public class TenantController {
     @Log(title = "创建租客", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<Long> createTenant(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         createDTO.setCreateBy(loginUser.getId());
-        createDTO.getContract().setCompanyId(loginUser.getCurCompanyId());
+        createDTO.getTenant().setCompanyId(loginUser.getCurCompanyId());
 
         return ResponseResult.ok(tenantService.createTenant(createDTO));
     }

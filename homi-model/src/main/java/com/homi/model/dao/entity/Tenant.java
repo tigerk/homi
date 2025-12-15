@@ -32,9 +32,13 @@ public class Tenant implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "合同ID")
+    @Schema(description = "租客 ID")
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
+
+    @Schema(description = "关联的租客 ID")
+    @TableField("parent_tenant_id")
+    private String parentTenantId;
 
     @Schema(description = "合同编号")
     @TableField("contract_code")

@@ -28,7 +28,7 @@ public class TenantCreateDTO {
 
     private List<TenantMateDTO> tenantMateList;
 
-    private ContractDTO contract;
+    private TenantDTO tenant;
 
     private List<OtherFeeDTO> otherFees;
 

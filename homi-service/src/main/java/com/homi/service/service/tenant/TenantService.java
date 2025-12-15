@@ -84,7 +84,7 @@ public class TenantService {
      */
     @Transactional(rollbackFor = Exception.class)
     public Long createTenant(TenantCreateDTO createDTO) {
-        TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, createDTO.getContract().getTenantType());
+        TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, createDTO.getTenant().getTenantType());
         if (tenantTypeEnum == null) {
             throw new IllegalArgumentException("租户类型不存在");
         }
@@ -100,12 +100,12 @@ public class TenantService {
             addedTenant = addTenantEnterprise(createDTO.getTenantCompany());
         }
 
-        createDTO.getContract().setTenantTypeId(addedTenant.getLeft());
-        createDTO.getContract().setTenantName(addedTenant.getMiddle());
-        createDTO.getContract().setTenantPhone(addedTenant.getRight());
+        createDTO.getTenant().setTenantTypeId(addedTenant.getLeft());
+        createDTO.getTenant().setTenantName(addedTenant.getMiddle());
+        createDTO.getTenant().setTenantPhone(addedTenant.getRight());
 
-        createDTO.getContract().setCreateBy(createDTO.getCreateBy());
-        addTenant(createDTO.getContract());
+        createDTO.getTenant().setCreateBy(createDTO.getCreateBy());
+        addTenant(createDTO.getTenant());
 
         return addedTenant.getLeft();
     }
@@ -115,7 +115,7 @@ public class TenantService {
      *
      * @param contract 合同信息
      */
-    private void addTenant(ContractDTO contract) {
+    private void addTenant(TenantDTO contract) {
         Tenant tenant = new Tenant();
         BeanUtils.copyProperties(contract, tenant);
 

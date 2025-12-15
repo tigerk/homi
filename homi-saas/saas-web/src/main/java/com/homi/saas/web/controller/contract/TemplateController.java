@@ -109,7 +109,7 @@ public class TemplateController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
 
-        String fileName = "contract-preview " + query.getContractType() + DateUtil.date().toTimestamp() + ".pdf";
+        String fileName = "tenant-preview " + query.getContractType() + DateUtil.date().toTimestamp() + ".pdf";
 
         headers.setContentDisposition(ContentDisposition.attachment().filename(fileName).build());
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
