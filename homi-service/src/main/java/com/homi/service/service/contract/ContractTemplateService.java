@@ -4,20 +4,25 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.enums.contract.ContractTemplateStatusEnum;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.dao.entity.CompanyUser;
+import com.homi.model.dao.entity.ContractTemplate;
+import com.homi.model.dao.repo.CompanyUserRepo;
+import com.homi.model.dao.repo.ContractTemplateRepo;
 import com.homi.model.dto.contract.ContractTemplateCreateDTO;
 import com.homi.model.dto.contract.ContractTemplateDeleteDTO;
 import com.homi.model.dto.contract.ContractTemplateQueryDTO;
 import com.homi.model.dto.contract.ContractTemplateStatusDTO;
-import com.homi.common.lib.enums.contract.ContractTemplateStatusEnum;
-import com.homi.model.vo.contract.ContractTemplateListDTO;
-import com.homi.model.dao.entity.ContractTemplate;
-import com.homi.model.dao.repo.ContractTemplateRepo;
+import com.homi.model.vo.contract.ContractTemplateListVO;
 import com.homi.service.service.pdf.PdfService;
-import com.homi.common.lib.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -31,11 +36,12 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class ContractTemplateService {
+    private final CompanyUserRepo companyUserRepo;
     private final ContractTemplateRepo contractTemplateRepo;
 
     private final PdfService pdfService;
 
-    public PageVO<ContractTemplateListDTO> getContractTemplateList(ContractTemplateQueryDTO query) {
+    public PageVO<ContractTemplateListVO> getContractTemplateList(ContractTemplateQueryDTO query) {
 
         LambdaQueryWrapper<ContractTemplate> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ContractTemplate::getContractType, query.getContractType());
@@ -54,15 +60,15 @@ public class ContractTemplateService {
 
         Page<ContractTemplate> dictDataPage = contractTemplateRepo.page(page, wrapper);
 
-        PageVO<ContractTemplateListDTO> pageVO = new PageVO<>();
+        PageVO<ContractTemplateListVO> pageVO = new PageVO<>();
         pageVO.setTotal(dictDataPage.getTotal());
         pageVO.setList(dictDataPage.getRecords().stream().map(c -> {
-            ContractTemplateListDTO contractTemplateListDTO = BeanCopyUtils.copyBean(c, ContractTemplateListDTO.class);
+            ContractTemplateListVO contractTemplateListVO = BeanCopyUtils.copyBean(c, ContractTemplateListVO.class);
             if (Objects.nonNull(c.getDeptIds())) {
-                assert contractTemplateListDTO != null;
-                contractTemplateListDTO.setDeptIds(JSONUtil.toList(c.getDeptIds(), String.class));
+                assert contractTemplateListVO != null;
+                contractTemplateListVO.setDeptIds(JSONUtil.toList(c.getDeptIds(), String.class));
             }
-            return contractTemplateListDTO;
+            return contractTemplateListVO;
         }).toList());
         pageVO.setCurrentPage(dictDataPage.getCurrent());
         pageVO.setPageSize(dictDataPage.getSize());
@@ -142,5 +148,55 @@ public class ContractTemplateService {
         contractTemplateRepo.removeById(contractTemplate);
 
         return true;
+    }
+
+    /**
+     * 获取用户可用的合同模板列表
+     *
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/16 23:22
+     *
+     * @param companyId     公司ID
+     * @param currentUserId 用户 ID
+     * @param contractType  合同类型
+     * @return java.util.List<com.homi.model.vo.contract.ContractTemplateListVO> 合同列表
+     */
+    public List<ContractTemplateListVO> getMyAvailableContractTemplates(Long companyId, Long currentUserId, Integer contractType) {
+        CompanyUser companyUser = companyUserRepo.getCompanyUser(companyId, currentUserId);
+        Long deptId = companyUser.getDeptId();
+        if (Objects.isNull(deptId)) {
+            return Collections.emptyList();
+        }
+        List<ContractTemplate> contractTemplateList = contractTemplateRepo.getContractTemplateList(deptId, contractType);
+
+        return formatContractTemplateListVO(contractTemplateList);
+    }
+
+    public List<ContractTemplateListVO> getAllContractTemplateList(Long curCompanyId, Integer contractType) {
+        List<ContractTemplate> contractTemplateList = contractTemplateRepo.getContractTemplateListByCompanyIdAndType(curCompanyId, contractType);
+
+        return formatContractTemplateListVO(contractTemplateList);
+    }
+
+    /**
+     * 格式化合同模板列表VO
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/17 01:13
+     *
+     * @param contractTemplateList 参数说明
+     * @return java.util.@org.jetbrains.annotations.NotNull List<com.homi.model.vo.contract.ContractTemplateListVO>
+     */
+    @NotNull
+    private List<ContractTemplateListVO> formatContractTemplateListVO(List<ContractTemplate> contractTemplateList) {
+        return contractTemplateList.stream().map(c -> {
+            ContractTemplateListVO contractTemplateListVO = BeanCopyUtils.copyBean(c, ContractTemplateListVO.class);
+            if (Objects.nonNull(c.getDeptIds())) {
+                assert contractTemplateListVO != null;
+                contractTemplateListVO.setDeptIds(JSONUtil.toList(c.getDeptIds(), String.class));
+            }
+            return contractTemplateListVO;
+        }).toList();
     }
 }

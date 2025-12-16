@@ -1,11 +1,9 @@
 package com.homi.model.vo.contract;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.common.lib.dto.PageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
@@ -19,11 +17,11 @@ import java.util.List;
  * {@code @date} 2025/11/12
  */
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ContractTemplateListDTO extends PageDTO {
+@Schema(description = "合同模板列表VO")
+public class ContractTemplateListVO {
     @Schema(description = "合同模板ID")
     private Long id;
 

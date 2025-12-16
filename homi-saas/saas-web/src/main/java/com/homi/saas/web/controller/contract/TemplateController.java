@@ -3,6 +3,7 @@ package com.homi.saas.web.controller.contract;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
 import com.homi.common.lib.annotation.Log;
+import com.homi.model.vo.contract.ContractTemplateListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.common.lib.vo.PageVO;
@@ -17,7 +18,6 @@ import com.homi.common.lib.enums.contract.BookingParamsEnum;
 import com.homi.common.lib.enums.contract.ContractTypeEnum;
 import com.homi.common.lib.enums.contract.LandlordParamsEnum;
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
-import com.homi.model.vo.contract.ContractTemplateListDTO;
 import com.homi.service.service.contract.ContractTemplateService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +50,7 @@ public class TemplateController {
     private final ContractTemplateService contractTemplateService;
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<ContractTemplateListDTO>> getContractTemplateList(@RequestBody ContractTemplateQueryDTO query) {
+    public ResponseResult<PageVO<ContractTemplateListVO>> getContractTemplateList(@RequestBody ContractTemplateQueryDTO query) {
         return ResponseResult.ok(contractTemplateService.getContractTemplateList(query));
     }
 
@@ -128,5 +128,15 @@ public class TemplateController {
         updateDTO.setUpdateBy(currentUser.getId());
         updateDTO.setUpdateTime(DateUtil.date());
         return ResponseResult.ok(contractTemplateService.updateContractTemplateStatus(updateDTO));
+    }
+
+    @PostMapping("/my/available")
+    public ResponseResult<List<ContractTemplateListVO>> getMyAvailableContractTemplates(@RequestBody ContractTemplateQueryDTO query) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        if(currentUser.getIsCompanyAdmin().equals(Boolean.TRUE)) {
+            return ResponseResult.ok(contractTemplateService.getAllContractTemplateList(currentUser.getCurCompanyId(), query.getContractType()));
+        }
+
+        return ResponseResult.ok(contractTemplateService.getMyAvailableContractTemplates(currentUser.getId(), currentUser.getCurCompanyId(), query.getContractType()));
     }
 }
