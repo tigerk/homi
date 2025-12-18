@@ -119,7 +119,6 @@ public class TenantService {
         // 生成租客账单
         tenantBillService.addTenantBill(tenant.getId(), createDTO.getTenant(), createDTO.getOtherFees());
 
-
         return addedTenant.getLeft();
     }
 

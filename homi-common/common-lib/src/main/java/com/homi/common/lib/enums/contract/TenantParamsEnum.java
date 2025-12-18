@@ -28,6 +28,7 @@ public enum TenantParamsEnum {
     RENTAL_PRICE("${租金金额}", "${租金金额}"),
 
 
+
     ;
 
     private final String key;
