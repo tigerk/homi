@@ -11,6 +11,7 @@ import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.TenantCompany;
+import com.homi.model.dao.entity.TenantContract;
 import com.homi.model.dao.entity.TenantPersonal;
 import com.homi.model.dao.repo.*;
 import com.homi.model.dto.tenant.*;
@@ -44,9 +45,12 @@ public class TenantService {
     private final TenantRepo tenantRepo;
     private final TenantPersonalRepo tenantPersonalRepo;
     private final TenantCompanyRepo tenantCompanyRepo;
-    private final TenantContractRepo tenantContractRepo;
     private final FileAttachRepo fileAttachRepo;
+
     private final RoomService roomService;
+    private final TenantBillService tenantBillService;
+    private final TenantContractService tenantContractService;
+
 
     /**
      * 获取租客列表
@@ -89,6 +93,7 @@ public class TenantService {
             throw new IllegalArgumentException("租户类型不存在");
         }
 
+        // 增加租客个人信息
         Triple<Long, String, String> addedTenant;
         if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
             createDTO.getTenantPersonal().setCreateBy(createDTO.getCreateBy());
@@ -100,12 +105,20 @@ public class TenantService {
             addedTenant = addTenantEnterprise(createDTO.getTenantCompany());
         }
 
+        // 保存租客租赁信息
         createDTO.getTenant().setTenantTypeId(addedTenant.getLeft());
         createDTO.getTenant().setTenantName(addedTenant.getMiddle());
         createDTO.getTenant().setTenantPhone(addedTenant.getRight());
 
         createDTO.getTenant().setCreateBy(createDTO.getCreateBy());
-        addTenant(createDTO.getTenant());
+        Tenant tenant = addTenant(createDTO.getTenant());
+
+        // 生成租客合同
+        TenantContract tenantContract = tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), tenant);
+
+        // 生成租客账单
+        tenantBillService.addTenantBill(tenant.getId(), createDTO.getTenant(), createDTO.getOtherFees());
+
 
         return addedTenant.getLeft();
     }
@@ -114,8 +127,9 @@ public class TenantService {
      * 添加租客合同
      *
      * @param contract 合同信息
+     * @return
      */
-    private void addTenant(TenantDTO contract) {
+    private Tenant addTenant(TenantDTO contract) {
         Tenant tenant = new Tenant();
         BeanUtils.copyProperties(contract, tenant);
 
@@ -124,6 +138,8 @@ public class TenantService {
         tenant.setStatus(TenantContractStatusEnum.TO_SIGN.getCode());
         tenant.setCreateTime(DateUtil.date());
         tenantRepo.save(tenant);
+
+        return tenant;
     }
 
     /**
@@ -159,13 +175,8 @@ public class TenantService {
      */
     private Triple<Long, String, String> addTenantPersonal(TenantPersonalDTO tenantPersonalDTO) {
         TenantPersonal tenantPersonal = new TenantPersonal();
-        TenantPersonal tenantPersonalExist = tenantPersonalRepo.getTenantByIdNo(tenantPersonalDTO.getIdNo());
-        if (tenantPersonalExist != null) {
-            tenantPersonal = tenantPersonalExist;
-        } else {
-            tenantPersonal.setCreateBy(tenantPersonalDTO.getCreateBy());
-            tenantPersonal.setCreateTime(DateUtil.date());
-        }
+        tenantPersonal.setCreateBy(tenantPersonalDTO.getCreateBy());
+        tenantPersonal.setCreateTime(DateUtil.date());
 
         BeanUtils.copyProperties(tenantPersonalDTO, tenantPersonal);
         tenantPersonal.setTags(JSONUtil.toJsonStr(tenantPersonalDTO.getTags()));

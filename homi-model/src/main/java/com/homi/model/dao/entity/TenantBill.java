@@ -4,15 +4,16 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
 import java.io.Serial;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * <p>
@@ -43,13 +44,9 @@ public class TenantBill implements Serializable {
     @TableField("tenant_id")
     private Long tenantId;
 
-    @Schema(description = "租赁合同ID")
-    @TableField("tenant_contract_id")
-    private Long tenantContractId;
-
-    @Schema(description = "账单编号（如 B202511-0001）")
-    @TableField("bill_no")
-    private String billNo;
+    @Schema(description = "账单顺序")
+    @TableField("sort_order")
+    private Integer sortOrder;
 
     @Schema(description = "账单类型：1=租金，2=押金，3=杂费，4=退租结算")
     @TableField("bill_type")
@@ -66,8 +63,8 @@ public class TenantBill implements Serializable {
     private Date rentPeriodEnd;
 
     @Schema(description = "租金金额")
-    @TableField("rent_amount")
-    private BigDecimal rentAmount;
+    @TableField("rental_amount")
+    private BigDecimal rentalAmount;
 
     @Schema(description = "押金金额")
     @TableField("deposit_amount")
@@ -87,9 +84,13 @@ public class TenantBill implements Serializable {
     private Date dueDate;
 
     @Schema(description = "实际支付日期")
-    @TableField("paid_date")
+    @TableField("paid_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date paidDate;
+    private Date paidTime;
+
+    @Schema(description = "实际支付金额")
+    @TableField("paid_amount")
+    private BigDecimal paidAmount;
 
     @Schema(description = "支付状态：0=未支付，1=部分支付，2=已支付，3=逾期")
     @TableField("payment_status")

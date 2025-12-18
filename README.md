@@ -81,3 +81,9 @@ company 记录公司信息 、user 登录用户 、 company-user 关联，然后
 | 其他费用  | Other Fee                          | `otherFee`          | `other_fee`                           | 灵活扩展项，便于存放额外费用  |
 
 > “排序” 字段使用 sort_order 而不是 sort。
+
+# 代码开发手册
+
+*Repo 不能调用其他Repo
+
+Service 可以调用 Repo 和其他 Service

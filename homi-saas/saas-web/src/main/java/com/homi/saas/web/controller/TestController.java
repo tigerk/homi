@@ -1,6 +1,6 @@
 package com.homi.saas.web.controller;
 
-import com.homi.service.service.pdf.PdfService;
+import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -22,11 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/saas/test")
 public class TestController {
-    private final PdfService pdfService;
 
     @PostMapping(value = "/generate", consumes = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<byte[]> generate(@RequestBody String html) {
-        byte[] pdfBytes = pdfService.generatePdf(html);
+        byte[] pdfBytes = ConvertHtml2PdfUtils.generatePdf(html);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDisposition(ContentDisposition.attachment().filename("contract.pdf").build());

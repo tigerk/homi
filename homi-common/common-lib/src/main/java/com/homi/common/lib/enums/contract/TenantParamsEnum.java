@@ -19,7 +19,16 @@ public enum TenantParamsEnum {
     PROPERTY_TYPE("${产权类型}", "${产权类型}"),
     TOTAL_AREA("${房屋总面积}", "${房屋总面积}"),
     SIGNED_AREA("${签约面积数}", "${签约面积数}"),
-    TENANT_NAME("${租客姓名}", "${租客姓名}");
+
+    TENANT_NAME("${租客姓名}", "${租客姓名}"),
+    TENANT_PHONE("${租客手机号}", "${租客手机号}"),
+
+    LEASE_START("${合同开始日期}", "${合同开始日期}"),
+    LEASE_END("${合同结束日期}", "${合同结束日期}"),
+    RENTAL_PRICE("${租金金额}", "${租金金额}"),
+
+
+    ;
 
     private final String key;
     private final String value;

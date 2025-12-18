@@ -21,6 +21,9 @@ public class TenantDTO {
     @Schema(description = "租客ID", example = "1")
     private BigInteger id;
 
+    @Schema(description = "合同模板ID", example = "1")
+    private Long contractTemplateId;
+
     @Schema(description = "合同编号", example = "C001")
     private String contractCode;
 
@@ -36,7 +39,7 @@ public class TenantDTO {
     @Schema(description = "房间ID列表", example = "[\"R001\", \"R002\"]")
     private List<String> roomIds;
 
-    @Schema(description = "租客ID", example = "1", hidden = true)
+    @Schema(description = "租客类型ID", example = "1", hidden = true)
     private Long tenantTypeId;
 
     @Schema(description = "租客类型：0=个人，1=企业", example = "0")
@@ -54,7 +57,7 @@ public class TenantDTO {
     @Schema(description = "押金月数", example = "3")
     private Integer depositMonths;
 
-    @Schema(description = "支付周期（月）", example = "1")
+    @Schema(description = "支付月数", example = "1")
     private Integer paymentMonths;
 
     @Schema(description = "首期账单收租日：0=跟随合同起租日，1=跟随合同创建日", example = "0")
@@ -109,7 +112,7 @@ public class TenantDTO {
     private Integer tenantSource;
 
     @Schema(description = "成交渠道", example = "1")
-    private Integer dealChannel;
+    private Long dealChannel;
 
     @Schema(description = "合同备注", example = "这是一个测试备注")
     private String remark;

@@ -19,11 +19,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TenantPersonalRepo extends ServiceImpl<TenantPersonalMapper, TenantPersonal> {
-    public TenantPersonal getTenantByIdNo(String idNo) {
-        return getOne(new LambdaQueryWrapper<TenantPersonal>().eq(TenantPersonal::getIdNo, idNo));
-    }
-
-
     @Cacheable(cacheNames = "tenant-personal", key = "#id")
     public TenantPersonalVO getTenantById(Long id) {
         TenantPersonal one = getOne(new LambdaQueryWrapper<TenantPersonal>().eq(TenantPersonal::getId, id));

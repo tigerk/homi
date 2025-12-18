@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.contract.ContractTemplateStatusEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.CompanyUser;
 import com.homi.model.dao.entity.ContractTemplate;
@@ -16,7 +17,6 @@ import com.homi.model.dto.contract.ContractTemplateDeleteDTO;
 import com.homi.model.dto.contract.ContractTemplateQueryDTO;
 import com.homi.model.dto.contract.ContractTemplateStatusDTO;
 import com.homi.model.vo.contract.ContractTemplateListVO;
-import com.homi.service.service.pdf.PdfService;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -38,8 +38,6 @@ import java.util.Objects;
 public class ContractTemplateService {
     private final CompanyUserRepo companyUserRepo;
     private final ContractTemplateRepo contractTemplateRepo;
-
-    private final PdfService pdfService;
 
     public PageVO<ContractTemplateListVO> getContractTemplateList(ContractTemplateQueryDTO query) {
 
@@ -127,7 +125,7 @@ public class ContractTemplateService {
 
         assert contractTemplate != null;
 
-        return pdfService.generatePdf(contractTemplate.getTemplateContent());
+        return ConvertHtml2PdfUtils.generatePdf(contractTemplate.getTemplateContent());
 
     }
 

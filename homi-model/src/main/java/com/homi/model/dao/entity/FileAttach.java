@@ -55,14 +55,6 @@ public class FileAttach implements Serializable {
     @TableField("file_type")
     private String fileType;
 
-    @Schema(description = "文件大小（字节）")
-    @TableField("file_size")
-    private Long fileSize;
-
-    @Schema(description = "存储方式：0-本地，1-OSS，2-S3，3-其他")
-    @TableField("storage_type")
-    private Integer storageType;
-
     @Schema(description = "排序")
     @TableField("sort_order")
     private Integer sortOrder;

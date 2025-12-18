@@ -44,9 +44,7 @@ public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
 
             FileMeta fileMeta = fileMetaRepo.getFileMetaByUrl(idCardBack);
             if (fileMeta != null) {
-                fileAttach.setFileSize(fileMeta.getFileSize());
                 fileAttach.setFileType(fileMeta.getFileType());
-                fileAttach.setStorageType(fileMeta.getStorageType());
             }
 
             save(fileAttach);
