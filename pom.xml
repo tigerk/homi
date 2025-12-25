@@ -9,11 +9,11 @@
     <name>homi-boot</name>
     <description>homi-boot是一个基于spring boot的服务</description>
     <modules>
-        <module>homi-model</module>
         <module>homi-common</module>
+        <module>homi-model</module>
+        <module>homi-service</module>
         <module>homi-saas</module>
         <module>homi-platform</module>
-        <module>homi-service</module>
     </modules>
 
     <properties>
