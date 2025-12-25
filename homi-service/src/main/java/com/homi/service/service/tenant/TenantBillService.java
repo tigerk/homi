@@ -203,6 +203,20 @@ public class TenantBillService {
 
     /**
      * 创建租金账单实体
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/25 16:00
+     *
+     * @param tenantId       租客ID
+     * @param tenant         租客信息
+     * @param sortOrder      排序顺序
+     * @param actualMonths   实际月数
+     * @param currentStart   账单开始日期
+     * @param currentEnd     账单结束日期
+     * @param rentalAmount   租金金额
+     * @param otherFeeAmount 其他费用金额
+     * @param dueDate        支付日期
+     * @return com.homi.model.dao.entity.TenantBill
      */
     private TenantBill createRentBill(Long tenantId, TenantDTO tenant, int sortOrder,
                                       int actualMonths, LocalDate currentStart,
@@ -223,7 +237,8 @@ public class TenantBillService {
         bill.setDueDate(dueDate);
         bill.setPaymentStatus(PaymentStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
-        bill.setCreateTime(new Date());
+        bill.setCreateBy(tenant.getCreateBy());
+        bill.setCreateTime(DateUtil.date());
         return bill;
     }
 
@@ -364,6 +379,7 @@ public class TenantBillService {
         bill.setDueDate(calculateDueDate(config));
         bill.setPaymentStatus(PaymentStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
+        bill.setCreateBy(tenant.getCreateBy());
         bill.setCreateTime(new Date());
 
         return bill;
@@ -486,6 +502,8 @@ public class TenantBillService {
 
         depositBill.setPaymentStatus(PaymentStatusEnum.UNPAID.getCode());
         depositBill.setRemark("第 0 期");
+        depositBill.setCreateBy(tenant.getCreateBy());
+
         tenantBillRepo.save(depositBill);
     }
 
