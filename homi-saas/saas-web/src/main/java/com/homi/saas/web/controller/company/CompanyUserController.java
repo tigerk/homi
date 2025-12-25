@@ -59,7 +59,7 @@ public class CompanyUserController {
      * @return 所有数据
      */
     @PostMapping("/list")
-    @SaCheckPermission("system:user:query")
+    @SaCheckPermission("sys:user:query")
     public ResponseResult<PageVO<UserVO>> list(@RequestBody UserQueryDTO queryDTO) {
         queryDTO.setCompanyId(LoginManager.getCurrentUser().getCurCompanyId());
 
@@ -73,7 +73,7 @@ public class CompanyUserController {
      * @return 单条数据
      */
     @GetMapping("/detail/{id}")
-    @SaCheckPermission("system:user:detail")
+    @SaCheckPermission("sys:user:detail")
     public ResponseResult<UserVO> detail(@PathVariable("id") Long id) {
         User userById = userService.getUserById(id);
         UserVO userVO = BeanCopyUtils.copyBean(userById, UserVO.class);
@@ -109,7 +109,7 @@ public class CompanyUserController {
      * @return 修改结果
      */
     @PostMapping("/updateStatus")
-    @SaCheckPermission("system:user:updateStatus")
+    @SaCheckPermission("sys:user:updateStatus")
     public ResponseResult<Long> updateStatus(@Valid @RequestBody UserUpdateStatusDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         CompanyUser companyUserById = companyUserService.getCompanyUserById(updateDTO.getCompanyUserId());
         if (companyUserById.getUserType().equals(UserTypeEnum.COMPANY_ADMIN.getType())) {
@@ -134,7 +134,7 @@ public class CompanyUserController {
      * @return 删除结果
      */
     @PostMapping("/delete")
-    @SaCheckPermission("system:user:delete")
+    @SaCheckPermission("sys:user:delete")
     public ResponseResult<Integer> delete(@RequestBody List<Long> idList) {
         // 删除后，被删除用户需要重新登录
         AtomicReference<Integer> deleted = new AtomicReference<>(0);
@@ -154,7 +154,7 @@ public class CompanyUserController {
      * @return 修改结果
      */
     @PutMapping("/resetPassword")
-    @SaCheckPermission("system:user:resetPwd")
+    @SaCheckPermission("sys:user:resetPwd")
     public ResponseResult<Boolean> resetPassword(@Valid @RequestBody UserResetPwdDTO updateDTO) {
         User user = BeanCopyUtils.copyBean(updateDTO, User.class);
         assert user != null;

@@ -107,7 +107,7 @@ public class AuthService {
         user.setCompanyList(companyListByUserId);
 
         // 用户角色code与权限,用户名存入缓存
-        SaSession currentSession = StpUtil.getTokenSession();
+        SaSession currentSession = StpUtil.getSession();
         currentSession.set(SaSession.USER, user);
         currentSession.set(SaSession.ROLE_LIST, user.getRoles());
         currentSession.set(SaSession.PERMISSION_LIST, user.getPermissions());

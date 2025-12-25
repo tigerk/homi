@@ -67,7 +67,7 @@ public class UserController {
      * @return 单条数据
      */
     @GetMapping("/detail/{id}")
-    @SaCheckPermission("system:user:detail")
+    @SaCheckPermission("sys:user:detail")
     public ResponseResult<PlatformUserVO> detail(@PathVariable("id") Long id) {
         PlatformUser platformUserById = platformUserService.getUserById(id);
         PlatformUserVO platformUserVO = BeanCopyUtils.copyBean(platformUserById, PlatformUserVO.class);
@@ -138,7 +138,7 @@ public class UserController {
      * @return 删除结果
      */
     @PostMapping("/delete")
-//    @SaCheckPermission("system:user:delete")
+//    @SaCheckPermission("sys:user:delete")
     public ResponseResult<Integer> delete(@RequestBody List<Long> idList) {
         idList.forEach(id -> platformAuthService.canUpdateUser(id, PlatformLoginManager.getCurrentUser()));
 
