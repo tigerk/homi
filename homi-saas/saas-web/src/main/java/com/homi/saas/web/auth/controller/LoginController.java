@@ -5,18 +5,18 @@ import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.captcha.generator.RandomGenerator;
 import com.homi.common.lib.annotation.LoginLog;
-import com.homi.service.external.aliyun.SmsClient;
+import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.redis.RedisKey;
+import com.homi.common.lib.response.ResponseCodeEnum;
+import com.homi.common.lib.response.ResponseResult;
+import com.homi.model.vo.menu.AsyncRoutesVO;
 import com.homi.saas.web.auth.dto.login.LoginDTO;
 import com.homi.saas.web.auth.dto.login.LoginUpdateDTO;
 import com.homi.saas.web.auth.dto.login.TokenRefreshDTO;
 import com.homi.saas.web.auth.service.AuthService;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
-import com.homi.common.lib.response.ResponseResult;
-import com.homi.common.lib.redis.RedisKey;
-import com.homi.model.vo.menu.AsyncRoutesVO;
-import com.homi.common.lib.exception.BizException;
-import com.homi.service.service.company.CompanyService;
+import com.homi.service.external.aliyun.SmsClient;
 import com.homi.service.service.company.CompanyUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -42,7 +42,6 @@ import java.util.List;
 @RestController
 public class LoginController {
     private final AuthService authService;
-    private final CompanyService companyService;
     private final CompanyUserService companyUserService;
 
     private final StringRedisTemplate redisTemplate;
@@ -55,8 +54,8 @@ public class LoginController {
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/11/29 11:44
-
-      * @param loginDTO 参数说明
+     *
+     * @param loginDTO 参数说明
      * @return com.homi.common.model.response.ResponseResult<com.homi.saas.web.admin.auth.vo.login.UserLoginVO>
      */
     @LoginLog
@@ -86,7 +85,14 @@ public class LoginController {
     @PostMapping("/saas/token/refresh")
     @LoginLog
     public ResponseResult<UserLoginVO> refresh(@RequestBody TokenRefreshDTO req) {
-        return ResponseResult.ok(authService.refreshLogin(req.getRefreshToken()));
+        Long userId = (Long) StpUtil.getLoginIdByToken(req.getRefreshToken());
+
+        // 校验用户是否存在
+        if (userId == null) {
+            throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
+        }
+
+        return ResponseResult.ok(LoginManager.getCurrentUser());
     }
 
     @PostMapping("/saas/logout")

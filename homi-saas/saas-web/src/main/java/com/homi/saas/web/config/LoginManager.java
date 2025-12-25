@@ -39,7 +39,7 @@ public class LoginManager {
      * 获取当前登录的用户对象（登录时需手动 set 进去）
      */
     public static UserLoginVO getCurrentUser() {
-        UserLoginVO userLoginVO = (UserLoginVO) StpUtil.getSession().get(SaSession.USER);
+        UserLoginVO userLoginVO = (UserLoginVO) StpUtil.getTokenSession().get(SaSession.USER);
         if (userLoginVO == null) {
             throw new BizException("未找到当前登录用户信息");
         }
@@ -49,7 +49,7 @@ public class LoginManager {
 
     @SuppressWarnings("unchecked")
     public static List<String> getCurrentRoles() {
-        return (List<String>) StpUtil.getSession().get(SaSession.ROLE_LIST);
+        return (List<String>) StpUtil.getTokenSession().get(SaSession.ROLE_LIST);
     }
 
     public static boolean hasRole(String role) {
@@ -59,7 +59,7 @@ public class LoginManager {
 
     @SuppressWarnings("unchecked")
     public static List<String> getCurrentPermissions() {
-        return (List<String>) StpUtil.getSession().get(SaSession.PERMISSION_LIST);
+        return (List<String>) StpUtil.getTokenSession().get(SaSession.PERMISSION_LIST);
     }
 
     /**

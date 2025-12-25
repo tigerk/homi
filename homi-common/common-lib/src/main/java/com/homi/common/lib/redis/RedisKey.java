@@ -14,11 +14,6 @@ public enum RedisKey {
     // 示例：图形验证码
     CAPTCHA("captcha:%s", 5, TimeUnit.MINUTES),
 
-    LOGIN_REFRESH_TOKEN("login:refresh:token:%s", 7, TimeUnit.DAYS),
-
-    // 示例：登录token
-    LOGIN_TOKEN("login:token:%s", 30, TimeUnit.DAYS),
-
     // 房源编号计数器
     HOUSE_CODE_COUNTER("house:count:%s:%s", 86400, TimeUnit.SECONDS),
 

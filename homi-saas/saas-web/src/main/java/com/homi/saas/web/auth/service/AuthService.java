@@ -8,9 +8,6 @@ import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.text.CharSequenceUtil;
-import cn.hutool.json.JSONUtil;
-import cn.hutool.jwt.JWT;
-import cn.hutool.jwt.JWTUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.MenuTypeEnum;
 import com.homi.common.lib.enums.StatusEnum;
@@ -35,12 +32,10 @@ import com.homi.service.service.system.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,11 +50,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-
-    // refresh token userId 名称
-    public static final String JWT_USER_ID = "userId";
-    public static final String JWT_EXP_TIME = "exp";
-
     private final UserRepo userRepo;
     private final UserRoleMapper userRoleMapper;
     private final RoleMapper roleMapper;
@@ -71,66 +61,7 @@ public class AuthService {
     private final CompanyPackageService companyPackageService;
     private final UserService userService;
 
-    // jwt 密钥
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    // 单位 秒
-    @Value("${jwt.expiration}")
-    private long jwtExpiration;
-
     private final StringRedisTemplate stringRedisTemplate;
-
-    /**
-     * 生成jwt token
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/7/28 17:00
-     *
-     * @param userId 参数说明
-     * @return java.lang.String
-     */
-    private String generateJwtToken(Long userId) {
-        long time = DateUtil.date().offset(DateField.SECOND, (int) jwtExpiration).getTime();
-        HashMap<String, Object> stringLongHashMap = new HashMap<>();
-        stringLongHashMap.put(JWT_USER_ID, userId);
-        stringLongHashMap.put(JWT_EXP_TIME, time);
-        return JWTUtil.createToken(stringLongHashMap, jwtSecret.getBytes());
-    }
-
-    /**
-     * 从token中获取userId
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/7/28 17:00
-     *
-     * @param token 参数说明
-     * @return java.lang.Long
-     */
-    private Long getUserIdByToken(String token) {
-        // 解析Token
-        JWT jwt = JWTUtil.parseToken(token);
-
-        // 校验签名
-        boolean isValid = jwt.setKey(jwtSecret.getBytes()).verify();
-        if (!isValid) {
-            throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
-        }
-
-        // 获取过期时间字段
-        Object exp = jwt.getPayload(JWT_EXP_TIME);
-        if (exp != null) {
-            long expMillis = Long.parseLong(exp.toString());
-            boolean isExpired = System.currentTimeMillis() > expMillis;
-            if (isExpired) {
-                throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
-            }
-        } else {
-            throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
-        }
-
-        return Long.valueOf(jwt.getPayload(JWT_USER_ID).toString());
-    }
 
     /**
      * 登录成功后，创建会话
@@ -145,18 +76,10 @@ public class AuthService {
         // 验证成功后的登录处理
         StpUtil.login(user.getId(), "web");
 
-        String refreshToken = generateJwtToken(user.getId());
-
-        // 保存到 Redis，key: captcha:uuid，value: code，有效期10分钟
-        stringRedisTemplate.opsForValue().set(RedisKey.LOGIN_REFRESH_TOKEN.format(user.getId()),
-            JSONUtil.toJsonStr(Pair.of(refreshToken, user.getCurCompanyId())),
-            RedisKey.LOGIN_REFRESH_TOKEN.getTimeout(),
-            RedisKey.LOGIN_REFRESH_TOKEN.getUnit());
-
         // 获取当前回话的token
         String token = StpUtil.getTokenValue();
         user.setAccessToken(token);
-        user.setRefreshToken(refreshToken);
+        user.setRefreshToken(token);
         user.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenTimeout()).getTime());
 
         List<UserCompanyListDTO> companyListByUserId = companyUserRepo.getCompanyListByUserId(user.getId());
@@ -180,11 +103,10 @@ public class AuthService {
 
         user.setCurCompanyId(curCompanyId.get());
         user.setIsCompanyAdmin(isCompanyAdmin(userType.get()));
-
         user.setCompanyList(companyListByUserId);
 
         // 用户角色code与权限,用户名存入缓存
-        SaSession currentSession = StpUtil.getSession();
+        SaSession currentSession = StpUtil.getTokenSession();
         currentSession.set(SaSession.USER, user);
         currentSession.set(SaSession.ROLE_LIST, user.getRoles());
         currentSession.set(SaSession.PERMISSION_LIST, user.getPermissions());
@@ -208,9 +130,7 @@ public class AuthService {
         userLogin.setPermissions(userAuth.getRight());
 
         // 创建登录会话
-        loginSession(userLogin);
-
-        return userLogin;
+        return loginSession(userLogin);
     }
 
     /**
@@ -352,21 +272,7 @@ public class AuthService {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
         StpUtil.kickout(user.getId());
-        stringRedisTemplate.delete(RedisKey.LOGIN_REFRESH_TOKEN.format(user.getId()));
         return true;
-    }
-
-    public UserLoginVO refreshLogin(String refreshToken) {
-        Long userId = getUserIdByToken(refreshToken);
-
-        String refreshTokenByUserId = stringRedisTemplate.opsForValue().get(RedisKey.LOGIN_REFRESH_TOKEN.format(userId));
-        if (CharSequenceUtil.isBlank(refreshTokenByUserId)) {
-            throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
-        }
-
-        Pair<String, Long> refreshTokenPair = JSONUtil.toBean(refreshTokenByUserId, Pair.class);
-
-        return loginWithCompanyId(userId, refreshTokenPair.getValue());
     }
 
     public UserLoginVO loginWithCompanyId(Long userId, Long companyId) {
