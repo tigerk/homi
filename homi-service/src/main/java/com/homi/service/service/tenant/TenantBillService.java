@@ -78,12 +78,10 @@ public class TenantBillService {
             int actualMonths = calculateMonths(currentStart, currentEnd);
 
             // 计算租金金额
-            BigDecimal rentalAmount = calculateRentalAmount(tenant.getRentalPrice(),
-                paymentMonths, actualMonths);
+            BigDecimal rentalAmount = calculateRentalAmount(tenant.getRentalPrice(), paymentMonths, actualMonths);
 
             // 计算其他费用金额
-            BigDecimal otherFeeAmount = calculateOtherFeeAmount(rentRelatedFees,
-                rentalAmount, actualMonths);
+            BigDecimal otherFeeAmount = calculateOtherFeeAmount(rentRelatedFees, rentalAmount, actualMonths);
 
             // 创建账单配置参数对象
             BillConfig config = BillConfig.builder()
@@ -249,8 +247,7 @@ public class TenantBillService {
      * @param tenant    租客信息
      * @param otherFees 其他费用列表
      */
-    private void addTenantOtherFeeBills(Long tenantId, TenantDTO tenant,
-                                        List<OtherFeeDTO> otherFees) {
+    private void addTenantOtherFeeBills(Long tenantId, TenantDTO tenant, List<OtherFeeDTO> otherFees) {
         if (otherFees == null || otherFees.isEmpty()) {
             return;
         }
