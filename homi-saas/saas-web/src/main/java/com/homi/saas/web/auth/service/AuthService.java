@@ -74,7 +74,8 @@ public class AuthService {
      */
     private UserLoginVO loginSession(UserLoginVO user) {
         // 验证成功后的登录处理
-        StpUtil.login(user.getId(), "web");
+        String deviceType = "web";
+        StpUtil.login(user.getId(), deviceType);
 
         // 获取当前回话的token
         String token = StpUtil.getTokenValue();

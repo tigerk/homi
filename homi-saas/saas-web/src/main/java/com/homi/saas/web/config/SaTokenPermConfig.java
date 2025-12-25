@@ -15,12 +15,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class SaTokenPermConfig implements StpInterface {
-    private final AuthService authService;
-
-    private final UserService userService;
-
-    private final RoleService roleService;
-
     /**
      * 返回一个账号所拥有的权限码集合
      */
