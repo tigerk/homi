@@ -21,7 +21,7 @@ import java.io.Serializable;
 @Schema(description = "其他费用DTO")
 public class OtherFeeDTO implements Serializable {
     @Schema(description = "其他费用类型（如：装修/维修/房屋维修、随房租付、按固定金额等）")
-    private Long dicDataId;
+    private Long dictDataId;
 
     @Schema(description = "其他费用名称")
     private String name;
