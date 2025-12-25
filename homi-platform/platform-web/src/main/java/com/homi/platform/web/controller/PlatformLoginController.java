@@ -2,6 +2,8 @@ package com.homi.platform.web.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.common.lib.annotation.LoginLog;
+import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.vo.menu.AsyncRoutesVO;
 import com.homi.platform.web.config.PlatformLoginManager;
@@ -40,9 +42,14 @@ public class PlatformLoginController {
 
     @PostMapping("/token/refresh")
     public ResponseResult<PlatformUserLoginVO> refresh(@RequestBody TokenRefreshDTO req) {
-        Long userId = platformAuthService.getUserIdByToken(req.getRefreshToken());
+        Long userId = (Long) StpUtil.getLoginIdByToken(req.getRefreshToken());
 
-        return ResponseResult.ok(platformAuthService.loginSession(userId));
+        // 校验用户是否存在
+        if (userId == null) {
+            throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
+        }
+
+        return ResponseResult.ok(PlatformLoginManager.getCurrentUser());
     }
 
     @PostMapping("/logout")
