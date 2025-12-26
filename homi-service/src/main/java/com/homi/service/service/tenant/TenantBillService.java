@@ -9,12 +9,15 @@ import com.homi.common.lib.enums.tenant.TenantBillTypeEnum;
 import com.homi.common.lib.enums.tenant.TenantFirstBillDayEnum;
 import com.homi.common.lib.enums.tenant.TenantRentDueTypeEnum;
 import com.homi.model.dao.entity.TenantBill;
+import com.homi.model.dao.entity.TenantBillOtherFee;
+import com.homi.model.dao.repo.TenantBillOtherFeeRepo;
 import com.homi.model.dao.repo.TenantBillRepo;
 import com.homi.model.dto.room.price.OtherFeeDTO;
 import com.homi.model.dto.tenant.TenantDTO;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TenantBillService {
     private final TenantBillRepo tenantBillRepo;
+    private final TenantBillOtherFeeRepo tenantBillOtherFeeRepo;
 
     /**
      * 生成租客账单（押金、租金及其他费用）
@@ -38,6 +42,7 @@ public class TenantBillService {
      * @param tenant    租客信息
      * @param otherFees 其他费用列表
      */
+    @Transactional(rollbackFor = Exception.class)
     public void addTenantBill(Long tenantId, TenantDTO tenant, List<OtherFeeDTO> otherFees) {
         // 生成押金账单
         addTenantDepositBill(tenantId, tenant);
@@ -95,8 +100,19 @@ public class TenantBillService {
 
             Date dueDate = calculateDueDate(config);
 
-            TenantBill bill = createRentBill(tenantId, tenant, sortOrder++, actualMonths,
-                currentStart, currentEnd, rentalAmount, otherFeeAmount, dueDate);
+            RentBillContext billContext = RentBillContext.builder()
+                .tenantId(tenantId)
+                .tenant(tenant)
+                .sortOrder(sortOrder++)
+                .actualMonths(actualMonths)
+                .currentStart(currentStart)
+                .currentEnd(currentEnd)
+                .rentalAmount(rentalAmount)
+                .otherFeeAmount(otherFeeAmount)
+                .dueDate(dueDate)
+                .build();
+
+            TenantBill bill = createRentBill(billContext);
 
             billList.add(bill);
 
@@ -105,8 +121,89 @@ public class TenantBillService {
         }
 
         if (!billList.isEmpty()) {
+            // 批量保存账单
             tenantBillRepo.saveBatch(billList);
+
+            // 保存账单的其他费用明细
+            if (!rentRelatedFees.isEmpty()) {
+                List<TenantBillOtherFee> otherFeeDetails = new ArrayList<>();
+
+                for (TenantBill bill : billList) {
+                    if (bill.getOtherFeeAmount() != null &&
+                        bill.getOtherFeeAmount().compareTo(BigDecimal.ZERO) > 0) {
+                        // 为每个费用项创建明细记录
+                        otherFeeDetails.addAll(
+                            createOtherFeeDetails(bill, rentRelatedFees, tenant)
+                        );
+                    }
+                }
+
+                if (!otherFeeDetails.isEmpty()) {
+                    tenantBillOtherFeeRepo.saveBatch(otherFeeDetails);
+                }
+            }
         }
+    }
+
+    /**
+     * 创建其他费用明细记录
+     *
+     * @param bill            账单
+     * @param rentRelatedFees 随房租付的费用列表
+     * @param tenant          租客信息
+     * @return 费用明细列表
+     */
+    private List<TenantBillOtherFee> createOtherFeeDetails(
+        TenantBill bill,
+        List<OtherFeeDTO> rentRelatedFees,
+        TenantDTO tenant) {
+
+        List<TenantBillOtherFee> details = new ArrayList<>();
+
+        LocalDate startDate = LocalDateTimeUtil.of(bill.getRentPeriodStart()).toLocalDate();
+        LocalDate endDate = LocalDateTimeUtil.of(bill.getRentPeriodEnd()).toLocalDate();
+        int actualMonths = calculateMonths(startDate, endDate);
+
+        // 计算本期租金（用于比例计算）
+        BigDecimal periodRentalAmount = bill.getRentalAmount();
+
+        for (OtherFeeDTO fee : rentRelatedFees) {
+            // 计算单个费用的金额
+            BigDecimal feeAmount = calculateSingleFeeAmount(
+                fee, periodRentalAmount, actualMonths
+            ).setScale(2, RoundingMode.HALF_UP);
+
+            if (feeAmount.compareTo(BigDecimal.ZERO) > 0) {
+                TenantBillOtherFee detail = new TenantBillOtherFee();
+                detail.setBillId(bill.getId());
+                detail.setDictDataId(fee.getDictDataId());
+                detail.setDictDataName(fee.getName());
+                detail.setAmount(feeAmount);
+                detail.setRemark(buildFeeRemark(fee, actualMonths));
+                detail.setDeleted(false);
+                detail.setCreateBy(tenant.getCreateBy());
+                detail.setCreateTime(new Date());
+
+                details.add(detail);
+            }
+        }
+
+        return details;
+    }
+
+    /**
+     * 构建费用备注
+     *
+     * @param fee          费用配置
+     * @param actualMonths 实际月数
+     * @return 备注信息
+     */
+    private String buildFeeRemark(OtherFeeDTO fee, int actualMonths) {
+        PriceMethodEnum method = PriceMethodEnum.values()[fee.getPriceMethod()];
+        return switch (method) {
+            case FIXED -> String.format("%s元 × %d月", fee.getPriceInput(), actualMonths);
+            case RATIO -> String.format("租金 × %d%%", fee.getPriceInput());
+        };
     }
 
     /**
@@ -201,39 +298,27 @@ public class TenantBillService {
 
     /**
      * 创建租金账单实体
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/12/25 16:00
      *
-     * @param tenantId       租客ID
-     * @param tenant         租客信息
-     * @param sortOrder      排序顺序
-     * @param actualMonths   实际月数
-     * @param currentStart   账单开始日期
-     * @param currentEnd     账单结束日期
-     * @param rentalAmount   租金金额
-     * @param otherFeeAmount 其他费用金额
-     * @param dueDate        支付日期
-     * @return com.homi.model.dao.entity.TenantBill
+     * @param context 账单创建上下文
+     * @return 租金账单
      */
-    private TenantBill createRentBill(Long tenantId, TenantDTO tenant, int sortOrder, int actualMonths,
-                                      LocalDate currentStart, LocalDate currentEnd, BigDecimal rentalAmount, BigDecimal otherFeeAmount, Date dueDate) {
+    private TenantBill createRentBill(RentBillContext context) {
         TenantBill bill = new TenantBill();
-        bill.setTenantId(tenantId);
-        bill.setCompanyId(tenant.getCompanyId());
-        bill.setRemark("第" + sortOrder + "期，共 " + actualMonths + " 月");
-        bill.setSortOrder(sortOrder);
+        bill.setTenantId(context.tenantId);
+        bill.setCompanyId(context.tenant.getCompanyId());
+        bill.setRemark("第" + context.sortOrder + "期，共 " + context.actualMonths + " 月");
+        bill.setSortOrder(context.sortOrder);
         bill.setBillType(TenantBillTypeEnum.RENT.getCode());
-        bill.setRentPeriodStart(DateUtil.date(currentStart));
-        bill.setRentPeriodEnd(DateUtil.date(currentEnd));
-        bill.setRentalAmount(rentalAmount);
+        bill.setRentPeriodStart(DateUtil.date(context.currentStart));
+        bill.setRentPeriodEnd(DateUtil.date(context.currentEnd));
+        bill.setRentalAmount(context.rentalAmount);
         bill.setDepositAmount(BigDecimal.ZERO);
-        bill.setOtherFeeAmount(otherFeeAmount);
-        bill.setTotalAmount(rentalAmount.add(otherFeeAmount));
-        bill.setDueDate(dueDate);
+        bill.setOtherFeeAmount(context.otherFeeAmount);
+        bill.setTotalAmount(context.rentalAmount.add(context.otherFeeAmount));
+        bill.setDueDate(context.dueDate);
         bill.setPaymentStatus(PaymentStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
-        bill.setCreateBy(tenant.getCreateBy());
+        bill.setCreateBy(context.tenant.getCreateBy());
         bill.setCreateTime(DateUtil.date());
         return bill;
     }
@@ -255,7 +340,12 @@ public class TenantBillService {
             .filter(fee -> !PaymentMethodEnum.RENT.getCode().equals(fee.getPaymentMethod()))
             .toList();
 
+        if (independentFees.isEmpty()) {
+            return;
+        }
+
         List<TenantBill> billList = new ArrayList<>();
+        List<FeeWithBills> feeWithBillsList = new ArrayList<>();
         int baseSortOrder = 1000; // 使用较大的序号，避免与租金账单冲突
 
         for (int i = 0; i < independentFees.size(); i++) {
@@ -265,20 +355,58 @@ public class TenantBillService {
             // 根据付款方式生成账单
             if (PaymentMethodEnum.ALL.getCode().equals(paymentMethod)) {
                 // 一次性全支付
-                billList.add(createSingleOtherFeeBill(tenantId, tenant, fee,
-                    tenant.getLeaseStart(), tenant.getLeaseEnd(),
-                    baseSortOrder + i, 1));
+                OtherFeeBillContext billContext = OtherFeeBillContext.builder()
+                    .tenantId(tenantId)
+                    .tenant(tenant)
+                    .fee(fee)
+                    .periodStart(tenant.getLeaseStart())
+                    .periodEnd(tenant.getLeaseEnd())
+                    .sortOrder(baseSortOrder + i)
+                    .periodNumber(1)
+                    .build();
+
+                TenantBill bill = createSingleOtherFeeBill(billContext);
+                billList.add(bill);
+                feeWithBillsList.add(new FeeWithBills(fee, List.of(bill)));
 
             } else {
                 // 按周期付款（月付、季付等）
                 List<TenantBill> periodicBills = createPeriodicOtherFeeBills(
                     tenantId, tenant, fee, baseSortOrder + i * 100);
                 billList.addAll(periodicBills);
+                feeWithBillsList.add(new FeeWithBills(fee, periodicBills));
             }
         }
 
         if (!billList.isEmpty()) {
+            // 批量保存账单
             tenantBillRepo.saveBatch(billList);
+
+            // 保存独立费用的明细
+            List<TenantBillOtherFee> otherFeeDetails = new ArrayList<>();
+
+            for (FeeWithBills feeWithBills : feeWithBillsList) {
+                OtherFeeDTO fee = feeWithBills.fee;
+                List<TenantBill> bills = feeWithBills.bills;
+
+                for (TenantBill bill : bills) {
+                    TenantBillOtherFee detail = new TenantBillOtherFee();
+                    detail.setBillId(bill.getId());
+                    detail.setDictDataId(fee.getDictDataId());
+                    detail.setDictDataName(fee.getName());
+                    detail.setAmount(bill.getOtherFeeAmount());
+                    detail.setRemark(bill.getRemark());
+                    detail.setDeleted(false);
+                    detail.setCreateBy(tenant.getCreateBy());
+                    detail.setCreateTime(new Date());
+
+                    otherFeeDetails.add(detail);
+                }
+            }
+
+            if (!otherFeeDetails.isEmpty()) {
+                tenantBillOtherFeeRepo.saveBatch(otherFeeDetails);
+            }
         }
     }
 
@@ -308,12 +436,17 @@ public class TenantBillService {
                 currentEnd = endDate;
             }
 
-            // 注意：createSingleOtherFeeBill 内部会重新计算 actualMonths
-            // 这里不需要提前计算，直接传递日期即可
-            TenantBill bill = createSingleOtherFeeBill(tenantId, tenant, fee,
-                DateUtil.date(currentStart), DateUtil.date(currentEnd),
-                baseSortOrder + sortOrder, sortOrder);
+            OtherFeeBillContext billContext = OtherFeeBillContext.builder()
+                .tenantId(tenantId)
+                .tenant(tenant)
+                .fee(fee)
+                .periodStart(DateUtil.date(currentStart))
+                .periodEnd(DateUtil.date(currentEnd))
+                .sortOrder(baseSortOrder + sortOrder)
+                .periodNumber(sortOrder)
+                .build();
 
+            TenantBill bill = createSingleOtherFeeBill(billContext);
             billList.add(bill);
 
             currentStart = currentStart.plusMonths(periodMonths);
@@ -326,47 +459,38 @@ public class TenantBillService {
     /**
      * 创建单个其他费用账单
      *
-     * @param tenantId     租客ID
-     * @param tenant       租客信息
-     * @param fee          费用配置
-     * @param periodStart  账期开始时间
-     * @param periodEnd    账期结束时间
-     * @param sortOrder    排序号
-     * @param periodNumber 期数
+     * @param context 账单创建上下文
      * @return 账单实体
      */
-    private TenantBill createSingleOtherFeeBill(Long tenantId, TenantDTO tenant,
-                                                OtherFeeDTO fee, Date periodStart,
-                                                Date periodEnd, int sortOrder,
-                                                int periodNumber) {
-        LocalDate startDate = LocalDateTimeUtil.of(periodStart).toLocalDate();
-        LocalDate endDate = LocalDateTimeUtil.of(periodEnd).toLocalDate();
+    private TenantBill createSingleOtherFeeBill(OtherFeeBillContext context) {
+        LocalDate startDate = LocalDateTimeUtil.of(context.periodStart).toLocalDate();
+        LocalDate endDate = LocalDateTimeUtil.of(context.periodEnd).toLocalDate();
         int actualMonths = calculateMonths(startDate, endDate);
 
         // 计算费用金额
-        BigDecimal rentalAmount = tenant.getRentalPrice()
+        BigDecimal rentalAmount = context.tenant.getRentalPrice()
             .multiply(BigDecimal.valueOf(actualMonths));
-        BigDecimal feeAmount = calculateSingleFeeAmount(fee, rentalAmount, actualMonths)
+        BigDecimal feeAmount = calculateSingleFeeAmount(context.fee, rentalAmount, actualMonths)
             .setScale(2, RoundingMode.HALF_UP);
 
         // 创建账单配置
         BillConfig config = BillConfig.builder()
             .periodStart(startDate)
-            .isFirstBill(periodNumber == 1)
-            .firstBillDay(tenant.getFirstBillDay())
-            .rentDueType(tenant.getRentDueType())
-            .rentDueDay(tenant.getRentDueDay())
-            .rentDueOffsetDays(tenant.getRentDueOffsetDays())
+            .isFirstBill(context.periodNumber == 1)
+            .firstBillDay(context.tenant.getFirstBillDay())
+            .rentDueType(context.tenant.getRentDueType())
+            .rentDueDay(context.tenant.getRentDueDay())
+            .rentDueOffsetDays(context.tenant.getRentDueOffsetDays())
             .build();
 
         TenantBill bill = new TenantBill();
-        bill.setTenantId(tenantId);
-        bill.setCompanyId(tenant.getCompanyId());
-        bill.setRemark(fee.getName() + " - 第" + periodNumber + "期，共 " + actualMonths + " 月");
-        bill.setSortOrder(sortOrder);
+        bill.setTenantId(context.tenantId);
+        bill.setCompanyId(context.tenant.getCompanyId());
+        bill.setRemark(context.fee.getName() + " - 第" + context.periodNumber + "期，共 " + actualMonths + " 月");
+        bill.setSortOrder(context.sortOrder);
         bill.setBillType(TenantBillTypeEnum.OTHER_FEE.getCode());
-        bill.setRentPeriodStart(periodStart);
-        bill.setRentPeriodEnd(periodEnd);
+        bill.setRentPeriodStart(context.periodStart);
+        bill.setRentPeriodEnd(context.periodEnd);
         bill.setRentalAmount(BigDecimal.ZERO);
         bill.setDepositAmount(BigDecimal.ZERO);
         bill.setOtherFeeAmount(feeAmount);
@@ -374,7 +498,7 @@ public class TenantBillService {
         bill.setDueDate(calculateDueDate(config));
         bill.setPaymentStatus(PaymentStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
-        bill.setCreateBy(tenant.getCreateBy());
+        bill.setCreateBy(context.tenant.getCreateBy());
         bill.setCreateTime(new Date());
 
         return bill;
@@ -404,28 +528,41 @@ public class TenantBillService {
      * @return 应收日期
      */
     private Date calculateDueDate(BillConfig config) {
-        LocalDate dueDate;
-
         // 首期账单且跟随合同创建日
         if (config.isFirstBill && config.firstBillDay != null && config.firstBillDay == 1) {
-            dueDate = LocalDate.now();
-        } else {
-            if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.EARLY.getCode())) {
-                // 提前收租
-                dueDate = config.periodStart.minusDays(config.rentDueOffsetDays != null ? config.rentDueOffsetDays : 0);
-            } else if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.FIXED.getCode())) {
-                // 固定日收租
-                dueDate = calculateFixedDueDate(config.periodStart, config.rentDueDay);
-            } else if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.LATE.getCode())) {
-                // 延后收租
-                dueDate = config.periodStart.plusDays(config.rentDueOffsetDays != null ? config.rentDueOffsetDays : 0);
-            } else {
-                // 默认应收日为账期开始日
-                dueDate = config.periodStart;
-            }
+            return DateUtil.date(LocalDate.now());
         }
 
+        LocalDate dueDate = calculateDueDateByType(config);
         return DateUtil.date(dueDate);
+    }
+
+    /**
+     * 根据收租类型计算应收日期
+     *
+     * @param config 账单配置参数
+     * @return 应收日期
+     */
+    private LocalDate calculateDueDateByType(BillConfig config) {
+        if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.EARLY.getCode())) {
+            // 提前收租
+            int offsetDays = config.rentDueOffsetDays != null ? config.rentDueOffsetDays : 0;
+            return config.periodStart.minusDays(offsetDays);
+        }
+
+        if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.FIXED.getCode())) {
+            // 固定日收租
+            return calculateFixedDueDate(config.periodStart, config.rentDueDay);
+        }
+
+        if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.LATE.getCode())) {
+            // 延后收租
+            int offsetDays = config.rentDueOffsetDays != null ? config.rentDueOffsetDays : 0;
+            return config.periodStart.plusDays(offsetDays);
+        }
+
+        // 默认应收日为账期开始日
+        return config.periodStart;
     }
 
     /**
@@ -485,6 +622,8 @@ public class TenantBillService {
             .multiply(BigDecimal.valueOf(tenant.getDepositMonths()))
             .setScale(2, RoundingMode.HALF_UP);
         depositBill.setDepositAmount(depositAmount);
+        depositBill.setRentalAmount(BigDecimal.ZERO);
+        depositBill.setOtherFeeAmount(BigDecimal.ZERO);
         depositBill.setTotalAmount(depositAmount);
 
         // 根据首期账单规则设置应收日期
@@ -498,13 +637,13 @@ public class TenantBillService {
         depositBill.setPaymentStatus(PaymentStatusEnum.UNPAID.getCode());
         depositBill.setRemark("第 0 期");
         depositBill.setCreateBy(tenant.getCreateBy());
+        depositBill.setCreateTime(DateUtil.date());
 
         tenantBillRepo.save(depositBill);
     }
 
     /**
      * 账单配置参数类（用于减少方法参数数量）
-     * 使用 Lombok @Builder 简化构建器模式
      */
     @Builder
     private record BillConfig(
@@ -514,6 +653,44 @@ public class TenantBillService {
         Integer rentDueType,
         Integer rentDueDay,
         Integer rentDueOffsetDays
+    ) {
+    }
+
+    /**
+     * 费用与账单关联类（用于保存明细时关联）
+     */
+    private record FeeWithBills(OtherFeeDTO fee, List<TenantBill> bills) {
+    }
+
+    /**
+     * 租金账单创建上下文
+     */
+    @Builder
+    private record RentBillContext(
+        Long tenantId,
+        TenantDTO tenant,
+        int sortOrder,
+        int actualMonths,
+        LocalDate currentStart,
+        LocalDate currentEnd,
+        BigDecimal rentalAmount,
+        BigDecimal otherFeeAmount,
+        Date dueDate
+    ) {
+    }
+
+    /**
+     * 其他费用账单创建上下文
+     */
+    @Builder
+    private record OtherFeeBillContext(
+        Long tenantId,
+        TenantDTO tenant,
+        OtherFeeDTO fee,
+        Date periodStart,
+        Date periodEnd,
+        int sortOrder,
+        int periodNumber
     ) {
     }
 }
