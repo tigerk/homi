@@ -43,7 +43,8 @@ public class MybatisPlusConfig {
         "room_price_plan",
         "room_detail",
         "tenant_contract",
-        "tenant_other_fee"
+        "tenant_other_fee",
+        "tenant_bill_other_fee"
     );
 
     /**
