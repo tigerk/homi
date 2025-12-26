@@ -17,18 +17,18 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 租客账单明细表
+ * 租客账单其他费用明细表
  * </p>
  *
  * @author tk
- * @since 2025-12-15
+ * @since 2025-12-26
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("tenant_bill_detail")
-@Schema(name = "TenantBillDetail", description = "租客账单明细表")
-public class TenantBillDetail implements Serializable {
+@TableName("tenant_bill_other_fee")
+@Schema(name = "TenantBillOtherFee", description = "租客账单其他费用明细表")
+public class TenantBillOtherFee implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -40,33 +40,13 @@ public class TenantBillDetail implements Serializable {
     @TableField("bill_id")
     private Long billId;
 
-    @Schema(description = "公司ID")
-    @TableField("company_id")
-    private Long companyId;
-
-    @Schema(description = "费用类型：1=租金，2=押金，3=水费，4=电费，5=物业费，6=卫生费，7=网络费，8=其他")
-    @TableField("item_type")
-    private Integer itemType;
+    @Schema(description = "费用字典 ID")
+    @TableField("dict_data_id")
+    private Long dictDataId;
 
     @Schema(description = "费用项目名称（如 租金、水费、电费）")
-    @TableField("item_name")
-    private String itemName;
-
-    @Schema(description = "计费方式：1=固定金额，2=单价×数量，3=比例计费")
-    @TableField("charge_mode")
-    private Integer chargeMode;
-
-    @Schema(description = "单价（charge_mode=2 时有效）")
-    @TableField("unit_price")
-    private BigDecimal unitPrice;
-
-    @Schema(description = "数量（charge_mode=2 时有效）")
-    @TableField("quantity")
-    private BigDecimal quantity;
-
-    @Schema(description = "费率（charge_mode=3 时有效）")
-    @TableField("rate")
-    private BigDecimal rate;
+    @TableField("dict_data_name")
+    private String dictDataName;
 
     @Schema(description = "费用金额（计算结果）")
     @TableField("amount")

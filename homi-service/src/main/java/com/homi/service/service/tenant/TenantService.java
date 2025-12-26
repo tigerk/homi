@@ -8,12 +8,11 @@ import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.tenant.TenantContractStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dao.entity.Tenant;
-import com.homi.model.dao.entity.TenantCompany;
-import com.homi.model.dao.entity.TenantContract;
-import com.homi.model.dao.entity.TenantPersonal;
+import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
+import com.homi.model.dto.room.price.OtherFeeDTO;
 import com.homi.model.dto.tenant.*;
 import com.homi.model.vo.tenant.TenantCompanyVO;
 import com.homi.model.vo.tenant.TenantListVO;
@@ -46,6 +45,7 @@ public class TenantService {
     private final TenantPersonalRepo tenantPersonalRepo;
     private final TenantCompanyRepo tenantCompanyRepo;
     private final FileAttachRepo fileAttachRepo;
+    private final TenantOtherFeeRepo tenantOtherFeeRepo;
 
     private final RoomService roomService;
     private final TenantBillService tenantBillService;
@@ -111,7 +111,7 @@ public class TenantService {
         createDTO.getTenant().setTenantPhone(addedTenant.getRight());
 
         createDTO.getTenant().setCreateBy(createDTO.getCreateBy());
-        Tenant tenant = addTenant(createDTO.getTenant());
+        Tenant tenant = addTenant(createDTO.getTenant(), createDTO.getOtherFees());
 
         // 生成租客合同
         TenantContract tenantContract = tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), tenant);
@@ -125,18 +125,28 @@ public class TenantService {
     /**
      * 添加租客合同
      *
-     * @param contract 合同信息
-     * @return
+     * @param tenantDTO 租客信息
+     * @param otherFees
+     * @return 返回创建的租客
      */
-    private Tenant addTenant(TenantDTO contract) {
-        Tenant tenant = new Tenant();
-        BeanUtils.copyProperties(contract, tenant);
+    private Tenant addTenant(TenantDTO tenantDTO, List<OtherFeeDTO> otherFees) {
+        Tenant tenant = BeanCopyUtils.copyBean(tenantDTO, Tenant.class);
 
-        tenant.setRoomIds(JSONUtil.toJsonStr(contract.getRoomIds()));
+        assert tenant != null;
+        tenant.setRoomIds(JSONUtil.toJsonStr(tenantDTO.getRoomIds()));
 
         tenant.setStatus(TenantContractStatusEnum.TO_SIGN.getCode());
+        tenant.setCreateBy(tenantDTO.getCreateBy());
         tenant.setCreateTime(DateUtil.date());
+
         tenantRepo.save(tenant);
+
+        otherFees.forEach(otherFeeDTO -> {
+            TenantOtherFee tenantOtherFee = BeanCopyUtils.copyBean(otherFeeDTO, TenantOtherFee.class);
+            assert tenantOtherFee != null;
+            tenantOtherFee.setTenantId(tenant.getId());
+            tenantOtherFeeRepo.save(tenantOtherFee);
+        });
 
         return tenant;
     }

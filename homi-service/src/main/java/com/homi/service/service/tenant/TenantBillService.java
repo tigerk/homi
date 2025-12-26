@@ -216,10 +216,8 @@ public class TenantBillService {
      * @param dueDate        支付日期
      * @return com.homi.model.dao.entity.TenantBill
      */
-    private TenantBill createRentBill(Long tenantId, TenantDTO tenant, int sortOrder,
-                                      int actualMonths, LocalDate currentStart,
-                                      LocalDate currentEnd, BigDecimal rentalAmount,
-                                      BigDecimal otherFeeAmount, Date dueDate) {
+    private TenantBill createRentBill(Long tenantId, TenantDTO tenant, int sortOrder, int actualMonths,
+                                      LocalDate currentStart, LocalDate currentEnd, BigDecimal rentalAmount, BigDecimal otherFeeAmount, Date dueDate) {
         TenantBill bill = new TenantBill();
         bill.setTenantId(tenantId);
         bill.setCompanyId(tenant.getCompanyId());
