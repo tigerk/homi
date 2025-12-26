@@ -44,7 +44,7 @@ public class TenantOtherFee implements Serializable {
 
     @Schema(description = "其他费用名称")
     @TableField("name")
-    private Long name;
+    private String name;
 
     @Schema(description = "付款方式（如：随房租付、按固定金额等）")
     @TableField("payment_method")
