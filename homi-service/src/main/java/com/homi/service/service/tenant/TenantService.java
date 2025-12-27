@@ -18,7 +18,6 @@ import com.homi.model.vo.tenant.TenantCompanyVO;
 import com.homi.model.vo.tenant.TenantListVO;
 import com.homi.model.vo.tenant.TenantPersonalVO;
 import com.homi.model.vo.tenant.TenantTotalItemVO;
-import com.homi.model.vo.tenant.bill.TenantBillListVO;
 import com.homi.service.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
@@ -65,10 +64,10 @@ public class TenantService {
         tenantContractListVOPageVO.getList().forEach(tenantListVO -> {
             TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, tenantListVO.getTenantType());
             if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
-                TenantPersonalVO tenantPersonalVO = tenantPersonalRepo.getTenantById(tenantListVO.getTenantId());
+                TenantPersonalVO tenantPersonalVO = tenantPersonalRepo.getTenantById(tenantListVO.getTenantTypeId());
                 tenantListVO.setTenantPersonal(tenantPersonalVO);
             } else {
-                TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenantListVO.getTenantId());
+                TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenantListVO.getTenantTypeId());
                 tenantListVO.setTenantCompany(tenantCompanyVO);
             }
 

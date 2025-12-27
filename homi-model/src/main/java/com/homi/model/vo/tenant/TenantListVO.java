@@ -43,8 +43,8 @@ public class TenantListVO {
     @Schema(description = "房间 ids")
     private String roomIds;
 
-    @Schema(description = "租客ID")
-    private Long tenantId;
+    @Schema(description = "租客类型关联ID")
+    private Long tenantTypeId;
 
     @Schema(description = "租客类型：0=个人，1=企业")
     private Integer tenantType;

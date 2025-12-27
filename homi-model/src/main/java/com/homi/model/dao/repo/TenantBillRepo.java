@@ -28,6 +28,9 @@ public class TenantBillRepo extends ServiceImpl<TenantBillMapper, TenantBill> {
     public List<TenantBill> getBillListByTenantId(Long tenantId) {
         LambdaQueryWrapper<TenantBill> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TenantBill::getTenantId, tenantId);
+
+        queryWrapper.orderByAsc(TenantBill::getDueDate);
+
         return list(queryWrapper);
     }
 }
