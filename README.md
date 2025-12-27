@@ -65,7 +65,7 @@ company 记录公司信息 、user 登录用户 、 company-user 关联，然后
 
 | 中文    | 英文写法                               | 系统字段命名建议（CamelCase） | 数据库字段命名建议（snake\_case）                | 说明              |
 |-------|------------------------------------|---------------------|---------------------------------------|-----------------|
-| 租金    | rental_price                       | `leaseAmount`       | `lease_amount`                        | 每月/每期支付的费用      |
+| 租金    | rent_price                       | `leaseAmount`       | `lease_amount`                        | 每月/每期支付的费用      |
 | 定金    | Booking Fee                        | `bookingFee`        | `reservation_deposit` / `booking_fee` | 预订时支付，用于锁定房源    |
 | 押金    | Security Deposit                   | `securityDeposit`   | `security_deposit`                    | 合同履约保证，租期结束后可退还 |
 | 违约金   | Penalty / Liquidated Damages       | `penaltyFee`        | `penalty_fee`                         | 租客/房东违约时支付的费用   |

@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum PaymentMethodEnum {
     /**
-     * 房间状态枚举
+     * 支付模式
      */
     RENT(0, "随房租付"),
     ALL(1, "一次性全支付"),

@@ -77,8 +77,8 @@ public class Tenant implements Serializable {
     private String tenantPhone;
 
     @Schema(description = "租金价格")
-    @TableField("rental_price")
-    private BigDecimal rentalPrice;
+    @TableField("rent_price")
+    private BigDecimal rentPrice;
 
     @Schema(description = "押金月数")
     @TableField("deposit_months")

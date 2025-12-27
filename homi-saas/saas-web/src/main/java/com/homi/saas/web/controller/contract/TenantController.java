@@ -9,7 +9,9 @@ import com.homi.model.dto.tenant.TenantQueryDTO;
 import com.homi.model.vo.tenant.TenantListVO;
 import com.homi.model.vo.tenant.TenantTotalItemVO;
 import com.homi.model.vo.tenant.TenantTotalVO;
+import com.homi.model.vo.tenant.bill.TenantBillListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
+import com.homi.service.service.tenant.TenantBillService;
 import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,9 @@ import java.util.List;
 @RequestMapping("/saas/contract/tenant")
 public class TenantController {
     private final TenantService tenantService;
+    private final TenantBillService tenantBillService;
+
+
 
     @PostMapping("/total")
     public ResponseResult<TenantTotalVO> getTenantTotal(@RequestBody TenantQueryDTO query) {
@@ -57,5 +62,10 @@ public class TenantController {
         createDTO.getTenant().setCompanyId(loginUser.getCurCompanyId());
 
         return ResponseResult.ok(tenantService.createTenant(createDTO));
+    }
+
+    @PostMapping("/bill/list")
+    public ResponseResult<List<TenantBillListVO>> getBillList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(tenantBillService.getBillListByTenantId(queryDTO));
     }
 }

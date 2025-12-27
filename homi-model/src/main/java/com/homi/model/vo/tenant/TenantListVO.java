@@ -65,7 +65,7 @@ public class TenantListVO {
     private String tenantPhone;
 
     @Schema(description = "租金价格")
-    private BigDecimal rentalPrice;
+    private BigDecimal rentPrice;
 
     @Schema(description = "押金月数")
     private Integer depositMonths;

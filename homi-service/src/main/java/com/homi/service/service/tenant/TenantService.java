@@ -18,6 +18,7 @@ import com.homi.model.vo.tenant.TenantCompanyVO;
 import com.homi.model.vo.tenant.TenantListVO;
 import com.homi.model.vo.tenant.TenantPersonalVO;
 import com.homi.model.vo.tenant.TenantTotalItemVO;
+import com.homi.model.vo.tenant.bill.TenantBillListVO;
 import com.homi.service.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
@@ -48,7 +49,7 @@ public class TenantService {
     private final TenantOtherFeeRepo tenantOtherFeeRepo;
 
     private final RoomService roomService;
-    private final TenantBillService tenantBillService;
+    private final TenantBillGenService tenantBillGenService;
     private final TenantContractService tenantContractService;
 
 
@@ -117,7 +118,7 @@ public class TenantService {
         TenantContract tenantContract = tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), tenant);
 
         // 生成租客账单
-        tenantBillService.addTenantBill(tenant.getId(), createDTO.getTenant(), createDTO.getOtherFees());
+        tenantBillGenService.addTenantBill(tenant.getId(), createDTO.getTenant(), createDTO.getOtherFees());
 
         return addedTenant.getLeft();
     }

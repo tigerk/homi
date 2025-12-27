@@ -7,7 +7,7 @@ import com.homi.model.dao.entity.TenantBill;
 import com.homi.model.dao.repo.TenantBillRepo;
 import com.homi.model.dto.room.price.OtherFeeDTO;
 import com.homi.model.dto.tenant.TenantDTO;
-import com.homi.service.service.tenant.TenantBillService;
+import com.homi.service.service.tenant.TenantBillGenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,16 +34,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
- * TenantBillService 单元测试
+ * TenantBillGenService 单元测试
  */
 @ExtendWith(MockitoExtension.class)
-class TenantBillServiceTest {
+class TenantBillGenServiceTest {
 
     @Mock
     private TenantBillRepo tenantBillRepo;
 
     @InjectMocks
-    private TenantBillService tenantBillService;
+    private TenantBillGenService tenantBillGenService;
 
     @Captor
     private ArgumentCaptor<List<TenantBill>> billListCaptor;
@@ -72,7 +72,7 @@ class TenantBillServiceTest {
         Long tenantId = 1L;
 
         // When
-        tenantBillService.addTenantBill(tenantId, testTenant, testOtherFees);
+        tenantBillGenService.addTenantBill(tenantId, testTenant, testOtherFees);
 
         // Then
         // 验证保存了3次：押金账单1次 + 租金账单批量1次 + 其他费用账单批量1次
@@ -92,7 +92,7 @@ class TenantBillServiceTest {
         Long tenantId = 1L;
 
         // When
-        tenantBillService.addTenantBill(tenantId, testTenant, null);
+        tenantBillGenService.addTenantBill(tenantId, testTenant, null);
 
         // Then
         verify(tenantBillRepo, times(1)).save(billCaptor.capture());
@@ -126,7 +126,7 @@ class TenantBillServiceTest {
         Long tenantId = 1L;
 
         // When
-        tenantBillService.addTenantBill(tenantId, testTenant, null);
+        tenantBillGenService.addTenantBill(tenantId, testTenant, null);
 
         // Then
         verify(tenantBillRepo, times(1)).saveBatch(billListCaptor.capture());
@@ -167,7 +167,7 @@ class TenantBillServiceTest {
         Long tenantId = 1L;
 
         // When
-        tenantBillService.addTenantBill(tenantId, testTenant, testOtherFees);
+        tenantBillGenService.addTenantBill(tenantId, testTenant, testOtherFees);
 
         // Then
         verify(tenantBillRepo, times(2)).saveBatch(billListCaptor.capture());
@@ -213,7 +213,7 @@ class TenantBillServiceTest {
         );
 
         // When
-        tenantBillService.addTenantBill(tenantId, testTenant, oneTimeFees);
+        tenantBillGenService.addTenantBill(tenantId, testTenant, oneTimeFees);
 
         // Then
         verify(tenantBillRepo, times(2)).saveBatch(billListCaptor.capture());
@@ -247,7 +247,7 @@ class TenantBillServiceTest {
         );
 
         // When
-        tenantBillService.addTenantBill(tenantId, testTenant, monthlyFees);
+        tenantBillGenService.addTenantBill(tenantId, testTenant, monthlyFees);
 
         // Then
         verify(tenantBillRepo, times(2)).saveBatch(billListCaptor.capture());
@@ -298,7 +298,7 @@ class TenantBillServiceTest {
             PriceMethodEnum.FIXED.getCode(), 150));
 
         // When
-        tenantBillService.addTenantBill(tenantId, testTenant, mixedFees);
+        tenantBillGenService.addTenantBill(tenantId, testTenant, mixedFees);
 
         // Then
         verify(tenantBillRepo, times(1)).save(any(TenantBill.class)); // 押金
@@ -327,7 +327,7 @@ class TenantBillServiceTest {
         tenant.setTenantPhone("13800138000");
 
         // 租金相关
-        tenant.setRentalPrice(new BigDecimal("3000.00")); // 月租金3000元
+        tenant.setRentPrice(new BigDecimal("3000.00")); // 月租金3000元
         tenant.setDepositMonths(1); // 押1
         tenant.setPaymentMonths(3); // 付3（季付）
 
