@@ -39,6 +39,7 @@ public class TenantListVO {
 
     @Schema(description = "部门 ID")
     private Long deptId;
+    private String deptName;
 
     @Schema(description = "房间 ids")
     private String roomIds;
@@ -111,6 +112,7 @@ public class TenantListVO {
 
     @Schema(description = "业务人员ID")
     private Long salesmanId;
+    private String salesmanName;
 
     @Schema(description = "协助人员ID")
     private Long helperId;

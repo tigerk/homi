@@ -19,6 +19,8 @@ import com.homi.model.vo.tenant.TenantListVO;
 import com.homi.model.vo.tenant.TenantPersonalVO;
 import com.homi.model.vo.tenant.TenantTotalItemVO;
 import com.homi.service.service.room.RoomService;
+import com.homi.service.service.system.DeptService;
+import com.homi.service.service.system.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +52,8 @@ public class TenantService {
     private final RoomService roomService;
     private final TenantBillGenService tenantBillGenService;
     private final TenantContractService tenantContractService;
+    private final UserService userService;
+    private final DeptService deptService;
 
 
     /**
@@ -72,6 +76,13 @@ public class TenantService {
             }
 
             tenantListVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(tenantListVO.getRoomIds(), Long.class)));
+
+            User salesmanUser = userService.getUserById(tenantListVO.getSalesmanId());
+            tenantListVO.setSalesmanName(salesmanUser.getRealName());
+
+            Dept deptById = deptService.getDeptById(tenantListVO.getDeptId());
+            tenantListVO.setDeptName(deptById.getName());
+
         });
 
         return tenantContractListVOPageVO;
