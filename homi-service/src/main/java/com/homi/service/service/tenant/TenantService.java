@@ -10,11 +10,13 @@ import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.dto.room.price.OtherFeeDTO;
 import com.homi.model.dto.tenant.*;
+import com.homi.model.vo.contract.TenantContractVO;
 import com.homi.model.vo.tenant.*;
 import com.homi.service.service.room.RoomService;
 import com.homi.service.service.system.DeptService;
@@ -383,5 +385,22 @@ public class TenantService {
                 }
             });
         }
+    }
+
+    /**
+     * 下载租客合同
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/14 04:00
+     *
+     * @param tenantId 参数说明
+     * @return byte[]
+     */
+    public byte[] downloadContract(Long tenantId) {
+        // 获取租客合同信息
+        TenantContractVO tenantContractByTenantId = tenantContractService.getTenantContractByTenantId(tenantId);
+
+        // 生成 PDF 文件
+        return ConvertHtml2PdfUtils.generatePdf(tenantContractByTenantId.getContractContent());
     }
 }
