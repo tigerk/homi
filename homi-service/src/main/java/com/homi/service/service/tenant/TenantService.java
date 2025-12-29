@@ -6,7 +6,7 @@ import cn.hutool.core.util.EnumUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
-import com.homi.common.lib.enums.tenant.TenantContractStatusEnum;
+import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -146,7 +146,7 @@ public class TenantService {
         assert tenant != null;
         tenant.setRoomIds(JSONUtil.toJsonStr(tenantDTO.getRoomIds()));
 
-        tenant.setStatus(TenantContractStatusEnum.TO_SIGN.getCode());
+        tenant.setStatus(TenantStatusEnum.TO_SIGN.getCode());
         tenant.setCreateBy(tenantDTO.getCreateBy());
         tenant.setCreateTime(DateUtil.date());
 
@@ -258,8 +258,8 @@ public class TenantService {
      */
     private @NotNull Map<Integer, TenantTotalItemVO> initTenantTotalItemMap() {
         Map<Integer, TenantTotalItemVO> result = new HashMap<>();
-        TenantContractStatusEnum[] values = TenantContractStatusEnum.values();
-        for (TenantContractStatusEnum contractStatusEnum : values) {
+        TenantStatusEnum[] values = TenantStatusEnum.values();
+        for (TenantStatusEnum contractStatusEnum : values) {
             TenantTotalItemVO tenantTotalItemVO = new TenantTotalItemVO();
             tenantTotalItemVO.setStatus(contractStatusEnum.getCode());
             tenantTotalItemVO.setStatusName(contractStatusEnum.getName());

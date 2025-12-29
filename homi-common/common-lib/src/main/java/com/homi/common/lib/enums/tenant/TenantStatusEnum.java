@@ -13,7 +13,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum TenantContractStatusEnum {
+public enum TenantStatusEnum {
     /**
      * 合同状态：0=待签字，1=在租中，2=已退租，3=已作废
      */
