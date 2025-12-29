@@ -308,7 +308,7 @@ public class TenantService {
         tenantDetailVO.setOtherFees(tenantOtherFeeRepo.getTenantOtherFeeByTenantId(tenantDetailVO.getId()));
 
         // 获取租客的合同信息
-        tenantDetailVO.setTenantContract(tenantContractRepo.getTenantContractByTenantId(tenantDetailVO.getId()));
+        tenantDetailVO.setTenantContract(tenantContractService.getTenantContractByTenantId(tenantDetailVO.getId()));
 
         // 获取租客的租客成员信息
         List<TenantMateVO> tenantMateListByTenantId = tenantMateService.getTenantMateListByTenantId(tenantDetailVO.getId());

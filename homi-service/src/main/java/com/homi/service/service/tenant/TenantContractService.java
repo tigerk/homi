@@ -6,6 +6,7 @@ import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.TenantContract;
 import com.homi.model.dao.repo.ContractTemplateRepo;
 import com.homi.model.dao.repo.TenantContractRepo;
+import com.homi.model.vo.contract.TenantContractVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,28 @@ public class TenantContractService {
     private final TenantContractRepo tenantContractRepo;
     private final ContractTemplateRepo contractTemplateRepo;
 
+    /**
+     * 根据租客ID查询租客合同
+     *
+     * @param tenantId 租客ID
+     * @return 租客合同
+     */
+    public TenantContractVO getTenantContractByTenantId(Long tenantId) {
+        TenantContractVO tenantContractByTenantId = tenantContractRepo.getTenantContractByTenantId(tenantId);
+
+        ContractTemplate contractTemplate = contractTemplateRepo.getById(tenantContractByTenantId.getContractTemplateId());
+        tenantContractByTenantId.setContractTemplateName(contractTemplate.getTemplateName());
+
+        return tenantContractByTenantId;
+    }
+
+    /**
+     * 添加租客合同
+     *
+     * @param contractTemplateId 合同模板ID
+     * @param tenant             租客
+     * @return 租客合同
+     */
     public TenantContract addTenantContract(Long contractTemplateId, Tenant tenant) {
         ContractTemplate contractTemplate = contractTemplateRepo.getById(contractTemplateId);
 

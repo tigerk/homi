@@ -37,6 +37,7 @@ public class TenantContractVO implements Serializable {
     @Schema(description = "合同模板ID")
     @TableField("contract_template_id")
     private Long contractTemplateId;
+    private String contractTemplateName;
 
     @Schema(description = "合同内容")
     @TableField("contract_content")
