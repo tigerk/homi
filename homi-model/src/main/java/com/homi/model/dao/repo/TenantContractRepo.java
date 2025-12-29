@@ -2,10 +2,8 @@ package com.homi.model.dao.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.TenantContract;
 import com.homi.model.dao.mapper.TenantContractMapper;
-import com.homi.model.vo.contract.TenantContractVO;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,12 +16,10 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TenantContractRepo extends ServiceImpl<TenantContractMapper, TenantContract> {
-    public TenantContractVO getTenantContractByTenantId(Long id) {
+    public TenantContract getTenantContractByTenantId(Long id) {
         LambdaQueryWrapper<TenantContract> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TenantContract::getTenantId, id);
 
-        TenantContract tenantContract = getOne(queryWrapper);
-
-        return BeanCopyUtils.copyBean(tenantContract, TenantContractVO.class);
+        return getOne(queryWrapper);
     }
 }

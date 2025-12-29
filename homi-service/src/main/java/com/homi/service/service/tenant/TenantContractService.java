@@ -1,6 +1,7 @@
 package com.homi.service.service.tenant;
 
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.ContractTemplate;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.TenantContract;
@@ -10,6 +11,7 @@ import com.homi.model.dao.repo.TenantRepo;
 import com.homi.model.dto.tenant.TenantContractGenerateDTO;
 import com.homi.model.vo.contract.TenantContractVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -34,8 +36,10 @@ public class TenantContractService {
      * @return 租客合同
      */
     public TenantContractVO getTenantContractByTenantId(Long tenantId) {
-        TenantContractVO tenantContractByTenantId = tenantContractRepo.getTenantContractByTenantId(tenantId);
+        TenantContract tenantContract = tenantContractRepo.getTenantContractByTenantId(tenantId);
 
+        TenantContractVO tenantContractByTenantId = BeanCopyUtils.copyBean(tenantContract, TenantContractVO.class);
+        assert tenantContractByTenantId != null;
         ContractTemplate contractTemplate = contractTemplateRepo.getById(tenantContractByTenantId.getContractTemplateId());
         tenantContractByTenantId.setContractTemplateName(contractTemplate.getTemplateName());
 
@@ -49,7 +53,7 @@ public class TenantContractService {
      * @param tenant             租客
      * @return 租客合同
      */
-    public TenantContract addTenantContract(Long contractTemplateId, Tenant tenant) {
+    public TenantContract saveTenantContract(Long contractTemplateId, Tenant tenant) {
         ContractTemplate contractTemplate = contractTemplateRepo.getById(contractTemplateId);
 
         TenantContract tenantContract = new TenantContract();
@@ -59,9 +63,17 @@ public class TenantContractService {
         tenantContract.setContractContent(replaceContractVariables(contractTemplate.getTemplateContent(), tenant));
         tenantContract.setSignStatus(0);
         tenantContract.setDeleted(false);
-        tenantContractRepo.save(tenantContract);
 
-        return tenantContract;
+        // 如果租客合同已存在，更新合同内容
+        TenantContract existingContract = tenantContractRepo.getTenantContractByTenantId(tenant.getId());
+        if (existingContract != null) {
+            BeanUtils.copyProperties(tenantContract, existingContract);
+            tenantContractRepo.updateById(existingContract);
+            return existingContract;
+        } else {
+            tenantContractRepo.save(tenantContract);
+            return tenantContract;
+        }
     }
 
     private String replaceContractVariables(String contractContent, Tenant tenant) {
@@ -78,13 +90,22 @@ public class TenantContractService {
         return contractContent;
     }
 
+    /**
+     * 根据租客ID生成租客合同
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/29 19:20
+     *
+     * @param query 参数说明
+     * @return java.lang.String
+     */
     public String generateTenantContractByTenantId(TenantContractGenerateDTO query) {
         Tenant tenant = tenantRepo.getById(query.getTenantId());
         if (tenant == null) {
             throw new IllegalArgumentException("Tenant not found");
         }
 
-        TenantContract tenantContract = addTenantContract(query.getContractTemplateId(), tenant);
+        TenantContract tenantContract = saveTenantContract(query.getContractTemplateId(), tenant);
         return tenantContract.getContractContent();
     }
 }
