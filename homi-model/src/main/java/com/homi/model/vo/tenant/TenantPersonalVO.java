@@ -42,7 +42,7 @@ public class TenantPersonalVO {
     private String phone;
 
     @Schema(description = "租客标签")
-    private String tags;
+    private List<String> tags;
 
     @Schema(description = "租客备注")
     private String remark;

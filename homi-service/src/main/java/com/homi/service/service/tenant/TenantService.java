@@ -18,6 +18,7 @@ import com.homi.model.dto.tenant.*;
 import com.homi.model.vo.tenant.*;
 import com.homi.service.service.room.RoomService;
 import com.homi.service.service.system.DeptService;
+import com.homi.service.service.system.DictDataService;
 import com.homi.service.service.system.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
@@ -52,7 +53,8 @@ public class TenantService {
     private final UserService userService;
     private final DeptService deptService;
     private final TenantBillService tenantBillService;
-
+    private final DictDataService dictDataService;
+    private final TenantMateService tenantMateService;
 
     /**
      * 获取租客列表
@@ -123,8 +125,11 @@ public class TenantService {
         createDTO.getTenant().setCreateBy(createDTO.getCreateBy());
         Tenant tenant = addTenant(createDTO.getTenant(), createDTO.getOtherFees());
 
+        // 添加同住人
+        tenantMateService.saveTenantMateList(tenant.getId(), createDTO.getTenantMateList());
+
         // 生成租客合同
-        TenantContract tenantContract = tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), tenant);
+        tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), tenant);
 
         // 生成租客账单
         tenantBillGenService.addTenantBill(tenant.getId(), createDTO.getTenant(), createDTO.getOtherFees());
@@ -136,7 +141,7 @@ public class TenantService {
      * 添加租客合同
      *
      * @param tenantDTO 租客信息
-     * @param otherFees
+     * @param otherFees 其他费用
      * @return 返回创建的租客
      */
     private Tenant addTenant(TenantDTO tenantDTO, List<OtherFeeDTO> otherFees) {
@@ -281,11 +286,27 @@ public class TenantService {
         Dept deptById = deptService.getDeptById(tenantDetailVO.getDeptId());
         tenantDetailVO.setDeptName(deptById.getName());
 
+        // 获取成交渠道名称
+        if (Objects.nonNull(tenantDetailVO.getDealChannel())) {
+            DictData dictData = dictDataService.getDictDataById(tenantDetailVO.getDealChannel());
+            tenantDetailVO.setDealChannelName(dictData.getName());
+        }
+        // 获取租客来源名称
+        if (Objects.nonNull(tenantDetailVO.getTenantSource())) {
+            DictData tenantSource = dictDataService.getDictDataById(tenantDetailVO.getTenantSource());
+            tenantDetailVO.setTenantSourceName(tenantSource.getName());
+        }
+
         // 获取文件附件列表
         getTenantTypeInfo(tenantDetailVO);
 
         // 获取租客的合同信息
         tenantDetailVO.setTenantContract(tenantContractRepo.getTenantContractByTenantId(tenantDetailVO.getId()));
+
+        // 获取租客的租客成员信息
+        List<TenantMateVO> tenantMateListByTenantId = tenantMateService.getTenantMateListByTenantId(tenantDetailVO.getId());
+        tenantDetailVO.setTenantMateList(tenantMateListByTenantId);
+
 
         // 获取租客账单列表
         tenantDetailVO.setTenantBillList(tenantBillService.getBillListByTenantId(tenantDetailVO.getId()));
@@ -304,6 +325,7 @@ public class TenantService {
     public void getTenantTypeInfo(TenantDetailVO tenantDetail) {
         if (Objects.equals(tenantDetail.getTenantType(), TenantTypeEnum.PERSONAL.getCode())) {
             TenantPersonalVO tenantPersonalVO = tenantPersonalRepo.getTenantById(tenantDetail.getTenantTypeId());
+
             tenantDetail.setTenantPersonal(tenantPersonalVO);
         } else {
             TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenantDetail.getTenantTypeId());

@@ -131,9 +131,11 @@ public class TenantDetailVO {
 
     @Schema(description = "租客来源")
     private Long tenantSource;
+    private String tenantSourceName;
 
     @Schema(description = "成交渠道")
     private Long dealChannel;
+    private String dealChannelName;
 
     @Schema(description = "合同备注")
     private String remark;
@@ -160,4 +162,8 @@ public class TenantDetailVO {
 
     @Schema(description = "租客账单列表")
     private List<TenantBillListVO> tenantBillList;
+
+    @Schema(description = "租客同住人列表")
+    private List<TenantMateVO> tenantMateList;
+
 }

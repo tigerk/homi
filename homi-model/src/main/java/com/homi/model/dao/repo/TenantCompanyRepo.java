@@ -1,5 +1,6 @@
 package com.homi.model.dao.repo;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.utils.BeanCopyUtils;
@@ -22,6 +23,11 @@ public class TenantCompanyRepo extends ServiceImpl<TenantCompanyMapper, TenantCo
     public TenantCompanyVO getTenantCompanyById(Long tenantId) {
         TenantCompany one = getOne(new LambdaQueryWrapper<TenantCompany>().eq(TenantCompany::getId, tenantId));
 
-        return BeanCopyUtils.copyBean(one, TenantCompanyVO.class);
+        TenantCompanyVO tenantCompanyVO = BeanCopyUtils.copyBean(one, TenantCompanyVO.class);
+
+        assert tenantCompanyVO != null;
+        tenantCompanyVO.setTags(JSONUtil.toList(one.getTags(), String.class));
+
+        return tenantCompanyVO;
     }
 }

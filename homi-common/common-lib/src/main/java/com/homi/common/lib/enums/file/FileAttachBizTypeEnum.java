@@ -18,19 +18,19 @@ public enum FileAttachBizTypeEnum {
     ROOM_IMAGE("room_image"),
 
     /**
-     * 租户证件正面
+     * 租客证件正面
      */
     TENANT_ID_CARD_FRONT("tenant_id_card_front"),
     /**
-     * 租户证件反面
+     * 租客证件反面
      */
     TENANT_ID_CARD_BACK("tenant_id_card_back"),
     /**
-     * 租户证件手持
+     * 租客证件手持
      */
     TENANT_ID_CARD_IN_HAND("tenant_id_card_in_hand"),
     /**
-     * 租户其他照片
+     * 租客其他照片
      */
     TENANT_OTHER_IMAGE("tenant_other_image"),
     /**
@@ -38,13 +38,30 @@ public enum FileAttachBizTypeEnum {
      */
     CONTRACT_FILE("contract_file"),
     /**
-     * 租户图片
+     * 租客图片
      */
     TENANT_IMAGE("tenant_image"),
     /**
      * 营业执照
      */
     BUSINESS_LICENSE("business_license"),
+
+    /**
+     * 租客同住人证件正面
+     */
+    TENANT_MATE_ID_CARD_FRONT("tenant_mate_id_card_front"),
+    /**
+     * 租客同住人证件反面
+     */
+    TENANT_MATE_ID_CARD_BACK("tenant_mate_id_card_back"),
+    /**
+     * 租客同住人证件手持
+     */
+    TENANT_MATE_ID_CARD_IN_HAND("tenant_mate_id_card_in_hand"),
+    /**
+     * 租客同住人其他照片
+     */
+    TENANT_MATE_OTHER_IMAGE("tenant_mate_other_image"),
     ;
 
     private final String bizType;
