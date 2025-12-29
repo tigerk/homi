@@ -350,7 +350,7 @@ public class TenantBillGenService {
 
         List<TenantBill> billList = new ArrayList<>();
         List<FeeWithBills> feeWithBillsList = new ArrayList<>();
-        int baseSortOrder = 1000; // 使用较大的序号，避免与租金账单冲突
+        int baseSortOrder = 1; // 使用较大的序号，避免与租金账单冲突
 
         for (int i = 0; i < independentFees.size(); i++) {
             OtherFeeDTO fee = independentFees.get(i);
