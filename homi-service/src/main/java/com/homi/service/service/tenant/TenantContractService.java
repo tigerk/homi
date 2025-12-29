@@ -11,8 +11,9 @@ import com.homi.model.dao.repo.TenantRepo;
 import com.homi.model.dto.tenant.TenantContractGenerateDTO;
 import com.homi.model.vo.contract.TenantContractVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * 租客
@@ -56,7 +57,11 @@ public class TenantContractService {
     public TenantContract saveTenantContract(Long contractTemplateId, Tenant tenant) {
         ContractTemplate contractTemplate = contractTemplateRepo.getById(contractTemplateId);
 
-        TenantContract tenantContract = new TenantContract();
+        TenantContract tenantContract = tenantContractRepo.getTenantContractByTenantId(tenant.getId());
+        if (Objects.isNull(tenantContract)) {
+            tenantContract = new TenantContract();
+        }
+
         tenantContract.setTenantId(tenant.getId());
         // todo 按照租客信息来替换所有的 ${} 变量
         tenantContract.setContractTemplateId(contractTemplateId);
@@ -65,15 +70,14 @@ public class TenantContractService {
         tenantContract.setDeleted(false);
 
         // 如果租客合同已存在，更新合同内容
-        TenantContract existingContract = tenantContractRepo.getTenantContractByTenantId(tenant.getId());
-        if (existingContract != null) {
-            BeanUtils.copyProperties(tenantContract, existingContract);
-            tenantContractRepo.updateById(existingContract);
-            return existingContract;
+
+        if (Objects.nonNull(tenantContract.getId())) {
+            tenantContractRepo.updateById(tenantContract);
         } else {
             tenantContractRepo.save(tenantContract);
-            return tenantContract;
         }
+
+        return tenantContract;
     }
 
     private String replaceContractVariables(String contractContent, Tenant tenant) {
