@@ -7,6 +7,7 @@ import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.dto.tenant.TenantContractGenerateDTO;
 import com.homi.model.dto.tenant.TenantCreateDTO;
 import com.homi.model.dto.tenant.TenantQueryDTO;
 import com.homi.model.vo.tenant.TenantDetailVO;
@@ -16,6 +17,7 @@ import com.homi.model.vo.tenant.TenantTotalVO;
 import com.homi.model.vo.tenant.bill.TenantBillListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.tenant.TenantBillService;
+import com.homi.service.service.tenant.TenantContractService;
 import com.homi.service.service.tenant.TenantService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +50,16 @@ import java.util.List;
 public class TenantController {
     private final TenantService tenantService;
     private final TenantBillService tenantBillService;
+    private final TenantContractService tenantContractService;
 
+    @PostMapping("/create")
+    @Log(title = "创建租客", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<Long> createTenant(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        createDTO.setCreateBy(loginUser.getId());
+        createDTO.getTenant().setCompanyId(loginUser.getCurCompanyId());
+
+        return ResponseResult.ok(tenantService.createTenant(createDTO));
+    }
 
     @PostMapping("/total")
     public ResponseResult<TenantTotalVO> getTenantTotal(@RequestBody TenantQueryDTO query) {
@@ -70,15 +81,6 @@ public class TenantController {
         return ResponseResult.ok(tenantService.getTenantDetailById(query.getTenantId()));
     }
 
-    @PostMapping("/create")
-    @Log(title = "创建租客", operationType = OperationTypeEnum.INSERT)
-    public ResponseResult<Long> createTenant(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        createDTO.setCreateBy(loginUser.getId());
-        createDTO.getTenant().setCompanyId(loginUser.getCurCompanyId());
-
-        return ResponseResult.ok(tenantService.createTenant(createDTO));
-    }
-
     @PostMapping("/bill/list")
     public ResponseResult<List<TenantBillListVO>> getBillList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(tenantBillService.getBillListByTenantId(queryDTO.getTenantId()));
@@ -86,7 +88,7 @@ public class TenantController {
 
     @PostMapping(value = "/contract/download")
     @Log(title = "下载租客合同", operationType = OperationTypeEnum.INSERT)
-    public ResponseEntity<byte[]> generate(@RequestBody TenantQueryDTO query) {
+    public ResponseEntity<byte[]> download(@RequestBody TenantQueryDTO query) {
         byte[] pdfBytes = tenantService.downloadContract(query.getTenantId());
 
         // 保存到本地，检查生成的 pdf 是否准确
@@ -106,5 +108,13 @@ public class TenantController {
         );
 
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/contract/generate")
+    @Log(title = "下载租客合同", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<String> generate(@RequestBody TenantContractGenerateDTO query) {
+        String content = tenantContractService.generateTenantContractByTenantId(query);
+
+        return ResponseResult.ok(content);
     }
 }

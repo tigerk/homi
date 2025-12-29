@@ -6,6 +6,8 @@ import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.TenantContract;
 import com.homi.model.dao.repo.ContractTemplateRepo;
 import com.homi.model.dao.repo.TenantContractRepo;
+import com.homi.model.dao.repo.TenantRepo;
+import com.homi.model.dto.tenant.TenantContractGenerateDTO;
 import com.homi.model.vo.contract.TenantContractVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class TenantContractService {
+    private final TenantRepo tenantRepo;
     private final TenantContractRepo tenantContractRepo;
     private final ContractTemplateRepo contractTemplateRepo;
 
@@ -73,5 +76,15 @@ public class TenantContractService {
         // 替换 ${rentalAmount} 为租金金额
         contractContent = contractContent.replace(TenantParamsEnum.RENTAL_PRICE.getKey(), String.valueOf(tenant.getRentPrice()));
         return contractContent;
+    }
+
+    public String generateTenantContractByTenantId(TenantContractGenerateDTO query) {
+        Tenant tenant = tenantRepo.getById(query.getTenantId());
+        if (tenant == null) {
+            throw new IllegalArgumentException("Tenant not found");
+        }
+
+        TenantContract tenantContract = addTenantContract(query.getContractTemplateId(), tenant);
+        return tenantContract.getContractContent();
     }
 }
