@@ -275,6 +275,10 @@ public class TenantService {
 
     public TenantDetailVO getTenantDetailById(Long tenantId) {
         Tenant byId = tenantRepo.getById(tenantId);
+        if (Objects.isNull(byId)) {
+            throw new IllegalArgumentException("租客不存在");
+        }
+
         TenantDetailVO tenantDetailVO = BeanCopyUtils.copyBean(byId, TenantDetailVO.class);
         assert tenantDetailVO != null;
 
