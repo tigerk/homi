@@ -1,31 +1,31 @@
-package com.homi.model.dao.entity;
+package com.homi.model.vo.contract;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.NoArgsConstructor;
 
-import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * <p>
- * 租客合同表
- * </p>
+ * 应用于 domix
  *
  * @author tk
- * @since 2025-12-15
+ * @version v1.0
+ * {@code @date} 2025/12/29
  */
-@EqualsAndHashCode(callSuper = false)
-@Data
-@ToString(callSuper = true)
-@TableName("tenant_contract")
-@Schema(name = "TenantContract", description = "租客合同表")
-public class TenantContract implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 1L;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Schema(description = "租客合同 VO")
+@Builder
+public class TenantContractVO implements Serializable {
     @Schema(description = "租客合同ID")
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
@@ -49,9 +49,4 @@ public class TenantContract implements Serializable {
     @Schema(description = "合同签约备注")
     @TableField("remark")
     private String remark;
-
-    @Schema(description = "是否删除")
-    @TableField("deleted")
-    @TableLogic
-    private Boolean deleted;
 }

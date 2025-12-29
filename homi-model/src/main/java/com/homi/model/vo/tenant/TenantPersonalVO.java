@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 应用于 homi
  *
@@ -47,4 +49,16 @@ public class TenantPersonalVO {
 
     @Schema(description = "租客状态：0=停用，1=启用")
     private Integer status;
+
+    @Schema(description = "身份证反面附件列表")
+    private List<String> idCardBackList;
+
+    @Schema(description = "身份证正面附件列表")
+    private List<String> idCardFrontList;
+
+    @Schema(description = "身份证手持附件列表")
+    private List<String> idCardInHandList;
+
+    @Schema(description = "其他附件列表")
+    private List<String> otherImageList;
 }

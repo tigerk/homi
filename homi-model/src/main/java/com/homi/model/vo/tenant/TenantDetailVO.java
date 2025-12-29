@@ -1,7 +1,9 @@
 package com.homi.model.vo.tenant;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.model.vo.contract.TenantContractVO;
 import com.homi.model.vo.room.RoomListVO;
+import com.homi.model.vo.tenant.bill.TenantBillListVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +26,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TenantListVO {
+@Schema(description = "租客详情VO")
+public class TenantDetailVO {
     @Schema(description = "租客 ID")
     private Long id;
 
@@ -151,4 +154,10 @@ public class TenantListVO {
     @Schema(description = "修改时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
+
+    @Schema(description = "租客合同")
+    private TenantContractVO tenantContract;
+
+    @Schema(description = "租客账单列表")
+    private List<TenantBillListVO> tenantBillList;
 }

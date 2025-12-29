@@ -6,6 +6,7 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dto.tenant.TenantCreateDTO;
 import com.homi.model.dto.tenant.TenantQueryDTO;
+import com.homi.model.vo.tenant.TenantDetailVO;
 import com.homi.model.vo.tenant.TenantListVO;
 import com.homi.model.vo.tenant.TenantTotalItemVO;
 import com.homi.model.vo.tenant.TenantTotalVO;
@@ -13,6 +14,7 @@ import com.homi.model.vo.tenant.bill.TenantBillListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.tenant.TenantBillService;
 import com.homi.service.service.tenant.TenantService;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -40,7 +42,6 @@ public class TenantController {
     private final TenantBillService tenantBillService;
 
 
-
     @PostMapping("/total")
     public ResponseResult<TenantTotalVO> getTenantTotal(@RequestBody TenantQueryDTO query) {
         List<TenantTotalItemVO> tenantStatusTotal = tenantService.getTenantStatusTotal(query);
@@ -55,6 +56,12 @@ public class TenantController {
         return ResponseResult.ok(tenantService.getTenantList(query));
     }
 
+    @PostMapping("/detail")
+    @Schema(description = "根据租客ID查询租客详情")
+    public ResponseResult<TenantDetailVO> getTenantDetail(@RequestBody TenantQueryDTO query) {
+        return ResponseResult.ok(tenantService.getTenantDetailById(query.getTenantId()));
+    }
+
     @PostMapping("/create")
     @Log(title = "创建租客", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<Long> createTenant(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
@@ -66,6 +73,6 @@ public class TenantController {
 
     @PostMapping("/bill/list")
     public ResponseResult<List<TenantBillListVO>> getBillList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(tenantBillService.getBillListByTenantId(queryDTO));
+        return ResponseResult.ok(tenantBillService.getBillListByTenantId(queryDTO.getTenantId()));
     }
 }

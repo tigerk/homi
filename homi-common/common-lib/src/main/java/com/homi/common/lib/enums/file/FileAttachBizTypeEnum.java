@@ -33,12 +33,18 @@ public enum FileAttachBizTypeEnum {
      * 租户其他照片
      */
     TENANT_OTHER_IMAGE("tenant_other_image"),
-
+    /**
+     * 合同文件
+     */
     CONTRACT_FILE("contract_file"),
     /**
      * 租户图片
      */
     TENANT_IMAGE("tenant_image"),
+    /**
+     * 营业执照
+     */
+    BUSINESS_LICENSE("business_license"),
     ;
 
     private final String bizType;

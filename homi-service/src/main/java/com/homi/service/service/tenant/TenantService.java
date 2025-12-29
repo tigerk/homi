@@ -1,6 +1,7 @@
 package com.homi.service.service.tenant;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.json.JSONUtil;
@@ -14,10 +15,7 @@ import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.dto.room.price.OtherFeeDTO;
 import com.homi.model.dto.tenant.*;
-import com.homi.model.vo.tenant.TenantCompanyVO;
-import com.homi.model.vo.tenant.TenantListVO;
-import com.homi.model.vo.tenant.TenantPersonalVO;
-import com.homi.model.vo.tenant.TenantTotalItemVO;
+import com.homi.model.vo.tenant.*;
 import com.homi.service.service.room.RoomService;
 import com.homi.service.service.system.DeptService;
 import com.homi.service.service.system.UserService;
@@ -28,9 +26,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 租客
@@ -48,12 +44,14 @@ public class TenantService {
     private final TenantCompanyRepo tenantCompanyRepo;
     private final FileAttachRepo fileAttachRepo;
     private final TenantOtherFeeRepo tenantOtherFeeRepo;
+    private final TenantContractRepo tenantContractRepo;
 
     private final RoomService roomService;
     private final TenantBillGenService tenantBillGenService;
     private final TenantContractService tenantContractService;
     private final UserService userService;
     private final DeptService deptService;
+    private final TenantBillService tenantBillService;
 
 
     /**
@@ -74,6 +72,7 @@ public class TenantService {
                 TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenantListVO.getTenantTypeId());
                 tenantListVO.setTenantCompany(tenantCompanyVO);
             }
+
 
             tenantListVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(tenantListVO.getRoomIds(), Long.class)));
 
@@ -267,5 +266,94 @@ public class TenantService {
             result.put(contractStatusEnum.getCode(), tenantTotalItemVO);
         }
         return result;
+    }
+
+    public TenantDetailVO getTenantDetailById(Long tenantId) {
+        Tenant byId = tenantRepo.getById(tenantId);
+        TenantDetailVO tenantDetailVO = BeanCopyUtils.copyBean(byId, TenantDetailVO.class);
+        assert tenantDetailVO != null;
+
+        tenantDetailVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(tenantDetailVO.getRoomIds(), Long.class)));
+
+        User salesmanUser = userService.getUserById(tenantDetailVO.getSalesmanId());
+        tenantDetailVO.setSalesmanName(salesmanUser.getRealName());
+
+        Dept deptById = deptService.getDeptById(tenantDetailVO.getDeptId());
+        tenantDetailVO.setDeptName(deptById.getName());
+
+        // 获取文件附件列表
+        getTenantTypeInfo(tenantDetailVO);
+
+        // 获取租客的合同信息
+        tenantDetailVO.setTenantContract(tenantContractRepo.getTenantContractByTenantId(tenantDetailVO.getId()));
+
+        // 获取租客账单列表
+        tenantDetailVO.setTenantBillList(tenantBillService.getBillListByTenantId(tenantDetailVO.getId()));
+
+        return tenantDetailVO;
+    }
+
+    /**
+     * 获取租客类型信息，根据租客类型分类并保存到对应的 VO 中
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/14 04:00
+     *
+     * @param tenantDetail 参数说明
+     */
+    public void getTenantTypeInfo(TenantDetailVO tenantDetail) {
+        if (Objects.equals(tenantDetail.getTenantType(), TenantTypeEnum.PERSONAL.getCode())) {
+            TenantPersonalVO tenantPersonalVO = tenantPersonalRepo.getTenantById(tenantDetail.getTenantTypeId());
+            tenantDetail.setTenantPersonal(tenantPersonalVO);
+        } else {
+            TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenantDetail.getTenantTypeId());
+            tenantDetail.setTenantCompany(tenantCompanyVO);
+        }
+
+        if (Objects.equals(tenantDetail.getTenantType(), TenantTypeEnum.PERSONAL.getCode())) {  // 个人租客
+            // 获取租客图片数据
+            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(tenantDetail.getId(), ListUtil.of(
+                FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType(),
+                FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType(),
+                FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(),
+                FileAttachBizTypeEnum.TENANT_ID_CARD_IN_HAND.getBizType()
+            ));
+
+            tenantDetail.getTenantPersonal().setOtherImageList(new ArrayList<>());
+            tenantDetail.getTenantPersonal().setIdCardBackList(new ArrayList<>());
+            tenantDetail.getTenantPersonal().setIdCardFrontList(new ArrayList<>());
+            tenantDetail.getTenantPersonal().setIdCardInHandList(new ArrayList<>());
+
+
+            // 分类并保存到 TenantPersonalVO
+            fileAttachList.forEach(fileAttach -> {
+                if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType())) {
+                    tenantDetail.getTenantPersonal().getOtherImageList().add(fileAttach.getFileUrl());
+                } else if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType())) {
+                    tenantDetail.getTenantPersonal().getIdCardBackList().add(fileAttach.getFileUrl());
+                } else if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType())) {
+                    tenantDetail.getTenantPersonal().getIdCardFrontList().add(fileAttach.getFileUrl());
+                } else if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.TENANT_ID_CARD_IN_HAND.getBizType())) {
+                    tenantDetail.getTenantPersonal().getIdCardInHandList().add(fileAttach.getFileUrl());
+                }
+            });
+        } else {
+            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(tenantDetail.getId(), ListUtil.of(
+                FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType(),
+                FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType()
+            ));
+
+            tenantDetail.getTenantCompany().setOtherImageList(new ArrayList<>());
+            tenantDetail.getTenantCompany().setBusinessLicenseList(new ArrayList<>());
+
+
+            fileAttachList.forEach(fileAttach -> {
+                if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType())) {
+                    tenantDetail.getTenantCompany().getBusinessLicenseList().add(fileAttach.getFileUrl());
+                } else if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType())) {
+                    tenantDetail.getTenantCompany().getOtherImageList().add(fileAttach.getFileUrl());
+                }
+            });
+        }
     }
 }

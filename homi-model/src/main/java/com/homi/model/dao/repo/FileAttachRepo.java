@@ -50,4 +50,11 @@ public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
             save(fileAttach);
         });
     }
+
+    public List<FileAttach> getFileAttachListByBizIdAndBizTypes(Long tenantId, List<String> of) {
+        return lambdaQuery()
+            .eq(FileAttach::getBizId, tenantId)
+            .in(FileAttach::getBizType, of)
+            .list();
+    }
 }
