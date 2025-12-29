@@ -304,13 +304,15 @@ public class TenantService {
         // 获取文件附件列表
         getTenantTypeInfo(tenantDetailVO);
 
+        // 获取其他费用
+        tenantDetailVO.setOtherFees(tenantOtherFeeRepo.getTenantOtherFeeByTenantId(tenantDetailVO.getId()));
+
         // 获取租客的合同信息
         tenantDetailVO.setTenantContract(tenantContractRepo.getTenantContractByTenantId(tenantDetailVO.getId()));
 
         // 获取租客的租客成员信息
         List<TenantMateVO> tenantMateListByTenantId = tenantMateService.getTenantMateListByTenantId(tenantDetailVO.getId());
         tenantDetailVO.setTenantMateList(tenantMateListByTenantId);
-
 
         // 获取租客账单列表
         tenantDetailVO.setTenantBillList(tenantBillService.getBillListByTenantId(tenantDetailVO.getId()));

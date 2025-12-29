@@ -1,6 +1,7 @@
 package com.homi.model.vo.tenant;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.model.dto.room.price.OtherFeeDTO;
 import com.homi.model.vo.contract.TenantContractVO;
 import com.homi.model.vo.room.RoomListVO;
 import com.homi.model.vo.tenant.bill.TenantBillListVO;
@@ -166,4 +167,6 @@ public class TenantDetailVO {
     @Schema(description = "租客同住人列表")
     private List<TenantMateVO> tenantMateList;
 
+    @Schema(description = "其他费用列表")
+    private List<OtherFeeDTO> otherFees;
 }
