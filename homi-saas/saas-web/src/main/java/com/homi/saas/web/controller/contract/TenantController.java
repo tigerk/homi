@@ -132,4 +132,11 @@ public class TenantController {
 
         return ResponseResult.ok(result);
     }
+
+    @PostMapping(value = "/cancel")
+    @Log(title = "删除租客合同", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<Integer> cancelTenant(@RequestBody TenantQueryDTO query) {
+
+        return ResponseResult.ok(tenantContractService.cancelTenant(query.getTenantId()));
+    }
 }

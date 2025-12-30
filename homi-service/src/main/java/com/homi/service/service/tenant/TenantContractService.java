@@ -166,4 +166,15 @@ public class TenantContractService {
 
         return true;
     }
+
+    public Integer cancelTenant(Long tenantId) {
+        Tenant tenant = tenantRepo.getById(tenantId);
+        if (tenant == null) {
+            throw new IllegalArgumentException("未找到指定的租客");
+        }
+
+        tenantRepo.updateStatusById(tenantId, TenantStatusEnum.CANCELLED.getCode());
+
+        return TenantStatusEnum.CANCELLED.getCode();
+    }
 }
