@@ -45,8 +45,8 @@ public class TenantBillOtherFee implements Serializable {
     private Long dictDataId;
 
     @Schema(description = "费用项目名称（如 租金、水费、电费）")
-    @TableField("dict_data_name")
-    private String dictDataName;
+    @TableField("name")
+    private String name;
 
     @Schema(description = "费用金额（计算结果）")
     @TableField("amount")

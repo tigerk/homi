@@ -5,9 +5,8 @@ import com.homi.model.dao.entity.TenantBill;
 import com.homi.model.dao.entity.TenantBillOtherFee;
 import com.homi.model.dao.repo.TenantBillOtherFeeRepo;
 import com.homi.model.dao.repo.TenantBillRepo;
-import com.homi.model.dto.tenant.TenantQueryDTO;
 import com.homi.model.vo.tenant.bill.TenantBillListVO;
-import com.homi.model.vo.tenant.bill.TenantBillOtherFeeListVO;
+import com.homi.model.vo.tenant.bill.TenantBillOtherFeeVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +24,7 @@ public class TenantBillService {
         return tenantBillList.stream().map(tb -> {
             TenantBillListVO vo = BeanCopyUtils.copyBean(tb, TenantBillListVO.class);
             List<TenantBillOtherFee> otherFees = tenantBillOtherFeeRepo.getOtherFeesByBillId(tb.getId());
-            List<TenantBillOtherFeeListVO> otherFeeListVOS = otherFees.stream().map(of -> BeanCopyUtils.copyBean(of, TenantBillOtherFeeListVO.class)).toList();
+            List<TenantBillOtherFeeVO> otherFeeListVOS = otherFees.stream().map(of -> BeanCopyUtils.copyBean(of, TenantBillOtherFeeVO.class)).toList();
             assert vo != null;
             vo.setOtherFees(otherFeeListVOS);
             return vo;

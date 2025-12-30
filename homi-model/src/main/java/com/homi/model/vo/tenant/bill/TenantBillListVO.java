@@ -74,7 +74,7 @@ public class TenantBillListVO implements Serializable {
     private String remark;
 
     @Schema(description = "其他费用明细列表")
-    private List<TenantBillOtherFeeListVO> otherFees;
+    private List<TenantBillOtherFeeVO> otherFees;
 
     @Schema(description = "创建人ID")
     private Long createBy;

@@ -77,7 +77,6 @@ public class TenantService {
                 tenantListVO.setTenantCompany(tenantCompanyVO);
             }
 
-
             tenantListVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(tenantListVO.getRoomIds(), Long.class)));
 
             User salesmanUser = userService.getUserById(tenantListVO.getSalesmanId());
@@ -376,7 +375,6 @@ public class TenantService {
 
             tenantDetail.getTenantCompany().setOtherImageList(new ArrayList<>());
             tenantDetail.getTenantCompany().setBusinessLicenseList(new ArrayList<>());
-
 
             fileAttachList.forEach(fileAttach -> {
                 if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType())) {

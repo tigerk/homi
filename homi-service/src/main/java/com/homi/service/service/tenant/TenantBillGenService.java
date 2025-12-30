@@ -181,7 +181,7 @@ public class TenantBillGenService {
                 TenantBillOtherFee detail = new TenantBillOtherFee();
                 detail.setBillId(bill.getId());
                 detail.setDictDataId(fee.getDictDataId());
-                detail.setDictDataName(fee.getName());
+                detail.setName(fee.getName());
                 detail.setAmount(feeAmount);
                 detail.setRemark(buildFeeRemark(fee, actualMonths));
                 detail.setDeleted(false);
@@ -397,7 +397,7 @@ public class TenantBillGenService {
                     TenantBillOtherFee detail = new TenantBillOtherFee();
                     detail.setBillId(bill.getId());
                     detail.setDictDataId(fee.getDictDataId());
-                    detail.setDictDataName(fee.getName());
+                    detail.setName(fee.getName());
                     detail.setAmount(bill.getOtherFeeAmount());
                     detail.setRemark(bill.getRemark());
                     detail.setDeleted(false);
