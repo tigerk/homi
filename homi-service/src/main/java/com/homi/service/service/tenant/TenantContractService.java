@@ -110,7 +110,7 @@ public class TenantContractService {
      * @return java.lang.String
      */
     @Transactional(rollbackFor = Exception.class)
-    public String generateTenantContractByTenantId(TenantContractGenerateDTO query) {
+    public TenantContractVO generateTenantContractByTenantId(TenantContractGenerateDTO query) {
         Tenant tenant = tenantRepo.getById(query.getTenantId());
         if (tenant == null) {
             throw new IllegalArgumentException("Tenant not found");
@@ -125,7 +125,7 @@ public class TenantContractService {
         // 租客重置为待签约状态
         tenantRepo.updateStatusById(tenant.getId(), TenantStatusEnum.TO_SIGN.getCode());
 
-        return tenantContract.getContractContent();
+        return BeanCopyUtils.copyBean(tenantContract, TenantContractVO.class);
     }
 
     @Transactional(rollbackFor = Exception.class)

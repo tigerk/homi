@@ -11,6 +11,7 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dto.tenant.TenantContractGenerateDTO;
 import com.homi.model.dto.tenant.TenantCreateDTO;
 import com.homi.model.dto.tenant.TenantQueryDTO;
+import com.homi.model.vo.contract.TenantContractVO;
 import com.homi.model.vo.tenant.*;
 import com.homi.model.vo.tenant.bill.TenantBillListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -110,10 +111,8 @@ public class TenantController {
 
     @PostMapping(value = "/contract/generate")
     @Log(title = "生成租客合同", operationType = OperationTypeEnum.INSERT)
-    public ResponseResult<String> generate(@RequestBody TenantContractGenerateDTO query) {
-        String content = tenantContractService.generateTenantContractByTenantId(query);
-
-        return ResponseResult.ok(content);
+    public ResponseResult<TenantContractVO> generate(@RequestBody TenantContractGenerateDTO query) {
+        return ResponseResult.ok(tenantContractService.generateTenantContractByTenantId(query));
     }
 
     @PostMapping(value = "/contract/sign/status/update")

@@ -27,7 +27,7 @@ import java.io.Serializable;
 @Builder
 public class TenantContractVO implements Serializable {
     @Schema(description = "租客合同ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @Schema(description = "租客ID")
