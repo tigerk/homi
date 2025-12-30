@@ -1,5 +1,6 @@
 package com.homi.saas.web.controller.contract;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.hutool.core.date.DateUtil;
 import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.enums.OperationTypeEnum;
@@ -108,7 +109,7 @@ public class TenantController {
     }
 
     @PostMapping(value = "/contract/generate")
-    @Log(title = "下载租客合同", operationType = OperationTypeEnum.INSERT)
+    @Log(title = "生成租客合同", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<String> generate(@RequestBody TenantContractGenerateDTO query) {
         String content = tenantContractService.generateTenantContractByTenantId(query);
 
@@ -119,6 +120,16 @@ public class TenantController {
     @Log(title = "更新租客合同签约状态", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<Boolean> updateSignStatus(@RequestBody TenantContractSignStatusUpdateDTO query) {
         Boolean result = tenantContractService.updateTenantContractSignStatus(query);
+
+        return ResponseResult.ok(result);
+    }
+
+    // 删除租客合同
+    @PostMapping(value = "/contract/delete")
+    @Log(title = "删除租客合同", operationType = OperationTypeEnum.INSERT)
+    @SaCheckPermission("tenant:contract:delete:forbidden")
+    public ResponseResult<Boolean> deleteContract(@RequestBody TenantContractDeleteDTO query) {
+        Boolean result = tenantContractService.deleteTenantContract(query.getTenantContractId());
 
         return ResponseResult.ok(result);
     }

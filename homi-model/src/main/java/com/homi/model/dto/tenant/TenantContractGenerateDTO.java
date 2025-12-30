@@ -19,6 +19,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Schema(description = "租客合同生成 DTO")
 public class TenantContractGenerateDTO {
+    @Schema(description = "租客合同 ID", example = "1")
+    private Long tenantContractId;
+
     @Schema(description = "租客 ID", example = "1")
     private Long tenantId;
 

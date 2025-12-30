@@ -130,7 +130,7 @@ public class TenantService {
         tenantMateService.saveTenantMateList(tenant.getId(), createDTO.getTenantMateList());
 
         // 生成租客合同
-        tenantContractService.saveTenantContract(createDTO.getTenant().getContractTemplateId(), tenant);
+        tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), tenant);
 
         // 生成租客账单
         tenantBillGenService.addTenantBill(tenant.getId(), createDTO.getTenant(), createDTO.getOtherFees());

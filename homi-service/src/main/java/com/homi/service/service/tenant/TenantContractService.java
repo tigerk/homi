@@ -41,6 +41,9 @@ public class TenantContractService {
      */
     public TenantContractVO getTenantContractByTenantId(Long tenantId) {
         TenantContract tenantContract = tenantContractRepo.getTenantContractByTenantId(tenantId);
+        if (Objects.isNull(tenantContract)) {
+            return null;
+        }
 
         TenantContractVO tenantContractByTenantId = BeanCopyUtils.copyBean(tenantContract, TenantContractVO.class);
         assert tenantContractByTenantId != null;
@@ -57,7 +60,7 @@ public class TenantContractService {
      * @param tenant             租客
      * @return 租客合同
      */
-    public TenantContract saveTenantContract(Long contractTemplateId, Tenant tenant) {
+    public TenantContract addTenantContract(Long contractTemplateId, Tenant tenant) {
         ContractTemplate contractTemplate = contractTemplateRepo.getById(contractTemplateId);
 
         TenantContract tenantContract = tenantContractRepo.getTenantContractByTenantId(tenant.getId());
@@ -106,13 +109,18 @@ public class TenantContractService {
      * @param query 参数说明
      * @return java.lang.String
      */
+    @Transactional(rollbackFor = Exception.class)
     public String generateTenantContractByTenantId(TenantContractGenerateDTO query) {
         Tenant tenant = tenantRepo.getById(query.getTenantId());
         if (tenant == null) {
             throw new IllegalArgumentException("Tenant not found");
         }
 
-        TenantContract tenantContract = saveTenantContract(query.getContractTemplateId(), tenant);
+        // 删除旧合同
+        tenantContractRepo.removeById(query.getTenantContractId());
+
+        // 添加新合同
+        TenantContract tenantContract = addTenantContract(query.getContractTemplateId(), tenant);
         return tenantContract.getContractContent();
     }
 
@@ -140,6 +148,17 @@ public class TenantContractService {
 
         tenantContract.setSignStatus(query.getSignStatus());
         tenantContractRepo.updateById(tenantContract);
+
+        return true;
+    }
+
+    public Boolean deleteTenantContract(Long tenantContractId) {
+        TenantContract tenantContract = tenantContractRepo.getById(tenantContractId);
+        if (tenantContract == null) {
+            throw new IllegalArgumentException("未找到指定的租客合同");
+        }
+
+        tenantContractRepo.removeById(tenantContractId);
 
         return true;
     }
