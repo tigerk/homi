@@ -269,6 +269,7 @@ public class TenantService {
             TenantTotalItemVO tenantTotalItemVO = new TenantTotalItemVO();
             tenantTotalItemVO.setStatus(contractStatusEnum.getCode());
             tenantTotalItemVO.setStatusName(contractStatusEnum.getName());
+            tenantTotalItemVO.setStatusColor(contractStatusEnum.getColor());
             tenantTotalItemVO.setTotal(0);
             result.put(contractStatusEnum.getCode(), tenantTotalItemVO);
         }
