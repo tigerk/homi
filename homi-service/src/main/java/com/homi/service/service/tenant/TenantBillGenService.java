@@ -533,10 +533,12 @@ public class TenantBillGenService {
      */
     private Date calculateDueDate(BillConfig config) {
         // 首期账单且跟随合同创建日
-        if (config.isFirstBill && config.firstBillDay != null && config.firstBillDay == 1) {
-            return DateUtil.date(LocalDate.now());
+        if (config.isFirstBill && config.firstBillDay != null &&
+            config.firstBillDay.equals(TenantFirstBillDayEnum.FOLLOW_CONTRACT_CREATE.getCode())) {
+            return new Date();
         }
 
+        // 根据收租类型计算应收日期
         LocalDate dueDate = calculateDueDateByType(config);
         return DateUtil.date(dueDate);
     }
@@ -548,24 +550,24 @@ public class TenantBillGenService {
      * @return 应收日期
      */
     private LocalDate calculateDueDateByType(BillConfig config) {
+        // 提前收租：账期开始日 - 偏移天数
         if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.EARLY.getCode())) {
-            // 提前收租
             int offsetDays = config.rentDueOffsetDays != null ? config.rentDueOffsetDays : 0;
             return config.periodStart.minusDays(offsetDays);
         }
 
+        // 固定日收租：当月的固定日期
         if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.FIXED.getCode())) {
-            // 固定日收租
             return calculateFixedDueDate(config.periodStart, config.rentDueDay);
         }
 
+        // 延后收租：账期开始日 + 偏移天数
         if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.LATE.getCode())) {
-            // 延后收租
             int offsetDays = config.rentDueOffsetDays != null ? config.rentDueOffsetDays : 0;
             return config.periodStart.plusDays(offsetDays);
         }
 
-        // 默认应收日为账期开始日
+        // 默认：应收日为账期开始日
         return config.periodStart;
     }
 
@@ -581,6 +583,7 @@ public class TenantBillGenService {
             // 0表示当月最后一天
             return periodStart.withDayOfMonth(periodStart.lengthOfMonth());
         }
+
         // 确保不超过当月最大天数
         int maxDayOfMonth = periodStart.lengthOfMonth();
         int actualDay = Math.min(rentDueDay, maxDayOfMonth);
@@ -610,40 +613,66 @@ public class TenantBillGenService {
      * @param tenant   租客信息
      */
     private void addTenantDepositBill(Long tenantId, TenantDTO tenant) {
-        if (tenant.getDepositMonths() <= 0) {
+        if (tenant.getDepositMonths() == null || tenant.getDepositMonths() <= 0) {
             return;
         }
 
         TenantBill depositBill = new TenantBill();
         depositBill.setTenantId(tenantId);
+        depositBill.setCompanyId(tenant.getCompanyId());
         depositBill.setSortOrder(0);
         depositBill.setBillType(TenantBillTypeEnum.DEPOSIT.getCode());
-        depositBill.setRentPeriodStart(DateUtil.date());
+        depositBill.setRentPeriodStart(tenant.getLeaseStart());
         depositBill.setRentPeriodEnd(tenant.getLeaseEnd());
 
         // 计算押金金额 = 月租金 × 押金月数
         BigDecimal depositAmount = tenant.getRentPrice()
             .multiply(BigDecimal.valueOf(tenant.getDepositMonths()))
             .setScale(2, RoundingMode.HALF_UP);
+
         depositBill.setDepositAmount(depositAmount);
         depositBill.setRentalAmount(BigDecimal.ZERO);
         depositBill.setOtherFeeAmount(BigDecimal.ZERO);
         depositBill.setTotalAmount(depositAmount);
 
-        // 根据首期账单规则设置应收日期
-        if (tenant.getFirstBillDay().equals(
-            TenantFirstBillDayEnum.FOLLOW_CONTRACT_START.getCode())) {
-            depositBill.setDueDate(tenant.getLeaseStart());
-        } else {
-            depositBill.setDueDate(DateUtil.date());
-        }
+        // 根据收租规则计算押金应收日期
+        Date dueDate = calculateDepositDueDate(tenant);
+        depositBill.setDueDate(dueDate);
 
         depositBill.setPayStatus(PaymentStatusEnum.UNPAID.getCode());
-        depositBill.setRemark("第 0 期");
+        depositBill.setRemark("押金账单");
+        depositBill.setDeleted(false);
         depositBill.setCreateBy(tenant.getCreateBy());
-        depositBill.setCreateTime(DateUtil.date());
+        depositBill.setCreateTime(new Date());
 
         tenantBillRepo.save(depositBill);
+    }
+
+    /**
+     * 计算押金应收日期
+     *
+     * @param tenant 租客信息
+     * @return 应收日期
+     */
+    private Date calculateDepositDueDate(TenantDTO tenant) {
+        // 如果首期账单跟随合同创建日，则押金立即应收（当天）
+        if (tenant.getFirstBillDay() != null && tenant.getFirstBillDay().equals(TenantFirstBillDayEnum.FOLLOW_CONTRACT_CREATE.getCode())) {
+            return new Date();
+        }
+
+        // 否则，根据收租类型和起租日计算押金应收日期
+        LocalDate leaseStartDate = LocalDateTimeUtil.of(tenant.getLeaseStart()).toLocalDate();
+
+        BillConfig config = BillConfig.builder()
+            .periodStart(leaseStartDate)
+            .isFirstBill(true)
+            .firstBillDay(tenant.getFirstBillDay())
+            .rentDueType(tenant.getRentDueType())
+            .rentDueDay(tenant.getRentDueDay())
+            .rentDueOffsetDays(tenant.getRentDueOffsetDays())
+            .build();
+
+        return calculateDueDate(config);
     }
 
     /**
