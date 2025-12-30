@@ -66,4 +66,14 @@ public class TenantRepo extends ServiceImpl<TenantMapper, Tenant> {
 
         return pageResult;
     }
+
+    public boolean updateStatusById(Long tenantId, Integer code) {
+        Tenant tenant = getById(tenantId);
+        if (tenant == null) {
+            throw new IllegalArgumentException("未找到租客！");
+        }
+
+        tenant.setStatus(code);
+        return updateById(tenant);
+    }
 }

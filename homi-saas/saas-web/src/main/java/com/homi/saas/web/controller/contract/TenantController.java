@@ -10,10 +10,7 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dto.tenant.TenantContractGenerateDTO;
 import com.homi.model.dto.tenant.TenantCreateDTO;
 import com.homi.model.dto.tenant.TenantQueryDTO;
-import com.homi.model.vo.tenant.TenantDetailVO;
-import com.homi.model.vo.tenant.TenantListVO;
-import com.homi.model.vo.tenant.TenantTotalItemVO;
-import com.homi.model.vo.tenant.TenantTotalVO;
+import com.homi.model.vo.tenant.*;
 import com.homi.model.vo.tenant.bill.TenantBillListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.tenant.TenantBillService;
@@ -116,5 +113,13 @@ public class TenantController {
         String content = tenantContractService.generateTenantContractByTenantId(query);
 
         return ResponseResult.ok(content);
+    }
+
+    @PostMapping(value = "/contract/sign/status/update")
+    @Log(title = "更新租客合同签约状态", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<Boolean> updateSignStatus(@RequestBody TenantContractSignStatusUpdateDTO query) {
+        Boolean result = tenantContractService.updateTenantContractSignStatus(query);
+
+        return ResponseResult.ok(result);
     }
 }

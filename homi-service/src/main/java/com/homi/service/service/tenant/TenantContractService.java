@@ -1,6 +1,7 @@
 package com.homi.service.service.tenant;
 
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
+import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.ContractTemplate;
 import com.homi.model.dao.entity.Tenant;
@@ -10,8 +11,10 @@ import com.homi.model.dao.repo.TenantContractRepo;
 import com.homi.model.dao.repo.TenantRepo;
 import com.homi.model.dto.tenant.TenantContractGenerateDTO;
 import com.homi.model.vo.contract.TenantContractVO;
+import com.homi.model.vo.tenant.TenantContractSignStatusUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
@@ -111,5 +114,33 @@ public class TenantContractService {
 
         TenantContract tenantContract = saveTenantContract(query.getContractTemplateId(), tenant);
         return tenantContract.getContractContent();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean updateTenantContractSignStatus(TenantContractSignStatusUpdateDTO query) {
+        TenantContract tenantContract = tenantContractRepo.getById(query.getTenantContractId());
+        if (tenantContract == null) {
+            throw new IllegalArgumentException("未找到指定的租客合同");
+        }
+
+        Tenant tenant = tenantRepo.getById(tenantContract.getTenantId());
+        if (tenant == null) {
+            throw new IllegalArgumentException("未找到租客！");
+        }
+
+        if (Objects.equals(tenant.getStatus(), TenantStatusEnum.CANCELLED.getCode()) || Objects.equals(tenant.getStatus(), TenantStatusEnum.TERMINATED.getCode())) {
+            throw new IllegalArgumentException("租客已取消或已终止，无法签署合同！");
+        }
+
+        // 更新租客状态为有效
+        boolean isUpdateSuccess = tenantRepo.updateStatusById(tenantContract.getTenantId(), TenantStatusEnum.EFFECTIVE.getCode());
+        if (!isUpdateSuccess) {
+            throw new IllegalArgumentException("更新租客状态失败！");
+        }
+
+        tenantContract.setSignStatus(query.getSignStatus());
+        tenantContractRepo.updateById(tenantContract);
+
+        return true;
     }
 }
