@@ -121,6 +121,10 @@ public class TenantContractService {
 
         // 添加新合同
         TenantContract tenantContract = addTenantContract(query.getContractTemplateId(), tenant);
+
+        // 租客重置为待签约状态
+        tenantRepo.updateStatusById(tenant.getId(), TenantStatusEnum.TO_SIGN.getCode());
+
         return tenantContract.getContractContent();
     }
 
