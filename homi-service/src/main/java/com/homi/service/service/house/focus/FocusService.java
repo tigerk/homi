@@ -327,6 +327,12 @@ public class FocusService {
         IPage<Focus> pageQuery = new Page<>(query.getCurrentPage(), query.getPageSize());
 
         LambdaQueryWrapper<Focus> wrapper = new LambdaQueryWrapper<>();
+        if (CharSequenceUtil.isNotBlank(query.getKeywords())) {
+            wrapper.like(Focus::getFocusName, query.getKeywords());
+        }
+        if (Objects.nonNull(query.getLeaseModeId())) {
+            wrapper.eq(Focus::getId, query.getLeaseModeId());
+        }
 
         IPage<Focus> focusPage = focusRepo.page(pageQuery, wrapper);
 
