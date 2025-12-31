@@ -3,12 +3,12 @@ package com.homi.model.dao.repo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.enums.SaasUserTypeEnum;
 import com.homi.common.lib.enums.StatusEnum;
-import com.homi.common.lib.enums.UserType4CompanyEnum;
-import com.homi.model.dto.company.UserCompanyListDTO;
 import com.homi.model.dao.entity.Company;
 import com.homi.model.dao.entity.CompanyUser;
 import com.homi.model.dao.mapper.CompanyUserMapper;
+import com.homi.model.dto.company.UserCompanyListDTO;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -42,13 +42,13 @@ public class CompanyUserRepo extends ServiceImpl<CompanyUserMapper, CompanyUser>
         queryWrapper.eq(CompanyUser::getUserId, userId);
         CompanyUser companyUser = getOne(queryWrapper);
         if (companyUser != null) {
-            companyUser.setUserType(UserType4CompanyEnum.COMPANY_ADMIN.getType());
+            companyUser.setUserType(SaasUserTypeEnum.COMPANY_ADMIN.getType());
             updateById(companyUser);
         } else {
             companyUser = new CompanyUser();
             companyUser.setCompanyId(companyId);
             companyUser.setUserId(userId);
-            companyUser.setUserType(UserType4CompanyEnum.COMPANY_ADMIN.getType());
+            companyUser.setUserType(SaasUserTypeEnum.COMPANY_ADMIN.getType());
             companyUser.setStatus(StatusEnum.ACTIVE.getValue());
 
             getBaseMapper().insert(companyUser);
@@ -81,7 +81,7 @@ public class CompanyUserRepo extends ServiceImpl<CompanyUserMapper, CompanyUser>
         queryWrapper.eq(CompanyUser::getUserId, userId);
         CompanyUser companyUser = getOne(queryWrapper);
         if (companyUser != null) {
-            companyUser.setUserType(UserType4CompanyEnum.COMPANY_ADMIN.getType());
+            companyUser.setUserType(SaasUserTypeEnum.COMPANY_ADMIN.getType());
             updateById(companyUser);
             return companyUser;
         } else {
@@ -99,7 +99,7 @@ public class CompanyUserRepo extends ServiceImpl<CompanyUserMapper, CompanyUser>
     public CompanyUser getUserCompanyAdmin(Long companyId) {
         LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(CompanyUser::getCompanyId, companyId);
-        queryWrapper.eq(CompanyUser::getUserType, UserType4CompanyEnum.COMPANY_ADMIN.getType());
+        queryWrapper.eq(CompanyUser::getUserType, SaasUserTypeEnum.COMPANY_ADMIN.getType());
         return getOne(queryWrapper);
     }
 
