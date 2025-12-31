@@ -42,7 +42,9 @@ public class ContractTemplateService {
     public PageVO<ContractTemplateListVO> getContractTemplateList(ContractTemplateQueryDTO query) {
 
         LambdaQueryWrapper<ContractTemplate> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ContractTemplate::getContractType, query.getContractType());
+        if (Objects.nonNull(query.getContractType())) {
+            wrapper.eq(ContractTemplate::getContractType, query.getContractType());
+        }
 
         if (CharSequenceUtil.isNotBlank(query.getTemplateName())) {
             wrapper.like(ContractTemplate::getTemplateName, query.getTemplateName());
