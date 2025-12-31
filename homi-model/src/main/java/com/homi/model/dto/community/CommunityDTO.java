@@ -3,11 +3,12 @@ package com.homi.model.dto.community;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
 @Schema(description = "住宅小区DTO")
-public class CommunityDTO {
+public class CommunityDTO implements Serializable {
     @Schema(description = "小区ID", hidden = true)
     private Long communityId;
 

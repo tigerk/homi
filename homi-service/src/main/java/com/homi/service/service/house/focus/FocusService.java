@@ -345,6 +345,13 @@ public class FocusService {
         FocusListVO focusListVO = BeanCopyUtils.copyBean(focus, FocusListVO.class);
         assert focusListVO != null;
 
+        focusListVO.setTags(JSONUtil.toList(focus.getTags(), String.class));
+        focusListVO.setFacilities(JSONUtil.toList(focus.getFacilities(), String.class));
+        focusListVO.setImageList(JSONUtil.toList(focus.getImageList(), String.class));
+
+        CommunityDTO communityDTO = communityRepo.getCommunityById(focus.getCommunityId());
+        focusListVO.setCommunity(communityDTO);
+
         // 统计出租率
         long totalCount = houseRepo.count(new LambdaQueryWrapper<House>()
             .eq(House::getLeaseModeId, focus.getId())

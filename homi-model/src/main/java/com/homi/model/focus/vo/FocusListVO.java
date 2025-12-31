@@ -2,11 +2,13 @@ package com.homi.model.focus.vo;
 
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.model.dto.community.CommunityDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Schema(description = "集中式房源创建DTO")
@@ -38,7 +40,7 @@ public class FocusListVO implements Serializable {
     private Long salesmanId;
 
     @Schema(description = "设施、从字典dict_data获取并配置")
-    private String facilities;
+    private List<String> facilities;
 
     @Schema(description = "水")
     private String water;
@@ -65,13 +67,13 @@ public class FocusListVO implements Serializable {
     private String businessDesc;
 
     @Schema(description = "标签")
-    private String tags;
+    private List<String> tags;
 
     @Schema(description = "项目描述")
     private String remark;
 
     @Schema(description = "图片列表")
-    private String imageList;
+    private List<String> imageList;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableLogic
@@ -93,4 +95,7 @@ public class FocusListVO implements Serializable {
 
     @Schema(description = "项目统计信息")
     private FocusTotalVO focusTotal;
+
+    @Schema(description = "小区信息")
+    private CommunityDTO community;
 }
