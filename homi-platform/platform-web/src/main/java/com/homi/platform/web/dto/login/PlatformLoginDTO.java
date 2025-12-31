@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class UserLoginDTO {
+public class PlatformLoginDTO {
 
     /**
      * 用户名

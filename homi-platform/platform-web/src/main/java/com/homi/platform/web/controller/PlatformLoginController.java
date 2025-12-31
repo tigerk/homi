@@ -8,7 +8,7 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.vo.menu.AsyncRoutesVO;
 import com.homi.platform.web.config.PlatformLoginManager;
 import com.homi.platform.web.dto.login.TokenRefreshDTO;
-import com.homi.platform.web.dto.login.UserLoginDTO;
+import com.homi.platform.web.dto.login.PlatformLoginDTO;
 import com.homi.platform.web.service.PlatformAuthService;
 import com.homi.platform.web.vo.login.PlatformUserLoginVO;
 import jakarta.validation.Valid;
@@ -31,12 +31,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/platform")
 public class PlatformLoginController {
-
     private final PlatformAuthService platformAuthService;
 
+    /**
+     * 登录
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/4/17 14:23
+     *
+     * @param user 用户登录信息
+     * @return com.nest.domain.base.ResponseResult<com.nest.admin.auth.vo.login.PlatformUserLoginVO>
+     */
     @LoginLog
     @PostMapping("/login")
-    public ResponseResult<PlatformUserLoginVO> login(@Valid @RequestBody UserLoginDTO user) {
+    public ResponseResult<PlatformUserLoginVO> login(@Valid @RequestBody PlatformLoginDTO user) {
         return ResponseResult.ok(platformAuthService.login(user));
     }
 

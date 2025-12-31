@@ -33,7 +33,7 @@ import java.util.Objects;
 @Slf4j
 @RestController
 @RequestMapping("/platform/menu")
-public class MenuController {
+public class PlatformMenuController {
     private final PlatformMenuService platformMenuService;
 
     /**

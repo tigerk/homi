@@ -25,7 +25,7 @@ import com.homi.model.vo.menu.AsyncRoutesVO;
 import com.homi.platform.service.service.perms.PlatformMenuService;
 import com.homi.platform.service.service.perms.PlatformUserService;
 import com.homi.platform.web.config.PlatformLoginManager;
-import com.homi.platform.web.dto.login.UserLoginDTO;
+import com.homi.platform.web.dto.login.PlatformLoginDTO;
 import com.homi.platform.web.vo.login.PlatformUserLoginVO;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
@@ -46,11 +46,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PlatformAuthService {
-
-    // refresh token userId 名称
-    public static final String JWT_USER_ID = "userId";
-    public static final String JWT_EXP_TIME = "exp";
-
     private final PlatformUserMapper platformUserMapper;
     private final PlatformMenuService platformMenuService;
     private final PlatformUserService platformUserService;
@@ -64,16 +59,16 @@ public class PlatformAuthService {
      * {@code @author} tk
      * {@code @date} 2025/4/19 23:43
      *
-     * @param userLoginDTO 参数说明
+     * @param platformLoginDTO 参数说明
      * @return com.nest.admin.auth.vo.login.PlatformUserLoginVO
      */
     @Transactional(rollbackFor = Exception.class)
-    public PlatformUserLoginVO login(UserLoginDTO userLoginDTO) {
+    public PlatformUserLoginVO login(PlatformLoginDTO platformLoginDTO) {
         // 校验手机号 or 用户名
         PlatformUser platformUser = platformUserMapper.selectOne(new LambdaQueryWrapper<PlatformUser>()
-            .eq(PlatformUser::getUsername, userLoginDTO.getUsername())
+            .eq(PlatformUser::getUsername, platformLoginDTO.getUsername())
             .or()
-            .eq(PlatformUser::getPhone, userLoginDTO.getUsername()));
+            .eq(PlatformUser::getPhone, platformLoginDTO.getUsername()));
         if (Objects.isNull(platformUser)) {
             throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
         }
@@ -81,7 +76,7 @@ public class PlatformAuthService {
             throw new BizException(ResponseCodeEnum.USER_FREEZE);
         }
         // 密码校验
-        String password = SaSecureUtil.md5(userLoginDTO.getPassword());
+        String password = SaSecureUtil.md5(platformLoginDTO.getPassword());
         if (!platformUser.getPassword().equals(password)) {
             throw new BizException(ResponseCodeEnum.LOGIN_ERROR);
         }
