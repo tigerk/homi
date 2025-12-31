@@ -1,4 +1,4 @@
-package com.homi.model.dto.house.focus;
+package com.homi.model.focus.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.model.dto.community.CommunityDTO;

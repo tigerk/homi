@@ -3,19 +3,26 @@ package com.homi.service.service.house.focus;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.enums.house.LeaseModeEnum;
+import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.dto.community.CommunityDTO;
 import com.homi.model.dto.house.HouseLayoutDTO;
-import com.homi.model.dto.house.focus.FocusBuildingDTO;
-import com.homi.model.dto.house.focus.FocusCreateDTO;
-import com.homi.model.dto.house.focus.FocusHouseDTO;
-import com.homi.common.lib.enums.house.LeaseModeEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.model.focus.dto.FocusBuildingDTO;
+import com.homi.model.focus.dto.FocusCreateDTO;
+import com.homi.model.focus.dto.FocusHouseDTO;
+import com.homi.model.focus.dto.FocusQueryDTO;
+import com.homi.model.focus.vo.FocusListVO;
+import com.homi.model.focus.vo.FocusTotalVO;
 import com.homi.model.vo.IdNameVO;
-import com.homi.common.lib.exception.BizException;
 import com.homi.service.service.room.RoomSearchService;
-import com.homi.common.lib.utils.BeanCopyUtils;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -314,5 +321,50 @@ public class FocusService {
         focusCreateDTO.setHouseList(houseList);
 
         return focusCreateDTO;
+    }
+
+    public PageVO<FocusListVO> getFocusList(FocusQueryDTO query) {
+        IPage<Focus> pageQuery = new Page<>(query.getCurrentPage(), query.getPageSize());
+
+        LambdaQueryWrapper<Focus> wrapper = new LambdaQueryWrapper<>();
+
+        IPage<Focus> focusPage = focusRepo.page(pageQuery, wrapper);
+
+        // 封装返回结果
+        PageVO<FocusListVO> pageVO = new PageVO<>();
+        pageVO.setTotal(focusPage.getTotal());
+        pageVO.setList(focusPage.getRecords().stream().map(this::formatFocusList).toList());
+        pageVO.setCurrentPage(focusPage.getCurrent());
+        pageVO.setPageSize(focusPage.getSize());
+        pageVO.setPages(focusPage.getPages());
+
+        return pageVO;
+    }
+
+    private FocusListVO formatFocusList(Focus focus) {
+        FocusListVO focusListVO = BeanCopyUtils.copyBean(focus, FocusListVO.class);
+        assert focusListVO != null;
+
+        // 统计出租率
+        long totalCount = houseRepo.count(new LambdaQueryWrapper<House>()
+            .eq(House::getLeaseModeId, focus.getId())
+            .eq(House::getLeaseMode, LeaseModeEnum.FOCUS.getCode()));
+
+
+        // 统计某个集中式项目下所有房源的剩余房间数量总和
+        Integer totalRentedRoomCount = houseRepo.getBaseMapper().getTotalRentedRoomCount(focus.getId(), LeaseModeEnum.FOCUS.getCode());
+
+        double occupancyRate = totalCount > 0 ? (double) totalRentedRoomCount / totalCount * 100 : 0;
+
+        FocusTotalVO focusTotalVOBuilder = FocusTotalVO.builder()
+            .totalRoomCount(totalCount)
+            .totalRentedRoomCount(Long.valueOf(totalRentedRoomCount))
+            .occupancyRate(occupancyRate)
+            .build();
+
+
+        focusListVO.setFocusTotal(focusTotalVOBuilder);
+
+        return focusListVO;
     }
 }

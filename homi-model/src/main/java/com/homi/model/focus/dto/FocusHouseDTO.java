@@ -1,4 +1,4 @@
-package com.homi.model.dto.house.focus;
+package com.homi.model.focus.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

@@ -1,0 +1,96 @@
+package com.homi.model.focus.vo;
+
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
+
+@Data
+@Schema(description = "集中式房源创建DTO")
+public class FocusListVO implements Serializable {
+    private Long id;
+
+    @Schema(description = "公司ID")
+    private Long companyId;
+
+    @Schema(description = "项目编号")
+    private String focusCode;
+
+    @Schema(description = "项目名称")
+    private String focusName;
+
+    @Schema(description = "项目地址")
+    private String address;
+
+    @Schema(description = "小区ID")
+    private Long communityId;
+
+    @Schema(description = "门店联系电话")
+    private String storePhone;
+
+    @Schema(description = "部门ID")
+    private Long deptId;
+
+    @Schema(description = "业务员ID")
+    private Long salesmanId;
+
+    @Schema(description = "设施、从字典dict_data获取并配置")
+    private String facilities;
+
+    @Schema(description = "水")
+    private String water;
+
+    @Schema(description = "电")
+    private String electricity;
+
+    @Schema(description = "供暖")
+    private String heating;
+
+    @Schema(description = "是否有电梯")
+    private Boolean hasElevator;
+
+    @Schema(description = "是否有燃气")
+    private Boolean hasGas;
+
+    @Schema(description = "房间数 为0表示未分配房间")
+    private Integer roomCount;
+
+    @Schema(description = "房源描述、项目介绍")
+    private String houseDesc;
+
+    @Schema(description = "商圈介绍、广告语")
+    private String businessDesc;
+
+    @Schema(description = "标签")
+    private String tags;
+
+    @Schema(description = "项目描述")
+    private String remark;
+
+    @Schema(description = "图片列表")
+    private String imageList;
+
+    @Schema(description = "是否删除：0 否，1 是")
+    @TableLogic
+    private Boolean deleted;
+
+    @Schema(description = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date createTime;
+
+    @Schema(description = "更新人")
+    private Long updateBy;
+
+    @Schema(description = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date updateTime;
+
+    @Schema(description = "创建人")
+    private Long createBy;
+
+    @Schema(description = "项目统计信息")
+    private FocusTotalVO focusTotal;
+}

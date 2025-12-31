@@ -48,3 +48,6 @@ company 记录公司信息 、user 登录用户 、 company-user 关联，然后
 # 开发规范
 
 *Repo 不能调用其他Repo， Service 可以调用 Repo 和其他 Service
+
+## 模块依赖
+common -> model -> service -> web

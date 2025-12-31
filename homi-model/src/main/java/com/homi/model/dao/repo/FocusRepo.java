@@ -3,7 +3,7 @@ package com.homi.model.dao.repo;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.model.dto.house.focus.FocusCreateDTO;
+import com.homi.model.focus.dto.FocusCreateDTO;
 import com.homi.model.dao.entity.Focus;
 import com.homi.model.dao.mapper.FocusMapper;
 import org.springframework.beans.BeanUtils;

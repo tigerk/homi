@@ -1,4 +1,4 @@
-package com.homi.model.dto.house.scatter;
+package com.homi.model.scatter;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.model.dto.community.CommunityDTO;

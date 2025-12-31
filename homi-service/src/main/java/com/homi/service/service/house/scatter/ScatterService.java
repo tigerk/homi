@@ -5,7 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.homi.model.dao.repo.*;
 import com.homi.model.dto.community.CommunityDTO;
 import com.homi.model.dto.house.HouseLayoutDTO;
-import com.homi.model.dto.house.scatter.ScatterCreateDTO;
+import com.homi.model.scatter.ScatterCreateDTO;
 import com.homi.model.dto.room.RoomDetailDTO;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.house.RentalTypeEnum;
