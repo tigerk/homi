@@ -11,7 +11,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.MenuTypeEnum;
 import com.homi.common.lib.enums.StatusEnum;
-import com.homi.common.lib.enums.UserTypeEnum;
+import com.homi.common.lib.enums.SaasUserTypeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
@@ -184,7 +184,7 @@ public class AuthService {
      * @return java.lang.Boolean
      */
     private Boolean isCompanyAdmin(Integer userType) {
-        return userType.equals(UserTypeEnum.COMPANY_ADMIN.getType());
+        return userType.equals(SaasUserTypeEnum.COMPANY_ADMIN.getType());
     }
 
     /**

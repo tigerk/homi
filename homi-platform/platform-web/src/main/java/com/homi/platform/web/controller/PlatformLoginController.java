@@ -48,6 +48,11 @@ public class PlatformLoginController {
         return ResponseResult.ok(platformAuthService.login(user));
     }
 
+    @PostMapping("/login/user/get")
+    public ResponseResult<PlatformUserLoginVO> getLoginUser() {
+        return ResponseResult.ok(PlatformLoginManager.getCurrentUser());
+    }
+
     @PostMapping("/token/refresh")
     public ResponseResult<PlatformUserLoginVO> refresh(@RequestBody TokenRefreshDTO req) {
         Long userId = (Long) StpUtil.getLoginIdByToken(req.getRefreshToken());

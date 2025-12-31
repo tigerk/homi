@@ -4,8 +4,6 @@ import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.common.lib.exception.BizException;
-import com.homi.common.lib.utils.BeanCopyUtils;
-import com.homi.model.dao.entity.PlatformUser;
 import com.homi.platform.web.vo.login.PlatformUserLoginVO;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,19 +39,12 @@ public final class PlatformLoginManager {
      * 获取当前登录的用户对象（登录时需手动 set 进去）
      */
     public static PlatformUserLoginVO getCurrentUser() {
-        PlatformUser platformUser = (PlatformUser) StpUtil.getSession().get(SaSession.USER);
+        PlatformUserLoginVO platformUser = (PlatformUserLoginVO) StpUtil.getSession().get(SaSession.USER);
         if (platformUser == null) {
             throw new BizException("未找到当前登录用户信息");
         }
 
-        PlatformUserLoginVO platformUserLoginVO = BeanCopyUtils.copyBean(platformUser, PlatformUserLoginVO.class);
-        assert platformUserLoginVO != null;
-        platformUserLoginVO.setRoles(getCurrentRoles());
-        platformUserLoginVO.setPermissions(getCurrentPermissions());
-
-        platformUserLoginVO.setAccessToken(getTokenInfo().getTokenValue());
-
-        return platformUserLoginVO;
+        return platformUser;
     }
 
     @SuppressWarnings("unchecked")

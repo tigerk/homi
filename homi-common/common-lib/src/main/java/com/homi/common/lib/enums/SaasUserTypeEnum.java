@@ -11,7 +11,7 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum UserTypeEnum {
+public enum SaasUserTypeEnum {
     /**
      * 公司管理员
      * 公司管理员只能获取公司绑定套餐的权限

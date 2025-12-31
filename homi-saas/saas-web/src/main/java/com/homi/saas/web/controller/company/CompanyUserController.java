@@ -16,7 +16,7 @@ import com.homi.model.dto.user.UserResetPwdDTO;
 import com.homi.model.dto.user.UserUpdateStatusDTO;
 import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseCodeEnum;
-import com.homi.common.lib.enums.UserTypeEnum;
+import com.homi.common.lib.enums.SaasUserTypeEnum;
 import com.homi.model.vo.company.user.UserCreateVO;
 import com.homi.model.vo.company.user.UserVO;
 import com.homi.model.dao.entity.CompanyUser;
@@ -112,7 +112,7 @@ public class CompanyUserController {
     @SaCheckPermission("sys:user:updateStatus")
     public ResponseResult<Long> updateStatus(@Valid @RequestBody UserUpdateStatusDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         CompanyUser companyUserById = companyUserService.getCompanyUserById(updateDTO.getCompanyUserId());
-        if (companyUserById.getUserType().equals(UserTypeEnum.COMPANY_ADMIN.getType())) {
+        if (companyUserById.getUserType().equals(SaasUserTypeEnum.COMPANY_ADMIN.getType())) {
             return ResponseResult.fail(ResponseCodeEnum.AUTHORIZED);
         }
 
