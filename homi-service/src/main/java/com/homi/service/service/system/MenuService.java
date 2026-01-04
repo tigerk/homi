@@ -1,22 +1,23 @@
 package com.homi.service.service.system;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.model.dto.menu.MenuCreateDTO;
-import com.homi.model.dto.menu.MenuQueryDTO;
 import com.homi.common.lib.enums.BooleanEnum;
 import com.homi.common.lib.enums.MenuTypeEnum;
-import com.homi.model.vo.menu.AsyncRoutesMetaVO;
-import com.homi.model.vo.menu.AsyncRoutesVO;
-import com.homi.model.vo.menu.MenuVO;
-import com.homi.model.vo.menu.SimpleMenuVO;
 import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.Menu;
 import com.homi.model.dao.entity.RoleMenu;
 import com.homi.model.dao.mapper.MenuMapper;
 import com.homi.model.dao.mapper.RoleMenuMapper;
 import com.homi.model.dao.repo.MenuRepo;
-import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.model.dto.menu.MenuCreateDTO;
+import com.homi.model.dto.menu.MenuQueryDTO;
+import com.homi.model.vo.menu.AsyncRoutesMetaVO;
+import com.homi.model.vo.menu.AsyncRoutesVO;
+import com.homi.model.vo.menu.MenuVO;
+import com.homi.model.vo.menu.SimpleMenuVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -124,8 +125,14 @@ public class MenuService {
         AsyncRoutesVO node = new AsyncRoutesVO();
         node.setPath(menu.getPath());
         node.setName(menu.getName());
-        node.setComponent(menu.getComponent());
-        node.setRedirect(menu.getRedirect());
+        if (CharSequenceUtil.isNotBlank(menu.getComponent())) {
+            node.setComponent(menu.getComponent());
+        }
+
+        if (CharSequenceUtil.isNotBlank(menu.getRedirect())) {
+            node.setRedirect(menu.getRedirect());
+        }
+
         node.setType(menu.getMenuType());
         // 设置路由元信息
         AsyncRoutesMetaVO meta = new AsyncRoutesMetaVO();
