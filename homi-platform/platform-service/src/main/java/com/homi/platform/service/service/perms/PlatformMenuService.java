@@ -111,13 +111,14 @@ public class PlatformMenuService {
      */
     public List<AsyncRoutesVO> buildMenuTree(List<PlatformMenu> menuList) {
         List<AsyncRoutesVO> rootNodes = new ArrayList<>();
+        menuList.sort(Comparator.comparingInt(PlatformMenu::getSortOrder));
         for (PlatformMenu menu : menuList) {
             if (menu.getParentId() == null || menu.getParentId() == 0) {
                 rootNodes.add(buildMenuNode(menu, menuList));
             }
         }
-        // 对根节点进行排序
-        rootNodes.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
+//        // 对根节点进行排序
+//        rootNodes.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
         return rootNodes;
     }
 
@@ -133,14 +134,14 @@ public class PlatformMenuService {
         AsyncRoutesMetaVO meta = new AsyncRoutesMetaVO();
         meta.setTitle(menu.getTitle());
         meta.setIcon(menu.getIcon());
-        meta.setSortOrder(menu.getSortOrder());
+//        meta.setSortOrder(menu.getSortOrder());
         meta.setShowLink(menu.getShowLink());
         meta.setShowParent(menu.getShowParent());
         meta.setKeepAlive(menu.getKeepAlive());
         meta.setFrameLoading(menu.getFrameLoading());
         meta.setAuths(Optional.ofNullable(menu.getAuths())
-                .map(List::of)
-                .orElse(Collections.emptyList()));
+            .map(List::of)
+            .orElse(Collections.emptyList()));
         meta.setFrameSrc(menu.getFrameSrc());
         node.setMeta(meta);
         // 递归构建子节点
@@ -150,7 +151,7 @@ public class PlatformMenuService {
                 children.add(buildMenuNode(childMenu, menuList));
             }
         }
-        children.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
+//        children.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
         node.setChildren(children);
         return node;
     }

@@ -110,13 +110,14 @@ public class MenuService {
      */
     public List<AsyncRoutesVO> buildMenuTree(List<Menu> menuList) {
         List<AsyncRoutesVO> rootNodes = new ArrayList<>();
+
+        menuList.sort(Comparator.comparingInt(Menu::getSortOrder));
         for (Menu menu : menuList) {
             if (menu.getParentId() == null || menu.getParentId() == 0) {
                 rootNodes.add(buildMenuNode(menu, menuList));
             }
         }
-        // 对根节点进行排序
-        rootNodes.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
+
         return rootNodes;
     }
 
@@ -138,7 +139,6 @@ public class MenuService {
         AsyncRoutesMetaVO meta = new AsyncRoutesMetaVO();
         meta.setTitle(menu.getTitle());
         meta.setIcon(menu.getIcon());
-        meta.setSortOrder(menu.getSortOrder());
         meta.setShowLink(menu.getShowLink());
         meta.setShowParent(menu.getShowParent());
         meta.setKeepAlive(menu.getKeepAlive());
@@ -150,12 +150,13 @@ public class MenuService {
         node.setMeta(meta);
         // 递归构建子节点
         List<AsyncRoutesVO> children = new ArrayList<>();
+        // menuList 排序再创建顺序的子节点
         for (Menu childMenu : menuList) {
             if (childMenu.getParentId() != null && childMenu.getParentId().equals(menu.getId())) {
                 children.add(buildMenuNode(childMenu, menuList));
             }
         }
-        children.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
+
         node.setChildren(children);
         return node;
     }
