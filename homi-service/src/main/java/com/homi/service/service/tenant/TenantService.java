@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 租客
@@ -250,7 +251,7 @@ public class TenantService {
             orDefault.setTotal(tenantTotalItemVO.getTotal());
         });
 
-        return result.values().stream().toList();
+        return result.values().stream().toList().stream().sorted(Comparator.comparingInt(TenantTotalItemVO::getSortOrder)).collect(Collectors.toList());
     }
 
     /**
@@ -269,6 +270,7 @@ public class TenantService {
             tenantTotalItemVO.setStatus(contractStatusEnum.getCode());
             tenantTotalItemVO.setStatusName(contractStatusEnum.getName());
             tenantTotalItemVO.setStatusColor(contractStatusEnum.getColor());
+            tenantTotalItemVO.setSortOrder(contractStatusEnum.getSortOrder());
             tenantTotalItemVO.setTotal(0);
             result.put(contractStatusEnum.getCode(), tenantTotalItemVO);
         }

@@ -26,6 +26,9 @@ public class TenantTotalItemVO {
     @Schema(description = "租客合同状态颜色")
     private String statusColor;
 
+    @Schema(description = "排序顺序")
+    private Integer sortOrder;
+
     @Schema(description = "数量")
     private Integer total;
 }
