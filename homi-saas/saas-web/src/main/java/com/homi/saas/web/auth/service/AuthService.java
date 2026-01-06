@@ -8,10 +8,11 @@ import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.MenuTypeEnum;
-import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.SaasUserTypeEnum;
+import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
@@ -220,7 +221,7 @@ public class AuthService {
         }
 
         // 查询用户角色
-        Pair<List<Long>, List<String>> roleList = getRoleList(user.getId());
+        Pair<List<Long>, List<String>> roleList = getCompanyRoleList(companyById.getId(), user.getId());
         // 构建菜单树
         List<AsyncRoutesVO> asyncRoutesVOList = menuService.buildMenuTreeByRoles(roleList.getKey());
         if (asyncRoutesVOList.isEmpty()) {
@@ -233,21 +234,23 @@ public class AuthService {
     }
 
     /**
-     * 获取用户的角色id列表和角色code列表
+     * 获取用户的角色id列表和角色code列表，Saas 登录的角色从company_user_role 表中获取
      * <p>
      * {@code @author} tk
      * {@code @date} 2025/6/9 13:40
      *
-     * @param userId 参数说明
+     * @param companyId 公司id
+     * @param userId    用户id
      * @return cn.hutool.core.lang.Pair<java.util.List < java.lang.Long>,java.util.ArrayList<java.lang.String>>
      */
-    public Pair<List<Long>, List<String>> getRoleList(Long userId) {
-        List<UserRole> userRoleList = userRoleMapper.selectList(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, userId));
-        if (userRoleList.isEmpty()) {
-            return Pair.of(new ArrayList<>(), new ArrayList<>());
+    public Pair<List<Long>, List<String>> getCompanyRoleList(Long companyId, Long userId) {
+        CompanyUser companyUser = companyUserRepo.getCompanyUser(companyId, userId);
+        if (Objects.isNull(companyUser)) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
 
-        List<Long> roleIdList = userRoleList.stream().map(UserRole::getRoleId).collect(Collectors.toList());
+
+        List<Long> roleIdList = JSONUtil.toList(companyUser.getRoles(), Long.class);
         List<Role> roles = roleMapper.selectList(new LambdaQueryWrapper<Role>().in(Role::getId, roleIdList)
             .eq(Role::getStatus, StatusEnum.ACTIVE.getValue())
         );
