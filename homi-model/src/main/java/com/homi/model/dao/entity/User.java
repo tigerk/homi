@@ -4,14 +4,15 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
 import java.io.Serial;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * <p>
@@ -25,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @Data
 @ToString(callSuper = true)
 @TableName("user")
-@Schema(name = "User", description = "用户表")
+@Schema(name = "User", description = "统一用户表，因一个用户可以同时在多个公司任职。")
 public class User implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
