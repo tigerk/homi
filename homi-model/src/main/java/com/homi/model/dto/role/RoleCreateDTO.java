@@ -7,6 +7,8 @@ import lombok.Data;
 @Data
 @Schema(description = "角色创建对象")
 public class RoleCreateDTO {
+    @Schema(description = "角色ID，更新时必填")
+    private Long id;
 
     /**
      * 角色编码

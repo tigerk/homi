@@ -1,25 +1,26 @@
 package com.homi.service.service.system;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.homi.model.dto.role.RoleQueryDTO;
 import com.homi.common.lib.enums.MenuTypeEnum;
-import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.enums.RoleDefaultEnum;
 import com.homi.common.lib.enums.StatusEnum;
-import com.homi.model.vo.role.RoleVO;
 import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.response.ResponseCodeEnum;
+import com.homi.common.lib.utils.StringUtils;
+import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Menu;
 import com.homi.model.dao.entity.Role;
 import com.homi.model.dao.entity.RoleMenu;
+import com.homi.model.dao.entity.User;
 import com.homi.model.dao.mapper.RoleMapper;
-import com.homi.model.dao.mapper.RoleMenuMapper;
 import com.homi.model.dao.repo.MenuRepo;
 import com.homi.model.dao.repo.RoleMenuRepo;
 import com.homi.model.dao.repo.RoleRepo;
-import com.homi.common.lib.utils.StringUtils;
+import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.dto.role.RoleQueryDTO;
+import com.homi.model.vo.role.RoleVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -40,24 +41,46 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RoleService {
     private final RoleMapper roleMapper;
-
     private final RoleRepo roleRepo;
     private final MenuRepo menuRepo;
     private final RoleMenuRepo roleMenuRepo;
-    private final RoleMenuMapper roleMenuMapper;
 
-    public IPage<RoleVO> listRolePage(RoleQueryDTO queryDTO) {
+    private final UserRepo userRepo;
+
+    public PageVO<RoleVO> listRolePage(RoleQueryDTO queryDTO) {
         Page<RoleVO> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
-        return roleMapper.selectRolePage(page, queryDTO);
+        IPage<RoleVO> pageList = roleMapper.selectRolePage(page, queryDTO);
+
+        pageList.getRecords().forEach(item -> {
+            User byId = userRepo.getById(item.getCreateBy());
+            item.setCreateByName(byId.getNickname());
+        });
+
+        PageVO<RoleVO> pageVO = new PageVO<>();
+        pageVO.setTotal(pageList.getTotal());
+        pageVO.setList(pageList.getRecords());
+        pageVO.setCurrentPage(pageList.getCurrent());
+        pageVO.setPageSize(pageList.getSize());
+        pageVO.setPages(pageList.getPages());
+
+        return pageVO;
     }
 
-    public Long saveRole(Role role) {
+    public Long createRole(Role role) {
         validateRoleUniqueness(null, role.getCompanyId(), role.getName(), role.getCode());
-        role.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
+
+        role.setStatus(StatusEnum.ACTIVE.getValue());
+
         roleMapper.insert(role);
         return role.getId();
     }
 
+    /**
+     * 更新角色
+     *
+     * @param role 角色对象
+     * @return 角色ID
+     */
     public Long updateRole(Role role) {
         if (Objects.nonNull(RoleDefaultEnum.fromValue(role.getId())) && role.getStatus().equals(StatusEnum.DISABLED.getValue())) {
             throw new BizException(ResponseCodeEnum.FAIL.getCode(), "系统内置角色无法停用");
@@ -68,7 +91,6 @@ public class RoleService {
         }
 
         validateRoleUniqueness(role.getId(), role.getCompanyId(), role.getName(), role.getCode());
-        role.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         roleMapper.updateById(role);
         return role.getId();
     }
@@ -106,7 +128,6 @@ public class RoleService {
     }
 
     public Boolean deleteRoleById(Long id) {
-
         return roleRepo.removeById(id);
     }
 

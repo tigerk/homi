@@ -1,6 +1,10 @@
 package com.homi.model.vo.role;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 /**
  * @author tigerk
@@ -9,7 +13,9 @@ import lombok.Data;
  * @description: 角色简单对象
  */
 @Data
-public class RoleSimpleVO {
+@AllArgsConstructor
+@NoArgsConstructor
+public class RoleSimpleVO  implements Serializable {
 
     /**
      * 角色ID
@@ -19,5 +25,5 @@ public class RoleSimpleVO {
     /**
      * 角色名称
      */
-    private String roleName;
+    private String name;
 }

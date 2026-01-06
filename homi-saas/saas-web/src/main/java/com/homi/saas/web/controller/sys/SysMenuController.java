@@ -29,9 +29,9 @@ import java.util.Objects;
  */
 
 
-@RequiredArgsConstructor
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/saas/sys/menu")
 public class SysMenuController {
     private final MenuService menuService;

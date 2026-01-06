@@ -28,11 +28,11 @@
         FROM role r
         LEFT JOIN user_role ur ON r.id = ur.role_id
         <where>
-            <if test="query.roleName != null and query.roleName != ''">
-                AND r.name = #{query.roleName}
+            <if test="query.name != null and query.name != ''">
+                AND r.name = #{query.name}
             </if>
-            <if test="query.roleCode != null and query.roleCode != ''">
-                AND r.code = #{query.roleCode}
+            <if test="query.code != null and query.code != ''">
+                AND r.code = #{query.code}
             </if>
             <if test="query.status != null">
                 AND r.status = #{query.status}

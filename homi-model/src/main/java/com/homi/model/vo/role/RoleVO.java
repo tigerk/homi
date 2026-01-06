@@ -21,12 +21,12 @@ public class RoleVO {
     /**
      * 角色名称
      */
-    private String roleName;
+    private String name;
 
     /**
      * 角色编码
      */
-    private String roleCode;
+    private String code;
 
     /**
      * 角色状态（0正常 1停用）
@@ -38,6 +38,7 @@ public class RoleVO {
      * 创建者
      */
     private Long createBy;
+    private String createByName;
 
     /**
      * 创建时间
