@@ -3,27 +3,27 @@ package com.homi.saas.web.controller.company;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
-import com.homi.saas.web.auth.service.AuthService;
-import com.homi.saas.web.auth.vo.login.UserLoginVO;
-import com.homi.saas.web.config.LoginManager;
 import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.annotation.RepeatSubmit;
-import com.homi.common.lib.vo.PageVO;
+import com.homi.common.lib.enums.OperationTypeEnum;
+import com.homi.common.lib.enums.SaasUserTypeEnum;
+import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
+import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.common.lib.vo.PageVO;
+import com.homi.model.dao.entity.CompanyUser;
+import com.homi.model.dao.entity.User;
 import com.homi.model.dto.user.UserCreateDTO;
 import com.homi.model.dto.user.UserQueryDTO;
 import com.homi.model.dto.user.UserResetPwdDTO;
 import com.homi.model.dto.user.UserUpdateStatusDTO;
-import com.homi.common.lib.enums.OperationTypeEnum;
-import com.homi.common.lib.response.ResponseCodeEnum;
-import com.homi.common.lib.enums.SaasUserTypeEnum;
 import com.homi.model.vo.company.user.UserCreateVO;
 import com.homi.model.vo.company.user.UserVO;
-import com.homi.model.dao.entity.CompanyUser;
-import com.homi.model.dao.entity.User;
+import com.homi.saas.web.auth.service.AuthService;
+import com.homi.saas.web.auth.vo.login.UserLoginVO;
+import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.company.CompanyUserService;
 import com.homi.service.service.sys.UserService;
-import com.homi.common.lib.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -113,7 +113,7 @@ public class CompanyUserController {
     public ResponseResult<Long> updateStatus(@Valid @RequestBody UserUpdateStatusDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         CompanyUser companyUserById = companyUserService.getCompanyUserById(updateDTO.getCompanyUserId());
         if (companyUserById.getUserType().equals(SaasUserTypeEnum.COMPANY_ADMIN.getType())) {
-            return ResponseResult.fail(ResponseCodeEnum.AUTHORIZED);
+            return ResponseResult.fail(ResponseCodeEnum.AUTHORIZED.getCode(), "公司管理员不能被禁用");
         }
 
         updateDTO.setCompanyId(loginUser.getCurCompanyId());
