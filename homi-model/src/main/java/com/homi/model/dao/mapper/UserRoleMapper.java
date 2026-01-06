@@ -2,7 +2,11 @@ package com.homi.model.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.homi.model.dao.entity.UserRole;
+import com.homi.model.vo.company.user.UserVO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -14,5 +18,11 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface UserRoleMapper extends BaseMapper<UserRole> {
-
+    /**
+     * 根据角色ID查询用户ID列表
+     *
+     * @param roleId 角色ID
+     * @return 用户ID列表
+     */
+    List<UserVO> getUserListByRoleId(@Param("roleId") Long roleId);
 }

@@ -11,6 +11,7 @@ import com.homi.model.dto.role.RoleCreateDTO;
 import com.homi.model.dto.role.RoleIdDTO;
 import com.homi.model.dto.role.RoleMenuAssignDTO;
 import com.homi.model.dto.role.RoleQueryDTO;
+import com.homi.model.vo.company.user.UserVO;
 import com.homi.model.vo.role.RoleSimpleVO;
 import com.homi.model.vo.role.RoleVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -121,6 +122,12 @@ public class SysRoleController {
 //    @SaCheckPermission("sys:role:menuIds")
     public ResponseResult<Boolean> assignRoleMenu(@RequestBody RoleMenuAssignDTO roleMenuAssignDTO) {
         return ResponseResult.ok(roleService.assignRoleMenu(roleMenuAssignDTO));
+    }
+
+    @PostMapping("/user/list")
+//    @SaCheckPermission("sys:role:userList")
+    public ResponseResult<List<UserVO>> getUserIdsByRoleId(@RequestBody RoleIdDTO roleIdDTO) {
+        return ResponseResult.ok(userRoleService.getUserIdsByRoleId(roleIdDTO.getId()));
     }
 }
 
