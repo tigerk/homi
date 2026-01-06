@@ -1,8 +1,6 @@
 package com.homi.saas.web.controller.sys;
 
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
-import com.homi.common.lib.enums.RoleDefaultEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
@@ -11,13 +9,14 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Role;
 import com.homi.model.dto.role.RoleCreateDTO;
 import com.homi.model.dto.role.RoleIdDTO;
+import com.homi.model.dto.role.RoleMenuAssignDTO;
 import com.homi.model.dto.role.RoleQueryDTO;
 import com.homi.model.vo.role.RoleSimpleVO;
 import com.homi.model.vo.role.RoleVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.role.RoleConvert;
-import com.homi.service.service.system.RoleService;
-import com.homi.service.service.system.UserRoleService;
+import com.homi.service.service.sys.RoleService;
+import com.homi.service.service.sys.UserRoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,24 +59,13 @@ public class SysRoleController {
     }
 
     /**
-     * 角色详情
-     *
-     * @param id 主键
-     * @return 单条数据
-     */
-    @GetMapping("/get/{id}")
-    public ResponseResult<Role> selectOne(@PathVariable Long id) {
-        return ResponseResult.ok(this.roleService.getRoleById(id));
-    }
-
-    /**
      * 新增角色
      *
      * @param createDTO 实体对象
      * @return 新增结果
      */
     @PostMapping("/create")
-//    @SaCheckPermission("system:role:create")
+//    @SaCheckPermission("sys:role:create")
     public ResponseResult<Long> save(@Valid @RequestBody RoleCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         Role role = BeanCopyUtils.copyBean(createDTO, Role.class);
         assert role != null;
@@ -98,7 +86,7 @@ public class SysRoleController {
      * @return 删除结果
      */
     @PostMapping("/delete")
-//    @SaCheckPermission("system:role:delete")
+//    @SaCheckPermission("sys:role:delete")
     public ResponseResult<Boolean> delete(@RequestBody RoleIdDTO deleteDTO) {
         Long id = deleteDTO.getId();
         long count = userRoleService.getUserCountByRoleId(id);
@@ -117,10 +105,22 @@ public class SysRoleController {
      * @return 所有数据
      */
     @PostMapping("/list/all")
-//    @SaCheckPermission("system:role:listSimpleAll")
+//    @SaCheckPermission("sys:role:listSimpleAll")
     public ResponseResult<List<RoleSimpleVO>> listSimpleAll(RoleQueryDTO queryDTO) {
         List<Role> list = roleService.getSimpleList(queryDTO);
         return ResponseResult.ok(RoleConvert.INSTANCE.convertSimpleList(list));
+    }
+
+    @PostMapping("/menu-ids")
+//    @SaCheckPermission("sys:role:menuIds")
+    public ResponseResult<List<Long>> getMenuIds(@RequestBody RoleIdDTO roleIdDTO) {
+        return ResponseResult.ok(roleService.getMenuIdsByRoleId(roleIdDTO.getId()));
+    }
+
+    @PostMapping("/menu/assign")
+//    @SaCheckPermission("sys:role:menuIds")
+    public ResponseResult<Boolean> assignRoleMenu(@RequestBody RoleMenuAssignDTO roleMenuAssignDTO) {
+        return ResponseResult.ok(roleService.assignRoleMenu(roleMenuAssignDTO));
     }
 }
 

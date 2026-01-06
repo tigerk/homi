@@ -13,6 +13,7 @@
         u.phone,
         cu.company_id,
         cu.dept_id,
+        cu.user_type,
         u.nickname,
         u.avatar,
         u.gender,

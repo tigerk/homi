@@ -21,6 +21,12 @@ public class UserVO {
 
     private DeptSimpleVO dept;
 
+    @Schema(description = "用户类型，1-普通用户，2-管理员")
+    private Integer userType;
+
+    @Schema(description = "用户类型名称")
+    private String userTypeName;
+
     @Schema(description = "用户名（登录名）")
     private String username;
 

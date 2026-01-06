@@ -18,7 +18,7 @@ import com.homi.model.vo.IdNameVO;
 import com.homi.model.vo.company.CompanyPackageVO;
 import com.homi.model.vo.menu.MenuVO;
 import com.homi.model.vo.menu.SimpleMenuVO;
-import com.homi.service.service.system.MenuService;
+import com.homi.service.service.sys.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

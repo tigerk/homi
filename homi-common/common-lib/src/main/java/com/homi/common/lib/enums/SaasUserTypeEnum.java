@@ -1,5 +1,6 @@
 package com.homi.common.lib.enums;
 
+import cn.hutool.core.util.EnumUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -26,4 +27,12 @@ public enum SaasUserTypeEnum {
     private final int type;
     private final String typeStr;
 
+    public static SaasUserTypeEnum fromValue(Integer userType) {
+        SaasUserTypeEnum saasUserTypeEnum = EnumUtil.getBy(SaasUserTypeEnum::getType, userType);
+        if (saasUserTypeEnum == null) {
+            throw new IllegalArgumentException("Invalid user type: " + userType);
+        }
+
+        return saasUserTypeEnum;
+    }
 }

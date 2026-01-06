@@ -12,7 +12,7 @@ import com.homi.model.vo.menu.MenuVO;
 import com.homi.model.vo.menu.SimpleMenuVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
-import com.homi.service.service.system.MenuService;
+import com.homi.service.service.sys.MenuService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;

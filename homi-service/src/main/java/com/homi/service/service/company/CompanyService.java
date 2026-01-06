@@ -26,7 +26,7 @@ import com.homi.model.dto.company.CompanyQueryDTO;
 import com.homi.model.vo.IdNameVO;
 import com.homi.model.vo.company.CompanyCreateVO;
 import com.homi.model.vo.company.CompanyListVO;
-import com.homi.service.service.system.UserService;
+import com.homi.service.service.sys.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

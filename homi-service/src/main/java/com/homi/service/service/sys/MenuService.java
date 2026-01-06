@@ -1,4 +1,4 @@
-package com.homi.service.service.system;
+package com.homi.service.service.sys;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.text.CharSequenceUtil;

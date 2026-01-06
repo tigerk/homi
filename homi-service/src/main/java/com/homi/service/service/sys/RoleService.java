@@ -1,5 +1,6 @@
-package com.homi.service.service.system;
+package com.homi.service.service.sys;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,26 +9,24 @@ import com.homi.common.lib.enums.RoleDefaultEnum;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
+import com.homi.common.lib.utils.CollectionUtils;
 import com.homi.common.lib.utils.StringUtils;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dao.entity.Menu;
-import com.homi.model.dao.entity.Role;
-import com.homi.model.dao.entity.RoleMenu;
-import com.homi.model.dao.entity.User;
+import com.homi.model.dao.entity.*;
 import com.homi.model.dao.mapper.RoleMapper;
-import com.homi.model.dao.repo.MenuRepo;
-import com.homi.model.dao.repo.RoleMenuRepo;
-import com.homi.model.dao.repo.RoleRepo;
-import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.dao.repo.*;
+import com.homi.model.dto.role.RoleMenuAssignDTO;
 import com.homi.model.dto.role.RoleQueryDTO;
 import com.homi.model.vo.role.RoleVO;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.homi.common.lib.utils.CollectionUtils.convertSet;
 
 /**
  * 应用于 homi-boot
@@ -46,6 +45,7 @@ public class RoleService {
     private final RoleMenuRepo roleMenuRepo;
 
     private final UserRepo userRepo;
+    private final UserRoleRepo userRoleRepo;
 
     public PageVO<RoleVO> listRolePage(RoleQueryDTO queryDTO) {
         Page<RoleVO> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
@@ -162,5 +162,102 @@ public class RoleService {
         });
 
         roleMenuRepo.saveBatch(saveList);
+    }
+
+    public List<Long> getMenuIdsByRoleId(@NotNull(message = "id不能为空") Long id) {
+        return roleMenuRepo.listObjs(new LambdaQueryWrapper<RoleMenu>().eq(RoleMenu::getRoleId, id).select(RoleMenu::getMenuId));
+    }
+
+    /**
+     * 为角色分配菜单
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/27 12:31
+     *
+     * @param assignDTO 分配DTO
+     * @return java.lang.Boolean
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean assignRoleMenu(RoleMenuAssignDTO assignDTO) {
+        Long roleId = assignDTO.getRoleId();
+        Set<Long> menuIds = assignDTO.getMenuIds();
+
+        Role sysRole = roleRepo.getBaseMapper().selectOne(new LambdaQueryWrapper<Role>().eq(Role::getId, roleId));
+        if (Objects.isNull(sysRole)) {
+            throw new BizException(ResponseCodeEnum.FAIL.getCode(), "该角色不存在");
+        }
+
+        // 为空删除所有
+        if (CollUtil.isEmpty(menuIds)) {
+            roleMenuRepo.remove(new LambdaQueryWrapper<RoleMenu>().eq(RoleMenu::getRoleId, roleId));
+            return true;
+        }
+
+        // 获得角色拥有菜单编号
+        Set<Long> dbMenuIds = CollectionUtils.convertSet(roleMenuRepo.list(new LambdaQueryWrapper<RoleMenu>().eq(RoleMenu::getRoleId, roleId)), RoleMenu::getMenuId);
+        // 计算新增和删除的菜单编号
+        Set<Long> menuIdList = CollUtil.emptyIfNull(menuIds);
+        Collection<Long> createMenuIds = CollUtil.subtract(menuIdList, dbMenuIds);
+        Collection<Long> deleteMenuIds = CollUtil.subtract(dbMenuIds, menuIdList);
+        // 执行新增和删除。对于已经授权的菜单，不用做任何处理
+        if (CollUtil.isNotEmpty(createMenuIds)) {
+            roleMenuRepo.saveBatch(CollectionUtils.convertList(createMenuIds, menuId -> {
+                RoleMenu roleMenu = new RoleMenu();
+                roleMenu.setRoleId(roleId);
+                roleMenu.setMenuId(menuId);
+                return roleMenu;
+            }));
+        }
+        if (CollUtil.isNotEmpty(deleteMenuIds)) {
+            roleMenuRepo.remove(new LambdaQueryWrapper<RoleMenu>().eq(RoleMenu::getRoleId, roleId).in(RoleMenu::getMenuId, deleteMenuIds));
+        }
+
+        return true;
+    }
+
+    /**
+     * 获取用户角色ID列表
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/4/29 22:16
+     *
+     * @param userId 参数说明
+     * @return java.util.List<java.lang.Long>
+     */
+    public List<Long> getRoleIdsByUser(Long userId) {
+        List<UserRole> userRoles = userRoleRepo.list(new LambdaQueryWrapper<UserRole>().in(UserRole::getUserId, userId));
+        return userRoles.stream().map(UserRole::getRoleId).collect(Collectors.toList());
+    }
+
+    /**
+     * 给用户分配角色
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/4/29 23:17
+     *
+     * @param userId  参数说明
+     * @param roleIds 参数说明
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void assignRoleByUserId(Long userId, Set<Long> roleIds) {
+        // 获得角色拥有角色编号
+        Set<Long> dbRoleIds = convertSet(userRoleRepo.list(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, userId)),
+            UserRole::getRoleId);
+        // 计算新增和删除的角色编号
+        Set<Long> roleIdList = CollUtil.emptyIfNull(roleIds);
+        Collection<Long> createRoleIds = CollUtil.subtract(roleIdList, dbRoleIds);
+        Collection<Long> deleteRoleIds = CollUtil.subtract(dbRoleIds, roleIdList);
+
+        // 执行新增和删除。对于已经授权的角色，不用做任何处理
+        if (!CollUtil.isEmpty(createRoleIds)) {
+            userRoleRepo.saveBatch(CollectionUtils.convertList(createRoleIds, roleId -> UserRole.builder().userId(userId).roleId(roleId).build()));
+            dbRoleIds.addAll(createRoleIds);
+        }
+        if (!CollUtil.isEmpty(deleteRoleIds)) {
+            userRoleRepo.remove(new LambdaQueryWrapper<UserRole>().
+                eq(UserRole::getUserId, userId).
+                in(UserRole::getRoleId, deleteRoleIds));
+            dbRoleIds.removeAll(deleteRoleIds);
+        }
     }
 }

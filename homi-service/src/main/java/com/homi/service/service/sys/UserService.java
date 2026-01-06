@@ -1,4 +1,4 @@
-package com.homi.service.service.system;
+package com.homi.service.service.sys;
 
 import cn.dev33.satoken.secure.SaSecureUtil;
 import cn.dev33.satoken.stp.StpUtil;

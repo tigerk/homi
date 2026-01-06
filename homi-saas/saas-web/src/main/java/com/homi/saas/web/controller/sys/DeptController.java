@@ -14,7 +14,7 @@ import com.homi.model.vo.dept.DeptVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.company.CompanyUserService;
-import com.homi.service.service.system.DeptService;
+import com.homi.service.service.sys.DeptService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

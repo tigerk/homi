@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.enums.SaasUserTypeEnum;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dto.user.UserCreateDTO;
 import com.homi.model.dto.user.UserQueryDTO;
@@ -20,8 +21,8 @@ import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.CompanyRepo;
 import com.homi.model.dao.repo.CompanyUserRepo;
 import com.homi.model.dao.repo.UserRepo;
-import com.homi.service.service.system.DeptService;
-import com.homi.service.service.system.UserService;
+import com.homi.service.service.sys.DeptService;
+import com.homi.service.service.sys.UserService;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -124,6 +125,8 @@ public class CompanyUserService {
                 DeptSimpleVO deptSimpleVO = BeanCopyUtils.copyBean(deptById, DeptSimpleVO.class);
                 userVO.setDept(deptSimpleVO);
             }
+
+            userVO.setUserTypeName(SaasUserTypeEnum.fromValue(userVO.getUserType()).getTypeStr());
         });
 
         PageVO<UserVO> pageVO = new PageVO<>();

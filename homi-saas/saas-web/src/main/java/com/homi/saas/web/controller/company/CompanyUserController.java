@@ -22,7 +22,7 @@ import com.homi.model.vo.company.user.UserVO;
 import com.homi.model.dao.entity.CompanyUser;
 import com.homi.model.dao.entity.User;
 import com.homi.service.service.company.CompanyUserService;
-import com.homi.service.service.system.UserService;
+import com.homi.service.service.sys.UserService;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.homi.service.service.system;
+package com.homi.service.service.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.model.dao.entity.UserRole;
