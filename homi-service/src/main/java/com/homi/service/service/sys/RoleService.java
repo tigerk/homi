@@ -12,9 +12,15 @@ import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.utils.CollectionUtils;
 import com.homi.common.lib.utils.StringUtils;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dao.entity.*;
+import com.homi.model.dao.entity.Menu;
+import com.homi.model.dao.entity.Role;
+import com.homi.model.dao.entity.RoleMenu;
+import com.homi.model.dao.entity.User;
 import com.homi.model.dao.mapper.RoleMapper;
-import com.homi.model.dao.repo.*;
+import com.homi.model.dao.repo.MenuRepo;
+import com.homi.model.dao.repo.RoleMenuRepo;
+import com.homi.model.dao.repo.RoleRepo;
+import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.dto.role.RoleMenuAssignDTO;
 import com.homi.model.dto.role.RoleQueryDTO;
 import com.homi.model.vo.role.RoleVO;
@@ -25,8 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.homi.common.lib.utils.CollectionUtils.convertSet;
 
 /**
  * 应用于 homi-boot
@@ -45,7 +49,6 @@ public class RoleService {
     private final RoleMenuRepo roleMenuRepo;
 
     private final UserRepo userRepo;
-    private final UserRoleRepo userRoleRepo;
 
     public PageVO<RoleVO> listRolePage(RoleQueryDTO queryDTO) {
         Page<RoleVO> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());

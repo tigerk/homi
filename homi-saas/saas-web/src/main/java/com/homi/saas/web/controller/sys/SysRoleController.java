@@ -17,7 +17,6 @@ import com.homi.saas.web.config.LoginManager;
 import com.homi.saas.web.role.RoleConvert;
 import com.homi.service.service.company.CompanyUserService;
 import com.homi.service.service.sys.RoleService;
-import com.homi.service.service.sys.UserRoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +42,6 @@ import java.util.Objects;
 @RequestMapping("/saas/sys/role")
 public class SysRoleController {
     private final RoleService roleService;
-    private final UserRoleService userRoleService;
     private final CompanyUserService companyUserService;
 
     /**
@@ -89,7 +87,13 @@ public class SysRoleController {
 //    @SaCheckPermission("sys:role:delete")
     public ResponseResult<Boolean> delete(@RequestBody RoleIdDTO deleteDTO) {
         Long id = deleteDTO.getId();
-        long count = userRoleService.getUserCountByRoleId(id);
+
+        UserQueryDTO userQueryDTO = UserQueryDTO.builder().roleId(id)
+            .companyId(LoginManager.getCurrentUser().getCurCompanyId())
+            .build();
+        userQueryDTO.setCurrentPage(1L);
+        userQueryDTO.setPageSize(1L);
+        long count = companyUserService.pageUserList(userQueryDTO).getList().size();
 
         if (count > 0) {
             throw new BizException(ResponseCodeEnum.FAIL.getCode(), "该角色已绑定用户，无法删除，若要删除请先解绑用户");

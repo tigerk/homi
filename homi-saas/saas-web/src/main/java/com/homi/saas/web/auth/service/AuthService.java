@@ -18,7 +18,6 @@ import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.mapper.RoleMapper;
-import com.homi.model.dao.mapper.UserRoleMapper;
 import com.homi.model.dao.repo.CompanyRepo;
 import com.homi.model.dao.repo.CompanyUserRepo;
 import com.homi.model.dao.repo.UserRepo;
@@ -52,7 +51,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepo userRepo;
-    private final UserRoleMapper userRoleMapper;
     private final RoleMapper roleMapper;
     private final CompanyRepo companyRepo;
     private final CompanyUserRepo companyUserRepo;

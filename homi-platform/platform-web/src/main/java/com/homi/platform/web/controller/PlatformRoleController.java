@@ -26,7 +26,7 @@ import java.util.List;
 @RequestMapping("/platform/role")
 @RestController
 @RequiredArgsConstructor
-public class RoleController {
+public class PlatformRoleController {
     private final PlatformRoleService platformRoleService;
 
     @PostMapping("/list")

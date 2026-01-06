@@ -13,7 +13,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class RoleQueryDTO extends PageDTO {
-
     private String name;
 
     private String code;

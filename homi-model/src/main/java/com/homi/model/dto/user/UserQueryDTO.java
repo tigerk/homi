@@ -2,11 +2,13 @@ package com.homi.model.dto.user;
 
 import com.homi.common.lib.dto.PageDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Schema(description = "用户查询对象")
 public class UserQueryDTO extends PageDTO {
 
