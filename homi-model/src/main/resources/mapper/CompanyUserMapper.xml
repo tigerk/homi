@@ -45,6 +45,10 @@
             <if test="query.status != null">
                 AND u.status = #{query.status}
             </if>
+            <if test="query.roleId != null and query.roleId != ''">
+                AND cu.roles LIKE CONCAT('%', #{query.roleId}, '%')
+            </if>
+
             and cu.deleted = false
             and u.deleted = false
         </where>

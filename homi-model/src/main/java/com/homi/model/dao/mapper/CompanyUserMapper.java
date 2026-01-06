@@ -8,6 +8,8 @@ import com.homi.model.dao.entity.CompanyUser;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * <p>
  * 公司用户表 Mapper 接口

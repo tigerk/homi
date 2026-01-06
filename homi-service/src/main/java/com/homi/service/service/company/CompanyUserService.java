@@ -1,6 +1,7 @@
 package com.homi.service.service.company;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -17,9 +18,10 @@ import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.CompanyRepo;
 import com.homi.model.dao.repo.CompanyUserRepo;
 import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.dto.company.user.CompanyUserRoleAssignDTO;
+import com.homi.model.dto.role.RoleUserUnbindDTO;
 import com.homi.model.dto.user.UserCreateDTO;
 import com.homi.model.dto.user.UserQueryDTO;
-import com.homi.model.dto.company.user.CompanyUserRoleAssignDTO;
 import com.homi.model.dto.user.UserUpdateStatusDTO;
 import com.homi.model.vo.company.user.UserCreateVO;
 import com.homi.model.vo.company.user.UserVO;
@@ -267,6 +269,22 @@ public class CompanyUserService {
         }
 
         companyUser.setRoles(JsonUtils.toJsonString(roleAssignDTO.getRoleIds()));
+
+        companyUserRepo.updateById(companyUser);
+
+        return Boolean.TRUE;
+    }
+
+    public Boolean unbindRoleCompanyUser(RoleUserUnbindDTO unbindDTO) {
+        CompanyUser companyUser = companyUserRepo.getById(unbindDTO.getCompanyUserId());
+        if (Objects.isNull(companyUser)) {
+            throw new BizException("用户不再该公司任职");
+        }
+
+        List<Long> roleIds = JSONUtil.toList(companyUser.getRoles(), Long.class);
+        roleIds.remove(unbindDTO.getRoleId());
+
+        companyUser.setRoles(JsonUtils.toJsonString(roleIds));
 
         companyUserRepo.updateById(companyUser);
 

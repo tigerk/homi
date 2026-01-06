@@ -19,6 +19,9 @@ public class UserQueryDTO extends PageDTO {
     @Schema(description = "部门ID")
     private Long deptId;
 
+    @Schema(description = "角色ID")
+    private Long roleId;
+
     private String email;
 
     private String phone;

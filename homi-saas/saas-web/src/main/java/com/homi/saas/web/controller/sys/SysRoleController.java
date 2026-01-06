@@ -7,15 +7,15 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Role;
-import com.homi.model.dto.role.RoleCreateDTO;
-import com.homi.model.dto.role.RoleIdDTO;
-import com.homi.model.dto.role.RoleMenuAssignDTO;
-import com.homi.model.dto.role.RoleQueryDTO;
+import com.homi.model.dto.role.*;
+import com.homi.model.dto.user.UserQueryDTO;
 import com.homi.model.vo.company.user.UserVO;
 import com.homi.model.vo.role.RoleSimpleVO;
 import com.homi.model.vo.role.RoleVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
+import com.homi.saas.web.config.LoginManager;
 import com.homi.saas.web.role.RoleConvert;
+import com.homi.service.service.company.CompanyUserService;
 import com.homi.service.service.sys.RoleService;
 import com.homi.service.service.sys.UserRoleService;
 import jakarta.validation.Valid;
@@ -42,13 +42,9 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @RequestMapping("/saas/sys/role")
 public class SysRoleController {
-    /**
-     * 服务对象
-     */
-
     private final RoleService roleService;
-
     private final UserRoleService userRoleService;
+    private final CompanyUserService companyUserService;
 
     /**
      * 查询角色列表
@@ -127,10 +123,33 @@ public class SysRoleController {
         return ResponseResult.ok(roleService.assignRoleMenu(roleMenuAssignDTO));
     }
 
+    /**
+     * 查询角色下的用户列表
+     *
+     * @param roleIdDTO 查询实体
+     * @return 所有数据
+     */
     @PostMapping("/user/list")
-//    @SaCheckPermission("sys:role:userList")
     public ResponseResult<List<UserVO>> getUserIdsByRoleId(@RequestBody RoleIdDTO roleIdDTO) {
-        return ResponseResult.ok(userRoleService.getUserIdsByRoleId(roleIdDTO.getId()));
+        UserQueryDTO queryDTO = new UserQueryDTO();
+        queryDTO.setRoleId(roleIdDTO.getId());
+        queryDTO.setCompanyId(LoginManager.getCurrentUser().getCurCompanyId());
+
+        queryDTO.setCurrentPage(1L);
+        queryDTO.setPageSize(9999L);
+
+        return ResponseResult.ok(companyUserService.pageUserList(queryDTO).getList());
+    }
+
+    /**
+     * 解绑角色下的用户
+     *
+     * @param unbindDTO 查询实体
+     * @return 所有数据
+     */
+    @PostMapping("user/unbind")
+    public ResponseResult<Boolean> unbindRoleCompanyUser(@RequestBody RoleUserUnbindDTO unbindDTO) {
+        return ResponseResult.ok(companyUserService.unbindRoleCompanyUser(unbindDTO));
     }
 }
 
