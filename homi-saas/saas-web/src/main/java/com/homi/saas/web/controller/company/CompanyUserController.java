@@ -3,6 +3,7 @@ package com.homi.saas.web.controller.company;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.annotation.RepeatSubmit;
 import com.homi.common.lib.enums.OperationTypeEnum;
@@ -13,6 +14,8 @@ import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.CompanyUser;
 import com.homi.model.dao.entity.User;
+import com.homi.model.dto.company.user.CompanyUserIdDTO;
+import com.homi.model.dto.company.user.CompanyUserRoleAssignDTO;
 import com.homi.model.dto.user.UserCreateDTO;
 import com.homi.model.dto.user.UserQueryDTO;
 import com.homi.model.dto.user.UserResetPwdDTO;
@@ -161,6 +164,22 @@ public class CompanyUserController {
         user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
         userService.resetPassword(user);
         return ResponseResult.ok(true);
+    }
+
+    @PostMapping("list-role-ids")
+    public ResponseResult<List<Long>> listRoleIds(@RequestBody CompanyUserIdDTO companyUserIdDTO) {
+        return ResponseResult.ok(JSONUtil.toList(companyUserService.getCompanyUserById(companyUserIdDTO.getCompanyUserId()).getRoles(), Long.class));
+    }
+
+    /**
+     * 为公司下的用户分配角色
+     *
+     * @param roleAssignDTO 角色分配DTO
+     * @return 分配结果
+     */
+    @PostMapping("/role/assign")
+    public ResponseResult<Boolean> assignUserRole(@RequestBody CompanyUserRoleAssignDTO roleAssignDTO) {
+        return ResponseResult.ok(companyUserService.assignRolesByUserId(roleAssignDTO));
     }
 }
 

@@ -5,15 +5,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.SaasUserTypeEnum;
-import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dto.user.UserCreateDTO;
-import com.homi.model.dto.user.UserQueryDTO;
-import com.homi.model.dto.user.UserUpdateStatusDTO;
 import com.homi.common.lib.enums.StatusEnum;
-import com.homi.model.vo.company.user.UserCreateVO;
-import com.homi.model.vo.company.user.UserVO;
-import com.homi.model.vo.dept.DeptSimpleVO;
 import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.common.lib.utils.JsonUtils;
+import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Company;
 import com.homi.model.dao.entity.CompanyUser;
 import com.homi.model.dao.entity.Dept;
@@ -21,9 +17,15 @@ import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.CompanyRepo;
 import com.homi.model.dao.repo.CompanyUserRepo;
 import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.dto.user.UserCreateDTO;
+import com.homi.model.dto.user.UserQueryDTO;
+import com.homi.model.dto.company.user.CompanyUserRoleAssignDTO;
+import com.homi.model.dto.user.UserUpdateStatusDTO;
+import com.homi.model.vo.company.user.UserCreateVO;
+import com.homi.model.vo.company.user.UserVO;
+import com.homi.model.vo.dept.DeptSimpleVO;
 import com.homi.service.service.sys.DeptService;
 import com.homi.service.service.sys.UserService;
-import com.homi.common.lib.utils.BeanCopyUtils;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -161,6 +163,7 @@ public class CompanyUserService {
         companyUser.setCompanyId(createDTO.getCompanyId());
         companyUser.setDeptId(createDTO.getDeptId());
         companyUser.setStatus(StatusEnum.ACTIVE.getValue());
+        companyUser.setUserType(SaasUserTypeEnum.COMPANY_USER.getType());
         companyUser.setCreateBy(createDTO.getUpdateBy());
 
         companyUserRepo.save(companyUser);
@@ -255,5 +258,18 @@ public class CompanyUserService {
         companyUserRepo.getBaseMapper().deleteById(companyUserId);
 
         return user;
+    }
+
+    public Boolean assignRolesByUserId(CompanyUserRoleAssignDTO roleAssignDTO) {
+        CompanyUser companyUser = companyUserRepo.getById(roleAssignDTO.getCompanyUserId());
+        if (Objects.isNull(companyUser)) {
+            throw new BizException("用户不再该公司任职");
+        }
+
+        companyUser.setRoles(JsonUtils.toJsonString(roleAssignDTO.getRoleIds()));
+
+        companyUserRepo.updateById(companyUser);
+
+        return Boolean.TRUE;
     }
 }
