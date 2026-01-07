@@ -163,4 +163,13 @@ public class CompanyUserRepo extends ServiceImpl<CompanyUserMapper, CompanyUser>
         updateWrapper.eq(CompanyUser::getCompanyId, companyId);
         update(updateWrapper);
     }
+
+    public Long getUserCountByRoleId(Long id) {
+        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
+
+        queryWrapper.apply("JSON_CONTAINS(roles, JSON_ARRAY({0}))", id);  // 使用自定义 SQL 查询 JSON 数据
+        queryWrapper.eq(CompanyUser::getStatus, StatusEnum.ACTIVE.getValue());
+
+        return count(queryWrapper);
+    }
 }

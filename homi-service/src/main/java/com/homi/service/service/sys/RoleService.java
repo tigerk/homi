@@ -3,7 +3,6 @@ package com.homi.service.service.sys;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.MenuTypeEnum;
 import com.homi.common.lib.enums.RoleDefaultEnum;
 import com.homi.common.lib.enums.StatusEnum;
@@ -17,10 +16,7 @@ import com.homi.model.dao.entity.Role;
 import com.homi.model.dao.entity.RoleMenu;
 import com.homi.model.dao.entity.User;
 import com.homi.model.dao.mapper.RoleMapper;
-import com.homi.model.dao.repo.MenuRepo;
-import com.homi.model.dao.repo.RoleMenuRepo;
-import com.homi.model.dao.repo.RoleRepo;
-import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.dao.repo.*;
 import com.homi.model.dto.role.RoleMenuAssignDTO;
 import com.homi.model.dto.role.RoleQueryDTO;
 import com.homi.model.vo.role.RoleVO;
@@ -47,16 +43,18 @@ public class RoleService {
     private final RoleRepo roleRepo;
     private final MenuRepo menuRepo;
     private final RoleMenuRepo roleMenuRepo;
+    private final CompanyUserRepo companyUserRepo;
 
     private final UserRepo userRepo;
 
     public PageVO<RoleVO> listRolePage(RoleQueryDTO queryDTO) {
-        Page<RoleVO> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
-        IPage<RoleVO> pageList = roleMapper.selectRolePage(page, queryDTO);
+        IPage<RoleVO> pageList = roleRepo.pageRoleList(queryDTO);
 
         pageList.getRecords().forEach(item -> {
             User byId = userRepo.getById(item.getCreateBy());
             item.setCreateByName(byId.getNickname());
+
+            item.setUserCount(companyUserRepo.getUserCountByRoleId(item.getId()));
         });
 
         PageVO<RoleVO> pageVO = new PageVO<>();
