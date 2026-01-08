@@ -43,7 +43,7 @@ public class HouseLayout implements Serializable {
     @TableField("lease_mode")
     private Integer leaseMode;
 
-    @Schema(description = "来源id")
+    @Schema(description = "房源租赁类型关联id")
     @TableField("lease_mode_id")
     private Long leaseModeId;
 
