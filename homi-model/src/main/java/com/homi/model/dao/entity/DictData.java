@@ -47,7 +47,7 @@ public class DictData implements Serializable {
     private String name;
 
     @Schema(description = "数据项值")
-    @TableField("value")
+    @TableField("`value`")
     private String value;
 
     @Schema(description = "排序")

@@ -42,6 +42,9 @@ public class FocusListVO implements Serializable {
     @Schema(description = "设施、从字典dict_data获取并配置")
     private List<String> facilities;
 
+    @Schema(description = "设施名称，从字典dict_data获取并配置")
+    private List<String> facilityNames;
+
     @Schema(description = "水")
     private String water;
 

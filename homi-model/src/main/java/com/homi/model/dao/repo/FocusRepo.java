@@ -3,11 +3,13 @@ package com.homi.model.dao.repo;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.model.focus.dto.FocusCreateDTO;
 import com.homi.model.dao.entity.Focus;
 import com.homi.model.dao.mapper.FocusMapper;
+import com.homi.model.focus.dto.FocusCreateDTO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * <p>
@@ -46,17 +48,24 @@ public class FocusRepo extends ServiceImpl<FocusMapper, Focus> {
      * @return com.homi.model.entity.Focus
      */
     public Focus saveFocus(FocusCreateDTO focusCreateDto) {
+        Focus toSave = new Focus();
+        BeanUtils.copyProperties(focusCreateDto, toSave);
+        toSave.setCommunityId(focusCreateDto.getCommunity().getCommunityId());
 
-        Focus focus = new Focus();
-        BeanUtils.copyProperties(focusCreateDto, focus);
-        focus.setCommunityId(focusCreateDto.getCommunity().getCommunityId());
-
-        focus.setFacilities(JSONUtil.toJsonStr(focusCreateDto.getFacilities()));
+        toSave.setFacilities(JSONUtil.toJsonStr(focusCreateDto.getFacilities()));
         // 设置标签
-        focus.setTags(JSONUtil.toJsonStr(focusCreateDto.getTags()));
-        focus.setImageList(JSONUtil.toJsonStr(focusCreateDto.getImageList()));
-        getBaseMapper().insert(focus);
+        toSave.setTags(JSONUtil.toJsonStr(focusCreateDto.getTags()));
+        toSave.setImageList(JSONUtil.toJsonStr(focusCreateDto.getImageList()));
 
-        return focus;
+        if (Objects.nonNull(focusCreateDto.getId())) {
+            Focus focus = getById(focusCreateDto.getId());
+            BeanUtils.copyProperties(toSave, focus);
+            updateById(focus);
+
+            return focus;
+        } else {
+            save(toSave);
+            return toSave;
+        }
     }
 }

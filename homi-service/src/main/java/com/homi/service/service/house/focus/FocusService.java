@@ -1,5 +1,7 @@
 package com.homi.service.service.house.focus;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
@@ -23,7 +25,6 @@ import com.homi.model.focus.vo.FocusListVO;
 import com.homi.model.focus.vo.FocusTotalVO;
 import com.homi.model.vo.IdNameVO;
 import com.homi.service.service.room.RoomSearchService;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -40,30 +41,19 @@ import java.util.*;
  * {@code @date} 2025/7/21
  */
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
 public class FocusService {
-    @Resource
-    private HouseRepo houseRepo;
+    private final HouseRepo houseRepo;
+    private final FocusRepo focusRepo;
+    private final FocusBuildingRepo focusBuildingRepo;
+    private final RoomRepo roomRepo;
+    private final HouseLayoutRepo houseLayoutRepo;
+    private final CommunityRepo communityRepo;
+    private final DictDataRepo dictDataRepo;
 
-    @Resource
-    private FocusRepo focusRepo;
-
-    @Resource
-    private FocusBuildingRepo focusBuildingRepo;
-
-    @Resource
-    private RoomRepo roomRepo;
-
-    @Resource
-    private HouseLayoutRepo houseLayoutRepo;
-
-    @Resource
-    private RoomSearchService roomSearchService;
-
-    @Resource
-    private CommunityRepo communityRepo;
+    private final RoomSearchService roomSearchService;
 
 
     /**
@@ -353,6 +343,13 @@ public class FocusService {
 
         focusListVO.setTags(JSONUtil.toList(focus.getTags(), String.class));
         focusListVO.setFacilities(JSONUtil.toList(focus.getFacilities(), String.class));
+
+        if (CollUtil.isNotEmpty(focusListVO.getFacilities())) {
+            // 设施名称
+            focusListVO.setFacilityNames(dictDataRepo.getDictDataListByCodes(focusListVO.getFacilities()).stream()
+                .map(DictData::getName).toList());
+        }
+
         focusListVO.setImageList(JSONUtil.toList(focus.getImageList(), String.class));
 
         CommunityDTO communityDTO = communityRepo.getCommunityById(focus.getCommunityId());

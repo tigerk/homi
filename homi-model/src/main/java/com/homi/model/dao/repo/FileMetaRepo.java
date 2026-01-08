@@ -3,9 +3,9 @@ package com.homi.model.dao.repo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.enums.StatusEnum;
+import com.homi.common.lib.utils.ImageUtils;
 import com.homi.model.dao.entity.FileMeta;
 import com.homi.model.dao.mapper.FileMetaMapper;
-import com.homi.common.lib.utils.ImageUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +40,10 @@ public class FileMetaRepo extends ServiceImpl<FileMetaMapper, FileMeta> {
      * @return java.lang.Boolean
      */
     public void setFileUsedByName(List<String> fileUrlList) {
+        if (fileUrlList.isEmpty()) {
+            return;
+        }
+
         List<String> fileNames = fileUrlList.stream().map(ImageUtils::getFileName).toList();
 
         LambdaQueryWrapper<FileMeta> queryWrapper = new LambdaQueryWrapper<>();

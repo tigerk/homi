@@ -27,7 +27,7 @@
         <fastjson.version>2.0.31</fastjson.version>
         <hutool.version>5.8.42</hutool.version>
         <!-- 持久层 -->
-        <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        <mybatis-plus.version>3.5.7</mybatis-plus.version>
         <!--权限校验-->
         <sa-token.version>1.44.0</sa-token.version>
         <mysql-connector.version>9.5.0</mysql-connector.version>
