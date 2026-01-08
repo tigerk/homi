@@ -3,10 +3,11 @@ package com.homi.model.dao.repo;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.model.dto.house.HouseLayoutDTO;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.HouseLayout;
 import com.homi.model.dao.mapper.HouseLayoutMapper;
-import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.model.dto.house.FacilityItemDTO;
+import com.homi.model.dto.house.HouseLayoutDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
      * {@code @date} 2025/9/17 21:46
      *
      * @param leaseModeId 参数说明
-     * @param leaseMode 参数说明
+     * @param leaseMode   参数说明
      * @return java.util.List<com.homi.domain.dto.house.HouseLayoutDTO>
      */
     public List<HouseLayoutDTO> getLayoutListByLeaseModeId(Long leaseModeId, Integer leaseMode) {
@@ -42,8 +43,17 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
         return getBaseMapper().selectList(queryWrapper).stream().map(layout -> {
 
             HouseLayoutDTO houseLayoutDTO = BeanCopyUtils.copyBean(layout, HouseLayoutDTO.class);
-            if (houseLayoutDTO != null) {
-                houseLayoutDTO.setNewly(Boolean.FALSE);
+            if (Objects.isNull(houseLayoutDTO)) {
+                return houseLayoutDTO;
+            }
+
+            houseLayoutDTO.setNewly(Boolean.FALSE);
+            if (Objects.nonNull(layout.getFacilities()) && JSONUtil.isTypeJSON(layout.getFacilities())) {
+                houseLayoutDTO.setFacilities(JSONUtil.toList(layout.getFacilities(), FacilityItemDTO.class));
+            }
+
+            if (Objects.nonNull(layout.getTags()) && JSONUtil.isTypeJSON(layout.getTags())) {
+                houseLayoutDTO.setTags(JSONUtil.toList(layout.getTags(), String.class));
             }
 
             return houseLayoutDTO;
