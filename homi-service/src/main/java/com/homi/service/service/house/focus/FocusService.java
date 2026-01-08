@@ -1,7 +1,6 @@
 package com.homi.service.service.house.focus;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
@@ -82,7 +81,7 @@ public class FocusService {
         saveFocusBuildings(focus.getId(), focusCreateDto.getBuildings());
 
         // 创建集中式户型
-        Map<Long, Long> houseLayoutIdMap = createFocusHouseLayouts(focusCreateDto);
+        Map<Long, Long> houseLayoutIdMap = createOrUpdateFocusHouseLayouts(focusCreateDto);
 
         // 创建集中式房源
         createFocusHouses(houseLayoutIdMap, focusCreateDto);
@@ -99,7 +98,7 @@ public class FocusService {
      * @param houseCreateDto 创建房源参数
      * @return java.util.Map<java.lang.Long, java.lang.Long>
      */
-    public Map<Long, Long> createFocusHouseLayouts(FocusCreateDTO houseCreateDto) {
+    public Map<Long, Long> createOrUpdateFocusHouseLayouts(FocusCreateDTO houseCreateDto) {
         Map<Long, Long> houseLayoutIdMap = new HashMap<>();
         houseCreateDto.getHouseLayoutList().forEach(houseLayoutDTO -> {
             HouseLayout houseLayout = new HouseLayout();
@@ -241,6 +240,7 @@ public class FocusService {
      * @param focusCreateDto 参数说明
      * @return java.lang.Long
      */
+    @Transactional(rollbackFor = Exception.class)
     public Long updateHouseFocus(FocusCreateDTO focusCreateDto) {
         Optional<Focus> optById = focusRepo.getOptById(focusCreateDto.getId());
         if (optById.isEmpty()) {
@@ -254,7 +254,7 @@ public class FocusService {
         saveFocusBuildings(focus.getId(), focusCreateDto.getBuildings());
 
         // 创建集中式户型
-        Map<Long, Long> houseLayoutIdMap = createFocusHouseLayouts(focusCreateDto);
+        Map<Long, Long> houseLayoutIdMap = createOrUpdateFocusHouseLayouts(focusCreateDto);
 
         // 创建集中式房源
         createFocusHouses(houseLayoutIdMap, focusCreateDto);
