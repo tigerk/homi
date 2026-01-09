@@ -57,7 +57,7 @@ public class TenantController {
         createDTO.setCreateBy(loginUser.getId());
         createDTO.getTenant().setCompanyId(loginUser.getCurCompanyId());
 
-        return ResponseResult.ok(tenantService.createTenant(createDTO));
+        return ResponseResult.ok(tenantService.saveTenantOrFromBooking(createDTO));
     }
 
     @PostMapping("/total")

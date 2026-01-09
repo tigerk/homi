@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 应用于 domix-saas
@@ -33,5 +34,5 @@ public class OtherFeeDTO implements Serializable {
     private Integer priceMethod;
 
     @Schema(description = "价格输入值")
-    private Integer priceInput;
+    private BigDecimal priceInput;
 }

@@ -6,7 +6,10 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.StatusEnum;
+import com.homi.common.lib.enums.booking.BookingStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.price.PaymentMethodEnum;
+import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
@@ -50,6 +53,7 @@ public class TenantService {
     private final FileAttachRepo fileAttachRepo;
     private final TenantOtherFeeRepo tenantOtherFeeRepo;
     private final TenantContractRepo tenantContractRepo;
+    private final BookingRepo bookingRepo;
 
     private final RoomService roomService;
     private final TenantBillGenService tenantBillGenService;
@@ -60,6 +64,20 @@ public class TenantService {
     private final DictDataService dictDataService;
     private final TenantMateService tenantMateService;
     private final RoomRepo roomRepo;
+
+    /**
+     * 统一创建租客入口（编排逻辑）
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Long saveTenantOrFromBooking(TenantCreateDTO createDTO) {
+        if (Objects.nonNull(createDTO.getBookingId())) {
+            // 从预定转换为租客
+            return convertBookingToTenant(createDTO);
+        } else {
+            // 普通创建
+            return createTenant(createDTO);
+        }
+    }
 
     /**
      * 获取租客列表
@@ -102,7 +120,6 @@ public class TenantService {
      * @param createDTO 创建租客信息
      * @return java.lang.Long
      */
-    @Transactional(rollbackFor = Exception.class)
     public Long createTenant(TenantCreateDTO createDTO) {
         TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, createDTO.getTenant().getTenantType());
         if (tenantTypeEnum == null) {
@@ -408,5 +425,62 @@ public class TenantService {
 
         // 生成 PDF 文件
         return ConvertHtml2PdfUtils.generatePdf(tenantContractByTenantId.getContractContent());
+    }
+
+    /**
+     * 转换为租客
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/14 04:00
+     *
+     * @param createDTO 参数说明
+     * @return Long
+     */
+    public Long convertBookingToTenant(TenantCreateDTO createDTO) {
+        Booking booking = bookingRepo.getById(createDTO.getBookingId());
+
+        // 1. 如果来自预定，可以在备注中自动追加来源信息
+        if (Objects.nonNull(createDTO.getBookingId())) {
+            createDTO.getTenant().setRemark(createDTO.getTenant().getRemark() + " [预定转合同，预定ID:" + createDTO.getBookingId() + "]");
+        }
+
+        // 2. 将预定金转化为一笔“抵扣项”
+        // 假设你在 OtherFeeDTO 中定义了一个特定的费项类型（如：PRE_DEPOSIT_DEDUCTION）
+        OtherFeeDTO depositDeduction = new OtherFeeDTO();
+        depositDeduction.setDictDataId(0L);
+        depositDeduction.setName("预定金抵扣");
+        depositDeduction.setPaymentMethod(PaymentMethodEnum.ALL.getCode());
+        // 按固定金额
+        depositDeduction.setPriceMethod(PriceMethodEnum.FIXED.getCode());
+        // 重点：取负数，用于抵扣
+        depositDeduction.setPriceInput(booking.getBookingAmount().negate());
+
+        // 3. 将这笔抵扣加入到创建租客的费用列表中
+        if (createDTO.getOtherFees() == null) {
+            createDTO.setOtherFees(new ArrayList<>());
+        }
+        createDTO.getOtherFees().add(depositDeduction);
+
+        // 2. 执行复杂的租客创建
+        // Call transactional methods via an injected dependency instead of directly via 'this'.
+        Long tenantId = createTenant(createDTO);
+
+        // 获取预定的原始房间
+        List<Long> originalRoomIds = JSONUtil.toList(booking.getRoomIds(), Long.class);
+        // 获取签约时最终确定的房间
+        List<Long> finalRoomIds = createDTO.getTenant().getRoomIds();
+
+        /*
+         * 4. 房间状态对冲逻辑，如果签约房间和预定房间不一致，其他房间释放为空置
+         */
+        List<Long> toRelease = originalRoomIds.stream().filter(id -> !finalRoomIds.contains(id)).toList();
+        roomRepo.batchUpdateRoomStatusMixed(toRelease, ListUtil.of());
+
+        // 5. 更新预定单状态
+        booking.setBookingStatus(BookingStatusEnum.CONTRACTED.getCode()); // 已转合同
+        booking.setTenantId(tenantId); // 建立双向关联
+        bookingRepo.updateById(booking);
+
+        return tenantId;
     }
 }

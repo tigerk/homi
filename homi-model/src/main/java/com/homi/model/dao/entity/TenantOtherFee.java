@@ -8,6 +8,7 @@ import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * <p>
@@ -52,7 +53,7 @@ public class TenantOtherFee implements Serializable {
 
     @Schema(description = "价格输入值")
     @TableField("price_input")
-    private Integer priceInput;
+    private BigDecimal priceInput;
 
     @Schema(description = "是否删除：0=否，1=是")
     @TableField("deleted")

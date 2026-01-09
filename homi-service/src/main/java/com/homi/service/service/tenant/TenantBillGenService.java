@@ -206,7 +206,7 @@ public class TenantBillGenService {
         PriceMethodEnum method = PriceMethodEnum.values()[fee.getPriceMethod()];
         return switch (method) {
             case FIXED -> String.format("%s元 × %d月", fee.getPriceInput(), actualMonths);
-            case RATIO -> String.format("租金 × %d%%", fee.getPriceInput());
+            case RATIO -> String.format("租金 × %f%%", fee.getPriceInput());
         };
     }
 
@@ -282,8 +282,8 @@ public class TenantBillGenService {
      * @param actualMonths 实际月数
      * @return 费用金额
      */
-    private BigDecimal calculateFixedFee(Integer priceInput, int actualMonths) {
-        return BigDecimal.valueOf(priceInput)
+    private BigDecimal calculateFixedFee(BigDecimal priceInput, int actualMonths) {
+        return priceInput
             .multiply(BigDecimal.valueOf(actualMonths));
     }
 
@@ -294,9 +294,9 @@ public class TenantBillGenService {
      * @param priceInput   比例（百分比）
      * @return 费用金额
      */
-    private BigDecimal calculateRatioFee(BigDecimal rentalAmount, Integer priceInput) {
+    private BigDecimal calculateRatioFee(BigDecimal rentalAmount, BigDecimal priceInput) {
         return rentalAmount
-            .multiply(BigDecimal.valueOf(priceInput))
+            .multiply(priceInput)
             .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
