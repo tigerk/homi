@@ -6,7 +6,7 @@ import com.homi.saas.web.config.LoginManager;
 import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.common.lib.response.ResponseResult;
-import com.homi.model.dto.monitor.OperationLogDTO;
+import com.homi.model.monitor.OperationLogDTO;
 import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.model.dao.entity.OperationLog;
 import com.homi.model.dao.repo.OperationLogRepo;

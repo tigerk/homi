@@ -9,7 +9,7 @@ import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
-import com.homi.model.vo.menu.AsyncRoutesVO;
+import com.homi.model.menu.vo.AsyncRoutesVO;
 import com.homi.saas.web.auth.dto.login.LoginDTO;
 import com.homi.saas.web.auth.dto.login.LoginUpdateDTO;
 import com.homi.saas.web.auth.dto.login.TokenRefreshDTO;

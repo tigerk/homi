@@ -8,7 +8,7 @@ import com.homi.common.lib.enums.StatusEnum;
 import com.homi.model.dao.entity.Company;
 import com.homi.model.dao.entity.CompanyUser;
 import com.homi.model.dao.mapper.CompanyUserMapper;
-import com.homi.model.dto.company.UserCompanyListDTO;
+import com.homi.model.company.dto.UserCompanyListDTO;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 

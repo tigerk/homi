@@ -1,8 +1,8 @@
 package com.homi.saas.web.role;
 
 import com.homi.model.dao.entity.Role;
-import com.homi.model.vo.role.RoleSimpleVO;
-import com.homi.model.vo.role.RoleVO;
+import com.homi.model.role.vo.RoleSimpleVO;
+import com.homi.model.role.vo.RoleVO;
 import com.homi.saas.web.auth.vo.account.AccountRoleVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

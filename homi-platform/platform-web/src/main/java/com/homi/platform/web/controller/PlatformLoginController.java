@@ -5,7 +5,7 @@ import com.homi.common.lib.annotation.LoginLog;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
-import com.homi.model.vo.menu.AsyncRoutesVO;
+import com.homi.model.menu.vo.AsyncRoutesVO;
 import com.homi.platform.web.config.PlatformLoginManager;
 import com.homi.platform.web.dto.login.TokenRefreshDTO;
 import com.homi.platform.web.dto.login.PlatformLoginDTO;

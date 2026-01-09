@@ -2,7 +2,7 @@ package com.homi.service.service.price;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.model.dto.room.price.PriceConfigDTO;
+import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.model.dao.entity.RoomPriceConfig;
 import com.homi.model.dao.entity.RoomPricePlan;

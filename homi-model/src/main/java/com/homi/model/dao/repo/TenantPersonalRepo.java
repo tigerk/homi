@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.TenantPersonal;
 import com.homi.model.dao.mapper.TenantPersonalMapper;
-import com.homi.model.vo.tenant.TenantPersonalVO;
+import com.homi.model.tenant.vo.TenantPersonalVO;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 

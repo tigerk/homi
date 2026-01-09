@@ -10,9 +10,9 @@ import com.homi.model.dao.entity.DictData;
 import com.homi.model.dao.repo.CompanyInitRepo;
 import com.homi.model.dao.repo.DictDataRepo;
 import com.homi.model.dao.repo.DictRepo;
-import com.homi.model.dto.company.init.CompanyInitDTO;
-import com.homi.model.dto.company.init.InitDictDTO;
-import com.homi.model.dto.company.init.InitDictDataDTO;
+import com.homi.model.company.dto.init.CompanyInitDTO;
+import com.homi.model.company.dto.init.InitDictDTO;
+import com.homi.model.company.dto.init.InitDictDataDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

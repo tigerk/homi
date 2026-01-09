@@ -3,7 +3,7 @@ package com.homi.model.dao.repo;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.dao.entity.Region;
 import com.homi.model.dao.mapper.RegionMapper;
-import com.homi.model.vo.IdNameVO;
+import com.homi.model.common.vo.IdNameVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

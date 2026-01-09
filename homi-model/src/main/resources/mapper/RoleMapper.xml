@@ -14,7 +14,7 @@
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
     </resultMap>
 
-    <select id="selectRolePage" resultType="com.homi.model.vo.role.RoleVO">
+    <select id="selectRolePage" resultType="com.homi.model.role.vo.RoleVO">
         SELECT r.id,
         r.name,
         r.code,

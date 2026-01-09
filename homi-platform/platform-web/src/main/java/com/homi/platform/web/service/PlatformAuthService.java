@@ -21,7 +21,7 @@ import com.homi.model.dao.entity.PlatformUserRole;
 import com.homi.model.dao.mapper.PlatformUserMapper;
 import com.homi.model.dao.repo.PlatformRoleRepo;
 import com.homi.model.dao.repo.PlatformUserRoleRepo;
-import com.homi.model.vo.menu.AsyncRoutesVO;
+import com.homi.model.menu.vo.AsyncRoutesVO;
 import com.homi.platform.service.service.perms.PlatformMenuService;
 import com.homi.platform.service.service.perms.PlatformUserService;
 import com.homi.platform.web.config.PlatformLoginManager;

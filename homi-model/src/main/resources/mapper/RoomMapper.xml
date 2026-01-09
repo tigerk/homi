@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.homi.model.dao.mapper.RoomMapper">
-    <resultMap id="RoomDetailMap" type="com.homi.model.vo.room.RoomListVO">
+    <resultMap id="RoomDetailMap" type="com.homi.model.room.vo.RoomListVO">
         <id property="roomId" column="room_id"/>
         <result property="houseId" column="house_id"/>
         <result property="roomNumber" column="room_number"/>
@@ -32,7 +32,7 @@
         <result property="floor" column="floor"/>
 
         <!-- 如果需要包含房型信息等集合 -->
-        <collection property="houseLayout" ofType="com.homi.model.dto.house.HouseLayoutDTO">
+        <collection property="houseLayout" ofType="com.homi.model.house.dto.HouseLayoutDTO">
             <id property="id" column="layout_id"/>
             <result property="layoutName" column="layout_name"/>
             <result property="livingRoom" column="living_room"/>
@@ -89,7 +89,7 @@
         order by r.id desc
     </select>
 
-    <select id="getStatusTotal" resultType="com.homi.model.vo.room.RoomTotalItemVO">
+    <select id="getStatusTotal" resultType="com.homi.model.room.vo.RoomTotalItemVO">
         SELECT room_status, count(room_status) AS total
         FROM room r
                  LEFT JOIN house h ON r.house_id = h.id
@@ -141,7 +141,7 @@
         </if>
     </sql>
 
-    <select id="selectAggregatedRooms" resultType="com.homi.model.vo.room.grid.RoomAggregatedVO">
+    <select id="selectAggregatedRooms" resultType="com.homi.model.room.vo.grid.RoomAggregatedVO">
         SELECT h.lease_mode_id,
                h.building,
                h.unit,

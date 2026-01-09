@@ -6,8 +6,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.HouseLayout;
 import com.homi.model.dao.mapper.HouseLayoutMapper;
-import com.homi.model.dto.house.FacilityItemDTO;
-import com.homi.model.dto.house.HouseLayoutDTO;
+import com.homi.model.house.dto.FacilityItemDTO;
+import com.homi.model.house.dto.HouseLayoutDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

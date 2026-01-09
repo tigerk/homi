@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.event.OperationLogEvent;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dto.monitor.OperationLogDTO;
+import com.homi.model.monitor.OperationLogDTO;
 import com.homi.model.dao.entity.OperationLog;
 import com.homi.model.dao.mapper.OperationLogMapper;
 import com.homi.common.lib.utils.AddressUtils;

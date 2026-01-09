@@ -5,8 +5,8 @@ import com.homi.model.dao.entity.TenantBill;
 import com.homi.model.dao.entity.TenantBillOtherFee;
 import com.homi.model.dao.repo.TenantBillOtherFeeRepo;
 import com.homi.model.dao.repo.TenantBillRepo;
-import com.homi.model.vo.tenant.bill.TenantBillListVO;
-import com.homi.model.vo.tenant.bill.TenantBillOtherFeeVO;
+import com.homi.model.tenant.vo.bill.TenantBillListVO;
+import com.homi.model.tenant.vo.bill.TenantBillOtherFeeVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

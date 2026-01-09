@@ -1,9 +1,9 @@
 package com.homi.service.service.sys;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.model.dto.dept.DeptCreateDTO;
-import com.homi.model.dto.dept.DeptQueryDTO;
-import com.homi.model.vo.dept.DeptVO;
+import com.homi.model.dept.dto.DeptCreateDTO;
+import com.homi.model.dept.dto.DeptQueryDTO;
+import com.homi.model.dept.vo.DeptVO;
 import com.homi.model.dao.entity.Dept;
 import com.homi.model.dao.mapper.DeptMapper;
 import com.homi.common.lib.utils.BeanCopyUtils;

@@ -9,7 +9,7 @@ import com.homi.model.dao.repo.FileMetaRepo;
 import com.homi.model.focus.dto.FocusCreateDTO;
 import com.homi.model.focus.dto.FocusQueryDTO;
 import com.homi.model.focus.vo.FocusListVO;
-import com.homi.model.vo.IdNameVO;
+import com.homi.model.common.vo.IdNameVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.house.focus.FocusService;

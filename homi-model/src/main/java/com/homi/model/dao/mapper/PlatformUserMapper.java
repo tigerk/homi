@@ -3,7 +3,7 @@ package com.homi.model.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.model.dao.entity.PlatformUser;
-import com.homi.model.dto.user.UserQueryDTO;
+import com.homi.model.user.UserQueryDTO;
 import com.homi.model.platform.vo.PlatformUserVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

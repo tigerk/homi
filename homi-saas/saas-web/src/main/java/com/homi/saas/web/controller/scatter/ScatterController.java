@@ -6,7 +6,7 @@ import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.scatter.ScatterCreateDTO;
-import com.homi.model.vo.house.ScatterHouseVO;
+import com.homi.model.scatter.ScatterHouseVO;
 import com.homi.service.service.house.scatter.ScatterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

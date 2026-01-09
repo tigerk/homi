@@ -3,9 +3,9 @@ package com.homi.model.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.model.dao.entity.Tenant;
-import com.homi.model.dto.tenant.TenantQueryDTO;
-import com.homi.model.vo.tenant.TenantListVO;
-import com.homi.model.vo.tenant.TenantTotalItemVO;
+import com.homi.model.tenant.dto.TenantQueryDTO;
+import com.homi.model.tenant.vo.TenantListVO;
+import com.homi.model.tenant.vo.TenantTotalItemVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

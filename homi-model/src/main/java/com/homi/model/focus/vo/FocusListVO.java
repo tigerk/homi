@@ -2,7 +2,7 @@ package com.homi.model.focus.vo;
 
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.model.dto.community.CommunityDTO;
+import com.homi.model.community.dto.CommunityDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

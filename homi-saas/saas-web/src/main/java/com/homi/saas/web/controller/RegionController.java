@@ -5,7 +5,7 @@ import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.dao.entity.Region;
 import com.homi.model.dao.repo.RegionRepo;
-import com.homi.model.vo.IdNameVO;
+import com.homi.model.common.vo.IdNameVO;
 import com.homi.service.external.amap.AmapClient;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.Data;

@@ -2,13 +2,11 @@ package com.homi.model.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.homi.model.dto.user.UserQueryDTO;
-import com.homi.model.vo.company.user.UserVO;
+import com.homi.model.user.UserQueryDTO;
+import com.homi.model.company.vo.user.UserVO;
 import com.homi.model.dao.entity.CompanyUser;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 /**
  * <p>

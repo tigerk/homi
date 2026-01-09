@@ -12,11 +12,11 @@ import com.homi.model.dao.entity.CompanyUser;
 import com.homi.model.dao.entity.ContractTemplate;
 import com.homi.model.dao.repo.CompanyUserRepo;
 import com.homi.model.dao.repo.ContractTemplateRepo;
-import com.homi.model.dto.contract.ContractTemplateCreateDTO;
-import com.homi.model.dto.contract.ContractTemplateDeleteDTO;
-import com.homi.model.dto.contract.ContractTemplateQueryDTO;
-import com.homi.model.dto.contract.ContractTemplateStatusDTO;
-import com.homi.model.vo.contract.ContractTemplateListVO;
+import com.homi.model.contract.dto.ContractTemplateCreateDTO;
+import com.homi.model.contract.dto.ContractTemplateDeleteDTO;
+import com.homi.model.contract.dto.ContractTemplateQueryDTO;
+import com.homi.model.contract.dto.ContractTemplateStatusDTO;
+import com.homi.model.contract.vo.ContractTemplateListVO;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -160,7 +160,7 @@ public class ContractTemplateService {
      * @param companyId     公司ID
      * @param currentUserId 用户 ID
      * @param contractType  合同类型
-     * @return java.util.List<com.homi.model.vo.contract.ContractTemplateListVO> 合同列表
+     * @return java.util.List<com.homi.model.contract.vo.ContractTemplateListVO> 合同列表
      */
     public List<ContractTemplateListVO> getMyAvailableContractTemplates(Long companyId, Long currentUserId, Integer contractType) {
         CompanyUser companyUser = companyUserRepo.getCompanyUser(companyId, currentUserId);
@@ -186,7 +186,7 @@ public class ContractTemplateService {
      * {@code @date} 2025/12/17 01:13
      *
      * @param contractTemplateList 参数说明
-     * @return java.util.@org.jetbrains.annotations.NotNull List<com.homi.model.vo.contract.ContractTemplateListVO>
+     * @return java.util.@org.jetbrains.annotations.NotNull List<com.homi.model.contract.vo.ContractTemplateListVO>
      */
     @NotNull
     private List<ContractTemplateListVO> formatContractTemplateListVO(List<ContractTemplate> contractTemplateList) {

@@ -3,7 +3,7 @@ package com.homi.model.dao.repo;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.model.dto.community.CommunityDTO;
+import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.scatter.ScatterHouseDTO;
 import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.Room;

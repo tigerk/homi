@@ -4,13 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.mapper.TenantMapper;
-import com.homi.model.dto.tenant.TenantQueryDTO;
-import com.homi.model.vo.tenant.TenantListVO;
+import com.homi.model.tenant.dto.TenantQueryDTO;
+import com.homi.model.tenant.vo.TenantListVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 

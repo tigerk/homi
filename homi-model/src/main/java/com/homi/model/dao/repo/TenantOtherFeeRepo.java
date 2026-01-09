@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.dao.entity.TenantOtherFee;
 import com.homi.model.dao.mapper.TenantOtherFeeMapper;
-import com.homi.model.dto.room.price.OtherFeeDTO;
+import com.homi.model.room.dto.price.OtherFeeDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

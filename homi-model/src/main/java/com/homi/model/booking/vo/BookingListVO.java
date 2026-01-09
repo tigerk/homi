@@ -1,6 +1,5 @@
 package com.homi.model.booking.vo;
 
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -82,10 +81,6 @@ public class BookingListVO implements Serializable {
 
     @Schema(description = "备注")
     private String remark;
-
-    @Schema(description = "是否删除")
-    @TableLogic
-    private Boolean deleted;
 
     @Schema(description = "创建人ID")
     private Long createBy;

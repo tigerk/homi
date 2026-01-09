@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.dao.entity.Role;
 import com.homi.model.dao.mapper.RoleMapper;
-import com.homi.model.dto.role.RoleQueryDTO;
-import com.homi.model.vo.role.RoleVO;
+import com.homi.model.role.dto.RoleQueryDTO;
+import com.homi.model.role.vo.RoleVO;
 import org.springframework.stereotype.Service;
 
 /**

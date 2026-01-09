@@ -2,10 +2,10 @@ package com.homi.model.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.homi.model.dto.room.RoomQueryDTO;
-import com.homi.model.vo.room.RoomListVO;
-import com.homi.model.vo.room.RoomTotalItemVO;
-import com.homi.model.vo.room.grid.RoomAggregatedVO;
+import com.homi.model.room.dto.RoomQueryDTO;
+import com.homi.model.room.vo.RoomListVO;
+import com.homi.model.room.vo.RoomTotalItemVO;
+import com.homi.model.room.vo.grid.RoomAggregatedVO;
 import com.homi.model.dao.entity.Room;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

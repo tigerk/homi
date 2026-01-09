@@ -3,12 +3,12 @@ package com.homi.saas.web.controller.sys;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.homi.common.lib.response.ResponseResult;
-import com.homi.model.dto.dict.DictQueryDTO;
-import com.homi.model.dto.dict.DictCreateDTO;
-import com.homi.model.dto.dict.DictUpdateDTO;
+import com.homi.model.dict.dto.DictQueryDTO;
+import com.homi.model.dict.dto.DictCreateDTO;
+import com.homi.model.dict.dto.DictUpdateDTO;
 import com.homi.common.lib.response.ResponseCodeEnum;
-import com.homi.model.vo.dict.DictWithDataVO;
-import com.homi.model.vo.dict.DictVO;
+import com.homi.model.dict.vo.DictWithDataVO;
+import com.homi.model.dict.vo.DictVO;
 import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.entity.Dict;
 import com.homi.service.service.sys.DictDataService;

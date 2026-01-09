@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.event.LoginLogEvent;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dto.monitor.LoginLogDTO;
+import com.homi.model.monitor.LoginLogDTO;
 import com.homi.model.dao.entity.LoginLog;
 import com.homi.model.dao.mapper.LoginLogMapper;
 import com.homi.common.lib.utils.BeanCopyUtils;

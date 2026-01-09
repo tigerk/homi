@@ -13,7 +13,7 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.PlatformUser;
-import com.homi.model.dto.user.UserQueryDTO;
+import com.homi.model.user.UserQueryDTO;
 import com.homi.model.platform.dto.*;
 import com.homi.model.platform.vo.PlatformUserVO;
 import com.homi.platform.service.service.perms.PlatformUserService;

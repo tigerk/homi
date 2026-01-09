@@ -1,8 +1,8 @@
 package com.homi.model.scatter;
 
-import com.homi.model.dto.house.HouseLayoutDTO;
-import com.homi.model.dto.room.RoomDetailDTO;
-import com.homi.model.dto.room.price.PriceConfigDTO;
+import com.homi.model.house.dto.HouseLayoutDTO;
+import com.homi.model.room.dto.RoomDetailDTO;
+import com.homi.model.room.dto.price.PriceConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 

@@ -5,7 +5,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.model.dto.user.UserCreateDTO;
+import com.homi.model.user.UserCreateDTO;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.entity.User;

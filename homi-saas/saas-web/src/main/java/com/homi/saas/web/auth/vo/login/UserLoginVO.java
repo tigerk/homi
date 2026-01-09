@@ -1,7 +1,7 @@
 package com.homi.saas.web.auth.vo.login;
 
-import com.homi.model.dto.company.UserCompanyListDTO;
-import com.homi.model.vo.menu.AsyncRoutesVO;
+import com.homi.model.company.dto.UserCompanyListDTO;
+import com.homi.model.menu.vo.AsyncRoutesVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -10,7 +10,7 @@ import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.utils.PasswordUtils;
 import com.homi.model.dao.entity.User;
 import com.homi.model.dao.mapper.UserMapper;
-import com.homi.model.dto.company.CompanyCreateDTO;
+import com.homi.model.company.dto.CompanyCreateDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

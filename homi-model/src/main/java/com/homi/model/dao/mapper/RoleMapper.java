@@ -3,8 +3,8 @@ package com.homi.model.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.model.dao.entity.Role;
-import com.homi.model.dto.role.RoleQueryDTO;
-import com.homi.model.vo.role.RoleVO;
+import com.homi.model.role.dto.RoleQueryDTO;
+import com.homi.model.role.vo.RoleVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
