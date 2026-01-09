@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 应用于 domix
@@ -31,7 +32,7 @@ public class BookingListVO implements Serializable {
     private String bookingCode;
 
     @Schema(description = "预定房间 ids")
-    private String roomIds;
+    private List<Long> roomIds;
 
     @Schema(description = "租客类型：0=个人，1=企业")
     private Integer tenantType;

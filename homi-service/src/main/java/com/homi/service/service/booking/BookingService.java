@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -75,7 +76,16 @@ public class BookingService {
      */
     public BookingListVO getBookingDetail(Long id) {
         Booking booking = bookingRepo.getById(id);
-        return BeanCopyUtils.copyBean(booking, BookingListVO.class);
+        if (booking == null) {
+            throw new BizException("预定记录不存在");
+        }
+
+        BookingListVO vo = BeanCopyUtils.copyBean(booking, BookingListVO.class);
+        assert vo != null;
+        vo.setBookingStatusName(Objects.requireNonNull(BookingStatusEnum.getEnum(booking.getBookingStatus())).getName());
+        vo.setRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class));
+
+        return vo;
     }
 
     /**
@@ -110,7 +120,7 @@ public class BookingService {
     @Transactional(rollbackFor = Exception.class)
     public Long updateBooking(BookingCreateDTO createDTO) {
         Booking booking = bookingRepo.getById(createDTO.getId());
-        if (booking == null){
+        if (booking == null) {
             throw new BizException("预定记录不存在");
         }
 

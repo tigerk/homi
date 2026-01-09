@@ -20,6 +20,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TenantCreateDTO {
+    @Schema(description = "预订ID")
+    private Long bookingId;
+
     @Schema(description = "个人租户信息")
     private TenantPersonalDTO tenantPersonal;
 

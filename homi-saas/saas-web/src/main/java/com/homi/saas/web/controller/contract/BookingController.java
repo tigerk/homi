@@ -6,6 +6,7 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.booking.dto.BookingCancelDTO;
 import com.homi.model.booking.dto.BookingCreateDTO;
+import com.homi.model.booking.dto.BookingIdDTO;
 import com.homi.model.booking.dto.BookingQueryDTO;
 import com.homi.model.booking.vo.BookingListVO;
 import com.homi.model.booking.vo.BookingTotalItemVO;
@@ -65,6 +66,11 @@ public class BookingController {
     @PostMapping("/list")
     public ResponseResult<PageVO<BookingListVO>> getBookingList(@RequestBody BookingQueryDTO query) {
         return ResponseResult.ok(bookingService.getBookingList(query));
+    }
+
+    @PostMapping("/get")
+    public ResponseResult<BookingListVO> getBookingDetail(@RequestBody BookingIdDTO dto) {
+        return ResponseResult.ok(bookingService.getBookingDetail(dto.getBookingId()));
     }
 
     @PostMapping("/cancel")
