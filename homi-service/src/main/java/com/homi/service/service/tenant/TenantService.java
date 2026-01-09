@@ -52,7 +52,6 @@ public class TenantService {
     private final TenantCompanyRepo tenantCompanyRepo;
     private final FileAttachRepo fileAttachRepo;
     private final TenantOtherFeeRepo tenantOtherFeeRepo;
-    private final TenantContractRepo tenantContractRepo;
     private final BookingRepo bookingRepo;
 
     private final RoomService roomService;
