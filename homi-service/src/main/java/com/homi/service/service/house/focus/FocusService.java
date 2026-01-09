@@ -30,6 +30,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -194,7 +195,7 @@ public class FocusService {
 
             houseRepo.saveHouse(house);
 
-            createFocusRoom(house);
+            createFocusRoom(house, houseDTO.getPrice());
         });
     }
 
@@ -205,13 +206,15 @@ public class FocusService {
      * {@code @date} 2025/9/10 22:50
      *
      * @param house 参数说明
+     * @param price
      */
-    private void createFocusRoom(House house) {
+    private void createFocusRoom(House house, BigDecimal price) {
         Room room = new Room();
 
         BeanUtils.copyProperties(house, room);
 
         room.setHouseId(house.getId());
+        room.setPrice(price);
         RoomStatusEnum roomStatusEnum = roomRepo.calculateRoomStatus(room);
         room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));

@@ -17,7 +17,6 @@ import com.homi.model.dto.room.price.PriceConfigDTO;
 import com.homi.model.dto.room.price.PricePlanDTO;
 import com.homi.model.vo.room.RoomListVO;
 import com.homi.model.vo.room.RoomTotalItemVO;
-import com.homi.model.vo.room.grid.RoomGridVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +26,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 应用于 homi
@@ -135,74 +133,6 @@ public class RoomService {
             result.put(roomStatusEnum.getCode(), roomTotalItemVO);
         }
         return result;
-    }
-
-    /**
-     * 获取房间网格视图数据
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/8/24 01:50
-     *
-     * @param query 参数说明
-     * @return java.util.List<com.homi.domain.vo.room.grid.RoomGridVO>
-     */
-    public List<RoomGridVO> getRoomGrid(RoomQueryDTO query) {
-        // 设置分页参数以获取所有房间数据
-        query.setCurrentPage(1L);
-        query.setPageSize(10000L);
-        PageVO<RoomListVO> roomPage = getRoomList(query);
-
-        Map<String, House> allHouseMap = houseRepo.list().stream()
-            .collect(Collectors.toMap(House::getHouseCode, house -> house));
-
-        List<RoomListVO> allRooms = roomPage.getList();
-
-        // 按houseId分组
-        Map<String, List<RoomListVO>> roomsGroupedByHouse = allRooms.stream()
-            .collect(Collectors.groupingBy(RoomListVO::getHouseCode));
-
-        // 处理每个house的数据
-        return roomsGroupedByHouse.entrySet().stream()
-            .map(entry -> {
-                String houseCode = entry.getKey();
-
-                RoomGridVO roomGridVO = new RoomGridVO();
-                roomGridVO.setHouseCode(entry.getKey());
-                roomGridVO.setHouseId(allHouseMap.get(houseCode).getId());
-                roomGridVO.setHouseName(allHouseMap.get(houseCode).getHouseName());
-                roomGridVO.setTotal((long) entry.getValue().size());
-
-                List<RoomListVO> roomsInHouse = entry.getValue();
-                // 按floor分组
-                Map<Integer, List<RoomListVO>> roomsGroupedByFloor = roomsInHouse.stream()
-                    .collect(Collectors.groupingBy(RoomListVO::getFloor));
-
-                // 创建楼层列表
-                List<RoomGridVO.HouseFloorGridDTO> floorGridList = roomsGroupedByFloor.entrySet().stream()
-                    .map(floorEntry -> {
-                        Integer floor = floorEntry.getKey();
-                        List<RoomListVO> roomsOnFloor = floorEntry.getValue();
-
-                        RoomGridVO.HouseFloorGridDTO floorDTO = new RoomGridVO.HouseFloorGridDTO();
-                        floorDTO.setFloor(floor);
-                        floorDTO.setRoomList(roomsOnFloor);
-                        floorDTO.setTotal((long) roomsOnFloor.size());
-
-                        Pair<Long, BigDecimal> longBigDecimalPair = calculateLeasedRateAndCount(roomsOnFloor);
-                        floorDTO.setLeasedRate(longBigDecimalPair.getValue());
-
-                        return floorDTO;
-                    }).toList();
-
-                roomGridVO.setFloorList(floorGridList);
-
-                // 计算整体出租率
-                Pair<Long, BigDecimal> longBigDecimalPair = calculateLeasedRateAndCount(roomsInHouse);
-                roomGridVO.setLeasedRate(longBigDecimalPair.getValue());
-
-                return roomGridVO;
-            })
-            .collect(Collectors.toList());
     }
 
     /**
