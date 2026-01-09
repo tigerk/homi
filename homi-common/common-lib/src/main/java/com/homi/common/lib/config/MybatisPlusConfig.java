@@ -45,7 +45,8 @@ public class MybatisPlusConfig {
         "tenant_contract",
         "tenant_other_fee",
         "tenant_bill_other_fee",
-        "tenant_mate"
+        "tenant_mate",
+        "booking"
     );
 
     /**

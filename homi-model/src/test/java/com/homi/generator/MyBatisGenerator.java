@@ -58,7 +58,7 @@ public class MyBatisGenerator {
             .servicePackageName("com.homi.model.dao.repo")
             .tblNameList(ListUtil.of(
                 // 同住人
-                "tenant_mate"
+                "booking"
             )).build();
 
         myBatisGenerator.generate();
