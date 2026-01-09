@@ -39,7 +39,7 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping("/create")
-    @Log(title = "创建预定合同", operationType = OperationTypeEnum.INSERT)
+    @Log(title = "创建/修改预定合同", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<Long> createBooking(@RequestBody BookingCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         createDTO.setCreateBy(loginUser.getId());
         createDTO.setCompanyId(loginUser.getCurCompanyId());
