@@ -7,6 +7,7 @@ import cn.hutool.core.util.EnumUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
@@ -58,6 +59,7 @@ public class TenantService {
     private final TenantBillService tenantBillService;
     private final DictDataService dictDataService;
     private final TenantMateService tenantMateService;
+    private final RoomRepo roomRepo;
 
     /**
      * 获取租客列表
@@ -135,6 +137,9 @@ public class TenantService {
 
         // 生成租客账单
         tenantBillGenService.addTenantBill(tenant.getId(), createDTO.getTenant(), createDTO.getOtherFees());
+
+        // 更新房间状态为已租
+        roomRepo.updateRoomStatusBatch(createDTO.getTenant().getRoomIds(), RoomStatusEnum.LEASED.getCode());
 
         return addedTenant.getLeft();
     }

@@ -32,6 +32,12 @@ public class BookingJob {
     private final BookingService bookingService;
     private final BookingRepo bookingRepo;
 
+    /**
+     * 自动取消过期未签合同
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/1/9 10:47
+     */
     // 5分钟执行一次
     @Scheduled(cron = "0 */5 * * * ?")
     public void bookingAutoCancelTask() {

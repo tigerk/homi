@@ -37,7 +37,7 @@ public class TenantDTO {
     private Long deptId;
 
     @Schema(description = "房间ID列表", example = "[\"R001\", \"R002\"]")
-    private List<String> roomIds;
+    private List<Long> roomIds;
 
     @Schema(description = "租客类型ID", example = "1", hidden = true)
     private Long tenantTypeId;
