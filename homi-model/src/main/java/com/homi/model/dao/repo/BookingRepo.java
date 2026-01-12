@@ -9,6 +9,8 @@ import com.homi.model.dao.mapper.BookingMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 /**
  * <p>
  * 预定/定金表 服务实现类
@@ -35,6 +37,10 @@ public class BookingRepo extends ServiceImpl<BookingMapper, Booking> {
 
         if (StringUtils.isNoneBlank(query.getTenantPhone())) {
             wrapper.eq(Booking::getTenantPhone, query.getTenantPhone());
+        }
+
+        if (Objects.nonNull(query.getBookingStatus())) {
+            wrapper.eq(Booking::getBookingStatus, query.getBookingStatus());
         }
 
         wrapper.orderByDesc(Booking::getId);

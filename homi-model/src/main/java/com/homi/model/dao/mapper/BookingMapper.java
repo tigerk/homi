@@ -1,8 +1,13 @@
 package com.homi.model.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.homi.model.booking.dto.BookingQueryDTO;
+import com.homi.model.booking.vo.BookingTotalItemVO;
 import com.homi.model.dao.entity.Booking;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -14,5 +19,5 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface BookingMapper extends BaseMapper<Booking> {
-
+    List<BookingTotalItemVO> getStatusTotal(@Param("query") BookingQueryDTO query);
 }

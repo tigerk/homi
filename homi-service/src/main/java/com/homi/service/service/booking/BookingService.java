@@ -1,6 +1,5 @@
 package com.homi.service.service.booking;
 
-import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -20,12 +19,12 @@ import com.homi.model.dao.repo.RoomRepo;
 import com.homi.service.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -90,6 +89,7 @@ public class BookingService {
         assert vo != null;
         vo.setBookingStatusName(Objects.requireNonNull(BookingStatusEnum.getEnum(booking.getBookingStatus())).getName());
         vo.setRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class));
+        vo.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class)));
 
         return vo;
     }
@@ -154,8 +154,37 @@ public class BookingService {
     }
 
     public List<BookingTotalItemVO> getBookingStatusTotal(BookingQueryDTO query) {
+        @NotNull Map<Integer, BookingTotalItemVO> result = initBookingStatusMap();
 
-        return ListUtil.of();
+        List<BookingTotalItemVO> statusTotal = bookingRepo.getBaseMapper().getStatusTotal(query);
+        statusTotal.forEach(tenantTotalItemVO -> {
+            BookingTotalItemVO orDefault = result.getOrDefault(tenantTotalItemVO.getStatus(), tenantTotalItemVO);
+            orDefault.setTotal(tenantTotalItemVO.getTotal());
+        });
+
+        return result.values().stream().toList().stream().sorted(Comparator.comparingInt(BookingTotalItemVO::getSortOrder)).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取房间状态枚举映射
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/8/7 19:12
+     *
+     * @return java.util.Map<java.lang.Integer, com.homi.domain.vo.room.RoomTotalItemVO>
+     */
+    private @NotNull Map<Integer, BookingTotalItemVO> initBookingStatusMap() {
+        Map<Integer, BookingTotalItemVO> result = new HashMap<>();
+        BookingStatusEnum[] values = BookingStatusEnum.values();
+        for (BookingStatusEnum contractStatusEnum : values) {
+            BookingTotalItemVO bookingTotalItemVO = new BookingTotalItemVO();
+            bookingTotalItemVO.setStatus(contractStatusEnum.getCode());
+            bookingTotalItemVO.setStatusName(contractStatusEnum.getName());
+            bookingTotalItemVO.setSortOrder(contractStatusEnum.getSortOrder());
+            bookingTotalItemVO.setTotal(0);
+            result.put(contractStatusEnum.getCode(), bookingTotalItemVO);
+        }
+        return result;
     }
 
     /**
