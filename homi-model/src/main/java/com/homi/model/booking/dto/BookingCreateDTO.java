@@ -68,7 +68,7 @@ public class BookingCreateDTO implements Serializable {
     @Schema(description = "业务人员ID", hidden = true)
     private Long salesmanId;
 
-    @Schema(description = "预定状态：1=预定中，2=已转合同，3=客户违约（没收定金），4=业主违约（退还定金），5=已取消/过期")
+    @Schema(description = "预定状态：1=预定中，2=已转合同，3=客户违约，4=业主违约，5=已取消/过期")
     private Integer bookingStatus;
 
     @Schema(description = "备注")
@@ -77,14 +77,14 @@ public class BookingCreateDTO implements Serializable {
     @Schema(description = "创建人ID", hidden = true)
     private Long createBy;
 
-    @Schema(description = "创建时间")
+    @Schema(description = "创建时间", hidden = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     @Schema(description = "修改人ID", hidden = true)
     private Long updateBy;
 
-    @Schema(description = "修改时间")
+    @Schema(description = "修改时间", hidden = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 }
