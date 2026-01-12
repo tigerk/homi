@@ -17,6 +17,7 @@ import com.homi.model.booking.vo.BookingTotalItemVO;
 import com.homi.model.dao.entity.Booking;
 import com.homi.model.dao.repo.BookingRepo;
 import com.homi.model.dao.repo.RoomRepo;
+import com.homi.service.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -42,6 +43,8 @@ public class BookingService {
     private final BookingRepo bookingRepo;
     private final RoomRepo roomRepo;
 
+    private final RoomService roomService;
+
     /**
      * 获取租客预定列表
      *
@@ -57,7 +60,9 @@ public class BookingService {
             .map(booking -> {
                 BookingListVO vo = BeanCopyUtils.copyBean(booking, BookingListVO.class);
                 assert vo != null;
-                vo.setBookingStatusName(BookingStatusEnum.getEnum(booking.getBookingStatus()).getName());
+                vo.setBookingStatusName(Objects.requireNonNull(BookingStatusEnum.getEnum(booking.getBookingStatus())).getName());
+                vo.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class)));
+
                 vo.setRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class));
                 return vo;
             })

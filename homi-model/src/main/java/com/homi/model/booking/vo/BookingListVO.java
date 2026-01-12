@@ -1,6 +1,7 @@
 package com.homi.model.booking.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.model.room.vo.RoomListVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,6 +30,9 @@ public class BookingListVO implements Serializable {
 
     @Schema(description = "预定房间 ids")
     private List<Long> roomIds;
+
+    @Schema(description = "预定房间列表")
+    private List<RoomListVO> roomList;
 
     @Schema(description = "租客类型：0=个人，1=企业")
     private Integer tenantType;
