@@ -33,10 +33,6 @@ public class Booking implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @Schema(description = "预定编号")
-    @TableField("booking_code")
-    private String bookingCode;
-
     @Schema(description = "预定房间 ids")
     @TableField("room_ids")
     private String roomIds;

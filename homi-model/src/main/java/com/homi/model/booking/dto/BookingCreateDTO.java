@@ -1,6 +1,5 @@
 package com.homi.model.booking.dto;
 
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -28,9 +27,6 @@ public class BookingCreateDTO implements Serializable {
     @Schema(description = "预定 ID")
     private Long id;
 
-    @Schema(description = "预定编号")
-    private String bookingCode;
-
     @Schema(description = "预定房间 ids")
     @NotNull(message = "预定房间不能为空")
     private List<Long> roomIds;
@@ -56,11 +52,11 @@ public class BookingCreateDTO implements Serializable {
     private Date expiryTime;
 
     @Schema(description = "预计租赁开始时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date expectedLeaseStart;
 
     @Schema(description = "预计租赁结束时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date expectedLeaseEnd;
 
     @Schema(description = "谈定的意向租金")

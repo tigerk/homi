@@ -3,14 +3,14 @@ package com.homi.saas.web.aspect;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.homi.common.lib.annotation.LoginLog;
 import com.homi.common.lib.event.LoginLogEvent;
 import com.homi.common.lib.response.RequestResultEnum;
-import com.homi.saas.web.auth.vo.login.UserLoginVO;
-import com.homi.saas.web.config.LoginManager;
-import com.homi.common.lib.annotation.LoginLog;
 import com.homi.common.lib.utils.AddressUtils;
 import com.homi.common.lib.utils.ServletUtils;
 import com.homi.common.lib.utils.SpringUtils;
+import com.homi.saas.web.auth.vo.login.UserLoginVO;
+import com.homi.saas.web.config.LoginManager;
 import eu.bitwalker.useragentutils.UserAgent;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -47,7 +47,7 @@ public class LoginLogAspect {
      */
     @AfterThrowing(value = "@annotation(loginLog)", throwing = "e")
     public void doAfterThrowing(JoinPoint joinPoint, LoginLog loginLog, Exception e) {
-        handleLog(joinPoint, loginLog, e, null);
+        log.error("记录登录日志异常, loginLog={}", loginLog, e);
     }
 
     protected void handleLog(final JoinPoint joinPoint, LoginLog loginLog, final Exception e, Object jsonResult) {

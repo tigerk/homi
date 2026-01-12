@@ -27,9 +27,6 @@ public class BookingListVO implements Serializable {
     @Schema(description = "预定 ID")
     private Long id;
 
-    @Schema(description = "预定编号")
-    private String bookingCode;
-
     @Schema(description = "预定房间 ids")
     private List<Long> roomIds;
 

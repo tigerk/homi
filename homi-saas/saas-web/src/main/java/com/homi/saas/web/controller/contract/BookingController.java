@@ -1,5 +1,6 @@
 package com.homi.saas.web.controller.contract;
 
+import cn.hutool.core.date.DateUtil;
 import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseResult;
@@ -46,9 +47,11 @@ public class BookingController {
         createDTO.setCompanyId(loginUser.getCurCompanyId());
 
         if (Objects.nonNull(createDTO.getId())) {
+            createDTO.setBookingTime(DateUtil.date());
             createDTO.setUpdateBy(loginUser.getId());
             return ResponseResult.ok(bookingService.updateBooking(createDTO));
         } else {
+            createDTO.setSalesmanId(loginUser.getId());
             return ResponseResult.ok(bookingService.addBooking(createDTO));
         }
     }
@@ -70,7 +73,7 @@ public class BookingController {
 
     @PostMapping("/get")
     public ResponseResult<BookingListVO> getBookingDetail(@RequestBody BookingIdDTO dto) {
-        return ResponseResult.ok(bookingService.getBookingDetail(dto.getBookingId()));
+        return ResponseResult.ok(bookingService.getBookingDetail(dto.getId()));
     }
 
     @PostMapping("/cancel")

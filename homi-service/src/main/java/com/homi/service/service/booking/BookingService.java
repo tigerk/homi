@@ -58,6 +58,7 @@ public class BookingService {
                 BookingListVO vo = BeanCopyUtils.copyBean(booking, BookingListVO.class);
                 assert vo != null;
                 vo.setBookingStatusName(BookingStatusEnum.getEnum(booking.getBookingStatus()).getName());
+                vo.setRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class));
                 return vo;
             })
             .toList());

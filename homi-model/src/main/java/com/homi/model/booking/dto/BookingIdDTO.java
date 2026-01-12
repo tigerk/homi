@@ -12,5 +12,5 @@ import java.io.Serializable;
 @Schema(description = "预定ID查询 DTO")
 public class BookingIdDTO extends PageDTO implements Serializable {
     @Schema(description = "预定ID")
-    private Long bookingId;
+    private Long id;
 }

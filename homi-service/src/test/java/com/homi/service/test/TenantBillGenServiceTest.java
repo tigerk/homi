@@ -209,7 +209,7 @@ class TenantBillGenServiceTest {
         Long tenantId = 1L;
         List<OtherFeeDTO> oneTimeFees = List.of(
             createOtherFee("网络费", PaymentMethodEnum.ALL.getCode(),
-                PriceMethodEnum.FIXED.getCode(), 100)
+                PriceMethodEnum.FIXED.getCode(), BigDecimal.valueOf(100))
         );
 
         // When
@@ -243,7 +243,7 @@ class TenantBillGenServiceTest {
         Long tenantId = 1L;
         List<OtherFeeDTO> monthlyFees = List.of(
             createOtherFee("停车费", PaymentMethodEnum.MONTH.getCode(),
-                PriceMethodEnum.FIXED.getCode(), 300)
+                PriceMethodEnum.FIXED.getCode(), BigDecimal.valueOf(300))
         );
 
         // When
@@ -283,19 +283,19 @@ class TenantBillGenServiceTest {
 
         // 随房租付 - 固定金额
         mixedFees.add(createOtherFee("物业费", PaymentMethodEnum.RENT.getCode(),
-            PriceMethodEnum.FIXED.getCode(), 200));
+            PriceMethodEnum.FIXED.getCode(), BigDecimal.valueOf(200)));
 
         // 随房租付 - 按比例
         mixedFees.add(createOtherFee("服务费", PaymentMethodEnum.RENT.getCode(),
-            PriceMethodEnum.RATIO.getCode(), 5));
+            PriceMethodEnum.RATIO.getCode(), BigDecimal.valueOf(5)));
 
         // 一次性支付
         mixedFees.add(createOtherFee("押金", PaymentMethodEnum.ALL.getCode(),
-            PriceMethodEnum.FIXED.getCode(), 1000));
+            PriceMethodEnum.FIXED.getCode(), BigDecimal.valueOf(1000)));
 
         // 季付
         mixedFees.add(createOtherFee("卫生费", PaymentMethodEnum.QUARTER.getCode(),
-            PriceMethodEnum.FIXED.getCode(), 150));
+            PriceMethodEnum.FIXED.getCode(), BigDecimal.valueOf(150)));
 
         // When
         tenantBillGenService.addTenantBill(tenantId, testTenant, mixedFees);
@@ -352,15 +352,15 @@ class TenantBillGenServiceTest {
 
         // 1. 随房租付 - 固定金额：物业费 200元/月
         fees.add(createOtherFee("物业费", PaymentMethodEnum.RENT.getCode(),
-            PriceMethodEnum.FIXED.getCode(), 200));
+            PriceMethodEnum.FIXED.getCode(), BigDecimal.valueOf(200)));
 
         // 2. 随房租付 - 按比例：服务费 5%
         fees.add(createOtherFee("服务费", PaymentMethodEnum.RENT.getCode(),
-            PriceMethodEnum.RATIO.getCode(), 5));
+            PriceMethodEnum.RATIO.getCode(), BigDecimal.valueOf(5)));
 
         // 3. 独立账单 - 月付：停车费 300元/月
         fees.add(createOtherFee("停车费", PaymentMethodEnum.MONTH.getCode(),
-            PriceMethodEnum.FIXED.getCode(), 300));
+            PriceMethodEnum.FIXED.getCode(), BigDecimal.valueOf(300)));
 
         return fees;
     }
@@ -369,7 +369,7 @@ class TenantBillGenServiceTest {
      * 创建单个其他费用
      */
     private OtherFeeDTO createOtherFee(String name, Integer paymentMethod,
-                                       Integer priceMethod, Integer priceInput) {
+                                       Integer priceMethod, BigDecimal priceInput) {
         OtherFeeDTO fee = new OtherFeeDTO();
         fee.setName(name);
         fee.setPaymentMethod(paymentMethod);

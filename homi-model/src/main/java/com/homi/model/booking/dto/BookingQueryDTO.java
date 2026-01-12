@@ -16,4 +16,9 @@ public class BookingQueryDTO extends PageDTO implements Serializable {
 
     @Schema(description = "联系电话")
     private String tenantPhone;
+
+    @Schema(description = "预定状态")
+    private Integer bookingStatus;
+
+
 }
