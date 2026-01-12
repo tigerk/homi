@@ -14,8 +14,10 @@ import com.homi.model.booking.dto.BookingQueryDTO;
 import com.homi.model.booking.vo.BookingListVO;
 import com.homi.model.booking.vo.BookingTotalItemVO;
 import com.homi.model.dao.entity.Booking;
+import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.BookingRepo;
 import com.homi.model.dao.repo.RoomRepo;
+import com.homi.model.dao.repo.UserRepo;
 import com.homi.service.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +45,7 @@ public class BookingService {
     private final RoomRepo roomRepo;
 
     private final RoomService roomService;
+    private final UserRepo userRepo;
 
     /**
      * 获取租客预定列表
@@ -90,6 +93,9 @@ public class BookingService {
         vo.setBookingStatusName(Objects.requireNonNull(BookingStatusEnum.getEnum(booking.getBookingStatus())).getName());
         vo.setRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class));
         vo.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class)));
+
+        User userRepoById = userRepo.getById(vo.getSalesmanId());
+        vo.setSalesmanName(userRepoById.getNickname());
 
         return vo;
     }

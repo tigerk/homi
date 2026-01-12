@@ -70,6 +70,7 @@ public class BookingListVO implements Serializable {
 
     @Schema(description = "业务人员ID")
     private Long salesmanId;
+    private String salesmanName;
 
     @Schema(description = "预定状态：1=预定中，2=已转合同，3=客户违约（没收定金），4=业主违约（退还定金），5=已取消/过期")
     private Integer bookingStatus;
