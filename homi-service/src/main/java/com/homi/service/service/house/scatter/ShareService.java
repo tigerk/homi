@@ -68,7 +68,7 @@ public class ShareService {
         }
 
         roomDetailDTO.getPriceConfig().setRoomId(room.getId());
-        priceConfigService.createPriceConfig(roomDetailDTO.getPriceConfig());
+        priceConfigService.createOrUpdatePriceConfig(roomDetailDTO.getPriceConfig());
     }
 
     public void createShareRoom(House house, List<RoomDetailDTO> roomList) {

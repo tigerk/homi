@@ -1,18 +1,20 @@
 package com.homi.service.service.price;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.model.dao.entity.RoomPriceConfig;
 import com.homi.model.dao.entity.RoomPricePlan;
 import com.homi.model.dao.repo.RoomPriceConfigRepo;
 import com.homi.model.dao.repo.RoomPricePlanRepo;
+import com.homi.model.room.dto.price.PriceConfigDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.RoundingMode;
+import java.util.Objects;
 
 /**
  * 应用于 homi
@@ -30,15 +32,18 @@ public class PriceConfigService {
 
     private final RoomPricePlanRepo roomPricePlanRepo;
 
-    public Boolean createPriceConfig(PriceConfigDTO priceConfigDTO) {
+    public Boolean createOrUpdatePriceConfig(PriceConfigDTO priceConfigDTO) {
         RoomPriceConfig roomPriceConfig = new RoomPriceConfig();
         roomPriceConfig.setRoomId(priceConfigDTO.getRoomId());
         roomPriceConfig.setPrice(priceConfigDTO.getPrice());
 
-        if (priceConfigDTO.getFloorPriceMethod().equals(PriceMethodEnum.FIXED.getCode())) {
-            roomPriceConfig.setFloorPrice(priceConfigDTO.getFloorPriceInput());
-        } else {
-            roomPriceConfig.setFloorPrice(priceConfigDTO.getFloorPriceInput().multiply(priceConfigDTO.getPrice()).setScale(2, RoundingMode.HALF_UP));
+        // 设置了底价时，根据底价方式计算底价
+        if (Objects.nonNull(priceConfigDTO.getFloorPriceMethod())) {
+            if (priceConfigDTO.getFloorPriceMethod().equals(PriceMethodEnum.FIXED.getCode())) {
+                roomPriceConfig.setFloorPrice(priceConfigDTO.getFloorPriceInput());
+            } else {
+                roomPriceConfig.setFloorPrice(priceConfigDTO.getFloorPriceInput().multiply(priceConfigDTO.getPrice()).setScale(2, RoundingMode.HALF_UP));
+            }
         }
 
         roomPriceConfig.setFloorPriceMethod(priceConfigDTO.getFloorPriceMethod());
@@ -48,7 +53,6 @@ public class PriceConfigService {
         LambdaQueryWrapper<RoomPriceConfig> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(RoomPriceConfig::getRoomId, priceConfigDTO.getRoomId());
 
-
         RoomPriceConfig existingConfig = roomPriceConfigRepo.getBaseMapper().selectOne(queryWrapper);
         if (existingConfig != null) {
             // 如果存在，更新记录
@@ -56,31 +60,34 @@ public class PriceConfigService {
             roomPriceConfigRepo.updateById(roomPriceConfig);
         } else {
             // 如果不存在，保存新记录
-             roomPriceConfigRepo.save(roomPriceConfig);
+            roomPriceConfigRepo.save(roomPriceConfig);
         }
 
-        priceConfigDTO.getPricePlans().forEach(pricePlanDTO -> {
-            RoomPricePlan roomPricePlan = new RoomPricePlan();
-            roomPricePlan.setRoomId(priceConfigDTO.getRoomId());
-            roomPricePlan.setPrice(pricePlanDTO.getPrice());
-            roomPricePlan.setPriceRatio(pricePlanDTO.getPriceRatio());
-            roomPricePlan.setPlanName(pricePlanDTO.getPlanName());
-            roomPricePlan.setPlanType(pricePlanDTO.getPlanType());
-            roomPricePlan.setOtherFees(JSONUtil.toJsonStr(pricePlanDTO.getOtherFees()));
+        if (CollUtil.isNotEmpty(priceConfigDTO.getPricePlans())) {
+            priceConfigDTO.getPricePlans().forEach(pricePlanDTO -> {
+                RoomPricePlan roomPricePlan = new RoomPricePlan();
+                roomPricePlan.setRoomId(priceConfigDTO.getRoomId());
+                roomPricePlan.setPrice(pricePlanDTO.getPrice());
+                roomPricePlan.setPriceRatio(pricePlanDTO.getPriceRatio());
+                roomPricePlan.setPlanName(pricePlanDTO.getPlanName());
+                roomPricePlan.setPlanType(pricePlanDTO.getPlanType());
+                roomPricePlan.setOtherFees(JSONUtil.toJsonStr(pricePlanDTO.getOtherFees()));
 
-            LambdaQueryWrapper<RoomPricePlan> planQueryWrapper = new LambdaQueryWrapper<>();
-            planQueryWrapper.eq(RoomPricePlan::getRoomId, priceConfigDTO.getRoomId());
-            planQueryWrapper.eq(RoomPricePlan::getPlanType, pricePlanDTO.getPlanType());
-            RoomPricePlan existingPlan = roomPricePlanRepo.getBaseMapper().selectOne(planQueryWrapper);
-            if (existingPlan != null) {
-                // 如果存在，更新记录
-                roomPricePlan.setId(existingPlan.getId()); // 设置ID以确保更新正确的记录
-                roomPricePlanRepo.updateById(roomPricePlan);
-            } else {
-                // 如果不存在，保存新记录
-                roomPricePlanRepo.save(roomPricePlan);
-            }
-        });
+                LambdaQueryWrapper<RoomPricePlan> planQueryWrapper = new LambdaQueryWrapper<>();
+                planQueryWrapper.eq(RoomPricePlan::getRoomId, priceConfigDTO.getRoomId());
+                planQueryWrapper.eq(RoomPricePlan::getPlanType, pricePlanDTO.getPlanType());
+                RoomPricePlan existingPlan = roomPricePlanRepo.getBaseMapper().selectOne(planQueryWrapper);
+                if (existingPlan != null) {
+                    // 如果存在，更新记录
+                    roomPricePlan.setId(existingPlan.getId()); // 设置ID以确保更新正确的记录
+                    roomPricePlanRepo.updateById(roomPricePlan);
+                } else {
+                    // 如果不存在，保存新记录
+                    roomPricePlanRepo.save(roomPricePlan);
+                }
+            });
+        }
+
 
         return Boolean.TRUE;
     }

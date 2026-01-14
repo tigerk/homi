@@ -75,6 +75,6 @@ public class EntireService {
         }
 
         priceConfig.setRoomId(room.getId());
-        priceConfigService.createPriceConfig(priceConfig);
+        priceConfigService.createOrUpdatePriceConfig(priceConfig);
     }
 }
