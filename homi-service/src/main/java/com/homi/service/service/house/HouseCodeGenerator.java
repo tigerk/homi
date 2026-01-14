@@ -21,6 +21,13 @@ import java.time.format.DateTimeFormatter;
 public class HouseCodeGenerator {
     private final StringRedisTemplate redisTemplate;
 
+    /**
+     * 生成房屋编码，编码格式为：{公司编码}{日期}{序号}，序号从0001开始递增，每天重置
+     * 例如：DOMIX2511040001
+     *
+     * @param companyCode 公司编码
+     * @return 房屋编码
+     */
     public String generate(String companyCode) {
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"));
         String key = RedisKey.HOUSE_CODE_COUNTER.format(date, companyCode);

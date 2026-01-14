@@ -71,7 +71,7 @@ public class FocusService {
             throw new BizException("项目编号（" + focusCreateDto.getFocusCode() + "）已存在");
         }
 
-        Community community = communityRepo.createCommunity(focusCreateDto.getCommunity());
+        Community community = communityRepo.createCommunityIfNotExist(focusCreateDto.getCommunity());
         focusCreateDto.getCommunity().setCommunityId(community.getId());
 
         // 创建集中式项目

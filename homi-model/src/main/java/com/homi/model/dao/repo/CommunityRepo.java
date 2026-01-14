@@ -3,11 +3,11 @@ package com.homi.model.dao.repo;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.Community;
 import com.homi.model.dao.entity.Region;
 import com.homi.model.dao.mapper.CommunityMapper;
-import com.homi.common.lib.utils.BeanCopyUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,16 @@ import java.util.List;
 public class CommunityRepo extends ServiceImpl<CommunityMapper, Community> {
     private final RegionRepo regionRepo;
 
-    public Community createCommunity(CommunityDTO community) {
+    /**
+     * 创建小区（如果不存在）
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/20 09:23
+     *
+     * @param community 小区信息
+     * @return com.homi.model.entity.Community
+     */
+    public Community createCommunityIfNotExist(CommunityDTO community) {
         Community communityByName = getCommunityByName(community.getAdcode(), community.getName());
         if (communityByName != null) {
             return communityByName;
@@ -75,7 +84,7 @@ public class CommunityRepo extends ServiceImpl<CommunityMapper, Community> {
     public Community getCommunityByName(String adcode, String name) {
         LambdaQueryWrapper<Community> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Community::getAdcode, adcode)
-                .eq(Community::getName, name);
+            .eq(Community::getName, name);
 
         List<Community> list = list(queryWrapper);
         if (list.isEmpty()) {

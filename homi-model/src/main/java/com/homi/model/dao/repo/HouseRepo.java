@@ -4,10 +4,10 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.community.dto.CommunityDTO;
-import com.homi.model.scatter.ScatterHouseDTO;
 import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.Room;
 import com.homi.model.dao.mapper.HouseMapper;
+import com.homi.model.scatter.ScatterHouseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -75,7 +75,7 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
      * {@code @date} 2025/11/12 09:09
      *
      * @param leaseModeId 参数说明
-     * @param leaseMode 参数说明
+     * @param leaseMode   参数说明
      * @return java.util.List<com.homi.model.entity.House>
      */
     public List<House> getHousesByLeaseModeId(Long leaseModeId, Integer leaseMode) {
@@ -91,14 +91,18 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
      * {@code @author} tk
      * {@code @date} 2025/11/12 09:09
      *
-     * @param communityId 参数说明
-     * @param building    参数说明
-     * @param unit        参数说明
-     * @param doorNumber  参数说明
+     * @param exceptId    排除的房源id
+     * @param communityId 社区id
+     * @param building    楼栋号
+     * @param unit        单元号
+     * @param doorNumber  门牌号
      * @return boolean
      */
-    public Boolean checkHouseExist(Long communityId, String building, String unit, String doorNumber) {
+    public Boolean checkHouseExist(Long exceptId, Long communityId, String building, String unit, String doorNumber) {
         LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
+        if (Objects.nonNull(exceptId)) {
+            queryWrapper.ne(House::getId, exceptId);
+        }
         queryWrapper.eq(House::getCommunityId, communityId);
         queryWrapper.eq(House::getBuilding, building);
         queryWrapper.eq(House::getUnit, unit);
@@ -107,7 +111,7 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         return count(queryWrapper) > 0;
     }
 
-     /**
+    /**
      * 生成房源的详细地址
      * <p>
      * {@code @author} tk

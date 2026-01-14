@@ -84,8 +84,8 @@ public class ScatterService {
      * @return java.lang.Long
      */
     @Transactional(rollbackFor = Exception.class)
-    public Boolean createHouse(ScatterCreateDTO scatterCreateDTO) {
-        Community community = communityRepo.createCommunity(scatterCreateDTO.getCommunity());
+    public Boolean createOrUpdateHouse(ScatterCreateDTO scatterCreateDTO) {
+        Community community = communityRepo.createCommunityIfNotExist(scatterCreateDTO.getCommunity());
         scatterCreateDTO.getCommunity().setCommunityId(community.getId());
 
         // 创建整租房源
@@ -117,7 +117,8 @@ public class ScatterService {
                 CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : houseDTO.getUnit() + "单元",
                 houseDTO.getDoorNumber());
 
-            Boolean exist = houseRepo.checkHouseExist(scatterCreateDTO.getCommunity().getCommunityId(), houseDTO.getBuilding(), houseDTO.getUnit(), houseDTO.getDoorNumber());
+            Boolean exist = houseRepo.checkHouseExist(houseDTO.getId(), scatterCreateDTO.getCommunity().getCommunityId(),
+                houseDTO.getBuilding(), houseDTO.getUnit(), houseDTO.getDoorNumber());
             if (Boolean.TRUE.equals(exist)) {
                 throw new IllegalArgumentException(address + " 已存在！");
             }
@@ -125,14 +126,16 @@ public class ScatterService {
             House house = new House();
             house.setId(houseDTO.getId());
 
-            // 生成房源编码
-            String houseCode = houseCodeGenerator.generate(companyCode);
-            house.setHouseCode(houseCode);
+            if(Objects.isNull(house.getId())) {
+                // 生成房源编码
+                String houseCode = houseCodeGenerator.generate(companyCode);
+                house.setHouseCode(houseCode);
+            }
 
             /*
              * 创建户型数据
              */
-            Long layoutId = createScatterHouseLayout(scatterCreateDTO, houseDTO.getHouseLayout());
+            Long layoutId = createOrUpdateScatterHouseLayout(scatterCreateDTO, houseDTO.getHouseLayout());
             house.setHouseLayoutId(layoutId);
 
             house.setLeaseMode(LeaseModeEnum.SCATTER.getCode());
@@ -182,7 +185,7 @@ public class ScatterService {
         });
     }
 
-    public Long createScatterHouseLayout(ScatterCreateDTO scatterCreateDTO, HouseLayoutDTO houseLayoutDTO) {
+    public Long createOrUpdateScatterHouseLayout(ScatterCreateDTO scatterCreateDTO, HouseLayoutDTO houseLayoutDTO) {
         HouseLayout houseLayout = new HouseLayout();
         BeanUtils.copyProperties(houseLayoutDTO, houseLayout, "id");
         houseLayout.setLeaseMode(LeaseModeEnum.SCATTER.getCode());

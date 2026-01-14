@@ -2,6 +2,7 @@ package com.homi.saas.web.controller.scatter;
 
 
 import cn.hutool.core.date.DateUtil;
+import com.homi.model.house.dto.HouseIdDTO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.common.lib.response.ResponseResult;
@@ -27,13 +28,13 @@ public class ScatterController {
         scatterCreateDTO.setUpdateBy(currentUser.getId());
         scatterCreateDTO.setUpdateTime(DateUtil.date());
 
-        Boolean success = scatterService.createHouse(scatterCreateDTO);
+        Boolean success = scatterService.createOrUpdateHouse(scatterCreateDTO);
         return ResponseResult.ok(success);
     }
 
-    @GetMapping("/get")
-    public ResponseResult<ScatterHouseVO> getScatterId(@RequestParam("id") Long id) {
-        return ResponseResult.ok(scatterService.getScatterId(id));
+    @PostMapping("/get")
+    public ResponseResult<ScatterHouseVO> getScatterId(@RequestBody HouseIdDTO houseIdDTO) {
+        return ResponseResult.ok(scatterService.getScatterId(houseIdDTO.getId()));
     }
 }
 
