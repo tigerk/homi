@@ -78,7 +78,7 @@ public class ScatterService {
                 .collect(Collectors.toList());
 
             if (!imageList.isEmpty()) { // 确保不为空才创建 Optional
-                Optional.of(imageList).ifPresent(strings -> fileMetaRepo.setFileUsedByName(strings));
+                Optional.of(imageList).ifPresent(fileMetaRepo::setFileUsedByName);
             }
         }
 
@@ -198,11 +198,10 @@ public class ScatterService {
         room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));
 
-        room.setUpdateBy(house.getUpdateBy());
+        if (Objects.nonNull(roomDetailDTO.getId())) {
+            room.setUpdateBy(house.getUpdateBy());
+            room.setUpdateTime(DateUtil.date());
 
-        Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(house.getId(), roomDetailDTO.getRoomNumber());
-        if (Objects.nonNull(roomBefore)) {
-            room.setId(roomBefore.getId());
             roomRepo.updateById(room);
         } else {
             room.setCreateBy(house.getCreateBy());

@@ -29,6 +29,9 @@ public class ScatterHouseDTO {
     @Schema(description = "门牌号")
     private String doorNumber;
 
+    @Schema(description = "物业费")
+    private BigDecimal propertyFee;
+
     @Schema(description = "户型，保存合租房源的公共图片、房源配置、图片等信息")
     private HouseLayoutDTO houseLayout;
 
