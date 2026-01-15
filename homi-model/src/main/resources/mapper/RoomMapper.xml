@@ -8,13 +8,13 @@
         <result property="houseCode" column="house_code"/>
         <result property="houseName" column="house_name"/>
         <result property="doorNumber" column="door_number"/>
-        <result property="communityId" column="community_id"/>
         <result property="communityName" column="community_name"/>
         <result property="leaseModeId" column="lease_mode_id"/>
         <result property="leaseMode" column="lease_mode"/>
         <result property="rentalType" column="rental_type"/>
         <result property="deptId" column="dept_id"/>
         <result property="deptName" column="dept_name"/>
+        <result property="propertyFee" column="property_fee"/>
         <result property="price" column="price"/>
         <result property="salesmanId" column="salesman_id"/>
         <result property="salesmanName" column="nickname"/>
@@ -47,6 +47,7 @@
                r.house_id     AS house_id,
                h.house_code,
                h.house_name   AS house_name,
+               h.property_fee AS property_fee,
                h.door_number  AS door_number,
                h.community_id,
                cm.name        AS community_name,

@@ -41,6 +41,9 @@ public class RoomListVO {
     @Schema(description = "门牌号")
     private String doorNumber;
 
+    @Schema(description = "物业费")
+    private BigDecimal propertyFee;
+
     @Schema(description = "来源id")
     private Long leaseModeId;
 
