@@ -32,9 +32,9 @@ public class ScatterController {
         return ResponseResult.ok(success);
     }
 
-    @PostMapping("/get")
+    @PostMapping("/house/get")
     public ResponseResult<ScatterHouseVO> getScatterId(@RequestBody HouseIdDTO houseIdDTO) {
-        return ResponseResult.ok(scatterService.getScatterId(houseIdDTO.getId()));
+        return ResponseResult.ok(scatterService.getScatterHouseById(houseIdDTO.getId()));
     }
 }
 

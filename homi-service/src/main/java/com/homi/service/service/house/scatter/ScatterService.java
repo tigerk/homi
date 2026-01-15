@@ -219,7 +219,7 @@ public class ScatterService {
         roomList.forEach(roomDetailDTO -> createOrUpdateScatterRoom(house, roomDetailDTO));
     }
 
-    public ScatterHouseVO getScatterId(Long houseId) {
+    public ScatterHouseVO getScatterHouseById(Long houseId) {
         House house = houseRepo.getById(houseId);
         ScatterHouseVO scatterHouseVO = new ScatterHouseVO();
         BeanUtils.copyProperties(house, scatterHouseVO);
