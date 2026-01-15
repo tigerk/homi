@@ -2,7 +2,6 @@ package com.homi.model.scatter;
 
 import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.room.dto.RoomDetailDTO;
-import com.homi.model.room.dto.price.PriceConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -51,14 +50,8 @@ public class ScatterHouseDTO {
     @Schema(description = "面积")
     private BigDecimal area;
 
-    /*
-     * 整租使用：price + priceConfig 直接在 house 中配置。
-     */
-    @Schema(description = "整租使用：房间出租价格，单位：元/月")
-    private BigDecimal price;
-
-    @Schema(description = "整租使用：房间价格配置")
-    private PriceConfigDTO priceConfig;
+    @Schema(description = "装修类型：1=豪华装，2=简装，3=精装，4=毛坯，5=清水，6=简约，7=未装修")
+    private Integer decorationType;
 
     /*
      * 合租使用：房间列表，每个房间包含房间号、面积、价格等信息

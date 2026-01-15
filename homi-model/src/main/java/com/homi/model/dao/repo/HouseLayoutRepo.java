@@ -73,6 +73,10 @@ public class HouseLayoutRepo extends ServiceImpl<HouseLayoutMapper, HouseLayout>
             houseLayoutDTO.setImageList(JSONUtil.toList(houseLayout.getImageList(), String.class));
         }
 
+        if (Objects.nonNull(houseLayout.getFacilities()) && JSONUtil.isTypeJSON(houseLayout.getFacilities())) {
+            houseLayoutDTO.setFacilities(JSONUtil.toList(houseLayout.getFacilities(), FacilityItemDTO.class));
+        }
+
         houseLayoutDTO.setNewly(Boolean.FALSE);
 
         return houseLayoutDTO;

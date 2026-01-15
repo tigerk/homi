@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @Schema(description = "分散式房源创建DTO，包含小区等公共信息，houseList是房源具体信息，每个房间的信息都在houseList中")
 public class ScatterCreateDTO {
-    @Schema(description = "公司ID")
+    @Schema(description = "公司ID", hidden = true)
     private Long companyId;
 
     @Schema(description = "房源租赁类型：1、集d中式；2、分散式")
@@ -44,18 +44,18 @@ public class ScatterCreateDTO {
     @Schema(description = "是否有燃气")
     private Boolean hasGas;
 
-    @Schema(description = "创建时间")
+    @Schema(description = "创建时间", hidden = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
-    @Schema(description = "更新人")
+    @Schema(description = "更新人", hidden = true)
     private Long updateBy;
 
-    @Schema(description = "更新时间")
+    @Schema(description = "更新时间", hidden = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 
-    @Schema(description = "创建人")
+    @Schema(description = "创建人", hidden = true)
     private Long createBy;
 
     @Schema(description = "房间列表")
