@@ -39,7 +39,7 @@ public class BookingJob {
      * {@code @date} 2026/1/9 10:47
      */
     // 5分钟执行一次
-//    @Scheduled(cron = "0 */5 * * * ?")
+    @Scheduled(cron = "0 */5 * * * ?")
     public void bookingAutoCancelTask() {
         DateTime now = DateUtil.date();
         LambdaQueryWrapper<Booking> queryWrapper = new LambdaQueryWrapper<>();

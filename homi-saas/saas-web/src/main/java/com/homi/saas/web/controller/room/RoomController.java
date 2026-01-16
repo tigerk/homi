@@ -1,14 +1,15 @@
 package com.homi.saas.web.controller.room;
 
 
-import com.homi.saas.web.config.LoginManager;
-import com.homi.common.lib.vo.PageVO;
 import com.homi.common.lib.response.ResponseResult;
+import com.homi.common.lib.vo.PageVO;
+import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.grid.RoomGridDTO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.room.vo.RoomTotalItemVO;
 import com.homi.model.room.vo.RoomTotalVO;
+import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.room.RoomGridService;
 import com.homi.service.service.room.RoomSearchService;
 import com.homi.service.service.room.RoomService;
@@ -58,6 +59,16 @@ public class RoomController {
     @PostMapping("/grid")
     public ResponseResult<RoomGridDTO> getRoomGrid(@RequestBody RoomQueryDTO query) {
         return ResponseResult.ok(roomGridService.getRoomGrid(query));
+    }
+
+    @PostMapping("/lock")
+    public ResponseResult<Boolean> lockRoom(@RequestBody RoomIdDTO query) {
+        return ResponseResult.ok(roomService.lockRoom(query));
+    }
+
+    @PostMapping("/unlock")
+    public ResponseResult<Boolean> unlockRoom(@RequestBody RoomIdDTO query) {
+        return ResponseResult.ok(roomService.unlockRoom(query));
     }
 }
 

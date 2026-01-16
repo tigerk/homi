@@ -150,4 +150,20 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
 
         return true;
     }
+
+    public Boolean lockRoomById(Long roomId) {
+        return lambdaUpdate()
+                .set(Room::getLocked, true)
+            .set(Room::getRoomStatus, RoomStatusEnum.LOCKED.getCode())
+                .eq(Room::getId, roomId)
+                .update();
+    }
+
+    public Boolean unlockRoomById(Long roomId) {
+        return lambdaUpdate()
+                .set(Room::getLocked, false)
+                .set(Room::getRoomStatus, RoomStatusEnum.AVAILABLE.getCode())
+                .eq(Room::getId, roomId)
+                .update();
+    }
 }

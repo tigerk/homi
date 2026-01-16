@@ -13,6 +13,7 @@ import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.room.dto.RoomDetailDTO;
+import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
@@ -279,5 +280,13 @@ public class RoomService {
                     .build());
             }
         }
+    }
+
+    public Boolean lockRoom(RoomIdDTO query) {
+        return roomRepo.lockRoomById(query.getRoomId());
+    }
+
+    public Boolean unlockRoom(RoomIdDTO query) {
+        return roomRepo.unlockRoomById(query.getRoomId());
     }
 }
