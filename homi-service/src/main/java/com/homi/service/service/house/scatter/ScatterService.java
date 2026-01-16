@@ -5,7 +5,6 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
-import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
@@ -97,15 +96,12 @@ public class ScatterService {
                 throw new IllegalArgumentException(houseDTO.getBuilding() + houseDTO.getUnit() + houseDTO.getDoorNumber() + " 已存在！");
             }
 
-            House house = BeanCopyUtils.copyBean(houseDTO, House.class);
-            assert house != null;
-            house.setId(houseDTO.getId());
-
-            if (Objects.isNull(houseDTO.getId())) {
-                // 生成房源编码
-                String houseCode = houseCodeGenerator.generate(companyCode);
-                house.setHouseCode(houseCode);
+            House house = new House();
+            if (Objects.nonNull(houseDTO.getId())) {
+                house = houseRepo.getById(houseDTO.getId());
             }
+            // 复制属性
+            BeanUtils.copyProperties(houseDTO, house);
 
             String address = String.format("%s%s%s栋%s-%s室", scatterCreateDTO.getCommunity().getDistrict(),
                 scatterCreateDTO.getCommunity().getName(),
@@ -135,6 +131,10 @@ public class ScatterService {
                 house.setUpdateTime(scatterCreateDTO.getCreateTime());
                 houseRepo.updateById(house);
             } else {
+                // 生成房源编码
+                String houseCode = houseCodeGenerator.generate(companyCode);
+                house.setHouseCode(houseCode);
+
                 house.setCreateBy(scatterCreateDTO.getCreateBy());
                 house.setCreateTime(scatterCreateDTO.getCreateTime());
 
