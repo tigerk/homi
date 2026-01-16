@@ -93,10 +93,6 @@ public class Room implements Serializable {
     @TableField("closed")
     private Boolean closed;
 
-    @Schema(description = "出租状态：0 未出租；1 已出租")
-    @TableField("leased")
-    private Boolean leased;
-
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic

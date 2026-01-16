@@ -3,6 +3,7 @@ package com.homi.model.dao.repo;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.Room;
@@ -41,7 +42,7 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         queryWrapper.eq(Room::getHouseId, houseId);
         long roomCount = roomRepo.count(queryWrapper);
 
-        queryWrapper.eq(Room::getLeased, false);
+        queryWrapper.eq(Room::getRoomStatus, RoomStatusEnum.AVAILABLE.getCode());
         long restCount = roomRepo.count(queryWrapper);
 
         House house = new House();

@@ -104,9 +104,6 @@ public class RoomListVO {
     @Schema(description = "禁用状态：是否已禁用")
     private Boolean closed;
 
-    @Schema(description = "出租状态")
-    private Boolean leased;
-
     @Schema(description = "负责人id")
     private String salesmanId;
 

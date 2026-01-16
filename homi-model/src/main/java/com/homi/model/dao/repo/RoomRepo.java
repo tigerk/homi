@@ -66,7 +66,7 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
      * @return com.homi.domain.enums.room.RoomStatusEnum
      */
     public RoomStatusEnum calculateRoomStatus(Room room) {
-        if (Boolean.TRUE.equals(room.getLeased())) {
+        if (room.getRoomStatus().equals(RoomStatusEnum.LEASED.getCode())) {
             return RoomStatusEnum.LEASED;
         }
 

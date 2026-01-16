@@ -26,7 +26,6 @@
         <result property="roomStatus" column="room_status"/>
         <result property="locked" column="locked"/>
         <result property="closed" column="closed"/>
-        <result property="leased" column="leased"/>
         <!-- 添加floor字段 -->
         <result property="communityId" column="community_id"/>
         <result property="building" column="building"/>
@@ -69,7 +68,6 @@
                r.room_status,
                r.locked,
                r.closed,
-               r.leased,
                r.area,
                r.direction,
                r.available_date,
@@ -151,9 +149,9 @@
                h.building,
                h.unit,
                h.floor,
-               COUNT(*)                                                 AS roomCount,
-               SUM(IF(r.leased = 1, 1, 0))                              AS leasedCount,
-               ROUND(SUM(IF(r.leased = 1, 1, 0)) * 100.0 / COUNT(*), 2) AS occupancyRate
+               COUNT(*)                                                      AS roomCount,
+               SUM(IF(r.room_status = 1, 1, 0))                              AS leasedCount,
+               ROUND(SUM(IF(r.room_status = 1, 1, 0)) * 100.0 / COUNT(*), 2) AS occupancyRate
         FROM room r
                  LEFT JOIN house h ON r.house_id = h.id
         WHERE 1 = 1
