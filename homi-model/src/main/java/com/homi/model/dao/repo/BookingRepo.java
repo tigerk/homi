@@ -3,6 +3,7 @@ package com.homi.model.dao.repo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.enums.booking.BookingStatusEnum;
 import com.homi.model.booking.dto.BookingQueryDTO;
 import com.homi.model.dao.entity.Booking;
 import com.homi.model.dao.mapper.BookingMapper;
@@ -47,5 +48,13 @@ public class BookingRepo extends ServiceImpl<BookingMapper, Booking> {
 
         return getBaseMapper().selectPage(page, wrapper);
 
+    }
+
+    public Booking getCurrentBookingByRoomId(Long roomId) {
+        LambdaQueryWrapper<Booking> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Booking::getBookingStatus, BookingStatusEnum.BOOKING.getCode());
+        wrapper.like(Booking::getRoomIds, roomId);
+
+        return getBaseMapper().selectOne(wrapper);
     }
 }

@@ -7,14 +7,17 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.utils.JsonUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
+import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.room.dto.RoomDetailDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.room.dto.price.PricePlanDTO;
+import com.homi.model.room.vo.LeaseInfoVO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.room.vo.RoomTotalItemVO;
 import lombok.RequiredArgsConstructor;
@@ -40,16 +43,12 @@ import java.util.*;
 @RequiredArgsConstructor
 public class RoomService {
     private final RoomRepo roomRepo;
-
     private final RoomDetailRepo roomDetailRepo;
-
-    private final HouseRepo houseRepo;
-
     private final FocusRepo focusRepo;
-
     private final RoomPriceConfigRepo roomPriceConfigRepo;
-
     private final RoomPricePlanRepo roomPricePlanRepo;
+    private final BookingRepo bookingRepo;
+    private final TenantRepo tenantRepo;
 
     /**
      * 获取房间列表
@@ -182,6 +181,19 @@ public class RoomService {
                 BeanUtils.copyProperties(roomDetail, roomDetailDTO);
             }
 
+            if (JsonUtils.isJson(room.getTags())) {
+                roomDetailDTO.setTags(JSONUtil.toList(room.getTags(), String.class));
+            }
+            if (JsonUtils.isJson(room.getVideoList())) {
+                roomDetailDTO.setVideoList(JSONUtil.toList(room.getVideoList(), String.class));
+            }
+            if (JsonUtils.isJson(room.getImageList())) {
+                roomDetailDTO.setImageList(JSONUtil.toList(room.getImageList(), String.class));
+            }
+            if (JsonUtils.isJson(room.getFacilities())) {
+                roomDetailDTO.setFacilities(JSONUtil.toList(room.getFacilities(), FacilityItemDTO.class));
+            }
+
             roomDetailDTO.setPriceConfig(getPriceConfigByRoomId(room.getId()));
 
             return roomDetailDTO;
@@ -229,5 +241,43 @@ public class RoomService {
 
         IPage<RoomListVO> roomListVOIPage = roomRepo.pageRoomGridList(roomQueryDTO);
         return roomListVOIPage.getRecords();
+    }
+
+    /**
+     * 获取房间租约信息（按房间ID）
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/11 13:41
+     *
+     * @param room 房间信息
+     */
+    public void getRoomLeaseInfo(RoomListVO room) {
+        if (Objects.equals(room.getRoomStatus(), RoomStatusEnum.LEASED.getCode())) {
+            // 查询当前租客的租约信息
+            Tenant tenant = tenantRepo.getCurrentTenantByRoomId(room.getRoomId());
+            if (tenant != null) {
+                LeaseInfoVO build = LeaseInfoVO.builder()
+                    .tenantName(tenant.getTenantName())
+                    .tenantPhone(tenant.getTenantPhone())
+                    .leaseStartDate(tenant.getLeaseStart())
+                    .leaseEndDate(tenant.getLeaseEnd())
+                    .build();
+
+                room.setLeaseInfo(build);
+            }
+        }
+
+        if (Objects.equals(room.getRoomStatus(), RoomStatusEnum.BOOKED.getCode())) {
+            // 查询当前租客的租约信息
+            Booking booking = bookingRepo.getCurrentBookingByRoomId(room.getRoomId());
+            if (booking != null) {
+                room.setLeaseInfo(LeaseInfoVO.builder()
+                    .tenantName(booking.getTenantName())
+                    .tenantPhone(booking.getTenantPhone())
+                    .leaseStartDate(booking.getExpectedLeaseStart())
+                    .leaseEndDate(booking.getExpectedLeaseEnd())
+                    .build());
+            }
+        }
     }
 }

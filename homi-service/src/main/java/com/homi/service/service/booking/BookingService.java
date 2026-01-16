@@ -18,6 +18,7 @@ import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.BookingRepo;
 import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.room.vo.LeaseInfoVO;
 import com.homi.service.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

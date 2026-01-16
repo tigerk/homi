@@ -268,7 +268,7 @@ public class CompanyUserService {
             throw new BizException("用户不再该公司任职");
         }
 
-        companyUser.setRoles(JsonUtils.toJsonString(roleAssignDTO.getRoleIds()));
+        companyUser.setRoles(JSONUtil.toJsonStr(roleAssignDTO.getRoleIds()));
 
         companyUserRepo.updateById(companyUser);
 
@@ -284,7 +284,7 @@ public class CompanyUserService {
         List<Long> roleIds = JSONUtil.toList(companyUser.getRoles(), Long.class);
         roleIds.remove(unbindDTO.getRoleId());
 
-        companyUser.setRoles(JsonUtils.toJsonString(roleIds));
+        companyUser.setRoles(JSONUtil.toJsonStr(roleIds));
 
         companyUserRepo.updateById(companyUser);
 

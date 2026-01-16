@@ -93,7 +93,7 @@ public class ScatterService {
             Boolean exist = houseRepo.checkHouseExist(houseDTO.getId(), scatterCreateDTO.getCommunity().getCommunityId(),
                 houseDTO.getBuilding(), houseDTO.getUnit(), houseDTO.getDoorNumber());
             if (Boolean.TRUE.equals(exist)) {
-                throw new IllegalArgumentException(houseDTO.getBuilding() + houseDTO.getUnit() + houseDTO.getDoorNumber() + " 已存在！");
+                throw new IllegalArgumentException(String.format("%s座栋-%s单元-%s门牌号 已存在！", houseDTO.getBuilding(), houseDTO.getUnit(), houseDTO.getDoorNumber()));
             }
 
             House house = new House();
@@ -198,6 +198,19 @@ public class ScatterService {
         room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));
 
+        // 设置可出租日期
+        if (Objects.nonNull(roomDetailDTO.getAvailableDate())) {
+            room.setAvailableDate(roomDetailDTO.getAvailableDate());
+        } else {
+            room.setAvailableDate(DateUtil.date());
+        }
+
+
+        room.setTags(JSONUtil.toJsonStr(roomDetailDTO.getTags()));
+        room.setFacilities(JSONUtil.toJsonStr(roomDetailDTO.getFacilities()));
+        room.setImageList(JSONUtil.toJsonStr(roomDetailDTO.getImageList()));
+        room.setVideoList(JSONUtil.toJsonStr(roomDetailDTO.getVideoList()));
+
         if (Objects.nonNull(roomDetailDTO.getId())) {
             room.setUpdateBy(house.getUpdateBy());
             room.setUpdateTime(DateUtil.date());
@@ -215,6 +228,15 @@ public class ScatterService {
     }
 
     public void createScatterRoomList(House house, List<RoomDetailDTO> roomList) {
+        List<RoomDetailDTO> roomListByHouseId = roomService.getRoomListByHouseId(house.getId());
+        // 过滤出不再 roomList的房间。
+        List<RoomDetailDTO> roomListToDelete = roomListByHouseId.stream()
+            .filter(roomDetailDTO -> roomList.stream().noneMatch(room -> room.getId().equals(roomDetailDTO.getId())))
+            .toList();
+
+        // 删除房间
+        roomListToDelete.forEach(roomDetailDTO -> roomRepo.removeById(roomDetailDTO.getId()));
+
         roomList.forEach(roomDetailDTO -> createOrUpdateScatterRoom(house, roomDetailDTO));
     }
 

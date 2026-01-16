@@ -16,6 +16,8 @@
         <result property="deptName" column="dept_name"/>
         <result property="propertyFee" column="property_fee"/>
         <result property="price" column="price"/>
+        <result property="availableDate" column="available_date"/>
+        <result property="vacancyStartTime" column="vacancy_start_time"/>
         <result property="salesmanId" column="salesman_id"/>
         <result property="salesmanName" column="nickname"/>
         <result property="salesmanPhone" column="phone"/>
@@ -70,6 +72,8 @@
                r.leased,
                r.area,
                r.direction,
+               r.available_date,
+               r.vacancy_start_time,
                h.salesman_id,
                u.nickname,
                u.phone,

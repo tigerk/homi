@@ -77,6 +77,12 @@ public class RoomListVO {
     @Schema(description = "出租价格")
     private BigDecimal price;
 
+    @Schema(description = "可出租日期")
+    private String availableDate;
+
+    @Schema(description = "空置开始时间")
+    private String vacancyStartTime;
+
     @Schema(description = "面积")
     private BigDecimal area;
 
@@ -109,4 +115,7 @@ public class RoomListVO {
 
     @Schema(description = "负责人手机号")
     private String salesmanPhone;
+
+     @Schema(description = "租约信息")
+    private LeaseInfoVO leaseInfo;
 }

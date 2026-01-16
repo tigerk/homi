@@ -3,17 +3,16 @@ package com.homi.service.service.room;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.EnumUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.homi.model.room.dto.RoomQueryDTO;
-import com.homi.model.room.dto.grid.RoomGridDTO;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
-import com.homi.model.room.vo.RoomListVO;
+import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.model.dao.entity.Community;
 import com.homi.model.dao.entity.Focus;
-import com.homi.model.dao.mapper.HouseMapper;
 import com.homi.model.dao.repo.CommunityRepo;
 import com.homi.model.dao.repo.FocusRepo;
 import com.homi.model.dao.repo.RoomRepo;
+import com.homi.model.room.dto.RoomQueryDTO;
+import com.homi.model.room.dto.grid.RoomGridDTO;
+import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.room.vo.grid.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,9 +35,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RoomGridService {
     private final RoomRepo roomRepo;
-    private final HouseMapper houseMapper;
     private final CommunityRepo communityRepo;
     private final FocusRepo focusRepo;
+
+    private final RoomService roomService;
 
     /**
      * 查询小区的聚合房间数据，根据小区、楼栋、单元、楼层来聚合显示数据
@@ -102,13 +102,13 @@ public class RoomGridService {
 
         // 7. 构建楼层分组数据
         Map<RoomGridGroupKey, List<RoomListVO>> roomGridGroupKeyListMap = rooms.stream().collect(Collectors.groupingBy(
-                room -> new RoomGridGroupKey(
-                        room.getLeaseModeId(),
-                        room.getLeaseMode(),
-                        room.getBuilding(),
-                        room.getUnit(),
-                        room.getFloor()
-                )
+            room -> new RoomGridGroupKey(
+                room.getLeaseModeId(),
+                room.getLeaseMode(),
+                room.getBuilding(),
+                room.getUnit(),
+                room.getFloor()
+            )
         ));
 
         // 8. 构建返回结果
@@ -127,6 +127,9 @@ public class RoomGridService {
                 RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, room.getRoomStatus());
                 room.setRoomStatusName(roomStatusEnum.getName());
                 room.setRoomStatusColor(roomStatusEnum.getColor());
+
+                // 如果房间是已租时，获取当前租客的租约信息
+                roomService.getRoomLeaseInfo(room);
             });
 
             roomGridItemVO.setRooms(entry.getValue());
@@ -136,10 +139,9 @@ public class RoomGridService {
 
         // 按照 community 倒序、unitGroup 正序、floor 正序排序
         roomGridItemList.sort(Comparator.comparing((RoomGridItemVO item) -> -item.getCompoundGroup().getCommunityId())
-                .thenComparing(item -> item.getBuildingGroup().getBuilding())
-                .thenComparing(item -> item.getBuildingGroup().getUnit())
-                .thenComparing(item -> item.getFloorGroup().getFloor()));
-
+            .thenComparing(item -> item.getBuildingGroup().getBuilding())
+            .thenComparing(item -> item.getBuildingGroup().getUnit())
+            .thenComparing(item -> item.getFloorGroup().getFloor()));
 
         result.setRoomGridItemList(roomGridItemList);
 
@@ -188,7 +190,7 @@ public class RoomGridService {
      * {@code @author} tk
      * {@code @date} 2025/9/30 09:43
      *
-     * @param leaseModeId       参数说明
+     * @param leaseModeId     参数说明
      * @param building        参数说明
      * @param unit            参数说明
      * @param aggregatedRooms 参数说明
@@ -213,8 +215,8 @@ public class RoomGridService {
         buildingGroup.setLeasedCount(leasedCount);
 
         buildingGroup.setOccupancyRate(
-                BigDecimal.valueOf(buildingGroup.getLeasedCount() * 100.0 / buildingGroup.getRoomCount())
-                        .setScale(2, RoundingMode.HALF_UP)
+            BigDecimal.valueOf(buildingGroup.getLeasedCount() * 100.0 / buildingGroup.getRoomCount())
+                .setScale(2, RoundingMode.HALF_UP)
         );
 
         return buildingGroup;
@@ -226,7 +228,7 @@ public class RoomGridService {
      * {@code @author} tk
      * {@code @date} 2025/9/30 09:43
      *
-     * @param leaseModeId       leaseMode=集中式时，为集中式id；leaseMode=分散式时，为小区 id
+     * @param leaseModeId     leaseMode=集中式时，为集中式id；leaseMode=分散式时，为小区 id
      * @param leaseMode       租房模式
      * @param aggregatedRooms 参数说明
      * @return com.homi.domain.vo.room.grid.CompoundGroup
@@ -274,8 +276,8 @@ public class RoomGridService {
         compoundGroup.setLeasedCount(leasedCount);
 
         compoundGroup.setOccupancyRate(
-                BigDecimal.valueOf(compoundGroup.getLeasedCount() * 100.0 / compoundGroup.getRoomCount())
-                        .setScale(2, RoundingMode.HALF_UP)
+            BigDecimal.valueOf(compoundGroup.getLeasedCount() * 100.0 / compoundGroup.getRoomCount())
+                .setScale(2, RoundingMode.HALF_UP)
         );
 
         return compoundGroup;

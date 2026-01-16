@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -41,6 +42,12 @@ public class RoomDetailDTO {
     @Schema(description = "出租价格")
     private BigDecimal price;
 
+    @Schema(description = "可出租日期")
+    private Date availableDate;
+
+    @Schema(description = "空置开始时间")
+    private Date vacancyStartTime;
+
     @Schema(description = "设施、从字典dict_data获取并配置")
     private List<FacilityItemDTO> facilities;
 
@@ -49,6 +56,9 @@ public class RoomDetailDTO {
 
     @Schema(description = "图片列表")
     private List<String> imageList;
+
+    @Schema(description = "视频列表")
+    private List<String> videoList;
 
     @Schema(description = "房间价格配置")
     private PriceConfigDTO priceConfig;

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.enums.tenant.TenantCheckOutStatusEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Tenant;
@@ -45,7 +46,7 @@ public class TenantRepo extends ServiceImpl<TenantMapper, Tenant> {
 
         if (query.getRoomId() != null) {
             wrapper.apply(
-                "JSON_CONTAINS(room_ids, CAST({0} AS JSON))",
+                "JSON_CONTAINS(room_ids,JSON_ARRAY('{0}'))",
                 query.getRoomId()
             );
         }
@@ -75,5 +76,19 @@ public class TenantRepo extends ServiceImpl<TenantMapper, Tenant> {
 
         tenant.setStatus(code);
         return updateById(tenant);
+    }
+
+    /**
+     * 根据房间ID查询当前租客
+     *
+     * @param roomId 房间ID
+     * @return 当前租客
+     */
+    public Tenant getCurrentTenantByRoomId(Long roomId) {
+        LambdaQueryWrapper<Tenant> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Tenant::getCheckOutStatus, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode());
+        wrapper.like(Tenant::getRoomIds, roomId);
+
+        return getOne(wrapper);
     }
 }

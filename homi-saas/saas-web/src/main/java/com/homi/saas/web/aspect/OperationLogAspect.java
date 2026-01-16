@@ -161,7 +161,7 @@ public class OperationLogAspect {
         }
         // 是否需要保存response，参数和值
         if (log.isSaveResponseData() && ObjectUtil.isNotNull(jsonResult)) {
-            operationLog.setJsonResult(StringUtils.substring(JsonUtils.toJsonString(jsonResult), 0, 2000));
+            operationLog.setJsonResult(StringUtils.substring(JSONUtil.toJsonStr(jsonResult), 0, 2000));
         }
     }
 
@@ -201,7 +201,7 @@ public class OperationLogAspect {
                     if (MapUtil.isNotEmpty(dict)) {
                         MapUtil.removeAny(dict, EXCLUDE_PROPERTIES);
                         MapUtil.removeAny(dict, excludeParamNames);
-                        str = JsonUtils.toJsonString(dict);
+                        str = JSONUtil.toJsonStr(dict);
                     }
                 }
 
