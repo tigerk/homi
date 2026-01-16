@@ -1,6 +1,8 @@
 package com.homi.saas.web.controller.room;
 
 
+import com.homi.common.lib.annotation.Log;
+import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.room.dto.RoomIdDTO;
@@ -62,11 +64,13 @@ public class RoomController {
     }
 
     @PostMapping("/lock")
+    @Log(title = "锁房", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Boolean> lockRoom(@RequestBody RoomIdDTO query) {
         return ResponseResult.ok(roomService.lockRoom(query));
     }
 
     @PostMapping("/unlock")
+    @Log(title = "解锁", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Boolean> unlockRoom(@RequestBody RoomIdDTO query) {
         return ResponseResult.ok(roomService.unlockRoom(query));
     }
