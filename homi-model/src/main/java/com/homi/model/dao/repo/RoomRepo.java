@@ -153,17 +153,34 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
 
     public Boolean lockRoomById(Long roomId) {
         return lambdaUpdate()
-                .set(Room::getLocked, true)
+            .set(Room::getLocked, true)
             .set(Room::getRoomStatus, RoomStatusEnum.LOCKED.getCode())
-                .eq(Room::getId, roomId)
-                .update();
+            .eq(Room::getId, roomId)
+            .update();
     }
 
     public Boolean unlockRoomById(Long roomId) {
         return lambdaUpdate()
-                .set(Room::getLocked, false)
-                .set(Room::getRoomStatus, RoomStatusEnum.AVAILABLE.getCode())
-                .eq(Room::getId, roomId)
-                .update();
+            .set(Room::getLocked, false)
+            .set(Room::getRoomStatus, RoomStatusEnum.AVAILABLE.getCode())
+            .eq(Room::getId, roomId)
+            .update();
+    }
+
+    public Boolean closeRoomById(Long roomId) {
+        return lambdaUpdate()
+            .set(Room::getClosed, true)
+            .set(Room::getRoomStatus, RoomStatusEnum.CLOSED.getCode())
+            .eq(Room::getId, roomId)
+            .update();
+    }
+
+    public Boolean openRoomById(Long roomId) {
+        return lambdaUpdate()
+            .set(Room::getClosed, false)
+            .set(Room::getLocked, false)
+            .set(Room::getRoomStatus, RoomStatusEnum.AVAILABLE.getCode())
+            .eq(Room::getId, roomId)
+            .update();
     }
 }

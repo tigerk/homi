@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.JsonUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
@@ -282,11 +283,38 @@ public class RoomService {
         }
     }
 
-    public Boolean lockRoom(RoomIdDTO query) {
-        return roomRepo.lockRoomById(query.getRoomId());
+    public Integer lockRoom(RoomIdDTO query) {
+        Boolean locked = roomRepo.lockRoomById(query.getRoomId());
+        if (Boolean.FALSE.equals(locked)) {
+            throw new BizException("房间未能锁定");
+        }
+        return RoomStatusEnum.LOCKED.getCode();
     }
 
-    public Boolean unlockRoom(RoomIdDTO query) {
-        return roomRepo.unlockRoomById(query.getRoomId());
+    public Integer unlockRoom(RoomIdDTO query) {
+        Boolean unlocked = roomRepo.unlockRoomById(query.getRoomId());
+        if (Boolean.FALSE.equals(unlocked)) {
+            throw new BizException("房间未能解锁");
+        }
+
+        return RoomStatusEnum.AVAILABLE.getCode();
+    }
+
+    public Integer closeRoom(RoomIdDTO query) {
+        Boolean closed = roomRepo.closeRoomById(query.getRoomId());
+        if (Boolean.FALSE.equals(closed)) {
+            throw new BizException("房间未能关闭");
+        }
+
+        return RoomStatusEnum.CLOSED.getCode();
+    }
+
+    public Integer openRoom(RoomIdDTO query) {
+        Boolean opened = roomRepo.openRoomById(query.getRoomId());
+        if (Boolean.FALSE.equals(opened)) {
+            throw new BizException("房间未能开启");
+        }
+
+        return RoomStatusEnum.AVAILABLE.getCode();
     }
 }

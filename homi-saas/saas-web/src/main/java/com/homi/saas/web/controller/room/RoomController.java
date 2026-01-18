@@ -64,15 +64,27 @@ public class RoomController {
     }
 
     @PostMapping("/lock")
-    @Log(title = "锁房", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Boolean> lockRoom(@RequestBody RoomIdDTO query) {
+    @Log(title = "锁房房间", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Integer> lockRoom(@RequestBody RoomIdDTO query) {
         return ResponseResult.ok(roomService.lockRoom(query));
     }
 
     @PostMapping("/unlock")
-    @Log(title = "解锁", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Boolean> unlockRoom(@RequestBody RoomIdDTO query) {
+    @Log(title = "解锁房间", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Integer> unlockRoom(@RequestBody RoomIdDTO query) {
         return ResponseResult.ok(roomService.unlockRoom(query));
+    }
+
+    @PostMapping("/close")
+    @Log(title = "关闭房间", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Integer> closeRoom(@RequestBody RoomIdDTO query) {
+        return ResponseResult.ok(roomService.closeRoom(query));
+    }
+
+    @PostMapping("/open")
+    @Log(title = "开启房间", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Integer> openRoom(@RequestBody RoomIdDTO query) {
+        return ResponseResult.ok(roomService.openRoom(query));
     }
 }
 
