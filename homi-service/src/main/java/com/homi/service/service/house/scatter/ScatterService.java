@@ -194,6 +194,10 @@ public class ScatterService {
 
         room.setHouseId(house.getId());
         room.setFloor(house.getFloor());
+
+        if (Objects.isNull(room.getRoomStatus())) {
+            room.setRoomStatus(RoomStatusEnum.AVAILABLE.getCode());
+        }
         RoomStatusEnum roomStatusEnum = roomRepo.calculateRoomStatus(room);
         room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));
