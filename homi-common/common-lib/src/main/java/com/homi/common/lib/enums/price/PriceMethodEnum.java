@@ -17,8 +17,8 @@ public enum PriceMethodEnum {
     /**
      * 计算方式枚举
      */
-    FIXED(0, "按固定金额"),
-    RATIO(1, "按租金比例"),
+    FIXED(1, "按固定金额"),
+    RATIO(2, "按租金比例"),
     ;
 
     private final Integer code;
