@@ -80,6 +80,11 @@ public class DeptVO implements Serializable {
     private String remark;
 
     /**
+     * 是否为门店（1，0不是门店）
+     */
+    private Boolean isStore;
+
+    /**
      * 创建时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

@@ -63,6 +63,12 @@ public class DeptCreateDTO {
     private Integer status;
 
     /**
+     * 是否为门店（1，0不是门店）
+     */
+    @Schema(description = "是否为门店（1，0不是门店）")
+    private Boolean isStore;
+
+    /**
      * 备注
      */
     @Schema(description = "备注")

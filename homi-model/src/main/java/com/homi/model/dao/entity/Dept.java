@@ -75,6 +75,10 @@ public class Dept implements Serializable {
     @TableField("remark")
     private String remark;
 
+    @Schema(description = "是否为门店（1，0不是门店）")
+    @TableField("is_store")
+    private Boolean isStore;
+
     @Schema(description = "创建时间")
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
