@@ -94,7 +94,7 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         return getBaseMapper().pageRoomList(page, query);
     }
 
-    public Boolean updateRoomStatusBatch(List<Long> roomIds, Integer code) {
+    public Boolean updateRoomStatusByRoomIds(List<Long> roomIds, Integer code) {
         LambdaQueryWrapper<Room> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(Room::getId, roomIds);
 

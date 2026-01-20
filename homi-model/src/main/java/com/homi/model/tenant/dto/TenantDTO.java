@@ -1,5 +1,6 @@
 package com.homi.model.tenant.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -63,22 +64,27 @@ public class TenantDTO {
     @Schema(description = "首期账单收租日：0=跟随合同起租日，1=跟随合同创建日", example = "0")
     private Integer firstBillDay;
 
-    @Schema(description = "租赁开始时间", example = "2025-01-01T00:00:00Z")
+    @Schema(description = "租赁开始时间", example = "2025-01-01 00:00:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date leaseStart;
 
-    @Schema(description = "租赁结束时间", example = "2026-01-01T00:00:00Z")
+    @Schema(description = "租赁结束时间", example = "2026-01-01 00:00:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date leaseEnd;
 
-    @Schema(description = "实际入住时间", example = "2025-01-05T00:00:00Z")
+    @Schema(description = "实际入住时间", example = "2025-01-05 00:00:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date checkInTime;
 
-    @Schema(description = "实际搬离时间", example = "2026-01-05T00:00:00Z")
+    @Schema(description = "实际搬离时间", example = "2026-01-05 00:00:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date checkOutTime;
 
-    @Schema(description = "初始录入租赁开始时间", example = "2025-01-01T00:00:00Z")
+    @Schema(description = "初始录入租赁开始时间", example = "2025-01-01 00:00:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date originalLeaseStart;
-
-    @Schema(description = "初始录入租赁结束时间", example = "2026-01-01T00:00:00Z")
+    @Schema(description = "初始录入租赁结束时间", example = "2026-01-01 00:00:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date originalLeaseEnd;
 
     @Schema(description = "累计租房天数", example = "365")
@@ -109,7 +115,7 @@ public class TenantDTO {
     private Integer status;
 
     @Schema(description = "租客来源", example = "1")
-    private Integer tenantSource;
+    private Long tenantSource;
 
     @Schema(description = "成交渠道", example = "1")
     private Long dealChannel;

@@ -1,16 +1,19 @@
 package com.homi.service.service.tenant;
 
+import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
+import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.model.contract.vo.TenantContractVO;
 import com.homi.model.dao.entity.ContractTemplate;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.TenantContract;
 import com.homi.model.dao.repo.ContractTemplateRepo;
+import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.dao.repo.TenantContractRepo;
 import com.homi.model.dao.repo.TenantRepo;
 import com.homi.model.tenant.dto.TenantContractGenerateDTO;
-import com.homi.model.contract.vo.TenantContractVO;
 import com.homi.model.tenant.vo.TenantContractSignStatusUpdateDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class TenantContractService {
     private final TenantRepo tenantRepo;
+    private final RoomRepo roomRepo;
     private final TenantContractRepo tenantContractRepo;
     private final ContractTemplateRepo contractTemplateRepo;
 
@@ -174,6 +178,9 @@ public class TenantContractService {
         }
 
         tenantRepo.updateStatusById(tenantId, TenantStatusEnum.CANCELLED.getCode());
+
+        // 房间设置为“空置”
+        roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(tenant.getRoomIds(), Long.class), RoomStatusEnum.AVAILABLE.getCode());
 
         return TenantStatusEnum.CANCELLED.getCode();
     }

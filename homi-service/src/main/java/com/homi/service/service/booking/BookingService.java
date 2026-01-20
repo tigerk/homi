@@ -18,7 +18,6 @@ import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.BookingRepo;
 import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.dao.repo.UserRepo;
-import com.homi.model.room.vo.LeaseInfoVO;
 import com.homi.service.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -115,7 +114,7 @@ public class BookingService {
         booking.setRoomIds(JSONUtil.toJsonStr(createDTO.getRoomIds()));
 
         // 把房间修改为已出租状态，但是没有租客信息；
-        Boolean updateRoomStatusBatch = roomRepo.updateRoomStatusBatch(createDTO.getRoomIds(), RoomStatusEnum.BOOKED.getCode());
+        Boolean updateRoomStatusBatch = roomRepo.updateRoomStatusByRoomIds(createDTO.getRoomIds(), RoomStatusEnum.BOOKED.getCode());
         if (Boolean.FALSE.equals(updateRoomStatusBatch)) {
             log.error("修改房间为预定状态失败，roomIds: {}", createDTO.getRoomIds());
         }
@@ -210,7 +209,7 @@ public class BookingService {
         booking.setCancelTime(DateUtil.date());
 
         // 把房间修改为已出租状态，但是没有租客信息；
-        Boolean updateRoomStatusBatch = roomRepo.updateRoomStatusBatch(JSONUtil.toList(booking.getRoomIds(), Long.class), RoomStatusEnum.AVAILABLE.getCode());
+        Boolean updateRoomStatusBatch = roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class), RoomStatusEnum.AVAILABLE.getCode());
         if (Boolean.FALSE.equals(updateRoomStatusBatch)) {
             log.error("释放预定房间失败，roomIds: {}", JSONUtil.toList(booking.getRoomIds(), Long.class));
         }

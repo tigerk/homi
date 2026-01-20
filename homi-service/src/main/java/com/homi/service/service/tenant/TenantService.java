@@ -20,7 +20,6 @@ import com.homi.model.contract.vo.TenantContractVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.room.dto.price.OtherFeeDTO;
-import com.homi.model.room.vo.LeaseInfoVO;
 import com.homi.model.tenant.dto.*;
 import com.homi.model.tenant.vo.*;
 import com.homi.service.service.room.RoomService;
@@ -70,7 +69,7 @@ public class TenantService {
      */
     @Transactional(rollbackFor = Exception.class)
     public Long saveTenantOrFromBooking(TenantCreateDTO createDTO) {
-        if (Objects.nonNull(createDTO.getBookingId())) {
+        if (Objects.nonNull(createDTO.getBooking().getId())) {
             // 从预定转换为租客
             return convertBookingToTenant(createDTO);
         } else {
@@ -121,6 +120,12 @@ public class TenantService {
      * @return java.lang.Long
      */
     public Long createTenant(TenantCreateDTO createDTO) {
+        // 检查租客的房间是否已经预定或者出租、如果有则不能创建租客
+        List<Room> roomList = roomRepo.listByIds(createDTO.getTenant().getRoomIds());
+        if (roomList.stream().anyMatch(room -> Objects.equals(room.getRoomStatus(), RoomStatusEnum.LEASED.getCode()) || Objects.equals(room.getRoomStatus(), RoomStatusEnum.BOOKED.getCode()))) {
+            throw new IllegalArgumentException("房间已被出租，不能创建租客");
+        }
+
         TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, createDTO.getTenant().getTenantType());
         if (tenantTypeEnum == null) {
             throw new IllegalArgumentException("租户类型不存在");
@@ -156,7 +161,7 @@ public class TenantService {
         tenantBillGenService.addTenantBill(tenant.getId(), createDTO.getTenant(), createDTO.getOtherFees());
 
         // 更新房间状态为已租
-        roomRepo.updateRoomStatusBatch(createDTO.getTenant().getRoomIds(), RoomStatusEnum.LEASED.getCode());
+        roomRepo.updateRoomStatusByRoomIds(createDTO.getTenant().getRoomIds(), RoomStatusEnum.LEASED.getCode());
 
         return addedTenant.getLeft();
     }
@@ -437,11 +442,11 @@ public class TenantService {
      * @return Long
      */
     public Long convertBookingToTenant(TenantCreateDTO createDTO) {
-        Booking booking = bookingRepo.getById(createDTO.getBookingId());
+        Booking booking = bookingRepo.getById(createDTO.getBooking().getId());
 
         // 1. 如果来自预定，可以在备注中自动追加来源信息
-        if (Objects.nonNull(createDTO.getBookingId())) {
-            createDTO.getTenant().setRemark(createDTO.getTenant().getRemark() + " [预定转合同，预定ID:" + createDTO.getBookingId() + "]");
+        if (Objects.nonNull(createDTO.getBooking().getId())) {
+            createDTO.getTenant().setRemark(createDTO.getTenant().getRemark() + " [预定转合同，预定ID:" + createDTO.getBooking().getId() + "]");
         }
 
         // 2. 将预定金转化为一笔“抵扣项”

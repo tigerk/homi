@@ -1,5 +1,7 @@
 package com.homi.model.tenant.dto;
 
+import com.homi.model.booking.dto.BookingIdDTO;
+import com.homi.model.booking.vo.BookingListVO;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -20,8 +22,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TenantCreateDTO {
-    @Schema(description = "预订ID")
-    private Long bookingId;
+    @Schema(description = "预订信息")
+    private BookingIdDTO booking;
 
     @Schema(description = "个人租户信息")
     private TenantPersonalDTO tenantPersonal;
