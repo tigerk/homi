@@ -91,7 +91,7 @@ public class TenantController {
 
     @PostMapping("/bill/list")
     public ResponseResult<List<TenantBillListVO>> getBillList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(tenantBillService.getBillListByTenantId(queryDTO.getTenantId()));
+        return ResponseResult.ok(tenantBillService.getBillListByTenantId(queryDTO.getTenantId(), Boolean.TRUE));
     }
 
     @PostMapping(value = "/contract/download")

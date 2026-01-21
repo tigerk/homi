@@ -349,7 +349,10 @@ public class TenantService {
         tenantDetailVO.setTenantMateList(tenantMateListByTenantId);
 
         // 获取租客账单列表
-        tenantDetailVO.setTenantBillList(tenantBillService.getBillListByTenantId(tenantDetailVO.getId()));
+        tenantDetailVO.setTenantBillList(tenantBillService.getBillListByTenantId(tenantDetailVO.getId(), Boolean.TRUE));
+
+        // 获取租客无效账单列表
+        tenantDetailVO.setTenantInvalidBillList(tenantBillService.getBillListByTenantId(tenantDetailVO.getId(), Boolean.FALSE));
 
         return tenantDetailVO;
     }

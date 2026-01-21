@@ -18,8 +18,8 @@ public class TenantBillService {
     private final TenantBillRepo tenantBillRepo;
     private final TenantBillOtherFeeRepo tenantBillOtherFeeRepo;
 
-    public List<TenantBillListVO> getBillListByTenantId(Long tenantId) {
-        List<TenantBill> tenantBillList = tenantBillRepo.getBillListByTenantId(tenantId);
+    public List<TenantBillListVO> getBillListByTenantId(Long tenantId, Boolean valid) {
+        List<TenantBill> tenantBillList = tenantBillRepo.getBillListByTenantId(tenantId, valid);
 
         return tenantBillList.stream().map(tb -> {
             TenantBillListVO vo = BeanCopyUtils.copyBean(tb, TenantBillListVO.class);

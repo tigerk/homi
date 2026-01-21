@@ -1,8 +1,8 @@
 package com.homi.model.tenant.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.contract.vo.TenantContractVO;
+import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.tenant.vo.bill.TenantBillListVO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -163,6 +163,9 @@ public class TenantDetailVO {
 
     @Schema(description = "租客账单列表")
     private List<TenantBillListVO> tenantBillList;
+
+    @Schema(description = "租客无效账单列表")
+    private List<TenantBillListVO> tenantInvalidBillList;
 
     @Schema(description = "租客同住人列表")
     private List<TenantMateVO> tenantMateList;
