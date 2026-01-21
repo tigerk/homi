@@ -19,7 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -320,7 +319,7 @@ class TenantBillGenServiceTest {
      */
     private TenantDTO createTestTenant() {
         TenantDTO tenant = new TenantDTO();
-        tenant.setId(BigInteger.valueOf(1L));
+        tenant.setId(1L);
         tenant.setCompanyId(100L);
         tenant.setDeptId(200L);
         tenant.setTenantName("测试租客");

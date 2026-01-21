@@ -8,6 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.booking.BookingStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.payment.PaymentStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
@@ -47,12 +48,15 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TenantService {
+    private final RoomRepo roomRepo;
     private final TenantRepo tenantRepo;
     private final TenantPersonalRepo tenantPersonalRepo;
     private final TenantCompanyRepo tenantCompanyRepo;
     private final FileAttachRepo fileAttachRepo;
     private final TenantOtherFeeRepo tenantOtherFeeRepo;
     private final BookingRepo bookingRepo;
+    private final TenantBillRepo tenantBillRepo;
+    private final TenantBillOtherFeeRepo tenantBillOtherFeeRepo;
 
     private final RoomService roomService;
     private final TenantBillGenService tenantBillGenService;
@@ -62,7 +66,7 @@ public class TenantService {
     private final TenantBillService tenantBillService;
     private final DictDataService dictDataService;
     private final TenantMateService tenantMateService;
-    private final RoomRepo roomRepo;
+
 
     /**
      * 统一创建租客入口（编排逻辑）
@@ -487,5 +491,344 @@ public class TenantService {
         bookingRepo.updateById(booking);
 
         return tenantId;
+    }
+
+    /**
+     * 更新租客信息，租客已租房间信息无法修改！
+     *
+     * @param createDTO 更新的租客信息
+     * @return 租客ID
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Long updateTenant(TenantCreateDTO createDTO) {
+        Long tenantId = createDTO.getTenant().getId();
+        if (tenantId == null) {
+            throw new IllegalArgumentException("租客ID不能为空");
+        }
+
+        // 1. 获取原租客信息
+        TenantDetailVO originalTenant = getTenantDetailById(tenantId);
+        if (originalTenant == null) {
+            throw new IllegalArgumentException("租客不存在");
+        }
+
+        // 2. 检查租客状态是否允许修改
+        if (Objects.equals(originalTenant.getStatus(), TenantStatusEnum.TERMINATED.getCode()) || Objects.equals(createDTO.getTenant().getStatus(), TenantStatusEnum.CANCELLED.getCode())) {
+            throw new IllegalArgumentException("租客已终止，不允许修改");
+        }
+        TenantDTO toUpdateTenant = createDTO.getTenant();
+        /* !important 判断是否有关键信息变更（需要重新生成账单和合同）*/
+        boolean needRegenerate = isKeyInfoChanged(toUpdateTenant, originalTenant);
+
+        // 3. 处理租客类型信息变更
+        Triple<Long, String, String> tenantTypeInfo = handleTenantTypeUpdate(createDTO, originalTenant.getTenantType(), originalTenant.getTenantTypeId());
+
+        // 4. 处理租赁信息变更
+        Tenant updatedTenant = handleTenantInfoUpdate(createDTO, tenantTypeInfo);
+
+        // 5. 处理同住人变更
+        tenantMateService.handleTenantMateUpdate(tenantId, createDTO.getTenantMateList(), originalTenant.getTenantMateList());
+
+        // 6. 处理其他费用变更
+        boolean otherFeeChanged = handleOtherFeeUpdate(tenantId, createDTO.getOtherFees(), originalTenant.getOtherFees());
+
+        // 7. 如果关键信息变更，需要重新生成合同和账单
+        if (needRegenerate || otherFeeChanged) {
+            regenerateTenantBill(tenantId, createDTO);
+        }
+
+        // 8. 更新合同（如果合同模板发生变更）
+        tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), updatedTenant);
+
+        // 9. 租客重置为待签约状态（如果当前是待签约状态）
+        if (Objects.equals(updatedTenant.getStatus(), TenantStatusEnum.TO_SIGN.getCode())) {
+            tenantRepo.updateStatusById(tenantId, TenantStatusEnum.TO_SIGN.getCode());
+        }
+
+        return tenantId;
+    }
+
+    /**
+     * 处理租客类型信息变更（个人/企业）
+     */
+    private Triple<Long, String, String> handleTenantTypeUpdate(TenantCreateDTO createDTO, Integer originalType, Long originalTypeId) {
+        Integer newType = createDTO.getTenant().getTenantType();
+        TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, newType);
+
+        if (tenantTypeEnum == null) {
+            throw new IllegalArgumentException("租户类型不存在");
+        }
+
+        // 类型未变更，更新原有记录
+        if (Objects.equals(originalType, newType)) {
+            if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
+                return updateTenantPersonal(createDTO.getTenantPersonal(), originalTypeId);
+            } else {
+                return updateTenantCompany(createDTO.getTenantCompany(), originalTypeId);
+            }
+        }
+
+        // ===== 类型发生变更，需要处理旧数据 =====
+        // 1. 逻辑删除旧类型数据
+        markOldTenantTypeAsDeleted(originalType, originalTypeId);
+
+        // 类型发生变更，需要创建新记录
+        if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
+            createDTO.getTenantPersonal().setCreateBy(createDTO.getCreateBy());
+            return addTenantPersonal(createDTO.getTenantPersonal());
+        } else {
+            createDTO.getTenantCompany().setCreateBy(createDTO.getCreateBy());
+            return addTenantEnterprise(createDTO.getTenantCompany());
+        }
+    }
+
+    /**
+     * 标记旧的租客类型数据为已删除
+     *
+     * @param originalType   原类型（0=个人，1=企业）
+     * @param originalTypeId 原类型数据ID
+     */
+    private void markOldTenantTypeAsDeleted(Integer originalType, Long originalTypeId) {
+        TenantTypeEnum originalTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, originalType);
+
+        List<String> bizTypes;
+        if (originalTypeEnum == TenantTypeEnum.PERSONAL) {
+            // 逻辑删除个人租客数据
+            tenantPersonalRepo.removeById(originalTypeId);
+
+            bizTypes = ListUtil.of(
+                FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType(),
+                FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(),
+                FileAttachBizTypeEnum.TENANT_ID_CARD_IN_HAND.getBizType(),
+                FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType()
+            );
+        } else {
+            tenantCompanyRepo.removeById(originalTypeId);
+            bizTypes = ListUtil.of(
+                FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType(),
+                FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType()
+            );
+        }
+
+        // 逻辑删除关联的附件
+        fileAttachRepo.deleteByBizIdAndBizTypes(originalTypeId, bizTypes);
+    }
+
+    /**
+     * 更新个人租客信息
+     */
+    private Triple<Long, String, String> updateTenantPersonal(TenantPersonalDTO tenantPersonalDTO, Long originalId) {
+        if (tenantPersonalDTO.getId() == null) {
+            tenantPersonalDTO.setId(originalId.intValue());
+        }
+
+        TenantPersonal tenantPersonal = tenantPersonalRepo.getById(originalId);
+        if (tenantPersonal == null) {
+            throw new IllegalArgumentException("个人租客信息不存在");
+        }
+
+        // 更新基本信息
+        BeanUtils.copyProperties(tenantPersonalDTO, tenantPersonal, "id", "createBy", "createTime");
+        tenantPersonal.setTags(JSONUtil.toJsonStr(tenantPersonalDTO.getTags()));
+        tenantPersonal.setUpdateTime(DateUtil.date());
+        tenantPersonalRepo.updateById(tenantPersonal);
+
+        // 更新附件信息（先删除旧的，再添加新的）
+        updateTenantPersonalAttachments(originalId, tenantPersonalDTO);
+
+        return Triple.of(tenantPersonal.getId(), tenantPersonal.getName(), tenantPersonal.getPhone());
+    }
+
+    /**
+     * 更新个人租客附件
+     */
+    private void updateTenantPersonalAttachments(Long tenantPersonalId, TenantPersonalDTO dto) {
+        // 删除旧附件
+        fileAttachRepo.deleteByBizIdAndBizTypes(
+            tenantPersonalId,
+            ListUtil.of(
+                FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType(),
+                FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(),
+                FileAttachBizTypeEnum.TENANT_ID_CARD_IN_HAND.getBizType(),
+                FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType()
+            )
+        );
+
+        // 添加新附件
+        if (CollUtil.isNotEmpty(dto.getIdCardBackList())) {
+            fileAttachRepo.addFileAttachBatch(tenantPersonalId,
+                FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType(), dto.getIdCardBackList());
+        }
+        if (CollUtil.isNotEmpty(dto.getIdCardFrontList())) {
+            fileAttachRepo.addFileAttachBatch(tenantPersonalId,
+                FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(), dto.getIdCardFrontList());
+        }
+        if (CollUtil.isNotEmpty(dto.getIdCardInHandList())) {
+            fileAttachRepo.addFileAttachBatch(tenantPersonalId,
+                FileAttachBizTypeEnum.TENANT_ID_CARD_IN_HAND.getBizType(), dto.getIdCardInHandList());
+        }
+        if (CollUtil.isNotEmpty(dto.getOtherImageList())) {
+            fileAttachRepo.addFileAttachBatch(tenantPersonalId,
+                FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType(), dto.getOtherImageList());
+        }
+    }
+
+    /**
+     * 更新企业租客信息
+     */
+    private Triple<Long, String, String> updateTenantCompany(
+        TenantCompanyDTO tenantCompanyDTO,
+        Long originalId) {
+
+        if (tenantCompanyDTO.getId() == null) {
+            tenantCompanyDTO.setId(originalId.intValue());
+        }
+
+        TenantCompany tenantCompany = tenantCompanyRepo.getById(originalId);
+        if (tenantCompany == null) {
+            throw new IllegalArgumentException("企业租客信息不存在");
+        }
+
+        // 更新基本信息
+        BeanUtils.copyProperties(tenantCompanyDTO, tenantCompany, "id", "createBy", "createTime");
+        tenantCompany.setTags(JSONUtil.toJsonStr(tenantCompanyDTO.getTags()));
+        tenantCompany.setUpdateTime(DateUtil.date());
+        tenantCompanyRepo.updateById(tenantCompany);
+
+        return Triple.of(tenantCompany.getId(), tenantCompany.getCompanyName(), tenantCompany.getContactPhone());
+    }
+
+    /**
+     * 处理租赁信息变更
+     *
+     * @return 更新后的租客实体
+     */
+    private Tenant handleTenantInfoUpdate(TenantCreateDTO createDTO, Triple<Long, String, String> tenantTypeInfo) {
+        Tenant tenant = tenantRepo.getById(createDTO.getTenant().getId());
+        if (tenant == null) {
+            throw new IllegalArgumentException("租客不存在");
+        }
+
+        TenantDTO newTenantDTO = createDTO.getTenant();
+
+        // 更新租客基本信息
+        tenant.setTenantTypeId(tenantTypeInfo.getLeft());
+        tenant.setTenantName(tenantTypeInfo.getMiddle());
+        tenant.setTenantPhone(tenantTypeInfo.getRight());
+        tenant.setRoomIds(JSONUtil.toJsonStr(newTenantDTO.getRoomIds()));
+        tenant.setLeaseStart(newTenantDTO.getLeaseStart());
+        tenant.setLeaseEnd(newTenantDTO.getLeaseEnd());
+        tenant.setRentPrice(newTenantDTO.getRentPrice());
+        tenant.setDepositMonths(newTenantDTO.getDepositMonths());
+        tenant.setPaymentMonths(newTenantDTO.getPaymentMonths());
+        tenant.setRentDueType(newTenantDTO.getRentDueType());
+        tenant.setRentDueDay(newTenantDTO.getRentDueDay());
+        tenant.setRentDueOffsetDays(newTenantDTO.getRentDueOffsetDays());
+        tenant.setSalesmanId(newTenantDTO.getSalesmanId());
+        tenant.setDeptId(newTenantDTO.getDeptId());
+        tenant.setDealChannel(newTenantDTO.getDealChannel());
+        tenant.setTenantSource(newTenantDTO.getTenantSource());
+        tenant.setRemark(newTenantDTO.getRemark());
+        tenant.setUpdateTime(DateUtil.date());
+
+        tenantRepo.updateById(tenant);
+
+        return tenant;
+    }
+
+    /**
+     * 判断关键信息是否变更
+     */
+    private boolean isKeyInfoChanged(TenantDTO newTenant, TenantDetailVO original) {
+        return !Objects.equals(newTenant.getRentPrice(), original.getRentPrice())
+            || !Objects.equals(newTenant.getDepositMonths(), original.getDepositMonths())
+            || !Objects.equals(newTenant.getPaymentMonths(), original.getPaymentMonths())
+            || !Objects.equals(newTenant.getLeaseStart(), original.getLeaseStart())
+            || !Objects.equals(newTenant.getLeaseEnd(), original.getLeaseEnd())
+            || !Objects.equals(newTenant.getRentDueType(), original.getRentDueType())
+            || !Objects.equals(newTenant.getRentDueDay(), original.getRentDueDay())
+            || !Objects.equals(newTenant.getRentDueOffsetDays(), original.getRentDueOffsetDays());
+    }
+
+    /**
+     * 处理其他费用变更
+     *
+     * @return 是否发生变更
+     */
+    private boolean handleOtherFeeUpdate(Long tenantId, List<OtherFeeDTO> newFees, List<OtherFeeDTO> originalFees) {
+        if (newFees == null) {
+            newFees = new ArrayList<>();
+        }
+        if (originalFees == null) {
+            originalFees = new ArrayList<>();
+        }
+
+        // 判断是否有变更
+        boolean isChanged = !isOtherFeesEqual(newFees, originalFees);
+
+        if (!isChanged) {
+            return false;
+        }
+
+        // 删除旧的费用记录
+        tenantOtherFeeRepo.lambdaUpdate().eq(TenantOtherFee::getTenantId, tenantId).remove();
+
+        // 保存新的费用记录
+        newFees.forEach(feeDTO -> {
+            TenantOtherFee tenantOtherFee = BeanCopyUtils.copyBean(feeDTO, TenantOtherFee.class);
+            assert tenantOtherFee != null;
+            tenantOtherFee.setTenantId(tenantId);
+            tenantOtherFeeRepo.save(tenantOtherFee);
+        });
+
+        return true;
+    }
+
+    /**
+     * 判断其他费用是否相等
+     */
+    private boolean isOtherFeesEqual(List<OtherFeeDTO> fees1, List<OtherFeeDTO> fees2) {
+        if (fees1.size() != fees2.size()) {
+            return false;
+        }
+
+        // 简化比较：将费用列表转换为字符串进行比较
+        String json1 = JSONUtil.toJsonStr(fees1.stream()
+            .sorted(Comparator.comparing(OtherFeeDTO::getName))
+            .collect(Collectors.toList()));
+        String json2 = JSONUtil.toJsonStr(fees2.stream()
+            .sorted(Comparator.comparing(OtherFeeDTO::getName))
+            .collect(Collectors.toList()));
+
+        return json1.equals(json2);
+    }
+
+    /**
+     * 重新生成合同和账单
+     */
+    private void regenerateTenantBill(Long tenantId, TenantCreateDTO createDTO) {
+
+        // 1. 删除旧账单（未支付的）
+        tenantBillRepo.lambdaUpdate()
+            .eq(TenantBill::getTenantId, tenantId)
+            .eq(TenantBill::getPayStatus, PaymentStatusEnum.UNPAID.getCode())
+            .remove();
+
+        // 2. 删除账单关联的其他费用明细
+        List<Long> billIds = tenantBillRepo.lambdaQuery()
+            .eq(TenantBill::getTenantId, tenantId)
+            .list()
+            .stream()
+            .map(TenantBill::getId)
+            .collect(Collectors.toList());
+
+        if (!billIds.isEmpty()) {
+            tenantBillOtherFeeRepo.lambdaUpdate()
+                .in(TenantBillOtherFee::getBillId, billIds)
+                .remove();
+        }
+
+        // 3. 重新生成账单
+        tenantBillGenService.addTenantBill(tenantId, createDTO.getTenant(), createDTO.getOtherFees());
     }
 }

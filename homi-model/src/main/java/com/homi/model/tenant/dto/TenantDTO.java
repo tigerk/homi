@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 
@@ -20,7 +19,7 @@ import java.util.List;
 public class TenantDTO {
 
     @Schema(description = "租客ID", example = "1")
-    private BigInteger id;
+    private Long id;
 
     @Schema(description = "合同模板ID", example = "1")
     private Long contractTemplateId;

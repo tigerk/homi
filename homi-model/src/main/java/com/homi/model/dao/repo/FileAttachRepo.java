@@ -1,5 +1,6 @@
 package com.homi.model.dao.repo;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.dao.entity.FileAttach;
 import com.homi.model.dao.entity.FileMeta;
@@ -56,5 +57,13 @@ public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
             .eq(FileAttach::getBizId, tenantId)
             .in(FileAttach::getBizType, of)
             .list();
+    }
+
+    public void deleteByBizIdAndBizTypes(Long bizId, List<String> bizTypes) {
+        LambdaQueryWrapper<FileAttach> wrapper = new LambdaQueryWrapper<FileAttach>()
+            .eq(FileAttach::getBizId, bizId)
+            .in(FileAttach::getBizType, bizTypes);
+
+        remove(wrapper);
     }
 }

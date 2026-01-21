@@ -60,6 +60,15 @@ public class TenantController {
         return ResponseResult.ok(tenantService.saveTenantOrFromBooking(createDTO));
     }
 
+    @PostMapping("/update")
+    @Log(title = "修改租客", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<Long> updateTenant(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        createDTO.setCreateBy(loginUser.getId());
+        createDTO.getTenant().setCompanyId(loginUser.getCurCompanyId());
+
+        return ResponseResult.ok(tenantService.updateTenant(createDTO));
+    }
+
     @PostMapping("/total")
     public ResponseResult<TenantTotalVO> getTenantTotal(@RequestBody TenantQueryDTO query) {
         List<TenantTotalItemVO> tenantStatusTotal = tenantService.getTenantStatusTotal(query);
