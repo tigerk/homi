@@ -104,6 +104,10 @@ public class TenantBill implements Serializable {
     @TableField("remark")
     private String remark;
 
+    @Schema(description = "是否有效：1=有效，0=无效")
+    @TableField("valid")
+    private Boolean valid;
+
     @Schema(description = "是否删除：0=否，1=是")
     @TableField("deleted")
     @TableLogic

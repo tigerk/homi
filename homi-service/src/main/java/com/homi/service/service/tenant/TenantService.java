@@ -8,7 +8,6 @@ import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.booking.BookingStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
-import com.homi.common.lib.enums.payment.PaymentStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
@@ -805,30 +804,18 @@ public class TenantService {
 
     /**
      * 重新生成合同和账单
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/1/21 15:35
+     *
+     * @param tenantId  参数说明
+     * @param createDTO 参数说明
      */
     private void regenerateTenantBill(Long tenantId, TenantCreateDTO createDTO) {
+        // 1. 无效化租客未支付的账单
+        tenantBillGenService.invalidUnpaidTenantBill(tenantId);
 
-        // 1. 删除旧账单（未支付的）
-        tenantBillRepo.lambdaUpdate()
-            .eq(TenantBill::getTenantId, tenantId)
-            .eq(TenantBill::getPayStatus, PaymentStatusEnum.UNPAID.getCode())
-            .remove();
-
-        // 2. 删除账单关联的其他费用明细
-        List<Long> billIds = tenantBillRepo.lambdaQuery()
-            .eq(TenantBill::getTenantId, tenantId)
-            .list()
-            .stream()
-            .map(TenantBill::getId)
-            .collect(Collectors.toList());
-
-        if (!billIds.isEmpty()) {
-            tenantBillOtherFeeRepo.lambdaUpdate()
-                .in(TenantBillOtherFee::getBillId, billIds)
-                .remove();
-        }
-
-        // 3. 重新生成账单
+        // 2. 重新生成账单
         tenantBillGenService.addTenantBill(tenantId, createDTO.getTenant(), createDTO.getOtherFees());
     }
 }

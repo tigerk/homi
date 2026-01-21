@@ -228,7 +228,7 @@ public class TenantBillGenService {
     /**
      * 计算租金金额
      *
-     * @param rentPrice   月租金
+     * @param rentPrice     月租金
      * @param paymentMonths 支付月数
      * @param actualMonths  实际月数
      * @return 租金金额
@@ -725,5 +725,19 @@ public class TenantBillGenService {
         int sortOrder,
         int periodNumber
     ) {
+    }
+
+    /**
+     * 无效化租客未支付的账单
+     *
+     * @param tenantId 租客ID
+     * @return 是否成功
+     */
+    public boolean invalidUnpaidTenantBill(Long tenantId) {
+        return tenantBillRepo.lambdaUpdate()
+            .eq(TenantBill::getTenantId, tenantId)
+            .eq(TenantBill::getPayStatus, PaymentStatusEnum.UNPAID.getCode())
+            .set(TenantBill::getValid, false)
+            .update();
     }
 }
