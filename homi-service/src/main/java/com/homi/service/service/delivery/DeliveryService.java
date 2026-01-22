@@ -3,13 +3,19 @@ package com.homi.service.service.delivery;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.homi.common.lib.enums.delivery.DeliveryStatusEnum;
+import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.Delivery;
 import com.homi.model.dao.entity.DeliveryItem;
+import com.homi.model.dao.entity.FileAttach;
+import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.DeliveryItemRepo;
 import com.homi.model.dao.repo.DeliveryRepo;
+import com.homi.model.dao.repo.FileAttachRepo;
+import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.delivery.dto.DeliveryCreateDTO;
+import com.homi.model.delivery.dto.DeliveryItemDTO;
 import com.homi.model.delivery.dto.DeliveryQueryDTO;
 import com.homi.model.delivery.dto.DeliveryUpdateDTO;
 import com.homi.model.delivery.vo.DeliveryItemVO;
@@ -38,6 +44,8 @@ import java.util.stream.Collectors;
 public class DeliveryService {
     private final DeliveryRepo deliveryRepo;
     private final DeliveryItemRepo deliveryItemRepo;
+    private final UserRepo userRepo;
+    private final FileAttachRepo fileAttachRepo;
 
     /**
      * 创建交割单
@@ -47,25 +55,14 @@ public class DeliveryService {
         // 1. 保存主表
         Delivery delivery = BeanCopyUtils.copyBean(dto, Delivery.class);
         assert delivery != null;
-        delivery.setStatus(DeliveryStatusEnum.DRAFT.getCode());
+        delivery.setStatus(DeliveryStatusEnum.COMPLETED.getCode());
 
         deliveryRepo.save(delivery);
 
+        fileAttachRepo.addFileAttachBatch(delivery.getId(), FileAttachBizTypeEnum.DELIVERY_IMAGE.getBizType(), dto.getImageList());
+
         // 2. 保存明细
-        if (CollectionUtils.isNotEmpty(dto.getItems())) {
-            List<DeliveryItem> items = dto.getItems().stream()
-                .map(itemDTO -> {
-                    DeliveryItem item = BeanCopyUtils.copyBean(itemDTO, DeliveryItem.class);
-                    assert item != null;
-                    item.setDeliveryId(delivery.getId());
-                    return item;
-                })
-                .collect(Collectors.toList());
-
-            deliveryItemRepo.saveBatch(items);
-        }
-
-        return getDetail(delivery.getId());
+        return saveDeliveryItemBatch(delivery, dto.getItems());
     }
 
     /**
@@ -79,7 +76,7 @@ public class DeliveryService {
         }
 
         // 只有草稿状态才能修改
-        if (delivery.getStatus() != DeliveryStatusEnum.DRAFT.getCode()) {
+        if (delivery.getStatus() != DeliveryStatusEnum.CANCELLED.getCode()) {
             throw new BizException("只有草稿状态的交割单才能修改");
         }
 
@@ -87,12 +84,19 @@ public class DeliveryService {
         BeanUtils.copyProperties(dto, delivery);
         deliveryRepo.updateById(delivery);
 
+        // 3. 更新文件附件
+        fileAttachRepo.recreateFileAttachList(delivery.getId(), FileAttachBizTypeEnum.DELIVERY_IMAGE.getBizType(), dto.getImageList());
+
         // 删除旧明细
         deliveryItemRepo.remove(new LambdaQueryWrapper<DeliveryItem>().eq(DeliveryItem::getDeliveryId, delivery.getId()));
 
         // 插入新明细
-        if (CollectionUtils.isNotEmpty(dto.getItems())) {
-            List<DeliveryItem> items = dto.getItems().stream()
+        return saveDeliveryItemBatch(delivery, dto.getItems());
+    }
+
+    private DeliveryVO saveDeliveryItemBatch(Delivery delivery, List<DeliveryItemDTO> itemsList) {
+        if (CollectionUtils.isNotEmpty(itemsList)) {
+            List<DeliveryItem> items = itemsList.stream()
                 .map(itemDTO -> {
                     DeliveryItem item = BeanCopyUtils.copyBean(itemDTO, DeliveryItem.class);
                     assert item != null;
@@ -117,6 +121,14 @@ public class DeliveryService {
 
         DeliveryVO vo = BeanCopyUtils.copyBean(delivery, DeliveryVO.class);
         assert vo != null;
+
+        User inspector = userRepo.getById(delivery.getInspectorId());
+        if (inspector != null) {
+            vo.setInspectorName(inspector.getNickname());
+        }
+
+        List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(delivery.getId(), List.of(FileAttachBizTypeEnum.DELIVERY_IMAGE.getBizType()));
+        vo.setImageList(fileAttachList.stream().map(FileAttach::getFileUrl).collect(Collectors.toList()));
 
         // 查询明细
         List<DeliveryItem> items = deliveryItemRepo.list(new LambdaQueryWrapper<DeliveryItem>().eq(DeliveryItem::getDeliveryId, id).orderByAsc(DeliveryItem::getSortOrder)
@@ -166,7 +178,7 @@ public class DeliveryService {
             throw new BizException("交割单不存在");
         }
 
-        if (delivery.getStatus() != DeliveryStatusEnum.DRAFT.getCode()) {
+        if (delivery.getStatus() != DeliveryStatusEnum.COMPLETED.getCode()) {
             throw new BizException("只有草稿状态的交割单才能签署");
         }
 

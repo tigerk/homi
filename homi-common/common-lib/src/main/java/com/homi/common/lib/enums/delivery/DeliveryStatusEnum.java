@@ -17,12 +17,17 @@ public enum DeliveryStatusEnum {
     /**
      * 作废
      */
-    CANCELLED(0, "作废"),
+    CANCELLED(-1, "作废"),
 
     /**
-     * 草稿
+     * 待填写
      */
-    DRAFT(1, "草稿"),
+    DRAFT(0, "待填写"),
+
+    /**
+     * 已填写
+     */
+    COMPLETED(1, "已填写"),
 
     /**
      * 已签署

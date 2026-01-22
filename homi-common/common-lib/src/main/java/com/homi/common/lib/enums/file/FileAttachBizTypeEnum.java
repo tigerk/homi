@@ -62,6 +62,8 @@ public enum FileAttachBizTypeEnum {
      * 租客同住人其他照片
      */
     TENANT_MATE_OTHER_IMAGE("tenant_mate_other_image"),
+
+    DELIVERY_IMAGE("delivery_image"),
     ;
 
     private final String bizType;

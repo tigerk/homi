@@ -66,4 +66,19 @@ public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
 
         remove(wrapper);
     }
+
+    /**
+     * 原有文件全部删除掉，重新创建文件附件列表
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/12/14 04:13
+     *
+     * @param bizId       业务 ID
+     * @param bizType     业务类型
+     * @param fileUrlList 文件 URL 列表
+     */
+    public void recreateFileAttachList(Long bizId, String bizType, List<String> fileUrlList) {
+        deleteByBizIdAndBizTypes(bizId, List.of(bizType));
+        addFileAttachBatch(bizId, bizType, fileUrlList);
+    }
 }
