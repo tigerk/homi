@@ -7,12 +7,13 @@ import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
+import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.contract.vo.TenantContractVO;
 import com.homi.model.tenant.dto.TenantContractGenerateDTO;
 import com.homi.model.tenant.dto.TenantCreateDTO;
 import com.homi.model.tenant.dto.TenantQueryDTO;
 import com.homi.model.tenant.vo.*;
-import com.homi.model.contract.vo.TenantContractVO;
 import com.homi.model.tenant.vo.bill.TenantBillListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.tenant.TenantBillService;
@@ -150,9 +151,33 @@ public class TenantController {
     }
 
     @PostMapping(value = "/cancel")
-    @Log(title = "删除租客合同", operationType = OperationTypeEnum.INSERT)
+    @Log(title = "租客作废", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<Integer> cancelTenant(@RequestBody TenantQueryDTO query) {
 
         return ResponseResult.ok(tenantContractService.cancelTenant(query.getTenantId()));
+    }
+
+    /**
+     * 租客合同预览功能
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/12 17:32
+     */
+    @PostMapping("/contract/preview")
+    public ResponseEntity<byte[]> previewTenantContract(@RequestBody TenantQueryDTO query) {
+        TenantContractVO tenantContractVO = tenantContractService.getTenantContractByTenantId(query.getTenantId());
+        if (tenantContractVO == null) {
+            throw new IllegalArgumentException("Tenant Contract not found");
+        }
+
+        byte[] pdfBytes = ConvertHtml2PdfUtils.generatePdf(tenantContractVO.getContractContent());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+
+        String fileName = "tenant-preview " + query.getTenantId() + DateUtil.date().toTimestamp() + ".pdf";
+
+        headers.setContentDisposition(ContentDisposition.attachment().filename(fileName).build());
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 }
