@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2026-01-19
+ * @since 2026-01-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -64,8 +64,8 @@ public class Delivery implements Serializable {
     private Long inspectorId;
 
     @Schema(description = "备注")
-    @TableField("remarks")
-    private String remarks;
+    @TableField("remark")
+    private String remark;
 
     @Schema(description = "是否删除")
     @TableField("deleted")

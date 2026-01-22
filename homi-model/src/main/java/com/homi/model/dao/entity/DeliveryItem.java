@@ -1,9 +1,11 @@
 package com.homi.model.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2026-01-19
+ * @since 2026-01-22
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -29,30 +31,30 @@ public class DeliveryItem implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "主键ID")
-    @TableId("id")
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     @Schema(description = "关联交割主表ID")
     @TableField("delivery_id")
     private Long deliveryId;
 
-    @Schema(description = "类别：ASSET-资产物品, METER-能耗表计")
-    @TableField("category")
-    private String category;
+    @Schema(description = "交割项编码(字典数据项value)")
+    @TableField("item_code")
+    private String itemCode;
 
-    @Schema(description = "项目ID")
-    @TableField("item_id")
-    private String itemId;
-
-    @Schema(description = "项目名称：如空调、电表、钥匙")
+    @Schema(description = "交割项名称")
     @TableField("item_name")
     private String itemName;
 
-    @Schema(description = "单位：如个、度、m³")
-    @TableField("item_unit")
-    private String itemUnit;
+    @Schema(description = "项目分类: UTILITY-水电气, FURNITURE-家具, APPLIANCE-家电, FACILITY-设施, OTHER-其他")
+    @TableField("item_category")
+    private String itemCategory;
 
-    @Schema(description = "交割前数值/状态 (对比参考)")
+    @Schema(description = "值类型: TEXT-文本, NUMBER-数值, BOOLEAN-是否")
+    @TableField("value_type")
+    private String valueType;
+
+    @Schema(description = "交割前数值/状态(对比参考)")
     @TableField("pre_value")
     private String preValue;
 
@@ -60,15 +62,29 @@ public class DeliveryItem implements Serializable {
     @TableField("current_value")
     private String currentValue;
 
-    @Schema(description = "是否损坏/异常：0-正常, 1-损坏")
+    @Schema(description = "单位(如: 度、m³、元、个)")
+    @TableField("unit")
+    private String unit;
+
+    @Schema(description = "是否损坏/异常: 0-正常, 1-损坏")
     @TableField("damaged")
     private Boolean damaged;
 
-    @Schema(description = "物品备注 (如：空调遥控器缺失)")
-    @TableField("remarks")
-    private String remarks;
+    @Schema(description = "备注(如: 空调遥控器缺失)")
+    @TableField("remark")
+    private String remark;
 
     @Schema(description = "排序序号")
     @TableField("sort_order")
     private Integer sortOrder;
+
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date createTime;
+
+    @Schema(description = "修改时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date updateTime;
 }
