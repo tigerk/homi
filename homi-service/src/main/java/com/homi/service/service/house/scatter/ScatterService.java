@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
+import com.homi.common.lib.enums.house.RentalTypeEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.*;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -66,7 +68,7 @@ public class ScatterService {
         Community community = communityRepo.createCommunityIfNotExist(scatterCreateDTO.getCommunity());
         scatterCreateDTO.getCommunity().setCommunityId(community.getId());
 
-        // 创建整租房源
+        // 创建分散式房源
         createOrUpdateHouseList(scatterCreateDTO);
 
         // 设置上传文件为已使用
@@ -84,11 +86,24 @@ public class ScatterService {
         return Boolean.TRUE;
     }
 
+    /**
+     * 创建分散式房源列表
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/1/22 10:53
+     *
+     * @param scatterCreateDTO 参数说明
+     */
     private void createOrUpdateHouseList(ScatterCreateDTO scatterCreateDTO) {
         Company company = companyRepo.getById(scatterCreateDTO.getCompanyId());
         String companyCode = company.getCode();
 
         scatterCreateDTO.getHouseList().forEach(houseDTO -> {
+            // 如果是整租房源，需要将 houseLayout 的 facilities/tags/imageList/videoList 更新到 room 中
+            if (RentalTypeEnum.ENTIRE.getCode().equals(houseDTO.getRentalType())) {
+                copyHouseLayoutToRoom(houseDTO.getHouseLayout(), houseDTO.getRoomList());
+            }
+
             // 检查房源是否存在
             Boolean exist = houseRepo.checkHouseExist(houseDTO.getId(), scatterCreateDTO.getCommunity().getCommunityId(),
                 houseDTO.getBuilding(), houseDTO.getUnit(), houseDTO.getDoorNumber());
@@ -150,6 +165,28 @@ public class ScatterService {
              * @param scatterCreateDTO 参数说明
              */
             createScatterRoomList(house, houseDTO.getRoomList());
+        });
+    }
+
+    /**
+     * 复制 houseLayout 的 facilities/tags/imageList/videoList 到 room 中
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/1/22 10:53
+     *
+     * @param houseLayout 参数说明
+     * @param roomList    参数说明
+     */
+    private void copyHouseLayoutToRoom(HouseLayoutDTO houseLayout, List<RoomDetailDTO> roomList) {
+        if (Objects.isNull(houseLayout) || CollectionUtils.isEmpty(roomList)) {
+            return;
+        }
+
+        roomList.forEach(roomDetailDTO -> {
+            roomDetailDTO.setFacilities(houseLayout.getFacilities());
+            roomDetailDTO.setTags(houseLayout.getTags());
+            roomDetailDTO.setImageList(houseLayout.getImageList());
+            roomDetailDTO.setVideoList(houseLayout.getVideoList());
         });
     }
 
