@@ -16,6 +16,10 @@
         <result property="deptName" column="dept_name"/>
         <result property="propertyFee" column="property_fee"/>
         <result property="price" column="price"/>
+        <result property="tags" column="tags" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="facilities" column="facilities" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="imageList" column="image_list" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="videoList" column="video_list" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
         <result property="availableDate" column="available_date"/>
         <result property="vacancyStartTime" column="vacancy_start_time"/>
         <result property="salesmanId" column="salesman_id"/>
@@ -63,6 +67,10 @@
                r.room_number,
                r.floor,
                r.price,
+               r.tags,
+               r.facilities,
+               r.image_list,
+               r.video_list,
                r.room_status,
                r.locked,
                r.closed,

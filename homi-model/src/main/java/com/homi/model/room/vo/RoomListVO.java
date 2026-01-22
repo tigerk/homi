@@ -1,5 +1,6 @@
 package com.homi.model.room.vo;
 
+import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.house.dto.HouseLayoutDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 应用于 homi
@@ -77,6 +79,18 @@ public class RoomListVO {
     @Schema(description = "出租价格")
     private BigDecimal price;
 
+    @Schema(description = "标签")
+    private List<String> tags;
+
+    @Schema(description = "设施")
+    private List<FacilityItemDTO> facilities;
+
+    @Schema(description = "图片列表")
+    private List<String> imageList;
+
+    @Schema(description = "视频列表")
+    private List<String> videoList;
+
     @Schema(description = "可出租日期")
     private String availableDate;
 
@@ -113,6 +127,6 @@ public class RoomListVO {
     @Schema(description = "负责人手机号")
     private String salesmanPhone;
 
-     @Schema(description = "租约信息")
+    @Schema(description = "租约信息")
     private LeaseInfoVO leaseInfo;
 }
