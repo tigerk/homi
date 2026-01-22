@@ -232,9 +232,6 @@ public class ScatterService {
         room.setHouseId(house.getId());
         room.setFloor(house.getFloor());
 
-        if (Objects.isNull(room.getRoomStatus())) {
-            room.setRoomStatus(RoomStatusEnum.AVAILABLE.getCode());
-        }
         RoomStatusEnum roomStatusEnum = roomRepo.calculateRoomStatus(room);
         room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));
@@ -245,7 +242,6 @@ public class ScatterService {
         } else {
             room.setAvailableDate(DateUtil.date());
         }
-
 
         room.setTags(JSONUtil.toJsonStr(roomDetailDTO.getTags()));
         room.setFacilities(JSONUtil.toJsonStr(roomDetailDTO.getFacilities()));
@@ -258,6 +254,7 @@ public class ScatterService {
 
             roomRepo.updateById(room);
         } else {
+            room.setRoomStatus(RoomStatusEnum.AVAILABLE.getCode());
             room.setCreateBy(house.getCreateBy());
             room.setCreateTime(house.getCreateTime());
             room.setVacancyStartTime(DateUtil.date());
