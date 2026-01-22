@@ -22,6 +22,7 @@ import com.homi.model.dao.repo.*;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.tenant.dto.*;
 import com.homi.model.tenant.vo.*;
+import com.homi.service.service.company.CompanyCodeService;
 import com.homi.service.service.room.RoomService;
 import com.homi.service.service.sys.DeptService;
 import com.homi.service.service.sys.DictDataService;
@@ -65,6 +66,7 @@ public class TenantService {
     private final TenantBillService tenantBillService;
     private final DictDataService dictDataService;
     private final TenantMateService tenantMateService;
+    private final CompanyCodeService companyCodeService;
 
 
     /**

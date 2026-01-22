@@ -1,5 +1,6 @@
 package com.homi.service.service.tenant;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
@@ -84,6 +85,8 @@ public class TenantContractService {
         if (Objects.nonNull(tenantContract.getId())) {
             tenantContractRepo.updateById(tenantContract);
         } else {
+            tenantContract.setContractCode(String.format("CTR%s", IdUtil.getSnowflakeNextIdStr()));
+
             tenantContractRepo.save(tenantContract);
         }
 

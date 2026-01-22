@@ -40,10 +40,6 @@ public class Tenant implements Serializable {
     @TableField("parent_tenant_id")
     private String parentTenantId;
 
-    @Schema(description = "合同编号")
-    @TableField("contract_code")
-    private String contractCode;
-
     @Schema(description = "合同性质：1=新签，2=续签，3=转租，4=换房")
     @TableField("contract_nature")
     private Integer contractNature;

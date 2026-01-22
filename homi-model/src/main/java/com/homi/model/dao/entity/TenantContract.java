@@ -33,6 +33,10 @@ public class TenantContract implements Serializable {
     @Schema(description = "租客ID")
     @TableField("tenant_id")
     private Long tenantId;
+    
+    @Schema(description = "合同编号")
+    @TableField("contract_code")
+    private String contractCode;
 
     @Schema(description = "合同模板ID")
     @TableField("contract_template_id")
