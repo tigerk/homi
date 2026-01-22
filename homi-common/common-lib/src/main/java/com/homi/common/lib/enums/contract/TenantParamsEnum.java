@@ -6,27 +6,30 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum TenantParamsEnum {
-    CONTRACT_NUMBER("${租客合同编号}", "${租客合同编号}"),
-    HOUSE_ADDRESS("${房屋地址}", "${房屋地址}"),
-    PROJECT_NAME("${小区/项目名称}", "${小区/项目名称}"),
-    BUILDING_NUMBER("${楼栋号}", "${楼栋号}"),
-    UNIT_NUMBER("${单元号}", "${单元号}"),
-    HOUSE_NUMBER("${门牌号}", "${门牌号}"),
-    SHARED_ROOM_NUMBER("${合租房间号}", "${合租房间号}"),
-    SIGNED_HOUSE_LIST("${签约房源列表}", "${签约房源列表}"),
-    HOUSE_PROPERTY_NUMBER("${房屋产权编号}", "${房屋产权编号}"),
-    HOUSE_TYPE("${房屋类型}", "${房屋类型}"),
-    PROPERTY_TYPE("${产权类型}", "${产权类型}"),
+    CONTRACT_CODE("${租客合同编号}", "${租客合同编号}"),
+    SIGNED_HOUSE_LIST("${签约房源}", "${签约房源}"),
     TOTAL_AREA("${房屋总面积}", "${房屋总面积}"),
-    SIGNED_AREA("${签约面积数}", "${签约面积数}"),
+
+    // 房东姓名
+    OWNER_NAME("${房东姓名}", "${房东姓名}"),
+    // 房东手机号码
+    OWNER_PHONE("${房东手机号}", "${房东手机号}"),
+    // 房东证件号码
+    OWNER_ID_CARD("${房东身份证号}", "${房东身份证号}"),
 
     TENANT_NAME("${租客姓名}", "${租客姓名}"),
     TENANT_PHONE("${租客手机号}", "${租客手机号}"),
-
+    // 租客身份证号
+    TENANT_ID_CARD("${租客身份证号}", "${租客身份证号}"),
     LEASE_START("${合同开始日期}", "${合同开始日期}"),
     LEASE_END("${合同结束日期}", "${合同结束日期}"),
-    RENTAL_PRICE("${租金金额}", "${租金金额}"),
-
+    RENT_PRICE("${月租金}", "${月租金}"),
+    // 支付周期
+    PAYMENT_MONTHS("${支付周期}（月）", "${支付周期（月）}"),
+    // 押金月数
+    DEPOSIT_MONTHS("${押金月数}", "${押金月数}"),
+    // 租客备注信息
+    TENANT_REMARK("${租客备注}", "${租客备注}"),
 
 
     ;

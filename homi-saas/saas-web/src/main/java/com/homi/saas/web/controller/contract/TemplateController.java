@@ -86,7 +86,7 @@ public class TemplateController {
         if (query.getContractType().equals(ContractTypeEnum.TENANT.getCode())) {
             // 租客
             return ResponseResult.ok(Arrays.stream(TenantParamsEnum.values()).map(p -> new Pair<>(p.getKey(), p.getValue())).toList());
-        } else if (query.getContractType().equals(ContractTypeEnum.LANDLORD.getCode())) {
+        } else if (query.getContractType().equals(ContractTypeEnum.OWNER.getCode())) {
             // 房东
             return ResponseResult.ok(Arrays.stream(LandlordParamsEnum.values()).map(p -> new Pair<>(p.getKey(), p.getValue())).toList());
         } else if (query.getContractType().equals(ContractTypeEnum.BOOKING.getCode())) {

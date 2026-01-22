@@ -103,7 +103,7 @@ public class TenantContractService {
         // 替换 ${contractEndDate} 为合同结束日期
         contractContent = contractContent.replace(TenantParamsEnum.LEASE_END.getKey(), tenant.getLeaseEnd().toString());
         // 替换 ${rentalAmount} 为租金金额
-        contractContent = contractContent.replace(TenantParamsEnum.RENTAL_PRICE.getKey(), String.valueOf(tenant.getRentPrice()));
+        contractContent = contractContent.replace(TenantParamsEnum.RENT_PRICE.getKey(), String.valueOf(tenant.getRentPrice()));
         return contractContent;
     }
 
