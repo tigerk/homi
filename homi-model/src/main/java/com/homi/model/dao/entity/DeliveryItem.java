@@ -46,13 +46,9 @@ public class DeliveryItem implements Serializable {
     @TableField("item_name")
     private String itemName;
 
-    @Schema(description = "项目分类: UTILITY-水电气, FURNITURE-家具, APPLIANCE-家电, FACILITY-设施, OTHER-其他")
+    @Schema(description = "项目分类: UTILITY-水电气,FACILITY-设施")
     @TableField("item_category")
     private String itemCategory;
-
-    @Schema(description = "值类型: TEXT-文本, NUMBER-数值, BOOLEAN-是否")
-    @TableField("value_type")
-    private String valueType;
 
     @Schema(description = "交割前数值/状态(对比参考)")
     @TableField("pre_value")

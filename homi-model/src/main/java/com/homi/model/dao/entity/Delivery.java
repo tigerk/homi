@@ -50,7 +50,7 @@ public class Delivery implements Serializable {
     @TableField("handover_type")
     private String handoverType;
 
-    @Schema(description = "交割单状态: 1-草稿, 2-已签署/生效, 0-作废")
+    @Schema(description = "交割单状态: 0-草稿, 1-已签署/生效, -1-作废")
     @TableField("status")
     private Integer status;
 
