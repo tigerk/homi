@@ -32,9 +32,6 @@ public class TenantDetailVO {
     @Schema(description = "租客 ID")
     private Long id;
 
-    @Schema(description = "合同编号")
-    private String contractCode;
-
     @Schema(description = "合同性质：1=新签，2=续签，3=转租，4=换房")
     private Integer contractNature;
 

@@ -1,5 +1,6 @@
 package com.homi.model.tenant.dto;
 
+import com.homi.model.tenant.vo.TenantDetailVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,6 +25,9 @@ public class TenantContractGenerateDTO {
 
     @Schema(description = "租客 ID", example = "1")
     private Long tenantId;
+
+    @Schema(description = "租客详情", example = "TenantDetailVO")
+    private TenantDetailVO tenantDetailVO;
 
     @Schema(description = "合同模板 ID", example = "1")
     private Long contractTemplateId;

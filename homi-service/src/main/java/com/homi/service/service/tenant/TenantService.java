@@ -159,11 +159,13 @@ public class TenantService {
         // 添加同住人
         tenantMateService.saveTenantMateList(tenant.getId(), createDTO.getTenantMateList());
 
-        // 生成租客合同
-        tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), tenant);
-
         // 生成租客账单
         tenantBillGenService.addTenantBill(tenant.getId(), createDTO.getTenant(), createDTO.getOtherFees());
+
+        TenantDetailVO tenantDetailById = getTenantDetailById(tenant.getId());
+
+        // 生成租客合同
+        tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), tenantDetailById);
 
         // 更新房间状态为已租
         roomRepo.updateRoomStatusByRoomIds(createDTO.getTenant().getRoomIds(), RoomStatusEnum.LEASED.getCode());
@@ -542,7 +544,7 @@ public class TenantService {
         }
 
         // 8. 更新合同（如果合同模板发生变更）
-        tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), updatedTenant);
+        tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), originalTenant);
 
         // 9. 租客重置为待签约状态（如果当前是待签约状态）
         if (Objects.equals(updatedTenant.getStatus(), TenantStatusEnum.TO_SIGN.getCode())) {

@@ -1,10 +1,12 @@
 package com.homi.service.service.tenant;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
+import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.contract.vo.TenantContractVO;
 import com.homi.model.dao.entity.ContractTemplate;
@@ -16,11 +18,14 @@ import com.homi.model.dao.repo.TenantContractRepo;
 import com.homi.model.dao.repo.TenantRepo;
 import com.homi.model.tenant.dto.TenantContractGenerateDTO;
 import com.homi.model.tenant.vo.TenantContractSignStatusUpdateDTO;
+import com.homi.model.tenant.vo.TenantDetailVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 租客
@@ -65,45 +70,83 @@ public class TenantContractService {
      * @param tenant             租客
      * @return 租客合同
      */
-    public TenantContract addTenantContract(Long contractTemplateId, Tenant tenant) {
+    public TenantContract addTenantContract(Long contractTemplateId, TenantDetailVO tenant) {
         ContractTemplate contractTemplate = contractTemplateRepo.getById(contractTemplateId);
 
         TenantContract tenantContract = tenantContractRepo.getTenantContractByTenantId(tenant.getId());
         if (Objects.isNull(tenantContract)) {
             tenantContract = new TenantContract();
+            tenantContract.setContractCode(String.format("CTR%s", IdUtil.getSnowflakeNextIdStr()));
         }
 
         tenantContract.setTenantId(tenant.getId());
-        // todo 按照租客信息来替换所有的 ${} 变量
         tenantContract.setContractTemplateId(contractTemplateId);
-        tenantContract.setContractContent(replaceContractVariables(contractTemplate.getTemplateContent(), tenant));
         tenantContract.setSignStatus(0);
-        tenantContract.setDeleted(false);
+
+        TenantContractVO tenantContractVO = BeanCopyUtils.copyBean(tenantContract, TenantContractVO.class);
+        tenant.setTenantContract(tenantContractVO);
+        tenantContract.setContractContent(replaceContractVariables(contractTemplate.getTemplateContent(), tenant));
 
         // 如果租客合同已存在，更新合同内容
 
         if (Objects.nonNull(tenantContract.getId())) {
             tenantContractRepo.updateById(tenantContract);
         } else {
-            tenantContract.setContractCode(String.format("CTR%s", IdUtil.getSnowflakeNextIdStr()));
-
             tenantContractRepo.save(tenantContract);
         }
 
         return tenantContract;
     }
 
-    private String replaceContractVariables(String contractContent, Tenant tenant) {
+    public String replaceContractVariables(String contractContent, TenantDetailVO tenant) {
         // 替换 ${tenantName} 为租客姓名
         contractContent = contractContent.replace(TenantParamsEnum.TENANT_NAME.getKey(), tenant.getTenantName());
         // 替换 ${tenantPhone} 为租客手机号
         contractContent = contractContent.replace(TenantParamsEnum.TENANT_PHONE.getKey(), tenant.getTenantPhone());
+        // 替换 ${tenantIdCard} 为租客身份证号
+        if (tenant.getTenantType().equals(TenantTypeEnum.PERSONAL.getCode())) {
+            contractContent = contractContent.replace(TenantParamsEnum.TENANT_ID_CARD.getKey(), tenant.getTenantPersonal().getIdNo());
+        } else {
+            contractContent = contractContent.replace(TenantParamsEnum.TENANT_ID_CARD.getKey(), tenant.getTenantCompany().getUscc());
+        }
+
         // 替换 ${contractStartDate} 为合同开始日期
-        contractContent = contractContent.replace(TenantParamsEnum.LEASE_START.getKey(), tenant.getLeaseStart().toString());
+        contractContent = contractContent.replace(TenantParamsEnum.LEASE_START.getKey(), DateUtil.formatDate(tenant.getLeaseStart()));
         // 替换 ${contractEndDate} 为合同结束日期
-        contractContent = contractContent.replace(TenantParamsEnum.LEASE_END.getKey(), tenant.getLeaseEnd().toString());
+        contractContent = contractContent.replace(TenantParamsEnum.LEASE_END.getKey(), DateUtil.formatDate(tenant.getLeaseEnd()));
         // 替换 ${rentalAmount} 为租金金额
         contractContent = contractContent.replace(TenantParamsEnum.RENT_PRICE.getKey(), String.valueOf(tenant.getRentPrice()));
+        // 替换 ${paymentMonths} 为支付周期（月）
+        contractContent = contractContent.replace(TenantParamsEnum.PAYMENT_MONTHS.getKey(), String.valueOf(tenant.getPaymentMonths()));
+        // 替换 ${depositMonths} 为押金月数
+        contractContent = contractContent.replace(TenantParamsEnum.DEPOSIT_MONTHS.getKey(), String.valueOf(tenant.getDepositMonths()));
+        // 替换 ${leaseDays} 为租赁天数
+        contractContent = contractContent.replace(TenantParamsEnum.LEASE_DAYS.getKey(), DateUtil.betweenDay(tenant.getLeaseStart(), tenant.getLeaseEnd(), true) + "");
+        // 替换 ${contractCode} 为合同编号
+        contractContent = contractContent.replace(TenantParamsEnum.CONTRACT_CODE.getKey(), tenant.getTenantContract().getContractCode());
+
+        // 替换 ${signedHouseList} 为签约房源
+        contractContent = contractContent.replace(TenantParamsEnum.SIGNED_HOUSE_LIST.getKey(), tenant.getRoomList().stream()
+            .map(roomItem -> {
+                return String.format("%s（%s）", roomItem.getHouseName(), roomItem.getRoomNumber());
+            })
+            .collect(Collectors.joining(",")));
+
+        // 替换 ${totalArea} 为房屋总面积
+        BigDecimal totalArea = BigDecimal.ZERO;
+        if (tenant.getRoomList() != null && !tenant.getRoomList().isEmpty()) {
+            totalArea = tenant.getRoomList().stream()
+                .map(roomItem -> roomItem.getArea() != null ? roomItem.getArea() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+        contractContent = contractContent.replace(TenantParamsEnum.TOTAL_AREA.getKey(), totalArea.toString());
+
+        // 替换 ${tenantRemark} 为租客备注
+        contractContent = contractContent.replace(TenantParamsEnum.TENANT_REMARK.getKey(), tenant.getRemark());
+
+        // 替换 ${contractDate} 为合同时间
+        contractContent = contractContent.replace(TenantParamsEnum.CONTRACT_DATE.getKey(), DateUtil.formatDate(DateUtil.date()));
+
         return contractContent;
     }
 
@@ -118,10 +161,7 @@ public class TenantContractService {
      */
     @Transactional(rollbackFor = Exception.class)
     public TenantContractVO generateTenantContractByTenantId(TenantContractGenerateDTO query) {
-        Tenant tenant = tenantRepo.getById(query.getTenantId());
-        if (tenant == null) {
-            throw new IllegalArgumentException("Tenant not found");
-        }
+        TenantDetailVO tenant = query.getTenantDetailVO();
 
         // 删除旧合同
         tenantContractRepo.removeById(query.getTenantContractId());

@@ -23,6 +23,8 @@ public enum TenantParamsEnum {
     TENANT_ID_CARD("${租客身份证号}", "${租客身份证号}"),
     LEASE_START("${合同开始日期}", "${合同开始日期}"),
     LEASE_END("${合同结束日期}", "${合同结束日期}"),
+    // 租赁天数
+    LEASE_DAYS("${租赁天数}", "${租赁天数}"),
     RENT_PRICE("${月租金}", "${月租金}"),
     // 支付周期
     PAYMENT_MONTHS("${支付周期}（月）", "${支付周期（月）}"),
@@ -31,7 +33,17 @@ public enum TenantParamsEnum {
     // 租客备注信息
     TENANT_REMARK("${租客备注}", "${租客备注}"),
 
+    // 房东签字位
+    OWNER_SIGNATURE("${房东签字}", "${房东签字}"),
 
+    // 租客签字位
+    TENANT_SIGNATURE("${租客签字}", "${租客签字}"),
+
+    // 公司盖章位置
+    COMPANY_SEAL("${公司盖章}", "${公司盖章}"),
+
+    // 合同时间
+    CONTRACT_DATE("${合同时间}", "${合同时间}"),
     ;
 
     private final String key;

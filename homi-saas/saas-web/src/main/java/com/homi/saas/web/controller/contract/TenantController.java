@@ -121,6 +121,13 @@ public class TenantController {
     @PostMapping(value = "/contract/generate")
     @Log(title = "生成租客合同", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<TenantContractVO> generate(@RequestBody TenantContractGenerateDTO query) {
+        TenantDetailVO tenantDetailVO = tenantService.getTenantDetailById(query.getTenantId());
+        if (tenantDetailVO == null) {
+            throw new IllegalArgumentException("Tenant not found");
+        }
+
+        query.setTenantDetailVO(tenantDetailVO);
+
         return ResponseResult.ok(tenantContractService.generateTenantContractByTenantId(query));
     }
 
