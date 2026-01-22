@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
 
@@ -38,7 +39,8 @@ public class PriceConfigService {
         roomPriceConfig.setPrice(priceConfigDTO.getPrice());
 
         // 设置了底价时，根据底价方式计算底价
-        if (Objects.nonNull(priceConfigDTO.getFloorPriceMethod())) {
+        if (Objects.nonNull(priceConfigDTO.getFloorPriceMethod()) && Objects.nonNull(priceConfigDTO.getFloorPriceInput())
+            && priceConfigDTO.getFloorPriceInput().compareTo(BigDecimal.ZERO) > 0) {
             if (priceConfigDTO.getFloorPriceMethod().equals(PriceMethodEnum.FIXED.getCode())) {
                 roomPriceConfig.setFloorPrice(priceConfigDTO.getFloorPriceInput());
             } else {
