@@ -76,8 +76,8 @@ public class DeliveryService {
         }
 
         // 只有草稿状态才能修改
-        if (delivery.getStatus() != DeliveryStatusEnum.CANCELLED.getCode()) {
-            throw new BizException("只有草稿状态的交割单才能修改");
+        if (delivery.getStatus() == DeliveryStatusEnum.CANCELLED.getCode() || delivery.getStatus() == DeliveryStatusEnum.SIGNED.getCode()) {
+            throw new BizException("作废或已签署交割单无法修改！");
         }
 
         // 更新主表
