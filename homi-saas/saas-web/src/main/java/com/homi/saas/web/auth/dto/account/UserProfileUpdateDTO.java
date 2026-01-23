@@ -1,7 +1,11 @@
 package com.homi.saas.web.auth.dto.account;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
+import java.util.Date;
 
 @Data
 public class UserProfileUpdateDTO {
@@ -21,17 +25,13 @@ public class UserProfileUpdateDTO {
      */
     @Size(max = 300, message = "简介长度不能超过300个字符")
     private String remark;
-//
-//    /**
-//     * 性别（0未知，1男，2女）
-//     */
-//    @NotNull(message = "性别不能为空")
-//    @EnumValue(enumClass = GenderEnum.class, message = "性别只能为0（未知），1（男），2（女）")
-//    private Integer gender;
-//
-//    /**
-//     * 出生日期
-//     */
-//    @Past(message = "出生日期必须是过去的时间")
-//    private LocalDateTime birthday;
+
+    private Integer gender;
+
+    /**
+     * 出生日期
+     */
+    @Past(message = "出生日期必须是过去的时间")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date birthday;
 }
