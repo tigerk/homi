@@ -68,4 +68,9 @@ public class LoginManager {
     public static SaTokenInfo getTokenInfo() {
         return StpUtil.getTokenInfo();
     }
+
+    public static void updateLoginUserInfo(UserLoginVO user) {
+        SaSession currentSession = StpUtil.getSession();
+        currentSession.set(SaSession.USER, user);
+    }
 }

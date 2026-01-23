@@ -336,6 +336,12 @@ public class AuthService {
         user.setNickname(userProfileUpdateDTO.getNickname());
         user.setRemark(userProfileUpdateDTO.getRemark());
 
+        // 更新后，刷新登录数据的用户信息
+        currentUser.setNickname(user.getNickname());
+        currentUser.setAvatar(user.getAvatar());
+        currentUser.setRemark(user.getRemark());
+        LoginManager.updateLoginUserInfo(currentUser);
+
         return userRepo.updateById(user);
     }
 }
