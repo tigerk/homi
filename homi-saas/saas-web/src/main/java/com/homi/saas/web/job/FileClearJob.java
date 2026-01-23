@@ -29,7 +29,7 @@ import java.util.List;
 public class FileClearJob {
     private final FileMetaRepo fileMetaRepo;
 
-    @Scheduled(cron = "0 0 3 * * ?") // 每天凌晨3点
+//    @Scheduled(cron = "0 0 3 * * ?") // 每天凌晨3点
     public void cleanUnusedFilesTask() {
         DateTime beforeYesterdayZero = DateUtil.beginOfDay(DateUtil.offsetDay(DateUtil.date(), -2));
 
