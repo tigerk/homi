@@ -57,9 +57,10 @@ public class MyBatisGenerator {
             .mapperPackageName("com.homi.model.dao.mapper")
             .servicePackageName("com.homi.model.dao.repo")
             .tblNameList(ListUtil.of(
-                // 同住人
-                "delivery",
-                "delivery_item"
+                "company_account",
+                "company_consume",
+                "company_fee_config",
+                "company_package"
             )).build();
 
         myBatisGenerator.generate();
