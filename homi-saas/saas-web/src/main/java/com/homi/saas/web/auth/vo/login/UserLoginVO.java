@@ -75,7 +75,7 @@ public class UserLoginVO {
     /**
      * 简介
      */
-    private String intro;
+    private String remark;
 
     /**
      * 性别

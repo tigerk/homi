@@ -10,6 +10,7 @@ import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.menu.vo.AsyncRoutesVO;
+import com.homi.saas.web.auth.dto.account.UserProfileUpdateDTO;
 import com.homi.saas.web.auth.dto.login.LoginDTO;
 import com.homi.saas.web.auth.dto.login.LoginUpdateDTO;
 import com.homi.saas.web.auth.dto.login.TokenRefreshDTO;
@@ -181,8 +182,22 @@ public class LoginController {
      *
      * @return com.homi.common.model.response.ResponseResult<com.homi.saas.web.admin.auth.vo.login.UserLoginVO>
      */
-    @PostMapping("/saas/login/profile")
+    @PostMapping("/saas/login/profile/get")
     public ResponseResult<UserLoginVO> getLoginUserProfile() {
         return ResponseResult.ok(LoginManager.getCurrentUser());
+    }
+
+    /**
+     * 更新当前账户的个人信息
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/1/23 11:44
+     *
+     * @param userProfileUpdateDTO 参数说明
+     * @return com.homi.common.lib.response.ResponseResult<com.homi.saas.web.auth.vo.login.UserLoginVO>
+     */
+    @PostMapping("/saas/login/profile/update")
+    public ResponseResult<Boolean> updateLoginUserProfile(@RequestBody UserProfileUpdateDTO userProfileUpdateDTO) {
+        return ResponseResult.ok(authService.updateUserProfile(userProfileUpdateDTO));
     }
 }

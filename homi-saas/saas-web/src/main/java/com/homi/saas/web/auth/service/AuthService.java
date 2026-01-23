@@ -16,15 +16,17 @@ import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
+import com.homi.model.company.dto.UserCompanyListDTO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.mapper.RoleMapper;
 import com.homi.model.dao.repo.CompanyRepo;
 import com.homi.model.dao.repo.CompanyUserRepo;
 import com.homi.model.dao.repo.UserRepo;
-import com.homi.model.company.dto.UserCompanyListDTO;
 import com.homi.model.menu.vo.AsyncRoutesVO;
+import com.homi.saas.web.auth.dto.account.UserProfileUpdateDTO;
 import com.homi.saas.web.auth.dto.login.LoginDTO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
+import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.company.CompanyPackageService;
 import com.homi.service.service.sys.MenuService;
 import com.homi.service.service.sys.RoleService;
@@ -315,5 +317,25 @@ public class AuthService {
         userService.resetPassword(user);
 
         return true;
+    }
+
+    /**
+     * 更新用户个人信息
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/1/23 11:44
+     *
+     * @param userProfileUpdateDTO 参数说明
+     * @return com.homi.common.lib.response.ResponseResult<com.homi.saas.web.auth.vo.login.UserLoginVO>
+     */
+    public boolean updateUserProfile(UserProfileUpdateDTO userProfileUpdateDTO) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+
+        User user = userRepo.getById(currentUser.getId());
+        user.setAvatar(userProfileUpdateDTO.getAvatar());
+        user.setNickname(userProfileUpdateDTO.getNickname());
+        user.setRemark(userProfileUpdateDTO.getRemark());
+
+        return userRepo.updateById(user);
     }
 }
