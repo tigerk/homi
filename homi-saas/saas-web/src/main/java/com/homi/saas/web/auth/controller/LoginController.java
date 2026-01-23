@@ -172,4 +172,17 @@ public class LoginController {
         // 更新用户密码
         return ResponseResult.ok(authService.updateUserPassword(loginUpdate.getPhone(), loginUpdate.getPassword()));
     }
+
+    /**
+     * 获取当前账户的个人信息
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/6/9 13:48
+     *
+     * @return com.homi.common.model.response.ResponseResult<com.homi.saas.web.admin.auth.vo.login.UserLoginVO>
+     */
+    @PostMapping("/saas/login/profile")
+    public ResponseResult<UserLoginVO> getLoginUserProfile() {
+        return ResponseResult.ok(LoginManager.getCurrentUser());
+    }
 }
