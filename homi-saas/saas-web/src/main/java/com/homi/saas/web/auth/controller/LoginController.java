@@ -183,8 +183,10 @@ public class LoginController {
      * @return com.homi.common.model.response.ResponseResult<com.homi.saas.web.admin.auth.vo.login.UserLoginVO>
      */
     @PostMapping("/saas/login/profile/get")
-    public ResponseResult<UserLoginVO> getLoginUserProfile() {
-        return ResponseResult.ok(LoginManager.getCurrentUser());
+    public ResponseResult<UserProfileUpdateDTO> getLoginUserProfile() {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+
+        return ResponseResult.ok(authService.getUserProfile(currentUser.getId()));
     }
 
     /**

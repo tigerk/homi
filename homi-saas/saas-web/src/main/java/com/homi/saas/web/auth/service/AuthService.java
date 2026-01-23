@@ -351,4 +351,11 @@ public class AuthService {
 
         return userRepo.updateById(user);
     }
+
+    public UserProfileUpdateDTO getUserProfile(Long id) {
+        User user = userRepo.getById(id);
+        UserProfileUpdateDTO userProfileUpdateDTO = new UserProfileUpdateDTO();
+        BeanUtils.copyProperties(user, userProfileUpdateDTO);
+        return userProfileUpdateDTO;
+    }
 }
