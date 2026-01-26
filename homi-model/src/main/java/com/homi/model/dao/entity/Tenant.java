@@ -150,6 +150,11 @@ public class Tenant implements Serializable {
     @TableField("status")
     private Integer status;
 
+    @Schema(description = "审批状态：1-审批中 2-已通过 3-已驳回 4-已撤回")
+    @TableField("approval_status")
+    private Integer approvalStatus;
+
+
     @Schema(description = "租客来源")
     @TableField("tenant_source")
     private Long tenantSource;

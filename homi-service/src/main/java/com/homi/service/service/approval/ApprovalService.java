@@ -80,7 +80,7 @@ public class ApprovalService {
 
         // 2. 检查是否已存在审批实例
         ApprovalInstance existInstance = approvalInstanceRepo.getByBiz(dto.getBizType(), dto.getBizId());
-        if (existInstance != null && existInstance.getStatus() == ApprovalStatusEnum.PENDING.getCode()) {
+        if (existInstance != null && Objects.equals(existInstance.getStatus(), ApprovalStatusEnum.PENDING.getCode())) {
             throw new IllegalArgumentException("该业务已在审批中，请勿重复提交");
         }
 
@@ -91,17 +91,15 @@ public class ApprovalService {
         instance.setFlowId(flow.getId());
         instance.setBizType(dto.getBizType());
         instance.setBizId(dto.getBizId());
-        instance.setBizCode(dto.getBizCode());
         instance.setTitle(dto.getTitle());
         instance.setApplicantId(dto.getApplicantId());
-        instance.setApplicantName(dto.getApplicantName());
         instance.setStatus(ApprovalStatusEnum.PENDING.getCode());
         instance.setCurrentNodeOrder(1);
         instance.setCreateBy(dto.getApplicantId());
         instance.setCreateTime(new Date());
 
         // 设置第一个节点
-        ApprovalNode firstNode = nodes.get(0);
+        ApprovalNode firstNode = nodes.getFirst();
         instance.setCurrentNodeId(firstNode.getId());
 
         approvalInstanceRepo.save(instance);

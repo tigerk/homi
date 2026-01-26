@@ -23,7 +23,6 @@ public class ApprovalFlowRepo extends ServiceImpl<ApprovalFlowMapper, ApprovalFl
             .eq(ApprovalFlow::getCompanyId, companyId)
             .eq(ApprovalFlow::getBizType, bizType)
             .eq(ApprovalFlow::getEnabled, true)
-            .eq(ApprovalFlow::getDeleted, false)
             .one();
     }
 
@@ -36,7 +35,6 @@ public class ApprovalFlowRepo extends ServiceImpl<ApprovalFlowMapper, ApprovalFl
     public ApprovalFlow getByFlowCode(String flowCode) {
         return lambdaQuery()
             .eq(ApprovalFlow::getFlowCode, flowCode)
-            .eq(ApprovalFlow::getDeleted, false)
             .one();
     }
 

@@ -6,6 +6,8 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.StatusEnum;
+import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
+import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.booking.BookingStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
@@ -16,18 +18,22 @@ import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.approval.dto.ApprovalSubmitDTO;
 import com.homi.model.contract.vo.TenantContractVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.tenant.dto.*;
 import com.homi.model.tenant.vo.*;
+import com.homi.service.service.approval.ApprovalResult;
+import com.homi.service.service.approval.ApprovalTemplate;
 import com.homi.service.service.company.CompanyCodeService;
 import com.homi.service.service.room.RoomService;
 import com.homi.service.service.sys.DeptService;
 import com.homi.service.service.sys.DictDataService;
 import com.homi.service.service.sys.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
@@ -45,6 +51,7 @@ import java.util.stream.Collectors;
  * {@code @date} 2025/11/9
  */
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TenantService {
@@ -68,6 +75,7 @@ public class TenantService {
     private final TenantMateService tenantMateService;
     private final CompanyCodeService companyCodeService;
 
+    private final ApprovalTemplate approvalTemplate;
 
     /**
      * 统一创建租客入口（编排逻辑）
@@ -169,6 +177,25 @@ public class TenantService {
 
         // 更新房间状态为已租
         roomRepo.updateRoomStatusByRoomIds(createDTO.getTenant().getRoomIds(), RoomStatusEnum.LEASED.getCode());
+
+        // 2. 提交审批（一行搞定）
+        ApprovalResult approvalResult = approvalTemplate.submitIfNeed(
+            ApprovalSubmitDTO.builder()
+                .companyId(tenant.getCompanyId())
+                .bizType(ApprovalBizTypeEnum.TENANT_CHECKIN.getCode())
+                .bizId(tenant.getId())
+                .title("租客入住审批 - " + tenant.getTenantName())
+                .applicantId(createDTO.getCreateBy())
+                .build(),
+            // 需要审批：PENDING
+            bizId -> tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.PENDING.getCode()),
+            // 无需审批：APPROVED + 生效
+            bizId -> {
+                tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.APPROVED.getCode());
+            }
+        );
+
+        log.info("租客入住处理完成: tenantId={}, needApproval={}", tenant.getId(), approvalResult.isNeedApproval());
 
         return addedTenant.getLeft();
     }

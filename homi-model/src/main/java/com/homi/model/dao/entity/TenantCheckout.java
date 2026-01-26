@@ -90,6 +90,10 @@ public class TenantCheckout implements Serializable {
     @TableField("status")
     private Integer status;
 
+    @Schema(description = "审批状态：1-审批中 2-已通过 3-已驳回 4-已撤回")
+    @TableField("approval_status")
+    private Integer approvalStatus;
+
     @Schema(description = "结算完成时间")
     @TableField("settlement_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

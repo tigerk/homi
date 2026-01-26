@@ -28,4 +28,11 @@ public class TenantCheckoutRepo extends ServiceImpl<TenantCheckoutMapper, Tenant
         tenantCheckout.setStatus(status);
         updateById(tenantCheckout);
     }
+
+    public void updateApprovalStatus(Long checkoutId, Integer bizApprovalStatus) {
+        TenantCheckout tenantCheckout = new TenantCheckout();
+        tenantCheckout.setId(checkoutId);
+        tenantCheckout.setApprovalStatus(bizApprovalStatus);
+        updateById(tenantCheckout);
+    }
 }

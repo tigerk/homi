@@ -167,6 +167,10 @@ public class House implements Serializable {
     @TableField("house_status")
     private Integer houseStatus;
 
+    @Schema(description = "审批状态：1-审批中 2-已通过 3-已驳回 4-已撤回")
+    @TableField("approval_status")
+    private Integer applicationStatus;
+
     @Schema(description = "锁定状态：是否锁定")
     @TableField("locked")
     private Boolean locked;

@@ -9,6 +9,7 @@ import com.homi.model.approval.dto.ApprovalSubmitDTO;
 import com.homi.model.approval.vo.ApprovalFlowVO;
 import com.homi.model.approval.vo.ApprovalInstanceVO;
 import com.homi.model.approval.vo.ApprovalTodoVO;
+import com.homi.model.common.vo.CodeNameVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.approval.ApprovalFlowService;
 import com.homi.service.service.approval.ApprovalService;
@@ -78,7 +79,7 @@ public class ApprovalController {
 
     @Operation(summary = "获取业务类型选项")
     @PostMapping("/flow/biz-types")
-    public ResponseResult<List<Object>> getBizTypeOptions(@AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<List<CodeNameVO>> getBizTypeOptions(@AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(approvalFlowService.getBizTypeOptions());
     }
 
@@ -97,7 +98,6 @@ public class ApprovalController {
     public ResponseResult<Long> submitApproval(@AuthenticationPrincipal UserLoginVO loginUser, @Valid @RequestBody ApprovalSubmitDTO dto) {
         dto.setCompanyId(loginUser.getCurCompanyId());
         dto.setApplicantId(loginUser.getId());
-        dto.setApplicantName(loginUser.getNickname());
         Long instanceId = approvalService.submitApproval(dto);
         return ResponseResult.ok(instanceId);
     }

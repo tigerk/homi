@@ -2,7 +2,10 @@ package com.homi.service.service.approval;
 
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.ApprovalStatusEnum;
+import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
+import com.homi.common.lib.enums.tenant.TenantCheckOutStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
+import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.TenantCheckoutRepo;
 import com.homi.model.dao.repo.TenantRepo;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 审批状态变更事件监听器
- * 负责在审批状态变更时更新对应业务表的状态
+ * <p>
+ * 负责在审批状态变更时更新对应业务表的状态。
+ * <p>
+ * 工作流程：
+ * 1. 审批人处理审批（通过/驳回）或申请人撤回
+ * 2. ApprovalService 发布 ApprovalStatusChangeEvent 事件
+ * 3. 本监听器接收事件，更新业务表的 approval_status 和业务状态
  */
 @Slf4j
 @Component
@@ -22,8 +31,11 @@ public class ApprovalEventListener {
 
     private final TenantRepo tenantRepo;
     private final TenantCheckoutRepo tenantCheckoutRepo;
-    // 可注入其他需要的 Repo
+    private final HouseRepo houseRepo;
 
+    /**
+     * 监听审批状态变更事件
+     */
     @EventListener
     @Transactional(rollbackFor = Exception.class)
     public void handleApprovalStatusChange(ApprovalStatusChangeEvent event) {
@@ -31,7 +43,8 @@ public class ApprovalEventListener {
         Long bizId = event.getBizId();
         Integer approvalStatus = event.getApprovalStatus();
 
-        log.info("收到审批状态变更事件: bizType={}, bizId={}, status={}", bizType, bizId, approvalStatus);
+        log.info("收到审批状态变更事件: bizType={}, bizId={}, approvalStatus={}",
+            bizType, bizId, approvalStatus);
 
         ApprovalBizTypeEnum bizTypeEnum = ApprovalBizTypeEnum.getByCode(bizType);
         if (bizTypeEnum == null) {
@@ -39,77 +52,116 @@ public class ApprovalEventListener {
             return;
         }
 
+        // 转换为业务审批状态
+        Integer bizApprovalStatus = convertToBizApprovalStatus(approvalStatus);
+
+        // 根据业务类型分发处理
         switch (bizTypeEnum) {
-            case TENANT_CHECKIN -> handleTenantCheckinApproval(bizId, approvalStatus);
-            case TENANT_CHECKOUT -> handleTenantCheckoutApproval(bizId, approvalStatus);
-            case HOUSE_CREATE -> handleHouseCreateApproval(bizId, approvalStatus);
-            case CONTRACT_SIGN -> handleContractSignApproval(bizId, approvalStatus);
-            default -> log.info("业务类型 {} 暂无特殊处理", bizType);
+            case TENANT_CHECKIN -> handleTenantCheckin(bizId, approvalStatus, bizApprovalStatus);
+            case TENANT_CHECKOUT -> handleTenantCheckout(bizId, approvalStatus, bizApprovalStatus);
+            case HOUSE_CREATE -> handleHouseCreate(bizId, approvalStatus, bizApprovalStatus);
+            default -> handleDefaultBiz(bizType, bizId, approvalStatus, bizApprovalStatus);
         }
     }
 
     /**
+     * 将审批实例状态转换为业务审批状态
+     */
+    private Integer convertToBizApprovalStatus(Integer approvalStatus) {
+        if (ApprovalStatusEnum.PENDING.getCode().equals(approvalStatus)) {
+            return BizApprovalStatusEnum.PENDING.getCode();
+        } else if (ApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
+            return BizApprovalStatusEnum.APPROVED.getCode();
+        } else if (ApprovalStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
+            return BizApprovalStatusEnum.REJECTED.getCode();
+        } else if (ApprovalStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
+            return BizApprovalStatusEnum.WITHDRAWN.getCode();
+        }
+
+        return BizApprovalStatusEnum.APPROVED.getCode();
+    }
+
+    // ==================== 各业务类型的处理方法 ====================
+
+    /**
      * 处理租客入住审批
      */
-    private void handleTenantCheckinApproval(Long tenantId, Integer approvalStatus) {
+    private void handleTenantCheckin(Long tenantId, Integer approvalStatus, Integer bizApprovalStatus) {
+        // 1. 更新业务表的审批状态
+        tenantRepo.updateApprovalStatus(tenantId, bizApprovalStatus);
+
+        // 2. 根据审批结果更新业务状态
         if (ApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
-            // 审批通过 -> 更新租客状态为生效
+            // 审批通过 -> 租客状态改为生效
             tenantRepo.updateStatusById(tenantId, TenantStatusEnum.EFFECTIVE.getCode());
-            log.info("租客入住审批通过，租客ID: {}", tenantId);
+            log.info("租客入住审批通过，已更新为生效状态: tenantId={}", tenantId);
+
+            // TODO: 可以在这里执行审批通过后的业务逻辑
+            // 如：创建首期账单、发送入住通知等
+
         } else if (ApprovalStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
-            // 审批驳回 -> 可选择保持待签约状态或其他处理
-            log.info("租客入住审批驳回，租客ID: {}", tenantId);
+            // 审批驳回 -> 租客状态保持待签约，可重新提交
+            log.info("租客入住审批驳回: tenantId={}", tenantId);
+
+            // TODO: 可以发送驳回通知
+
         } else if (ApprovalStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
-            // 撤回 -> 恢复待签约状态
-            tenantRepo.updateStatusById(tenantId, TenantStatusEnum.TO_SIGN.getCode());
-            log.info("租客入住审批撤回，租客ID: {}", tenantId);
+            // 撤回 -> 租客状态保持待签约，可重新提交
+            log.info("租客入住审批撤回: tenantId={}", tenantId);
         }
     }
 
     /**
      * 处理退租审批
      */
-    private void handleTenantCheckoutApproval(Long checkoutId, Integer approvalStatus) {
-        if (ApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
-            // 审批通过 -> 更新退租单状态为已完成
-            tenantCheckoutRepo.updateStatus(checkoutId, 2); // 2=已完成
+    private void handleTenantCheckout(Long checkoutId, Integer approvalStatus, Integer bizApprovalStatus) {
+        // 1. 更新退租单的审批状态
+        tenantCheckoutRepo.updateApprovalStatus(checkoutId, bizApprovalStatus);
 
+        // 2. 根据审批结果处理
+        if (ApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
+            // 审批通过 -> 执行退租流程
+            tenantCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.NORMAL_CHECK_OUT.getCode());
+            log.info("退租审批通过: checkoutId={}", checkoutId);
             // TODO: 执行退租后续操作
             // 1. 更新租客状态为已退租
             // 2. 更新房间状态为空置
             // 3. 作废未付账单
-            log.info("退租审批通过，退租单ID: {}", checkoutId);
         } else if (ApprovalStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
-            // 审批驳回 -> 更新退租单状态为草稿，允许重新编辑
-            tenantCheckoutRepo.updateStatus(checkoutId, 0); // 0=草稿
-            log.info("退租审批驳回，退租单ID: {}", checkoutId);
+            // 审批驳回 -> 退租单状态改为草稿，可重新编辑
+            tenantCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
+            log.info("退租审批驳回: checkoutId={}", checkoutId);
+
         } else if (ApprovalStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
-            // 撤回 -> 更新退租单状态为草稿
-            tenantCheckoutRepo.updateStatus(checkoutId, 0);
-            log.info("退租审批撤回，退租单ID: {}", checkoutId);
+            // 撤回 -> 退租单状态改为草稿
+            tenantCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
+            log.info("退租审批撤回: checkoutId={}", checkoutId);
         }
     }
 
     /**
      * 处理房源录入审批
      */
-    private void handleHouseCreateApproval(Long houseId, Integer approvalStatus) {
+    private void handleHouseCreate(Long houseId, Integer approvalStatus, Integer bizApprovalStatus) {
+        // TODO: 注入 HouseRepo 并实现
         if (ApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
-            // TODO: 更新房源状态为已发布
-            log.info("房源录入审批通过，房源ID: {}", houseId);
+            // 审批通过 -> 更新房源状态为已发布
+            log.info("房源录入审批通过: houseId={}", houseId);
         } else if (ApprovalStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
-            // TODO: 更新房源状态为驳回
-            log.info("房源录入审批驳回，房源ID: {}", houseId);
+            // 审批驳回
+            log.info("房源录入审批驳回: houseId={}", houseId);
         }
+
+        houseRepo.updateApprovalStatus(houseId, bizApprovalStatus);
     }
 
     /**
-     * 处理合同签署审批
+     * 默认处理（仅更新审批状态，不处理业务状态）
      */
-    private void handleContractSignApproval(Long contractId, Integer approvalStatus) {
-        if (ApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
-            // TODO: 更新合同状态
-            log.info("合同签署审批通过，合同ID: {}", contractId);
-        }
+    private void handleDefaultBiz(String bizType, Long bizId, Integer approvalStatus, Integer bizApprovalStatus) {
+        // 如果业务表有 approval_status 字段，可以在这里通用处理
+        // 但由于不知道具体是哪张表，这里只打印日志
+        log.info("业务类型 {} 使用默认处理: bizId={}, approvalStatus={}, bizApprovalStatus={}", bizType, bizId, approvalStatus, bizApprovalStatus);
+
     }
 }

@@ -1,14 +1,20 @@
 package com.homi.model.approval.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.NoArgsConstructor;
 
 /**
  * 提交审批 DTO
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ApprovalSubmitDTO {
 
     /**
@@ -31,11 +37,6 @@ public class ApprovalSubmitDTO {
     private Long bizId;
 
     /**
-     * 业务单号（冗余，便于展示）
-     */
-    private String bizCode;
-
-    /**
      * 审批标题
      */
     @NotBlank(message = "审批标题不能为空")
@@ -46,11 +47,6 @@ public class ApprovalSubmitDTO {
      */
     @NotNull(message = "申请人ID不能为空")
     private Long applicantId;
-
-    /**
-     * 申请人姓名（冗余）
-     */
-    private String applicantName;
 
     /**
      * 申请备注

@@ -9,6 +9,7 @@ import com.homi.model.approval.dto.ApprovalFlowDTO;
 import com.homi.model.approval.dto.ApprovalNodeDTO;
 import com.homi.model.approval.vo.ApprovalFlowVO;
 import com.homi.model.approval.vo.ApprovalNodeVO;
+import com.homi.model.common.vo.CodeNameVO;
 import com.homi.model.dao.entity.ApprovalFlow;
 import com.homi.model.dao.entity.ApprovalNode;
 import com.homi.model.dao.repo.ApprovalFlowRepo;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 审批流程配置服务
@@ -177,15 +177,16 @@ public class ApprovalFlowService {
      *
      * @return 业务类型列表
      */
-    public List<Object> getBizTypeOptions() {
-        List<Map<String, Object>> options = new ArrayList<>();
+    public List<CodeNameVO> getBizTypeOptions() {
+        List<CodeNameVO> options = new ArrayList<>();
         for (ApprovalBizTypeEnum bizType : ApprovalBizTypeEnum.values()) {
-            Map<String, Object> option = new HashMap<>();
-            option.put("value", bizType.getCode());
-            option.put("label", bizType.getName());
-            options.add(option);
+            CodeNameVO labelValue = CodeNameVO.builder()
+                    .code(bizType.getCode())
+                    .name(bizType.getName())
+                    .build();
+            options.add(labelValue);
         }
-        return new ArrayList<>(options);
+        return options;
     }
 
     // ==================== 私有方法 ====================

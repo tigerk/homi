@@ -129,4 +129,14 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
             CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : houseDTO.getUnit() + "单元",
             houseDTO.getDoorNumber());
     }
+
+    public void updateApprovalStatus(Long houseId, Integer bizApprovalStatus) {
+        LambdaQueryWrapper<House> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(House::getId, houseId);
+
+        House house = new House();
+        house.setApplicationStatus(bizApprovalStatus);
+
+        update(house, queryWrapper);
+    }
 }

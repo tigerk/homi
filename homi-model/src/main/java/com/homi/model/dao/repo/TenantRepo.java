@@ -91,4 +91,12 @@ public class TenantRepo extends ServiceImpl<TenantMapper, Tenant> {
 
         return getOne(wrapper);
     }
+
+    public boolean updateApprovalStatus(Long tenantId, Integer bizApprovalStatus) {
+        Tenant tenant = new Tenant();
+        tenant.setId(tenantId);
+        tenant.setApprovalStatus(bizApprovalStatus);
+
+        return updateById(tenant);
+    }
 }
