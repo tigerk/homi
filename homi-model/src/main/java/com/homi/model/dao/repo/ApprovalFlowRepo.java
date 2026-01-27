@@ -1,9 +1,14 @@
 package com.homi.model.dao.repo;
 
+import cn.hutool.core.text.CharSequenceUtil;
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.model.approval.dto.ApprovalFlowQueryDTO;
 import com.homi.model.dao.entity.ApprovalFlow;
 import com.homi.model.dao.mapper.ApprovalFlowMapper;
 import org.springframework.stereotype.Repository;
+
+import java.util.Objects;
 
 /**
  * 审批流程 Repo
@@ -41,23 +46,35 @@ public class ApprovalFlowRepo extends ServiceImpl<ApprovalFlowMapper, ApprovalFl
     /**
      * 获取公司所有流程列表
      *
-     * @param companyId 公司ID
+     * @param query 查询参数
      * @return 流程列表
      */
-    public java.util.List<ApprovalFlow> listByCompanyId(Long companyId) {
-        return lambdaQuery()
-            .eq(ApprovalFlow::getCompanyId, companyId)
-            .eq(ApprovalFlow::getDeleted, false)
-            .orderByDesc(ApprovalFlow::getCreateTime)
-            .list();
+    public java.util.List<ApprovalFlow> listFlowByQuery(ApprovalFlowQueryDTO query) {
+        LambdaQueryChainWrapper<ApprovalFlow> approvalFlowLambdaQueryChainWrapper = lambdaQuery()
+            .eq(ApprovalFlow::getCompanyId, query.getCompanyId())
+            .orderByDesc(ApprovalFlow::getCreateTime);
+
+        if (query.getBizType() != null) {
+            approvalFlowLambdaQueryChainWrapper.eq(ApprovalFlow::getBizType, query.getBizType());
+        }
+
+        if (Objects.nonNull(query.getEnabled())) {
+            approvalFlowLambdaQueryChainWrapper.eq(ApprovalFlow::getEnabled, query.getEnabled());
+        }
+
+        if (CharSequenceUtil.isNotBlank(query.getFlowName())) {
+            approvalFlowLambdaQueryChainWrapper.like(ApprovalFlow::getFlowName, query.getFlowName());
+        }
+
+        return approvalFlowLambdaQueryChainWrapper.list();
     }
 
     /**
      * 检查业务类型是否已存在流程
      *
-     * @param companyId  公司ID
-     * @param bizType    业务类型
-     * @param excludeId  排除的流程ID（编辑时使用）
+     * @param companyId 公司ID
+     * @param bizType   业务类型
+     * @param excludeId 排除的流程ID（编辑时使用）
      * @return true=已存在
      */
     public boolean existsByBizType(Long companyId, String bizType, Long excludeId) {

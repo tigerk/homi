@@ -2,10 +2,7 @@ package com.homi.saas.web.controller.approval;
 
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.approval.dto.ApprovalFlowDTO;
-import com.homi.model.approval.dto.ApprovalHandleDTO;
-import com.homi.model.approval.dto.ApprovalQueryDTO;
-import com.homi.model.approval.dto.ApprovalSubmitDTO;
+import com.homi.model.approval.dto.*;
 import com.homi.model.approval.vo.ApprovalFlowVO;
 import com.homi.model.approval.vo.ApprovalInstanceVO;
 import com.homi.model.approval.vo.ApprovalTodoVO;
@@ -41,9 +38,9 @@ public class ApprovalController {
 
     @Operation(summary = "获取审批流程列表")
     @PostMapping("/flow/list")
-    public ResponseResult<List<ApprovalFlowVO>> getFlowList(@AuthenticationPrincipal UserLoginVO loginUser) {
-        Long companyId = loginUser.getCurCompanyId();
-        List<ApprovalFlowVO> list = approvalFlowService.listByCompanyId(companyId);
+    public ResponseResult<List<ApprovalFlowVO>> getFlowList(@RequestBody ApprovalFlowQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
+        query.setCompanyId(loginUser.getCurCompanyId());
+        List<ApprovalFlowVO> list = approvalFlowService.getFlowList(query);
         return ResponseResult.ok(list);
     }
 

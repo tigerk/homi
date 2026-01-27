@@ -6,6 +6,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.model.approval.dto.ApprovalFlowDTO;
+import com.homi.model.approval.dto.ApprovalFlowQueryDTO;
 import com.homi.model.approval.dto.ApprovalNodeDTO;
 import com.homi.model.approval.vo.ApprovalFlowVO;
 import com.homi.model.approval.vo.ApprovalNodeVO;
@@ -33,11 +34,11 @@ public class ApprovalFlowService {
     /**
      * 获取公司的审批流程列表
      *
-     * @param companyId 公司ID
+     * @param query 查询参数
      * @return 流程列表
      */
-    public List<ApprovalFlowVO> listByCompanyId(Long companyId) {
-        List<ApprovalFlow> flows = approvalFlowRepo.listByCompanyId(companyId);
+    public List<ApprovalFlowVO> getFlowList(ApprovalFlowQueryDTO query) {
+        List<ApprovalFlow> flows = approvalFlowRepo.listFlowByQuery(query);
         if (CollUtil.isEmpty(flows)) {
             return Collections.emptyList();
         }
@@ -181,9 +182,9 @@ public class ApprovalFlowService {
         List<CodeNameVO> options = new ArrayList<>();
         for (ApprovalBizTypeEnum bizType : ApprovalBizTypeEnum.values()) {
             CodeNameVO labelValue = CodeNameVO.builder()
-                    .code(bizType.getCode())
-                    .name(bizType.getName())
-                    .build();
+                .code(bizType.getCode())
+                .name(bizType.getName())
+                .build();
             options.add(labelValue);
         }
         return options;

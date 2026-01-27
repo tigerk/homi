@@ -51,7 +51,7 @@ public class ApprovalFlow implements Serializable {
     @TableField("biz_type")
     private String bizType;
 
-    @Schema(description = "是否启用：0=停用，1=启用")
+    @Schema(description = "是否启用：false=停用，true=启用")
     @TableField("enabled")
     private Boolean enabled;
 
