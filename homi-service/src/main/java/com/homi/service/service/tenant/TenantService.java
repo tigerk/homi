@@ -578,6 +578,25 @@ public class TenantService {
             tenantRepo.updateStatusById(tenantId, TenantStatusEnum.TO_SIGN.getCode());
         }
 
+        // 修改租客时，会重新生成审批数据。
+        ApprovalResult approvalResult = approvalTemplate.submitIfNeed(
+            ApprovalSubmitDTO.builder()
+                .companyId(createDTO.getTenant().getCompanyId())
+                .bizType(ApprovalBizTypeEnum.TENANT_CHECKIN.getCode())
+                .bizId(createDTO.getTenant().getId())
+                .title("租客入住审批 - " + createDTO.getTenant().getTenantName())
+                .applicantId(createDTO.getCreateBy())
+                .build(),
+            // 需要审批：PENDING
+            bizId -> tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.PENDING.getCode()),
+            // 无需审批：APPROVED + 生效
+            bizId -> {
+                tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.APPROVED.getCode());
+            }
+        );
+
+        log.info("租客修改处理完成: tenantId={}, needApproval={}", createDTO.getTenant().getId(), approvalResult.isNeedApproval());
+
         return tenantId;
     }
 

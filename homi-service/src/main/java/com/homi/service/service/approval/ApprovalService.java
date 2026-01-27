@@ -4,8 +4,10 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.enums.approval.ApprovalActionStatusEnum;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.ApprovalStatusEnum;
+import com.homi.common.lib.enums.approval.ApproverTypeEnum;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.approval.dto.ApprovalHandleDTO;
 import com.homi.model.approval.dto.ApprovalQueryDTO;
@@ -13,14 +15,8 @@ import com.homi.model.approval.dto.ApprovalSubmitDTO;
 import com.homi.model.approval.vo.ApprovalActionVO;
 import com.homi.model.approval.vo.ApprovalInstanceVO;
 import com.homi.model.approval.vo.ApprovalTodoVO;
-import com.homi.model.dao.entity.ApprovalAction;
-import com.homi.model.dao.entity.ApprovalFlow;
-import com.homi.model.dao.entity.ApprovalInstance;
-import com.homi.model.dao.entity.ApprovalNode;
-import com.homi.model.dao.repo.ApprovalActionRepo;
-import com.homi.model.dao.repo.ApprovalFlowRepo;
-import com.homi.model.dao.repo.ApprovalInstanceRepo;
-import com.homi.model.dao.repo.ApprovalNodeRepo;
+import com.homi.model.dao.entity.*;
+import com.homi.model.dao.repo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -29,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 统一审批服务
@@ -42,6 +39,9 @@ public class ApprovalService {
     private final ApprovalInstanceRepo approvalInstanceRepo;
     private final ApprovalActionRepo approvalActionRepo;
     private final ApplicationEventPublisher eventPublisher;
+    private final RoleRepo roleRepo;
+    private final CompanyUserRepo companyUserRepo;
+    private final DeptRepo deptRepo;
 
     /**
      * 检查业务是否需要审批
@@ -258,8 +258,7 @@ public class ApprovalService {
             action.setNodeOrder(node.getNodeOrder());
             action.setNodeName(node.getNodeName());
             action.setApproverId(approverId);
-            // TODO: 查询审批人姓名
-            action.setStatus(0); // 待审批
+            action.setStatus(ApprovalActionStatusEnum.PENDING.getCode()); // 待审批
             action.setCreateTime(new Date());
             approvalActionRepo.save(action);
         }
@@ -271,20 +270,43 @@ public class ApprovalService {
      * 获取节点的审批人列表
      */
     private List<Long> getApproverIds(ApprovalNode node, ApprovalInstance instance) {
-        return switch (node.getApproverType()) {
-            case 1 -> // 指定用户
-                JSONUtil.toList(node.getApproverIds(), Long.class);
-            case 2 -> // 指定角色
-                // TODO: 根据角色查询用户
-                JSONUtil.toList(node.getApproverIds(), Long.class);
-            case 3 -> // 部门主管
-                // TODO: 查询申请人部门主管
-                List.of();
-            case 4 -> // 发起人自选
-                // TODO: 从提交参数中获取
-                List.of();
-            default -> List.of();
-        };
+        ApproverTypeEnum approverTypeEnum = Objects.requireNonNull(ApproverTypeEnum.fromCode(node.getApproverType()));
+        if (approverTypeEnum == null) {
+            return List.of();
+        }
+
+
+        if (ApproverTypeEnum.SPECIFIC_USER.equals(approverTypeEnum)) {
+            return JSONUtil.toList(node.getApproverIds(), Long.class);
+        }
+
+        if (ApproverTypeEnum.SPECIFIC_ROLE.equals(approverTypeEnum)) {
+            List<Long> list = JSONUtil.toList(node.getApproverIds(), Long.class);
+            return companyUserRepo.getListByRoleIds(list).stream()
+                .map(CompanyUser::getUserId)
+                .collect(Collectors.toList());
+        }
+
+        if (ApproverTypeEnum.DEPARTMENT_SUPERVISOR.equals(approverTypeEnum)) {
+            Long createBy = instance.getCreateBy();
+            CompanyUser companyUser = companyUserRepo.getCompanyUser(instance.getCompanyId(), createBy);
+            if (companyUser == null) {
+                return List.of();
+            }
+
+            Dept dept = deptRepo.getById(companyUser.getDeptId());
+            if (dept == null) {
+                return List.of();
+            }
+            return List.of(dept.getSupervisorId());
+        }
+
+        if (ApproverTypeEnum.SELF_OPTION.equals(approverTypeEnum)) {
+            // TODO: 发起人自选
+            return List.of();
+        }
+
+        return List.of();
     }
 
     /**

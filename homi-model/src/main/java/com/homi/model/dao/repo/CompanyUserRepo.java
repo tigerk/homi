@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.enums.SaasUserTypeEnum;
 import com.homi.common.lib.enums.StatusEnum;
+import com.homi.model.company.dto.UserCompanyListDTO;
 import com.homi.model.dao.entity.Company;
 import com.homi.model.dao.entity.CompanyUser;
 import com.homi.model.dao.mapper.CompanyUserMapper;
-import com.homi.model.company.dto.UserCompanyListDTO;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
@@ -166,10 +166,30 @@ public class CompanyUserRepo extends ServiceImpl<CompanyUserMapper, CompanyUser>
 
     public Long getUserCountByRoleId(Long id) {
         LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
-
-        queryWrapper.apply("JSON_CONTAINS(roles, JSON_ARRAY({0}))", id);  // 使用自定义 SQL 查询 JSON 数据
+        queryWrapper.like(CompanyUser::getRoles, id);
         queryWrapper.eq(CompanyUser::getStatus, StatusEnum.ACTIVE.getValue());
 
         return count(queryWrapper);
+    }
+
+    /**
+     * 获取角色下的公司用户列表
+     *
+     * @param roleIds 角色ID列表
+     * @return 用户数量
+     */
+    public List<CompanyUser> getListByRoleIds(List<Long> roleIds) {
+        if (roleIds.isEmpty()) {
+            return List.of();
+        }
+
+        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
+        roleIds.forEach(roleId ->
+            queryWrapper.or().like(CompanyUser::getRoles, roleId)
+        );
+
+        queryWrapper.eq(CompanyUser::getStatus, StatusEnum.ACTIVE.getValue());
+
+        return list(queryWrapper);
     }
 }

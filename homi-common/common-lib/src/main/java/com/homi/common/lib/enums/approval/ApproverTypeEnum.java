@@ -23,7 +23,7 @@ public enum ApproverTypeEnum {
     private final Integer code;
     private final String name;
 
-    public static ApproverTypeEnum getByCode(Integer code) {
+    public static ApproverTypeEnum fromCode(Integer code) {
         for (ApproverTypeEnum item : values()) {
             if (item.getCode().equals(code)) {
                 return item;

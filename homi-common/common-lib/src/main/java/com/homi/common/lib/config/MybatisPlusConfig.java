@@ -48,7 +48,9 @@ public class MybatisPlusConfig {
         "tenant_mate",
         "delivery_item",
         // 审批节点表
-        "approval_node"
+        "approval_node",
+        // 审批动作表
+        "approval_action"
     );
 
     /**
