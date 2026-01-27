@@ -1,0 +1,71 @@
+server:
+  port: 8889
+
+# 环境配置
+spring:
+  application:
+    name: homi-platform
+  profiles:
+    active: prod
+    # Servlet 配置
+  servlet:
+    # 文件上传相关配置项
+    multipart:
+      max-file-size: 50MB # 单个文件大小
+      max-request-size: 50MB # 设置总上传的文件大小
+  web:
+    resources:
+      # 配置静态资源访问路径
+      static-locations: classpath:/static/
+  # 邮箱模版引擎
+  freemarker:
+    template-loader-path: classpath:/templates/
+    default-encoding: UTF-8
+
+#------------------------mybatis-plus配置--------------------------------
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    # 日志
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      # 使用雪花算法自动生成ID
+      id-type: assign_id
+      # 全局逻辑删除字段名
+      logic-delete-field: deleted
+      # 逻辑已删除值
+      logic-delete-value: true
+      # 逻辑未删除值
+      logic-not-delete-value: false
+  mapper-locations: classpath:mapper/**/*.xml
+
+#------------------------Sa-Token 配置--------------------------------
+sa-token:
+  # token名称 (同时也是cookie名称)
+  token-name: NestToken
+  # token有效期，单位s 默认30天, -1代表永不过期；
+  #  timeout: 1800
+  # 活动有效期，访问时自动续期，设置为 30分钟
+  active-timeout: 1800
+  # jwt秘钥
+  jwt-secret-key: 7z2x8c9n4f6v1b3m5t0qgrywshjklpdae
+  # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
+  is-concurrent: false
+  # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)
+  is-share: true
+  # token风格
+  token-style: uuid
+  # 是否输出操作日志
+  is-log: true
+  # 是否从cookie中读取token
+  is-read-cookie: false
+
+#------------------------swagger配置--------------------------------
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+default-avatar: https://avatars.githubusercontent.com/u/44761321
