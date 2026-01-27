@@ -53,7 +53,6 @@ public class ApprovalNodeRepo extends ServiceImpl<ApprovalNodeMapper, ApprovalNo
         return lambdaQuery()
             .eq(ApprovalNode::getFlowId, flowId)
             .eq(ApprovalNode::getNodeOrder, nodeOrder)
-            .eq(ApprovalNode::getDeleted, false)
             .one();
     }
 
@@ -66,8 +65,7 @@ public class ApprovalNodeRepo extends ServiceImpl<ApprovalNodeMapper, ApprovalNo
     public boolean deleteByFlowId(Long flowId) {
         return lambdaUpdate()
             .eq(ApprovalNode::getFlowId, flowId)
-            .set(ApprovalNode::getDeleted, true)
-            .update();
+            .remove();
     }
 
     /**
@@ -76,10 +74,8 @@ public class ApprovalNodeRepo extends ServiceImpl<ApprovalNodeMapper, ApprovalNo
      * @param flowId 流程ID
      * @return 是否成功
      */
-    public boolean removeByFlowId(Long flowId) {
-        return lambdaUpdate()
-            .eq(ApprovalNode::getFlowId, flowId)
-            .remove();
+    public int deletePhysicalByFlowId(Long flowId) {
+        return getBaseMapper().deletePhysicalByFlowId(flowId);
     }
 
     /**

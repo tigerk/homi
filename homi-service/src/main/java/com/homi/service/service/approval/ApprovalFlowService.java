@@ -101,7 +101,7 @@ public class ApprovalFlowService {
             approvalFlowRepo.updateById(flow);
 
             // 删除旧节点
-            approvalNodeRepo.removeByFlowId(flow.getId());
+            approvalNodeRepo.deletePhysicalByFlowId(flow.getId());
         } else {
             // 新增
             flow = new ApprovalFlow();
@@ -129,7 +129,6 @@ public class ApprovalFlowService {
                 node.setApproverType(nodeDto.getApproverType());
                 node.setApproverIds(JSONUtil.toJsonStr(nodeDto.getApproverIds()));
                 node.setMultiApproveType(nodeDto.getMultiApproveType() != null ? nodeDto.getMultiApproveType() : 1);
-                node.setDeleted(false);
                 node.setCreateTime(new Date());
                 nodes.add(node);
             }
@@ -146,17 +145,8 @@ public class ApprovalFlowService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void deleteFlow(Long flowId) {
-        ApprovalFlow flow = approvalFlowRepo.getById(flowId);
-        if (flow == null) {
-            return;
-        }
-
-        // 逻辑删除流程
-        flow.setDeleted(true);
-        flow.setUpdateTime(new Date());
-        approvalFlowRepo.updateById(flow);
-
-        // 逻辑删除节点
+        // 删除流程
+        approvalFlowRepo.removeById(flowId);
         approvalNodeRepo.deleteByFlowId(flowId);
     }
 
