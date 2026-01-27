@@ -184,7 +184,7 @@ public class TenantService {
                 .companyId(tenant.getCompanyId())
                 .bizType(ApprovalBizTypeEnum.TENANT_CHECKIN.getCode())
                 .bizId(tenant.getId())
-                .title("租客入住审批 - " + tenant.getTenantName())
+                .title(String.format("【租客入住审批】-租客：%s", tenant.getTenantName()))
                 .applicantId(createDTO.getCreateBy())
                 .build(),
             // 需要审批：PENDING
@@ -584,7 +584,7 @@ public class TenantService {
                 .companyId(createDTO.getTenant().getCompanyId())
                 .bizType(ApprovalBizTypeEnum.TENANT_CHECKIN.getCode())
                 .bizId(createDTO.getTenant().getId())
-                .title("租客入住审批 - " + createDTO.getTenant().getTenantName())
+                .title(String.format("【租客入住审批】-租客：%s", createDTO.getTenant().getTenantName()))
                 .applicantId(createDTO.getCreateBy())
                 .build(),
             // 需要审批：PENDING
