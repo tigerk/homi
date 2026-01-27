@@ -144,23 +144,26 @@ public class ApprovalFlowService {
      * @param flowId 流程ID
      */
     @Transactional(rollbackFor = Exception.class)
-    public void deleteFlow(Long flowId) {
+    public boolean deleteFlow(Long flowId) {
         // 删除流程
         approvalFlowRepo.removeById(flowId);
         approvalNodeRepo.deleteByFlowId(flowId);
+
+        return true;
     }
 
     /**
      * 启用/停用审批流程
      *
      * @param flowId 流程ID
+     * @return boolean 是否成功
      */
-    public void toggleFlowStatus(Long flowId) {
+    public boolean toggleFlowStatus(Long flowId) {
         ApprovalFlow flow = approvalFlowRepo.getById(flowId);
         if (flow == null) {
             throw new IllegalArgumentException("流程不存在");
         }
-        approvalFlowRepo.updateEnabled(flowId, !flow.getEnabled());
+        return approvalFlowRepo.updateEnabled(flowId, !flow.getEnabled());
     }
 
     /**

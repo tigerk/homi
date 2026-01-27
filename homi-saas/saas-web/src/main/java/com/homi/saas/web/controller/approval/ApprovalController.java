@@ -63,15 +63,13 @@ public class ApprovalController {
     @Operation(summary = "删除审批流程")
     @PostMapping("/flow/delete")
     public ResponseResult<Boolean> deleteFlow(@AuthenticationPrincipal UserLoginVO loginUser, @RequestBody ApprovalQueryDTO query) {
-        approvalFlowService.deleteFlow(query.getFlowId());
-        return ResponseResult.ok(true);
+        return ResponseResult.ok(approvalFlowService.deleteFlow(query.getFlowId()));
     }
 
     @Operation(summary = "启用/停用审批流程")
     @PostMapping("/flow/toggle")
-    public ResponseResult<Boolean> toggleFlowStatus(@AuthenticationPrincipal UserLoginVO loginUser, @RequestBody ApprovalQueryDTO query) {
-        approvalFlowService.toggleFlowStatus(query.getFlowId());
-        return ResponseResult.ok(true);
+    public ResponseResult<Boolean> toggleFlowStatus(@RequestBody ApprovalQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(approvalFlowService.toggleFlowStatus(query.getFlowId()));
     }
 
     @Operation(summary = "获取业务类型选项")
