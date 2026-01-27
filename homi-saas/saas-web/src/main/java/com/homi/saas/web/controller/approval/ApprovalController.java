@@ -46,7 +46,7 @@ public class ApprovalController {
 
     @Operation(summary = "获取审批流程详情")
     @PostMapping("/flow/detail")
-    public ResponseResult<ApprovalFlowVO> getFlowDetail(@AuthenticationPrincipal UserLoginVO loginUser, @RequestBody ApprovalQueryDTO query) {
+    public ResponseResult<ApprovalFlowVO> getFlowDetail(@RequestBody ApprovalQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
         ApprovalFlowVO vo = approvalFlowService.getFlowDetail(query.getFlowId());
         return ResponseResult.ok(vo);
     }
