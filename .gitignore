@@ -37,7 +37,7 @@ logs/
 ##
 homi-platform/platform-web/src/main/resources/application-prod.yml
 homi-platform/platform-web/src/main/resources/application-dev.yml
-homi-platform/platform-web/src/main/resources/application.yml
+#homi-platform/platform-web/src/main/resources/application.yml
 homi-saas/saas-web/src/main/resources/application-dev.yml
 homi-saas/saas-web/src/main/resources/application-prod.yml
-homi-saas/saas-web/src/main/resources/application.yml
+#homi-saas/saas-web/src/main/resources/application.yml
