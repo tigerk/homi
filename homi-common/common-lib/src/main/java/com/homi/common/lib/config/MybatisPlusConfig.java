@@ -46,7 +46,9 @@ public class MybatisPlusConfig {
         "tenant_other_fee",
         "tenant_bill_other_fee",
         "tenant_mate",
-        "delivery_item"
+        "delivery_item",
+        // 审批节点表
+        "approval_node"
     );
 
     /**
