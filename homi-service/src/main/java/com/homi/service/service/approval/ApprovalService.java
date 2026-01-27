@@ -39,7 +39,7 @@ public class ApprovalService {
     private final ApprovalInstanceRepo approvalInstanceRepo;
     private final ApprovalActionRepo approvalActionRepo;
     private final ApplicationEventPublisher eventPublisher;
-    private final RoleRepo roleRepo;
+    private final UserRepo userRepo;
     private final CompanyUserRepo companyUserRepo;
     private final DeptRepo deptRepo;
 
@@ -359,9 +359,7 @@ public class ApprovalService {
         Page<ApprovalAction> page = new Page<>(query.getCurrentPage(), query.getPageSize());
         Page<ApprovalAction> result = approvalActionRepo.pagePendingByApprover(query.getApproverId(), page);
 
-        List<ApprovalTodoVO> voList = result.getRecords().stream()
-            .map(this::convertToTodoVO)
-            .toList();
+        List<ApprovalTodoVO> voList = result.getRecords().stream().map(this::convertToTodoVO).toList();
 
         PageVO<ApprovalTodoVO> pageVO = new PageVO<>();
         pageVO.setCurrentPage(query.getCurrentPage());
@@ -535,21 +533,26 @@ public class ApprovalService {
 
         // 获取实例信息
         ApprovalInstance instance = approvalInstanceRepo.getById(action.getInstanceId());
-        if (instance != null) {
-            vo.setInstanceNo(instance.getInstanceNo());
-            vo.setBizType(instance.getBizType());
-            vo.setBizId(instance.getBizId());
-            vo.setBizCode(instance.getBizCode());
-            vo.setTitle(instance.getTitle());
-            vo.setApplicantName(instance.getApplicantName());
-            vo.setApplyTime(instance.getCreateTime());
-            vo.setInstanceStatus(instance.getStatus());
-            vo.setInstanceStatusName(Objects.requireNonNull(ApprovalStatusEnum.getByCode(instance.getStatus())).getName());
+        if (Objects.isNull(instance)) {
+            return vo;
+        }
 
-            ApprovalBizTypeEnum bizTypeEnum = ApprovalBizTypeEnum.getByCode(instance.getBizType());
-            if (bizTypeEnum != null) {
-                vo.setBizTypeName(bizTypeEnum.getName());
-            }
+        vo.setInstanceNo(instance.getInstanceNo());
+        vo.setBizType(instance.getBizType());
+        vo.setBizId(instance.getBizId());
+        vo.setBizCode(instance.getBizCode());
+        vo.setTitle(instance.getTitle());
+        User applicant = userRepo.getById(instance.getApplicantId());
+        if (applicant != null) {
+            vo.setApplicantName(applicant.getNickname());
+        }
+        vo.setApplyTime(instance.getCreateTime());
+        vo.setInstanceStatus(instance.getStatus());
+        vo.setInstanceStatusName(Objects.requireNonNull(ApprovalStatusEnum.getByCode(instance.getStatus())).getName());
+
+        ApprovalBizTypeEnum bizTypeEnum = ApprovalBizTypeEnum.getByCode(instance.getBizType());
+        if (bizTypeEnum != null) {
+            vo.setBizTypeName(bizTypeEnum.getName());
         }
 
         return vo;
