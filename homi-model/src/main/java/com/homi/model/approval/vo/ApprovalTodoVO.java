@@ -125,5 +125,5 @@ public class ApprovalTodoVO {
      * 租户详情
      */
     @Schema(description = "租户详情")
-    private TenantDetailVO tenant;
+    private TenantDetailVO tenantDetail;
 }

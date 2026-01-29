@@ -1,6 +1,7 @@
 package com.homi.service.service.approval.provider;
 
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
+import com.homi.model.approval.vo.ApprovalInstanceVO;
 import com.homi.model.approval.vo.ApprovalTodoVO;
 import com.homi.model.tenant.vo.TenantDetailVO;
 import com.homi.service.service.tenant.TenantService;
@@ -31,10 +32,18 @@ public class TenantApprovalDetailProvider implements ApprovalBizDetailProvider {
     }
 
     @Override
-    public void fillBizDetail(ApprovalTodoVO todoVO, Long bizId) {
+    public void fillTodoBizDetail(ApprovalTodoVO todoVO, Long bizId) {
         TenantDetailVO tenantDetail = tenantService.getTenantDetailById(bizId);
         if (Objects.nonNull(tenantDetail)) {
-            todoVO.setTenant(tenantDetail);
+            todoVO.setTenantDetail(tenantDetail);
+        }
+    }
+
+    @Override
+    public void fillInstanceBizDetail(ApprovalInstanceVO instanceVO, Long bizId) {
+        TenantDetailVO tenantDetail = tenantService.getTenantDetailById(bizId);
+        if (Objects.nonNull(tenantDetail)) {
+            instanceVO.setTenantDetail(tenantDetail);
         }
     }
 }

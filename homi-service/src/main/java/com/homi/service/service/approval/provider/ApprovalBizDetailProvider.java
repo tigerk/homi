@@ -1,5 +1,6 @@
 package com.homi.service.service.approval.provider;
 
+import com.homi.model.approval.vo.ApprovalInstanceVO;
 import com.homi.model.approval.vo.ApprovalTodoVO;
 
 /**
@@ -14,5 +15,7 @@ public interface ApprovalBizDetailProvider {
     /**
      * 填充业务详情到待办VO
      */
-    void fillBizDetail(ApprovalTodoVO todoVO, Long bizId);
+    void fillTodoBizDetail(ApprovalTodoVO todoVO, Long bizId);
+
+    void fillInstanceBizDetail(ApprovalInstanceVO instanceVO, Long bizId);
 }

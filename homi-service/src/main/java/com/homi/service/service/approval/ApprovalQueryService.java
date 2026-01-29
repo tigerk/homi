@@ -159,17 +159,19 @@ public class ApprovalQueryService {
         vo.setBizCode(instance.getBizCode());
         vo.setTitle(instance.getTitle());
         vo.setApplicantId(instance.getApplicantId());
-        vo.setApplicantName(instance.getApplicantName());
         vo.setCurrentNodeOrder(instance.getCurrentNodeOrder());
         vo.setStatus(instance.getStatus());
         vo.setResultRemark(instance.getResultRemark());
         vo.setCreateTime(instance.getCreateTime());
         vo.setFinishTime(instance.getFinishTime());
 
+        // 获取申请人姓名
+        Optional.ofNullable(userRepo.getById(instance.getApplicantId()))
+            .ifPresent(user -> vo.setApplicantName(user.getNickname()));
+
         // 使用枚举获取状态名称
-        vo.setStatusName(ApprovalStatusEnum.getByCode(instance.getStatus()) != null
-            ? Objects.requireNonNull(ApprovalStatusEnum.getByCode(instance.getStatus())).getName()
-            : "未知");
+        ApprovalStatusEnum approvalStatusEnum = ApprovalStatusEnum.getByCode(instance.getStatus());
+        vo.setStatusName(Objects.nonNull(approvalStatusEnum) ? approvalStatusEnum.getName() : "未知");
 
         // 设置业务类型名称
         Optional.ofNullable(ApprovalBizTypeEnum.getByCode(instance.getBizType()))
@@ -184,6 +186,9 @@ public class ApprovalQueryService {
         // 查询审批动作列表
         List<ApprovalAction> actions = approvalActionRepo.listByInstanceId(instance.getId());
         vo.setActions(actions.stream().map(this::convertToActionVO).toList());
+
+        // 使用业务详情提供者填充审批实例业务详情
+        fillInstanceBizDetailWithProvider(vo, instance.getBizType(), instance.getBizId());
 
         return vo;
     }
@@ -257,7 +262,7 @@ public class ApprovalQueryService {
             .ifPresent(user -> vo.setApplicantName(user.getNickname()));
 
         // 使用业务详情提供者填充业务详情
-        fillBizDetailWithProvider(vo, instance.getBizType(), instance.getBizId());
+        fillTodoBizDetailWithProvider(vo, instance.getBizType(), instance.getBizId());
 
         return vo;
     }
@@ -265,15 +270,28 @@ public class ApprovalQueryService {
     /**
      * 使用提供者填充业务详情
      */
-    private void fillBizDetailWithProvider(ApprovalTodoVO vo, String bizType, Long bizId) {
+    private void fillTodoBizDetailWithProvider(ApprovalTodoVO vo, String bizType, Long bizId) {
         bizDetailProviders.stream()
             .filter(provider -> provider.getBizType().equals(bizType))
             .findFirst()
             .ifPresent(provider -> {
                 try {
-                    provider.fillBizDetail(vo, bizId);
+                    provider.fillTodoBizDetail(vo, bizId);
                 } catch (Exception e) {
-                    log.error("填充业务详情失败: bizType={}, bizId={}", bizType, bizId, e);
+                    log.error("填充审批待办业务详情失败: bizType={}, bizId={}", bizType, bizId, e);
+                }
+            });
+    }
+
+    private void fillInstanceBizDetailWithProvider(ApprovalInstanceVO vo, String bizType, Long bizId) {
+        bizDetailProviders.stream()
+            .filter(provider -> provider.getBizType().equals(bizType))
+            .findFirst()
+            .ifPresent(provider -> {
+                try {
+                    provider.fillInstanceBizDetail(vo, bizId);
+                } catch (Exception e) {
+                    log.error("填充审批实例业务详情失败: bizType={}, bizId={}", bizType, bizId, e);
                 }
             });
     }
