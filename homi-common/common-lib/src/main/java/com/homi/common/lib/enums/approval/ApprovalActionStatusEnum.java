@@ -20,7 +20,7 @@ public enum ApprovalActionStatusEnum {
     private final Integer code;
     private final String name;
 
-    public static ApprovalActionStatusEnum getByCode(Integer code) {
+    public static ApprovalActionStatusEnum fromCode(Integer code) {
         for (ApprovalActionStatusEnum item : values()) {
             if (item.getCode().equals(code)) {
                 return item;
