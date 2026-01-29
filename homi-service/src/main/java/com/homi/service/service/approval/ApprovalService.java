@@ -3,24 +3,14 @@ package com.homi.service.service.approval;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.approval.ApprovalActionStatusEnum;
-import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.ApprovalStatusEnum;
 import com.homi.common.lib.enums.approval.ApproverTypeEnum;
-import com.homi.common.lib.vo.PageVO;
 import com.homi.model.approval.dto.ApprovalHandleDTO;
-import com.homi.model.approval.dto.ApprovalQueryDTO;
 import com.homi.model.approval.dto.ApprovalSubmitDTO;
-import com.homi.model.approval.vo.ApprovalActionVO;
-import com.homi.model.approval.vo.ApprovalInstanceVO;
-import com.homi.model.approval.vo.ApprovalTodoVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
-import com.homi.model.tenant.vo.TenantDetailVO;
-import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,23 +26,16 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ApprovalService {
-
     private final ApprovalFlowRepo approvalFlowRepo;
     private final ApprovalNodeRepo approvalNodeRepo;
     private final ApprovalInstanceRepo approvalInstanceRepo;
     private final ApprovalActionRepo approvalActionRepo;
     private final ApplicationEventPublisher eventPublisher;
-    private final UserRepo userRepo;
     private final CompanyUserRepo companyUserRepo;
     private final DeptRepo deptRepo;
-    private final TenantService tenantService;
 
     /**
      * 检查业务是否需要审批
-     *
-     * @param companyId 公司ID
-     * @param bizType   业务类型
-     * @return true=需要审批
      */
     public boolean needApproval(Long companyId, String bizType) {
         ApprovalFlow flow = approvalFlowRepo.getEnabledFlow(companyId, bizType);
@@ -65,9 +48,6 @@ public class ApprovalService {
 
     /**
      * 提交审批
-     *
-     * @param dto 提交参数
-     * @return 审批实例ID
      */
     @Transactional(rollbackFor = Exception.class)
     public Long submitApproval(ApprovalSubmitDTO dto) {
@@ -119,8 +99,6 @@ public class ApprovalService {
 
     /**
      * 处理审批（通过/驳回）
-     *
-     * @param dto 处理参数
      */
     @Transactional(rollbackFor = Exception.class)
     public void handleApproval(ApprovalHandleDTO dto) {
@@ -187,17 +165,13 @@ public class ApprovalService {
 
     // ==================== 私有方法 ====================
 
-    /**
-     * 处理通过逻辑
-     */
     private void handleApprove(ApprovalInstance instance, ApprovalAction action) {
         ApprovalNode currentNode = approvalNodeRepo.getById(instance.getCurrentNodeId());
 
-        // 检查会签情况（如果是会签，需要所有人都通过）
+        // 检查会签情况
         if (currentNode.getMultiApproveType() == 2) {
             Long pendingCount = approvalActionRepo.countPendingByNode(instance.getId(), currentNode.getId());
             if (pendingCount > 0) {
-                // 还有人未审批，等待
                 return;
             }
         }
@@ -212,13 +186,12 @@ public class ApprovalService {
             .orElse(null);
 
         if (nextNode == null) {
-            // 没有下一个节点，审批完成
+            // 审批完成
             instance.setStatus(ApprovalStatusEnum.APPROVED.getCode());
             instance.setFinishTime(new Date());
             instance.setResultRemark("审批通过");
             approvalInstanceRepo.updateById(instance);
 
-            // 通知业务层
             publishStatusChangeEvent(instance.getBizType(), instance.getBizId(), ApprovalStatusEnum.APPROVED.getCode());
         } else {
             // 流转到下一个节点
@@ -227,14 +200,10 @@ public class ApprovalService {
             instance.setUpdateTime(new Date());
             approvalInstanceRepo.updateById(instance);
 
-            // 创建下一个节点的审批动作
             createApprovalActions(instance, nextNode);
         }
     }
 
-    /**
-     * 处理驳回逻辑
-     */
     private void handleReject(ApprovalInstance instance, ApprovalAction action, String remark) {
         instance.setStatus(ApprovalStatusEnum.REJECTED.getCode());
         instance.setFinishTime(new Date());
@@ -242,16 +211,11 @@ public class ApprovalService {
         instance.setUpdateTime(new Date());
         approvalInstanceRepo.updateById(instance);
 
-        // 将其他待审批动作标记为已跳过
         approvalActionRepo.skipPendingActions(instance.getId());
 
-        // 通知业务层
         publishStatusChangeEvent(instance.getBizType(), instance.getBizId(), ApprovalStatusEnum.REJECTED.getCode());
     }
 
-    /**
-     * 创建审批动作
-     */
     private void createApprovalActions(ApprovalInstance instance, ApprovalNode node) {
         List<Long> approverIds = getApproverIds(node, instance);
 
@@ -262,23 +226,14 @@ public class ApprovalService {
             action.setNodeOrder(node.getNodeOrder());
             action.setNodeName(node.getNodeName());
             action.setApproverId(approverId);
-            action.setStatus(ApprovalActionStatusEnum.PENDING.getCode()); // 待审批
+            action.setStatus(ApprovalActionStatusEnum.PENDING.getCode());
             action.setCreateTime(new Date());
             approvalActionRepo.save(action);
         }
-
-        // TODO: 发送审批通知（站内信、短信、推送等）
     }
 
-    /**
-     * 获取节点的审批人列表
-     */
     private List<Long> getApproverIds(ApprovalNode node, ApprovalInstance instance) {
         ApproverTypeEnum approverTypeEnum = Objects.requireNonNull(ApproverTypeEnum.fromCode(node.getApproverType()));
-        if (approverTypeEnum == null) {
-            return List.of();
-        }
-
 
         if (ApproverTypeEnum.SPECIFIC_USER.equals(approverTypeEnum)) {
             return JSONUtil.toList(node.getApproverIds(), Long.class);
@@ -305,296 +260,15 @@ public class ApprovalService {
             return List.of(dept.getSupervisorId());
         }
 
-        if (ApproverTypeEnum.SELF_OPTION.equals(approverTypeEnum)) {
-            // TODO: 发起人自选
-            return List.of();
-        }
-
         return List.of();
     }
 
-    /**
-     * 生成审批单号
-     */
     private String generateInstanceNo() {
         return "AP" + IdUtil.getSnowflakeNextIdStr();
     }
 
-    /**
-     * 发布状态变更事件
-     */
     private void publishStatusChangeEvent(String bizType, Long bizId, Integer status) {
         ApprovalStatusChangeEvent event = new ApprovalStatusChangeEvent(this, bizType, bizId, status);
         eventPublisher.publishEvent(event);
-    }
-
-    // ==================== 查询方法 ====================
-
-    /**
-     * 根据业务获取审批实例
-     *
-     * @param bizType 业务类型
-     * @param bizId   业务ID
-     * @return 审批实例VO
-     */
-    public ApprovalInstanceVO getInstanceByBiz(String bizType, Long bizId) {
-        ApprovalInstance instance = approvalInstanceRepo.getByBiz(bizType, bizId);
-        return convertToInstanceVO(instance);
-    }
-
-    /**
-     * 获取审批实例详情
-     *
-     * @param instanceId 实例ID
-     * @return 审批实例VO
-     */
-    public ApprovalInstanceVO getInstanceDetail(Long instanceId) {
-        ApprovalInstance instance = approvalInstanceRepo.getById(instanceId);
-        return convertToInstanceVO(instance);
-    }
-
-    /**
-     * 获取待办列表
-     *
-     * @param query 查询参数
-     * @return 分页结果
-     */
-    public PageVO<ApprovalTodoVO> pageTodoList(ApprovalQueryDTO query) {
-        Page<ApprovalAction> page = new Page<>(query.getCurrentPage(), query.getPageSize());
-        Page<ApprovalAction> result = approvalActionRepo.pagePendingByApprover(query.getApproverId(), page);
-
-        return formatApprovalTodoVOPageVO(query, result);
-    }
-
-    /**
-     * 获取已办列表
-     *
-     * @param query 查询参数
-     * @return 分页结果
-     */
-    public PageVO<ApprovalTodoVO> pageDoneList(ApprovalQueryDTO query) {
-        Page<ApprovalAction> page = new Page<>(query.getCurrentPage(), query.getPageSize());
-        Page<ApprovalAction> result = approvalActionRepo.pageHandledByApprover(query.getApproverId(), page);
-
-        return formatApprovalTodoVOPageVO(query, result);
-    }
-
-    /**
-     * 格式化待办分页VO
-     *
-     * @param query  查询参数
-     * @param result 分页结果
-     * @return 分页VO
-     */
-    @NotNull
-    private PageVO<ApprovalTodoVO> formatApprovalTodoVOPageVO(ApprovalQueryDTO query, Page<ApprovalAction> result) {
-        List<ApprovalTodoVO> voList = result.getRecords().stream().map(this::convertToTodoVO).toList();
-
-        PageVO<ApprovalTodoVO> pageVO = new PageVO<>();
-        pageVO.setCurrentPage(query.getCurrentPage());
-        pageVO.setPageSize(query.getPageSize());
-        pageVO.setTotal(result.getTotal());
-        pageVO.setPages(result.getPages());
-        pageVO.setList(voList);
-        return pageVO;
-    }
-
-    /**
-     * 获取我发起的审批列表
-     *
-     * @param query 查询参数
-     * @return 分页结果
-     */
-    public PageVO<ApprovalInstanceVO> pageApplyList(ApprovalQueryDTO query) {
-        Page<ApprovalInstance> page = new Page<>(query.getCurrentPage(), query.getPageSize());
-        Page<ApprovalInstance> result = approvalInstanceRepo.pageByApplicant(query.getApplicantId(), query.getStatus(), page);
-
-        return formatApprovalInstancePageVO(query, result);
-    }
-
-    /**
-     * 获取全部审批列表
-     *
-     * @param query 查询参数
-     * @return 分页结果
-     */
-    public PageVO<ApprovalInstanceVO> pageAllList(ApprovalQueryDTO query) {
-        Page<ApprovalInstance> page = new Page<>(query.getCurrentPage(), query.getPageSize());
-        Page<ApprovalInstance> result = approvalInstanceRepo.pageByCompany(query.getCompanyId(), query.getBizType(), query.getStatus(), page);
-
-        return formatApprovalInstancePageVO(query, result);
-    }
-
-    /**
-     * 格式化审批实例分页VO
-     *
-     * @param query  查询参数
-     * @param result 分页结果
-     * @return 分页VO
-     */
-    @NotNull
-    private PageVO<ApprovalInstanceVO> formatApprovalInstancePageVO(ApprovalQueryDTO query, Page<ApprovalInstance> result) {
-        List<ApprovalInstanceVO> voList = result.getRecords().stream().map(this::convertToInstanceVO).toList();
-
-        PageVO<ApprovalInstanceVO> pageVO = new PageVO<>();
-        pageVO.setCurrentPage(query.getCurrentPage());
-        pageVO.setPageSize(query.getPageSize());
-        pageVO.setTotal(result.getTotal());
-        pageVO.setPages(result.getPages());
-        pageVO.setList(voList);
-        return pageVO;
-    }
-
-    /**
-     * 统计待办数量
-     *
-     * @param userId 用户ID
-     * @return 待办数量
-     */
-    public long countTodo(Long userId) {
-        return approvalActionRepo.countPendingByApprover(userId);
-    }
-
-    // ==================== 转换方法 ====================
-
-    /**
-     * 转换为实例VO
-     */
-    private ApprovalInstanceVO convertToInstanceVO(ApprovalInstance instance) {
-        if (instance == null) {
-            return null;
-        }
-
-        ApprovalInstanceVO vo = new ApprovalInstanceVO();
-        vo.setId(instance.getId());
-        vo.setInstanceNo(instance.getInstanceNo());
-        vo.setBizType(instance.getBizType());
-        vo.setBizId(instance.getBizId());
-        vo.setBizCode(instance.getBizCode());
-        vo.setTitle(instance.getTitle());
-        vo.setApplicantId(instance.getApplicantId());
-        vo.setApplicantName(instance.getApplicantName());
-        vo.setCurrentNodeOrder(instance.getCurrentNodeOrder());
-        vo.setStatus(instance.getStatus());
-        vo.setStatusName(Objects.requireNonNull(ApprovalStatusEnum.getByCode(instance.getStatus())).getName());
-        vo.setResultRemark(instance.getResultRemark());
-        vo.setCreateTime(instance.getCreateTime());
-        vo.setFinishTime(instance.getFinishTime());
-
-        // 业务类型名称
-        ApprovalBizTypeEnum bizTypeEnum = ApprovalBizTypeEnum.getByCode(instance.getBizType());
-        if (bizTypeEnum != null) {
-            vo.setBizTypeName(bizTypeEnum.getName());
-        }
-
-        // 当前节点名称
-        if (instance.getCurrentNodeId() != null) {
-            ApprovalNode currentNode = approvalNodeRepo.getById(instance.getCurrentNodeId());
-            if (currentNode != null) {
-                vo.setCurrentNodeName(currentNode.getNodeName());
-            }
-        }
-
-        // 审批动作列表
-        List<ApprovalAction> actions = approvalActionRepo.listByInstanceId(instance.getId());
-        vo.setActions(actions.stream().map(this::convertToActionVO).toList());
-
-        return vo;
-    }
-
-    /**
-     * 转换为动作VO
-     */
-    private ApprovalActionVO convertToActionVO(ApprovalAction action) {
-        ApprovalActionVO vo = new ApprovalActionVO();
-        vo.setId(action.getId());
-        vo.setNodeName(action.getNodeName());
-        vo.setNodeOrder(action.getNodeOrder());
-        vo.setApproverId(action.getApproverId());
-        vo.setApproverName(action.getApproverName());
-        vo.setAction(action.getAction());
-        vo.setActionName(getActionName(action.getAction()));
-        vo.setRemark(action.getRemark());
-        vo.setOperateTime(action.getOperateTime());
-        vo.setStatus(action.getStatus());
-        vo.setStatusName(getActionStatusName(action.getStatus()));
-        return vo;
-    }
-
-    /**
-     * 将我的待办转换为待办VO
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2026/1/29 15:27
-
-      * @param action 参数说明
-     * @return com.homi.model.approval.vo.ApprovalTodoVO
-     */
-    private ApprovalTodoVO convertToTodoVO(ApprovalAction action) {
-        ApprovalTodoVO vo = new ApprovalTodoVO();
-        vo.setActionId(action.getId());
-        vo.setInstanceId(action.getInstanceId());
-        vo.setNodeName(action.getNodeName());
-        vo.setNodeOrder(action.getNodeOrder());
-        vo.setAction(action.getAction());
-        vo.setActionName(getActionName(action.getAction()));
-        vo.setRemark(action.getRemark());
-        vo.setOperateTime(action.getOperateTime());
-
-        // 获取实例信息
-        ApprovalInstance instance = approvalInstanceRepo.getById(action.getInstanceId());
-        if (Objects.isNull(instance)) {
-            return vo;
-        }
-
-        vo.setInstanceNo(instance.getInstanceNo());
-        vo.setBizType(instance.getBizType());
-        vo.setBizId(instance.getBizId());
-        ApprovalBizTypeEnum bizTypeEnum = ApprovalBizTypeEnum.getByCode(instance.getBizType());
-        vo.setBizTypeName(Objects.requireNonNull(bizTypeEnum).getName());
-
-        if(bizTypeEnum.equals(ApprovalBizTypeEnum.TENANT_CHECKIN)) {
-            TenantDetailVO tenantDetail = tenantService.getTenantDetailById(instance.getBizId());
-            if (Objects.nonNull(tenantDetail)) {
-                vo.setTenant(tenantDetail);
-            }
-        }
-
-        vo.setBizCode(instance.getBizCode());
-        vo.setTitle(instance.getTitle());
-        User applicant = userRepo.getById(instance.getApplicantId());
-        if (applicant != null) {
-            vo.setApplicantName(applicant.getNickname());
-        }
-        vo.setApplyTime(instance.getCreateTime());
-        vo.setInstanceStatus(instance.getStatus());
-        vo.setInstanceStatusName(Objects.requireNonNull(ApprovalStatusEnum.getByCode(instance.getStatus())).getName());
-
-        return vo;
-    }
-
-    /**
-     * 获取操作名称
-     */
-    private String getActionName(Integer action) {
-        if (action == null) return null;
-        return switch (action) {
-            case 1 -> "通过";
-            case 2 -> "驳回";
-            case 3 -> "转交";
-            default -> "未知";
-        };
-    }
-
-    /**
-     * 获取动作状态名称
-     */
-    private String getActionStatusName(Integer status) {
-        return switch (status) {
-            case 0 -> "待审批";
-            case 1 -> "已审批";
-            case 2 -> "已跳过";
-            default -> "未知";
-        };
     }
 }

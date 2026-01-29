@@ -9,6 +9,7 @@ import com.homi.model.approval.vo.ApprovalTodoVO;
 import com.homi.model.common.vo.CodeNameVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.approval.ApprovalFlowService;
+import com.homi.service.service.approval.ApprovalQueryService;
 import com.homi.service.service.approval.ApprovalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +34,7 @@ public class ApprovalController {
 
     private final ApprovalService approvalService;
     private final ApprovalFlowService approvalFlowService;
+    private final ApprovalQueryService approvalQueryService;
 
     // ==================== 审批流程配置 ====================
 
@@ -117,14 +119,14 @@ public class ApprovalController {
     @Operation(summary = "获取业务的审批实例")
     @PostMapping("/instance/biz")
     public ResponseResult<ApprovalInstanceVO> getApprovalInstance(@AuthenticationPrincipal UserLoginVO loginUser, @RequestBody ApprovalQueryDTO query) {
-        ApprovalInstanceVO vo = approvalService.getInstanceByBiz(query.getBizType(), query.getBizId());
+        ApprovalInstanceVO vo = approvalQueryService.getInstanceByBiz(query.getBizType(), query.getBizId());
         return ResponseResult.ok(vo);
     }
 
     @Operation(summary = "获取审批实例详情")
     @PostMapping("/instance/detail")
     public ResponseResult<ApprovalInstanceVO> getInstanceDetail(@AuthenticationPrincipal UserLoginVO loginUser, @RequestBody ApprovalQueryDTO query) {
-        ApprovalInstanceVO vo = approvalService.getInstanceDetail(query.getInstanceId());
+        ApprovalInstanceVO vo = approvalQueryService.getInstanceDetail(query.getInstanceId());
         return ResponseResult.ok(vo);
     }
 
@@ -132,14 +134,14 @@ public class ApprovalController {
     @PostMapping("/todo/list")
     public ResponseResult<PageVO<ApprovalTodoVO>> getTodoList(@AuthenticationPrincipal UserLoginVO loginUser, @RequestBody ApprovalQueryDTO query) {
         query.setApproverId(loginUser.getId());
-        PageVO<ApprovalTodoVO> page = approvalService.pageTodoList(query);
+        PageVO<ApprovalTodoVO> page = approvalQueryService.pageTodoList(query);
         return ResponseResult.ok(page);
     }
 
     @Operation(summary = "我的待办数量")
     @PostMapping("/todo/count")
     public ResponseResult<Long> getTodoCount(@AuthenticationPrincipal UserLoginVO loginUser) {
-        long count = approvalService.countTodo(loginUser.getId());
+        long count = approvalQueryService.countTodo(loginUser.getId());
         return ResponseResult.ok(count);
     }
 
@@ -147,7 +149,7 @@ public class ApprovalController {
     @PostMapping("/done/list")
     public ResponseResult<PageVO<ApprovalTodoVO>> getDoneList(@AuthenticationPrincipal UserLoginVO loginUser, @RequestBody ApprovalQueryDTO query) {
         query.setApproverId(loginUser.getId());
-        PageVO<ApprovalTodoVO> page = approvalService.pageDoneList(query);
+        PageVO<ApprovalTodoVO> page = approvalQueryService.pageDoneList(query);
         return ResponseResult.ok(page);
     }
 
@@ -155,7 +157,7 @@ public class ApprovalController {
     @PostMapping("/apply/list")
     public ResponseResult<PageVO<ApprovalInstanceVO>> getApplyList(@AuthenticationPrincipal UserLoginVO loginUser, @RequestBody ApprovalQueryDTO query) {
         query.setApplicantId(loginUser.getId());
-        PageVO<ApprovalInstanceVO> page = approvalService.pageApplyList(query);
+        PageVO<ApprovalInstanceVO> page = approvalQueryService.pageApplyList(query);
         return ResponseResult.ok(page);
     }
 
@@ -163,7 +165,7 @@ public class ApprovalController {
     @PostMapping("/all/list")
     public ResponseResult<PageVO<ApprovalInstanceVO>> getAllList(@AuthenticationPrincipal UserLoginVO loginUser, @RequestBody ApprovalQueryDTO query) {
         query.setCompanyId(loginUser.getCurCompanyId());
-        PageVO<ApprovalInstanceVO> page = approvalService.pageAllList(query);
+        PageVO<ApprovalInstanceVO> page = approvalQueryService.pageAllList(query);
         return ResponseResult.ok(page);
     }
 }
