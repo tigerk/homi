@@ -261,9 +261,6 @@ public class ApprovalQueryService {
         Optional.ofNullable(userRepo.getById(instance.getApplicantId()))
             .ifPresent(user -> vo.setApplicantName(user.getNickname()));
 
-        // 使用业务详情提供者填充业务详情
-        fillTodoBizDetailWithProvider(vo, instance.getBizType(), instance.getBizId());
-
         return vo;
     }
 
