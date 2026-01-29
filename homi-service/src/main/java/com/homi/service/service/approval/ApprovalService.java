@@ -17,7 +17,10 @@ import com.homi.model.approval.vo.ApprovalInstanceVO;
 import com.homi.model.approval.vo.ApprovalTodoVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
+import com.homi.model.tenant.vo.TenantDetailVO;
+import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +45,7 @@ public class ApprovalService {
     private final UserRepo userRepo;
     private final CompanyUserRepo companyUserRepo;
     private final DeptRepo deptRepo;
+    private final TenantService tenantService;
 
     /**
      * 检查业务是否需要审批
@@ -359,15 +363,7 @@ public class ApprovalService {
         Page<ApprovalAction> page = new Page<>(query.getCurrentPage(), query.getPageSize());
         Page<ApprovalAction> result = approvalActionRepo.pagePendingByApprover(query.getApproverId(), page);
 
-        List<ApprovalTodoVO> voList = result.getRecords().stream().map(this::convertToTodoVO).toList();
-
-        PageVO<ApprovalTodoVO> pageVO = new PageVO<>();
-        pageVO.setCurrentPage(query.getCurrentPage());
-        pageVO.setPageSize(query.getPageSize());
-        pageVO.setTotal(result.getTotal());
-        pageVO.setPages(result.getPages());
-        pageVO.setList(voList);
-        return pageVO;
+        return formatApprovalTodoVOPageVO(query, result);
     }
 
     /**
@@ -380,9 +376,19 @@ public class ApprovalService {
         Page<ApprovalAction> page = new Page<>(query.getCurrentPage(), query.getPageSize());
         Page<ApprovalAction> result = approvalActionRepo.pageHandledByApprover(query.getApproverId(), page);
 
-        List<ApprovalTodoVO> voList = result.getRecords().stream()
-            .map(this::convertToTodoVO)
-            .toList();
+        return formatApprovalTodoVOPageVO(query, result);
+    }
+
+    /**
+     * 格式化待办分页VO
+     *
+     * @param query  查询参数
+     * @param result 分页结果
+     * @return 分页VO
+     */
+    @NotNull
+    private PageVO<ApprovalTodoVO> formatApprovalTodoVOPageVO(ApprovalQueryDTO query, Page<ApprovalAction> result) {
+        List<ApprovalTodoVO> voList = result.getRecords().stream().map(this::convertToTodoVO).toList();
 
         PageVO<ApprovalTodoVO> pageVO = new PageVO<>();
         pageVO.setCurrentPage(query.getCurrentPage());
@@ -401,20 +407,9 @@ public class ApprovalService {
      */
     public PageVO<ApprovalInstanceVO> pageApplyList(ApprovalQueryDTO query) {
         Page<ApprovalInstance> page = new Page<>(query.getCurrentPage(), query.getPageSize());
-        Page<ApprovalInstance> result = approvalInstanceRepo.pageByApplicant(
-            query.getApplicantId(), query.getStatus(), page);
+        Page<ApprovalInstance> result = approvalInstanceRepo.pageByApplicant(query.getApplicantId(), query.getStatus(), page);
 
-        List<ApprovalInstanceVO> voList = result.getRecords().stream()
-            .map(this::convertToInstanceVO)
-            .toList();
-
-        PageVO<ApprovalInstanceVO> pageVO = new PageVO<>();
-        pageVO.setCurrentPage(query.getCurrentPage());
-        pageVO.setPageSize(query.getPageSize());
-        pageVO.setTotal(result.getTotal());
-        pageVO.setPages(result.getPages());
-        pageVO.setList(voList);
-        return pageVO;
+        return formatApprovalInstancePageVO(query, result);
     }
 
     /**
@@ -425,12 +420,21 @@ public class ApprovalService {
      */
     public PageVO<ApprovalInstanceVO> pageAllList(ApprovalQueryDTO query) {
         Page<ApprovalInstance> page = new Page<>(query.getCurrentPage(), query.getPageSize());
-        Page<ApprovalInstance> result = approvalInstanceRepo.pageByCompany(
-            query.getCompanyId(), query.getBizType(), query.getStatus(), page);
+        Page<ApprovalInstance> result = approvalInstanceRepo.pageByCompany(query.getCompanyId(), query.getBizType(), query.getStatus(), page);
 
-        List<ApprovalInstanceVO> voList = result.getRecords().stream()
-            .map(this::convertToInstanceVO)
-            .toList();
+        return formatApprovalInstancePageVO(query, result);
+    }
+
+    /**
+     * 格式化审批实例分页VO
+     *
+     * @param query  查询参数
+     * @param result 分页结果
+     * @return 分页VO
+     */
+    @NotNull
+    private PageVO<ApprovalInstanceVO> formatApprovalInstancePageVO(ApprovalQueryDTO query, Page<ApprovalInstance> result) {
+        List<ApprovalInstanceVO> voList = result.getRecords().stream().map(this::convertToInstanceVO).toList();
 
         PageVO<ApprovalInstanceVO> pageVO = new PageVO<>();
         pageVO.setCurrentPage(query.getCurrentPage());
@@ -518,7 +522,13 @@ public class ApprovalService {
     }
 
     /**
-     * 转换为待办VO
+     * 将我的待办转换为待办VO
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/1/29 15:27
+
+      * @param action 参数说明
+     * @return com.homi.model.approval.vo.ApprovalTodoVO
      */
     private ApprovalTodoVO convertToTodoVO(ApprovalAction action) {
         ApprovalTodoVO vo = new ApprovalTodoVO();
@@ -540,6 +550,16 @@ public class ApprovalService {
         vo.setInstanceNo(instance.getInstanceNo());
         vo.setBizType(instance.getBizType());
         vo.setBizId(instance.getBizId());
+        ApprovalBizTypeEnum bizTypeEnum = ApprovalBizTypeEnum.getByCode(instance.getBizType());
+        vo.setBizTypeName(Objects.requireNonNull(bizTypeEnum).getName());
+
+        if(bizTypeEnum.equals(ApprovalBizTypeEnum.TENANT_CHECKIN)) {
+            TenantDetailVO tenantDetail = tenantService.getTenantDetailById(instance.getBizId());
+            if (Objects.nonNull(tenantDetail)) {
+                vo.setTenant(tenantDetail);
+            }
+        }
+
         vo.setBizCode(instance.getBizCode());
         vo.setTitle(instance.getTitle());
         User applicant = userRepo.getById(instance.getApplicantId());
@@ -549,11 +569,6 @@ public class ApprovalService {
         vo.setApplyTime(instance.getCreateTime());
         vo.setInstanceStatus(instance.getStatus());
         vo.setInstanceStatusName(Objects.requireNonNull(ApprovalStatusEnum.getByCode(instance.getStatus())).getName());
-
-        ApprovalBizTypeEnum bizTypeEnum = ApprovalBizTypeEnum.getByCode(instance.getBizType());
-        if (bizTypeEnum != null) {
-            vo.setBizTypeName(bizTypeEnum.getName());
-        }
 
         return vo;
     }

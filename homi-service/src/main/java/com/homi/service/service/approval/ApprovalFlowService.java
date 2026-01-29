@@ -1,10 +1,13 @@
 package com.homi.service.service.approval;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
+import com.homi.common.lib.enums.approval.ApproverTypeEnum;
+import com.homi.common.lib.enums.approval.MultiApproveEnum;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.approval.dto.ApprovalFlowDTO;
 import com.homi.model.approval.dto.ApprovalFlowQueryDTO;
 import com.homi.model.approval.dto.ApprovalNodeDTO;
@@ -174,19 +177,18 @@ public class ApprovalFlowService {
     public List<CodeNameVO> getBizTypeOptions() {
         List<CodeNameVO> options = new ArrayList<>();
         for (ApprovalBizTypeEnum bizType : ApprovalBizTypeEnum.values()) {
-            CodeNameVO labelValue = CodeNameVO.builder()
-                .code(bizType.getCode())
-                .name(bizType.getName())
-                .build();
-            options.add(labelValue);
+            options.add(CodeNameVO.builder().code(bizType.getCode()).name(bizType.getName()).build());
         }
         return options;
     }
 
-    // ==================== 私有方法 ====================
-
     /**
      * 生成流程编码
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/1/29 15:38
+     *
+     * @return java.lang.String
      */
     private String generateFlowCode() {
         return "FLOW" + IdUtil.getSnowflakeNextIdStr();
@@ -211,12 +213,13 @@ public class ApprovalFlowService {
      * 转换为 VO
      */
     private ApprovalFlowVO convertToVO(ApprovalFlow flow) {
-        ApprovalFlowVO vo = new ApprovalFlowVO();
-        BeanUtil.copyProperties(flow, vo);
+        ApprovalFlowVO vo = BeanCopyUtils.copyBean(flow, ApprovalFlowVO.class);
+        assert vo != null;
 
         // 业务类型名称
         ApprovalBizTypeEnum bizTypeEnum = ApprovalBizTypeEnum.getByCode(flow.getBizType());
         if (bizTypeEnum != null) {
+
             vo.setBizTypeName(bizTypeEnum.getName());
         }
         return vo;
@@ -246,8 +249,10 @@ public class ApprovalFlowService {
         // 审批人类型名称
         vo.setApproverTypeName(getApproverTypeName(node.getApproverType()));
 
-        // 多人审批方式名称
-        vo.setMultiApproveTypeName(node.getMultiApproveType() == 1 ? "或签" : "会签");
+        MultiApproveEnum multiApproveEnum = EnumUtil.getBy(MultiApproveEnum::getCode, node.getMultiApproveType());
+        if (multiApproveEnum != null) {
+            vo.setMultiApproveTypeName(multiApproveEnum.getName());
+        }
 
         // 审批人ID列表
         if (node.getApproverIds() != null) {
@@ -263,12 +268,11 @@ public class ApprovalFlowService {
      * 获取审批人类型名称
      */
     private String getApproverTypeName(Integer approverType) {
-        return switch (approverType) {
-            case 1 -> "指定用户";
-            case 2 -> "指定角色";
-            case 3 -> "部门主管";
-            case 4 -> "发起人自选";
-            default -> "未知";
-        };
+        ApproverTypeEnum approverTypeEnum = ApproverTypeEnum.fromCode(approverType);
+        if (approverTypeEnum == null) {
+            return "未知";
+        }
+
+        return approverTypeEnum.getName();
     }
 }

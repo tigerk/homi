@@ -128,7 +128,7 @@ public class ApprovalController {
         return ResponseResult.ok(vo);
     }
 
-    @Operation(summary = "我的待办列表")
+    @Operation(summary = "我的审批待办列表")
     @PostMapping("/todo/list")
     public ResponseResult<PageVO<ApprovalTodoVO>> getTodoList(@AuthenticationPrincipal UserLoginVO loginUser, @RequestBody ApprovalQueryDTO query) {
         query.setApproverId(loginUser.getId());
