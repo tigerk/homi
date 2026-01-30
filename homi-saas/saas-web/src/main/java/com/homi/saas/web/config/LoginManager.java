@@ -4,10 +4,12 @@ import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 拦截后台请求
@@ -45,6 +47,15 @@ public class LoginManager {
         }
 
         return userLoginVO;
+    }
+
+    public static UserLoginVO getCurrentUserByUserId(Long userId) {
+        if (Objects.isNull(userId)) {
+            throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
+        }
+
+        SaSession sessionByLoginId = StpUtil.getSessionByLoginId(userId.toString());
+        return (UserLoginVO) sessionByLoginId.get(SaSession.USER);
     }
 
     @SuppressWarnings("unchecked")

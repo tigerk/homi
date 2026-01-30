@@ -68,13 +68,6 @@ public class LoginController {
         return ResponseResult.ok(authService.login(userLogin));
     }
 
-    @PostMapping("/saas/auth/verify")
-    public ResponseResult<Boolean> verifyAuth(@Valid @RequestBody LoginDTO loginDTO) {
-        authService.checkUserLogin(loginDTO);
-
-        return ResponseResult.ok(Boolean.TRUE);
-    }
-
     @GetMapping("/saas/captcha/{username}")
     public void captcha(@PathVariable("username") Long username, HttpServletResponse response) throws IOException {
         // 生成验证码
@@ -99,7 +92,9 @@ public class LoginController {
             throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
         }
 
-        return ResponseResult.ok(LoginManager.getCurrentUser());
+        UserLoginVO userLoginVO = LoginManager.getCurrentUserByUserId(Long.valueOf(loginIdByToken.toString()));
+
+        return ResponseResult.ok(userLoginVO);
     }
 
     @PostMapping("/saas/logout")
