@@ -92,16 +92,16 @@ public class ApprovalInstanceVO {
     private String resultRemark;
 
     /**
-     * 创建时间
-     */
-    @Schema(description = "创建时间")
-    private Date createTime;
-
-    /**
      * 完成时间
      */
     @Schema(description = "完成时间")
     private Date finishTime;
+
+    /**
+     * 创建时间
+     */
+    @Schema(description = "创建时间")
+    private Date createTime;
 
     /**
      * 审批动作列表（审批流程时间线）
