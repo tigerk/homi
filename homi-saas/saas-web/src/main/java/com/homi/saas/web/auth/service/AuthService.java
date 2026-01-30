@@ -82,7 +82,7 @@ public class AuthService {
         String token = StpUtil.getTokenValue();
         user.setAccessToken(token);
         user.setRefreshToken(token);
-        user.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenTimeout()).getTime());
+        user.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenActiveTimeout()).getTime());
 
         List<UserCompanyListDTO> companyListByUserId = companyUserRepo.getCompanyListByUserId(user.getId());
         if (companyListByUserId.isEmpty()) {

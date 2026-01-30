@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 应用于 homi-boot
@@ -86,10 +87,8 @@ public class LoginController {
     @PostMapping("/saas/token/refresh")
     @LoginLog
     public ResponseResult<UserLoginVO> refresh(@RequestBody TokenRefreshDTO req) {
-        Long userId = (Long) StpUtil.getLoginIdByToken(req.getRefreshToken());
-
-        // 校验用户是否存在
-        if (userId == null) {
+        Object loginIdByToken = StpUtil.getLoginIdByToken(req.getRefreshToken());
+        if(Objects.isNull(loginIdByToken)) {
             throw new BizException(ResponseCodeEnum.TOKEN_ERROR);
         }
 
