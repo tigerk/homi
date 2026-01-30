@@ -20,6 +20,6 @@ public class LoginDTO {
     @Size(min = 6, max = 20, message = "密码长度必须在6到20个字符之间")
     private String password;
 
-    @Schema(description = "公司ID")
+    @Schema(description = "公司ID", hidden = true)
     private Long companyId;
 }

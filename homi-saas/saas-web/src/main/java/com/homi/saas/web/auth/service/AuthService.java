@@ -31,6 +31,7 @@ import com.homi.service.service.company.CompanyPackageService;
 import com.homi.service.service.sys.MenuService;
 import com.homi.service.service.sys.RoleService;
 import com.homi.service.service.sys.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.BeanUtils;
@@ -358,4 +359,5 @@ public class AuthService {
         BeanUtils.copyProperties(user, userProfileUpdateDTO);
         return userProfileUpdateDTO;
     }
+
 }

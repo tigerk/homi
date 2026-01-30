@@ -43,6 +43,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
                 ADMIN_PREFIX.concat("/login"),
+                ADMIN_PREFIX.concat("/auth/verify"),
                 ADMIN_PREFIX.concat("/login/sms/send"),
                 ADMIN_PREFIX.concat("/login/update"),
                 ADMIN_PREFIX.concat("/register"),
