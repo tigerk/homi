@@ -47,7 +47,7 @@ sa-token:
   # token有效期，单位s 默认30天, -1代表永不过期；
   #  timeout: 1800
   # 活动有效期，访问时自动续期，设置为 30分钟
-  active-timeout: 60
+  active-timeout: 1800
   # jwt秘钥
   jwt-secret-key: v8d3k2x9m4a0s7tqf5l6npehrywcb1jgzu
   # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
