@@ -20,11 +20,7 @@ public class ApprovalNodeRepo extends ServiceImpl<ApprovalNodeMapper, ApprovalNo
      * @return 节点列表
      */
     public List<ApprovalNode> getNodesByFlowId(Long flowId) {
-        return lambdaQuery()
-            .eq(ApprovalNode::getFlowId, flowId)
-            .eq(ApprovalNode::getDeleted, false)
-            .orderByAsc(ApprovalNode::getNodeOrder)
-            .list();
+        return lambdaQuery().eq(ApprovalNode::getFlowId, flowId).orderByAsc(ApprovalNode::getNodeOrder).list();
     }
 
     /**

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.approval.ApprovalActionStatusEnum;
 import com.homi.common.lib.enums.approval.ApprovalActionTypeEnum;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
-import com.homi.common.lib.enums.approval.ApprovalStatusEnum;
+import com.homi.common.lib.enums.approval.ApprovalInstanceStatusEnum;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.approval.dto.ApprovalQueryDTO;
 import com.homi.model.approval.vo.ApprovalActionVO;
@@ -170,8 +170,8 @@ public class ApprovalQueryService {
             .ifPresent(user -> vo.setApplicantName(user.getNickname()));
 
         // 使用枚举获取状态名称
-        ApprovalStatusEnum approvalStatusEnum = ApprovalStatusEnum.getByCode(instance.getStatus());
-        vo.setStatusName(Objects.nonNull(approvalStatusEnum) ? approvalStatusEnum.getName() : "未知");
+        ApprovalInstanceStatusEnum approvalInstanceStatusEnum = ApprovalInstanceStatusEnum.getByCode(instance.getStatus());
+        vo.setStatusName(Objects.nonNull(approvalInstanceStatusEnum) ? approvalInstanceStatusEnum.getName() : "未知");
 
         // 设置业务类型名称
         Optional.ofNullable(ApprovalBizTypeEnum.getByCode(instance.getBizType()))
@@ -254,8 +254,8 @@ public class ApprovalQueryService {
             .ifPresent(bizType -> vo.setBizTypeName(bizType.getName()));
 
         // 使用枚举获取实例状态名称
-        ApprovalStatusEnum approvalStatusEnum = ApprovalStatusEnum.getByCode(instance.getStatus());
-        vo.setInstanceStatusName(Objects.nonNull(approvalStatusEnum) ? approvalStatusEnum.getName() : "未知");
+        ApprovalInstanceStatusEnum approvalInstanceStatusEnum = ApprovalInstanceStatusEnum.getByCode(instance.getStatus());
+        vo.setInstanceStatusName(Objects.nonNull(approvalInstanceStatusEnum) ? approvalInstanceStatusEnum.getName() : "未知");
 
         // 获取申请人姓名
         Optional.ofNullable(userRepo.getById(instance.getApplicantId()))

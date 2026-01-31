@@ -2,6 +2,7 @@ package com.homi.model.dao.repo;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.enums.approval.ApprovalActionStatusEnum;
 import com.homi.model.dao.entity.ApprovalAction;
 import com.homi.model.dao.mapper.ApprovalActionMapper;
 import org.springframework.stereotype.Repository;
@@ -39,7 +40,7 @@ public class ApprovalActionRepo extends ServiceImpl<ApprovalActionMapper, Approv
         return lambdaQuery()
             .eq(ApprovalAction::getInstanceId, instanceId)
             .eq(ApprovalAction::getApproverId, approverId)
-            .eq(ApprovalAction::getStatus, 0) // 待审批
+            .eq(ApprovalAction::getStatus, ApprovalActionStatusEnum.PENDING.getCode()) // 待审批
             .one();
     }
 
@@ -54,7 +55,7 @@ public class ApprovalActionRepo extends ServiceImpl<ApprovalActionMapper, Approv
         return lambdaQuery()
             .eq(ApprovalAction::getInstanceId, instanceId)
             .eq(ApprovalAction::getNodeId, nodeId)
-            .eq(ApprovalAction::getStatus, 0) // 待审批
+            .eq(ApprovalAction::getStatus, ApprovalActionStatusEnum.PENDING.getCode()) // 待审批
             .count();
     }
 
@@ -67,8 +68,8 @@ public class ApprovalActionRepo extends ServiceImpl<ApprovalActionMapper, Approv
     public boolean skipPendingActions(Long instanceId) {
         return lambdaUpdate()
             .eq(ApprovalAction::getInstanceId, instanceId)
-            .eq(ApprovalAction::getStatus, 0) // 待审批
-            .set(ApprovalAction::getStatus, 2) // 已跳过
+            .eq(ApprovalAction::getStatus, ApprovalActionStatusEnum.PENDING.getCode()) // 待审批
+            .set(ApprovalAction::getStatus, ApprovalActionStatusEnum.SKIPPED.getCode()) // 已跳过
             .update();
     }
 

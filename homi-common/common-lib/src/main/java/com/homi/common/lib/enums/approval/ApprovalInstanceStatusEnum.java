@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum ApprovalStatusEnum {
+public enum ApprovalInstanceStatusEnum {
 
     DRAFT(0, "待提交"),
     PENDING(1, "审批中"),
@@ -21,8 +21,8 @@ public enum ApprovalStatusEnum {
     private final Integer code;
     private final String name;
 
-    public static ApprovalStatusEnum getByCode(Integer code) {
-        for (ApprovalStatusEnum item : values()) {
+    public static ApprovalInstanceStatusEnum getByCode(Integer code) {
+        for (ApprovalInstanceStatusEnum item : values()) {
             if (item.getCode().equals(code)) {
                 return item;
             }

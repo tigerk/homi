@@ -1,6 +1,7 @@
 package com.homi.service.service.approval;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.approval.*;
@@ -14,7 +15,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,7 +64,7 @@ public class ApprovalService {
 
         // 2. 检查是否已存在审批实例
         ApprovalInstance existInstance = approvalInstanceRepo.getByBiz(dto.getBizType(), dto.getBizId());
-        if (existInstance != null && ApprovalStatusEnum.PENDING.getCode().equals(existInstance.getStatus())) {
+        if (existInstance != null && ApprovalInstanceStatusEnum.PENDING.getCode().equals(existInstance.getStatus())) {
             throw new IllegalArgumentException("该业务已在审批中，请勿重复提交");
         }
 
@@ -80,7 +80,7 @@ public class ApprovalService {
         publishStatusChangeEvent(
             dto.getBizType(),
             dto.getBizId(),
-            ApprovalStatusEnum.PENDING.getCode()
+            ApprovalInstanceStatusEnum.PENDING.getCode()
         );
 
         log.info("审批提交成功: instanceId={}, bizType={}, bizId={}",
@@ -99,7 +99,7 @@ public class ApprovalService {
         if (instance == null) {
             throw new IllegalArgumentException("审批实例不存在");
         }
-        if (!ApprovalStatusEnum.PENDING.getCode().equals(instance.getStatus())) {
+        if (!ApprovalInstanceStatusEnum.PENDING.getCode().equals(instance.getStatus())) {
             throw new IllegalArgumentException("该审批已结束");
         }
 
@@ -124,8 +124,7 @@ public class ApprovalService {
             handleTransfer(instance, action, dto.getTransferToId());
         }
 
-        log.info("审批处理成功: instanceId={}, approverId={}, action={}",
-            dto.getInstanceId(), dto.getApproverId(), dto.getAction());
+        log.info("审批处理成功: instanceId={}, approverId={}, action={}", dto.getInstanceId(), dto.getApproverId(), dto.getAction());
     }
 
     /**
@@ -140,14 +139,14 @@ public class ApprovalService {
         if (!instance.getApplicantId().equals(operatorId)) {
             throw new IllegalArgumentException("只有申请人才能撤回");
         }
-        if (!ApprovalStatusEnum.PENDING.getCode().equals(instance.getStatus())) {
+        if (!ApprovalInstanceStatusEnum.PENDING.getCode().equals(instance.getStatus())) {
             throw new IllegalArgumentException("只有审批中的申请才能撤回");
         }
 
         // 更新实例状态
-        instance.setStatus(ApprovalStatusEnum.WITHDRAWN.getCode());
-        instance.setFinishTime(new Date());
-        instance.setUpdateTime(new Date());
+        instance.setStatus(ApprovalInstanceStatusEnum.WITHDRAWN.getCode());
+        instance.setFinishTime(DateUtil.date());
+        instance.setUpdateTime(DateUtil.date());
         approvalInstanceRepo.updateById(instance);
 
         // 将待审批动作标记为已跳过
@@ -157,7 +156,7 @@ public class ApprovalService {
         publishStatusChangeEvent(
             instance.getBizType(),
             instance.getBizId(),
-            ApprovalStatusEnum.WITHDRAWN.getCode()
+            ApprovalInstanceStatusEnum.WITHDRAWN.getCode()
         );
 
         log.info("审批撤回成功: instanceId={}, operatorId={}", instanceId, operatorId);
@@ -177,11 +176,11 @@ public class ApprovalService {
         instance.setBizId(dto.getBizId());
         instance.setTitle(dto.getTitle());
         instance.setApplicantId(dto.getApplicantId());
-        instance.setStatus(ApprovalStatusEnum.PENDING.getCode());
+        instance.setStatus(ApprovalInstanceStatusEnum.PENDING.getCode());
         instance.setCurrentNodeOrder(1);
         instance.setCurrentNodeId(nodes.get(0).getId());
         instance.setCreateBy(dto.getApplicantId());
-        instance.setCreateTime(new Date());
+        instance.setCreateTime(DateUtil.date());
         return instance;
     }
 
@@ -191,7 +190,7 @@ public class ApprovalService {
     private void updateApprovalAction(ApprovalAction action, ApprovalHandleDTO dto) {
         action.setAction(dto.getAction());
         action.setRemark(dto.getRemark());
-        action.setOperateTime(new Date());
+        action.setOperateTime(DateUtil.date());
         action.setStatus(ApprovalActionStatusEnum.APPROVED.getCode());
         approvalActionRepo.updateById(action);
     }
@@ -204,9 +203,7 @@ public class ApprovalService {
 
         // 检查会签情况
         if (MultiApproveEnum.AND_SIGN.getCode() == currentNode.getMultiApproveType()) {
-            Long pendingCount = approvalActionRepo.countPendingByNode(
-                instance.getId(),
-                currentNode.getId()
+            Long pendingCount = approvalActionRepo.countPendingByNode(instance.getId(), currentNode.getId()
             );
             if (pendingCount > 0) {
                 log.info("会签模式，还有{}人未审批", pendingCount);
@@ -236,16 +233,16 @@ public class ApprovalService {
      * 完成审批
      */
     private void completeApproval(ApprovalInstance instance) {
-        instance.setStatus(ApprovalStatusEnum.APPROVED.getCode());
-        instance.setFinishTime(new Date());
+        instance.setStatus(ApprovalInstanceStatusEnum.APPROVED.getCode());
+        instance.setFinishTime(DateUtil.date());
         instance.setResultRemark("审批通过");
-        instance.setUpdateTime(new Date());
+        instance.setUpdateTime(DateUtil.date());
         approvalInstanceRepo.updateById(instance);
 
         publishStatusChangeEvent(
             instance.getBizType(),
             instance.getBizId(),
-            ApprovalStatusEnum.APPROVED.getCode()
+            ApprovalInstanceStatusEnum.APPROVED.getCode()
         );
 
         log.info("审批流程完成: instanceId={}", instance.getId());
@@ -257,7 +254,7 @@ public class ApprovalService {
     private void moveToNextNode(ApprovalInstance instance, ApprovalNode nextNode) {
         instance.setCurrentNodeId(nextNode.getId());
         instance.setCurrentNodeOrder(nextNode.getNodeOrder());
-        instance.setUpdateTime(new Date());
+        instance.setUpdateTime(DateUtil.date());
         approvalInstanceRepo.updateById(instance);
 
         createApprovalActions(instance, nextNode);
@@ -270,19 +267,16 @@ public class ApprovalService {
      * 处理驳回
      */
     private void handleReject(ApprovalInstance instance, ApprovalAction action, String remark) {
-        instance.setStatus(ApprovalStatusEnum.REJECTED.getCode());
-        instance.setFinishTime(new Date());
+        instance.setStatus(ApprovalInstanceStatusEnum.REJECTED.getCode());
+        instance.setFinishTime(DateUtil.date());
         instance.setResultRemark(remark);
-        instance.setUpdateTime(new Date());
+        instance.setUpdateTime(DateUtil.date());
         approvalInstanceRepo.updateById(instance);
 
         // 跳过所有待审批动作
         approvalActionRepo.skipPendingActions(instance.getId());
 
-        publishStatusChangeEvent(
-            instance.getBizType(),
-            instance.getBizId(),
-            ApprovalStatusEnum.REJECTED.getCode()
+        publishStatusChangeEvent(instance.getBizType(), instance.getBizId(), ApprovalInstanceStatusEnum.REJECTED.getCode()
         );
 
         log.info("审批驳回: instanceId={}, remark={}", instance.getId(), remark);
@@ -304,11 +298,10 @@ public class ApprovalService {
         newAction.setNodeName(action.getNodeName());
         newAction.setApproverId(transferToId);
         newAction.setStatus(ApprovalActionStatusEnum.PENDING.getCode());
-        newAction.setCreateTime(new Date());
+        newAction.setCreateTime(DateUtil.date());
         approvalActionRepo.save(newAction);
 
-        log.info("审批转交成功: instanceId={}, fromUserId={}, toUserId={}",
-            instance.getId(), action.getApproverId(), transferToId);
+        log.info("审批转交成功: instanceId={}, fromUserId={}, toUserId={}", instance.getId(), action.getApproverId(), transferToId);
     }
 
     /**
@@ -330,7 +323,7 @@ public class ApprovalService {
             action.setNodeName(node.getNodeName());
             action.setApproverId(approverId);
             action.setStatus(ApprovalActionStatusEnum.PENDING.getCode());
-            action.setCreateTime(new Date());
+            action.setCreateTime(DateUtil.date());
             approvalActionRepo.save(action);
         }
 

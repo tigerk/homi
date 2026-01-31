@@ -1,7 +1,7 @@
 package com.homi.service.service.approval;
 
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
-import com.homi.common.lib.enums.approval.ApprovalStatusEnum;
+import com.homi.common.lib.enums.approval.ApprovalInstanceStatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantCheckOutStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
@@ -68,13 +68,13 @@ public class ApprovalEventListener {
      * 将审批实例状态转换为业务审批状态
      */
     private Integer convertToBizApprovalStatus(Integer approvalStatus) {
-        if (ApprovalStatusEnum.PENDING.getCode().equals(approvalStatus)) {
+        if (ApprovalInstanceStatusEnum.PENDING.getCode().equals(approvalStatus)) {
             return BizApprovalStatusEnum.PENDING.getCode();
-        } else if (ApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
+        } else if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
             return BizApprovalStatusEnum.APPROVED.getCode();
-        } else if (ApprovalStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
+        } else if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
             return BizApprovalStatusEnum.REJECTED.getCode();
-        } else if (ApprovalStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
+        } else if (ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
             return BizApprovalStatusEnum.WITHDRAWN.getCode();
         }
 
@@ -91,7 +91,7 @@ public class ApprovalEventListener {
         tenantRepo.updateApprovalStatus(tenantId, bizApprovalStatus);
 
         // 2. 根据审批结果更新业务状态
-        if (ApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
+        if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
             // 审批通过 -> 租客状态改为生效
             tenantRepo.updateStatusById(tenantId, TenantStatusEnum.EFFECTIVE.getCode());
             log.info("租客入住审批通过，已更新为生效状态: tenantId={}", tenantId);
@@ -99,13 +99,13 @@ public class ApprovalEventListener {
             // TODO: 可以在这里执行审批通过后的业务逻辑
             // 如：创建首期账单、发送入住通知等
 
-        } else if (ApprovalStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
+        } else if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
             // 审批驳回 -> 租客状态保持待签约，可重新提交
             log.info("租客入住审批驳回: tenantId={}", tenantId);
 
             // TODO: 可以发送驳回通知
 
-        } else if (ApprovalStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
+        } else if (ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
             // 撤回 -> 租客状态保持待签约，可重新提交
             log.info("租客入住审批撤回: tenantId={}", tenantId);
         }
@@ -119,7 +119,7 @@ public class ApprovalEventListener {
         tenantCheckoutRepo.updateApprovalStatus(checkoutId, bizApprovalStatus);
 
         // 2. 根据审批结果处理
-        if (ApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
+        if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
             // 审批通过 -> 执行退租流程
             tenantCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.NORMAL_CHECK_OUT.getCode());
             log.info("退租审批通过: checkoutId={}", checkoutId);
@@ -127,12 +127,12 @@ public class ApprovalEventListener {
             // 1. 更新租客状态为已退租
             // 2. 更新房间状态为空置
             // 3. 作废未付账单
-        } else if (ApprovalStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
+        } else if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
             // 审批驳回 -> 退租单状态改为草稿，可重新编辑
             tenantCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
             log.info("退租审批驳回: checkoutId={}", checkoutId);
 
-        } else if (ApprovalStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
+        } else if (ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
             // 撤回 -> 退租单状态改为草稿
             tenantCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
             log.info("退租审批撤回: checkoutId={}", checkoutId);
@@ -144,10 +144,10 @@ public class ApprovalEventListener {
      */
     private void handleHouseCreate(Long houseId, Integer approvalStatus, Integer bizApprovalStatus) {
         // TODO: 注入 HouseRepo 并实现
-        if (ApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
+        if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
             // 审批通过 -> 更新房源状态为已发布
             log.info("房源录入审批通过: houseId={}", houseId);
-        } else if (ApprovalStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
+        } else if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
             // 审批驳回
             log.info("房源录入审批驳回: houseId={}", houseId);
         }
