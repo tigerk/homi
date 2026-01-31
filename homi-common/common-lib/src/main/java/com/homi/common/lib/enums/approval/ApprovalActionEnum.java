@@ -4,19 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 审批实例状态枚举
+ * 审批操作枚举
  */
 @Getter
 @AllArgsConstructor
 public enum ApprovalActionEnum {
-
-    DRAFT(0, "待提交"),
-    PENDING(1, "审批中"),
-    APPROVED(2, "已通过"),
-    REJECTED(3, "已驳回"),
-    WITHDRAWN(4, "已撤回"),
-    CANCELLED(5, "已取消"),
-    ;
+    APPROVED(1, "已通过"),
+    REJECTED(2, "已驳回"),
+    TRANSFERRED(3, "已转交");
 
     private final Integer code;
     private final String name;
