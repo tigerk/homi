@@ -192,6 +192,7 @@ public class TenantService {
             // 无需审批：APPROVED + 生效
             bizId -> {
                 tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.APPROVED.getCode());
+                tenantRepo.updateStatusById(bizId, TenantStatusEnum.TO_SIGN.getCode());
             }
         );
 
@@ -213,7 +214,7 @@ public class TenantService {
         assert tenant != null;
         tenant.setRoomIds(JSONUtil.toJsonStr(tenantDTO.getRoomIds()));
 
-        tenant.setStatus(TenantStatusEnum.TO_SIGN.getCode());
+        tenant.setStatus(TenantStatusEnum.PENDING_APPROVAL.getCode());
         tenant.setCreateBy(tenantDTO.getCreateBy());
         tenant.setCreateTime(DateUtil.date());
 

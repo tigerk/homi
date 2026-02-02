@@ -18,12 +18,13 @@ import java.util.List;
 @AllArgsConstructor
 public enum TenantStatusEnum {
     /**
-     * 租客状态：0=待签字，1=在租中，2=已退租，-1=已作废
+     * 租客状态：0=待审批，1=待签字，2=在租中，3=已退租，-1=已作废
      */
-    TO_SIGN(0, "待签字", "#FF2800", 0),
-    EFFECTIVE(1, "在租中", "#52C41A", 1),
-    TERMINATED(2, "已退租", "#EAA212", 2),
-    CANCELLED(-1, "已作废", "#DBDBDB", 3);
+    PENDING_APPROVAL(0, "待审批", "#FF2800", 0),
+    TO_SIGN(1, "待签字", "#FF2800", 1),
+    EFFECTIVE(2, "在租中", "#52C41A", 2),
+    TERMINATED(3, "已退租", "#EAA212", 3),
+    CANCELLED(-1, "已作废", "#DBDBDB", 4);
 
     private final Integer code;
     private final String name;
@@ -35,6 +36,6 @@ public enum TenantStatusEnum {
      * 获取有效状态
      */
     public static List<Integer> getValidStatus() {
-        return ListUtil.of(EFFECTIVE.getCode(), TO_SIGN.getCode());
+        return ListUtil.of(EFFECTIVE.getCode(), TO_SIGN.getCode(), PENDING_APPROVAL.getCode());
     }
 }
