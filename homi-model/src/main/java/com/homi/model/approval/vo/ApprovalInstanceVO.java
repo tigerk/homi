@@ -1,5 +1,6 @@
 package com.homi.model.approval.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.model.tenant.vo.TenantDetailVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -95,12 +96,14 @@ public class ApprovalInstanceVO {
      * 完成时间
      */
     @Schema(description = "完成时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date finishTime;
 
     /**
      * 创建时间
      */
     @Schema(description = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     /**

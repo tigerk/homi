@@ -23,7 +23,6 @@ public class ApprovalHandleDTO {
      * 审批人ID
      */
     @Schema(description = "审批人ID")
-    @NotNull(message = "审批人ID不能为空")
     private Long approverId;
 
     /**
