@@ -9,6 +9,7 @@ import com.homi.model.approval.dto.ApprovalHandleDTO;
 import com.homi.model.approval.dto.ApprovalSubmitDTO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
+import com.homi.service.service.approval.event.ApprovalStatusChangeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -276,8 +277,7 @@ public class ApprovalService {
         // 跳过所有待审批动作
         approvalActionRepo.skipPendingActions(instance.getId());
 
-        publishStatusChangeEvent(instance.getBizType(), instance.getBizId(), ApprovalInstanceStatusEnum.REJECTED.getCode()
-        );
+        publishStatusChangeEvent(instance.getBizType(), instance.getBizId(), ApprovalInstanceStatusEnum.REJECTED.getCode());
 
         log.info("审批驳回: instanceId={}, remark={}", instance.getId(), remark);
     }
@@ -396,14 +396,16 @@ public class ApprovalService {
 
     /**
      * 发布状态变更事件
+     * <p>
+     * Spring Modulith 自动处理：
+     * 1. 在当前事务中序列化事件到 event_publication 表
+     * 2. 事务提交后触发监听器
+     * 3. 监听器在独立事务中处理
      */
     private void publishStatusChangeEvent(String bizType, Long bizId, Integer status) {
-        ApprovalStatusChangeEvent event = new ApprovalStatusChangeEvent(
-            this,
-            bizType,
-            bizId,
-            status
-        );
+        ApprovalStatusChangeEvent event = new ApprovalStatusChangeEvent(bizType, bizId, status);
         eventPublisher.publishEvent(event);
+
+        log.debug("发布审批状态变更事件: bizType={}, bizId={}, status={}", bizType, bizId, status);
     }
 }

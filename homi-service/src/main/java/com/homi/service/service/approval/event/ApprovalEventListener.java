@@ -1,17 +1,19 @@
-package com.homi.service.service.approval;
+package com.homi.service.service.approval.event;
 
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.ApprovalInstanceStatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantCheckOutStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
+import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.TenantCheckoutRepo;
 import com.homi.model.dao.repo.TenantRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -35,32 +37,45 @@ public class ApprovalEventListener {
 
     /**
      * 监听审批状态变更事件
+     *
+     * @ApplicationModuleListener 的工作流程：
+     * 1. 发布事件时，Spring Modulith 将事件序列化并保存到 event_publication 表
+     * 2. 等待发布事件的事务提交
+     * 3. 在新事务中调用此方法
+     * 4. 处理成功后，更新 event_publication 表的 completion_date
+     * 5. 如果处理失败（抛出异常），Spring Modulith 会自动重试
      */
-    @EventListener
-    @Transactional(rollbackFor = Exception.class)
+    @ApplicationModuleListener
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void handleApprovalStatusChange(ApprovalStatusChangeEvent event) {
         String bizType = event.getBizType();
         Long bizId = event.getBizId();
         Integer approvalStatus = event.getApprovalStatus();
 
-        log.info("收到审批状态变更事件: bizType={}, bizId={}, approvalStatus={}",
-            bizType, bizId, approvalStatus);
+        log.info("处理审批状态变更事件: bizType={}, bizId={}, approvalStatus={}, occurredAt={}", bizType, bizId, approvalStatus, event.getOccurredAt());
 
         ApprovalBizTypeEnum bizTypeEnum = ApprovalBizTypeEnum.getByCode(bizType);
         if (bizTypeEnum == null) {
-            log.warn("未知的业务类型: {}", bizType);
+            log.warn("未知的业务类型: {}, 跳过处理", bizType);
+            // 不抛异常，标记为已处理
             return;
         }
 
-        // 转换为业务审批状态
         Integer bizApprovalStatus = convertToBizApprovalStatus(approvalStatus);
 
-        // 根据业务类型分发处理
-        switch (bizTypeEnum) {
-            case TENANT_CHECKIN -> handleTenantCheckin(bizId, approvalStatus, bizApprovalStatus);
-            case TENANT_CHECKOUT -> handleTenantCheckout(bizId, approvalStatus, bizApprovalStatus);
-            case HOUSE_CREATE -> handleHouseCreate(bizId, approvalStatus, bizApprovalStatus);
-            default -> handleDefaultBiz(bizType, bizId, approvalStatus, bizApprovalStatus);
+        try {
+            switch (bizTypeEnum) {
+                case TENANT_CHECKIN -> handleTenantCheckin(bizId, approvalStatus, bizApprovalStatus);
+                case TENANT_CHECKOUT -> handleTenantCheckout(bizId, approvalStatus, bizApprovalStatus);
+                case HOUSE_CREATE -> handleHouseCreate(bizId, approvalStatus, bizApprovalStatus);
+                default -> handleDefaultBiz(bizType, bizId, approvalStatus, bizApprovalStatus);
+            }
+
+            log.info("审批状态变更事件处理成功: bizType={}, bizId={}", bizType, bizId);
+        } catch (Exception e) {
+            log.error("审批状态变更事件处理失败，将自动重试: bizType={}, bizId={}", bizType, bizId, e);
+            // 抛出异常，Spring Modulith 会自动重试
+            throw new BizException("事件处理失败: " + e.getMessage());
         }
     }
 
@@ -93,11 +108,11 @@ public class ApprovalEventListener {
         // 2. 根据审批结果更新业务状态
         if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
             // 审批通过 -> 租客状态改为生效
-            tenantRepo.updateStatusById(tenantId, TenantStatusEnum.EFFECTIVE.getCode());
-            log.info("租客入住审批通过，已更新为生效状态: tenantId={}", tenantId);
+            tenantRepo.updateStatusById(tenantId, TenantStatusEnum.TO_SIGN.getCode());
+            log.info("租客入住审批通过，已更新为待签约状态，允许租客签约合同: tenantId={}", tenantId);
 
-            // TODO: 可以在这里执行审批通过后的业务逻辑
-            // 如：创建首期账单、发送入住通知等
+            // TODO: 可以在这里执行审批通过后的业务逻辑，做一个通用的消息通知功能。
+            // 发送通知给业务人员，审核已通过，可以让租客进行合同签字了。
 
         } else if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
             // 审批驳回 -> 租客状态保持待签约，可重新提交

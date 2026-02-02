@@ -217,6 +217,18 @@
                 <version>${jjwt.version}</version>
                 <scope>runtime</scope>
             </dependency>
+            <!-- Spring Modulith 核心 -->
+            <dependency>
+                <groupId>org.springframework.modulith</groupId>
+                <artifactId>spring-modulith-starter-core</artifactId>
+                <version>1.2.5</version>
+            </dependency>
+            <!-- 如果使用 JDBC 而不是 JPA -->
+            <dependency>
+                <groupId>org.springframework.modulith</groupId>
+                <artifactId>spring-modulith-starter-jdbc</artifactId>
+                <version>1.2.5</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>

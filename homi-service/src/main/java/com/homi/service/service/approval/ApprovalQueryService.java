@@ -202,7 +202,10 @@ public class ApprovalQueryService {
         vo.setNodeName(action.getNodeName());
         vo.setNodeOrder(action.getNodeOrder());
         vo.setApproverId(action.getApproverId());
-        vo.setApproverName(action.getApproverName());
+
+        // 获取审批人姓名
+        Optional.ofNullable(userRepo.getById(action.getApproverId())).ifPresent(user -> vo.setApproverName(user.getNickname()));
+
         vo.setAction(action.getAction());
         vo.setRemark(action.getRemark());
         vo.setOperateTime(action.getOperateTime());

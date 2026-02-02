@@ -574,8 +574,8 @@ public class TenantService {
         // 8. 更新合同（如果合同模板发生变更）
         tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), originalTenant);
 
-        // 9. 租客重置为待签约状态（如果当前是待签约状态）
-        if (Objects.equals(updatedTenant.getStatus(), TenantStatusEnum.TO_SIGN.getCode())) {
+        // 9. 租客重置为待签约状态（如果当前是已作废状态）
+        if (Objects.equals(updatedTenant.getStatus(), TenantStatusEnum.CANCELLED.getCode())) {
             tenantRepo.updateStatusById(tenantId, TenantStatusEnum.TO_SIGN.getCode());
         }
 
@@ -593,6 +593,7 @@ public class TenantService {
             // 无需审批：APPROVED + 生效
             bizId -> {
                 tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.APPROVED.getCode());
+                tenantRepo.updateStatusById(bizId, TenantStatusEnum.TO_SIGN.getCode());
             }
         );
 

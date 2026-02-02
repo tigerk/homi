@@ -21,6 +21,9 @@ spring:
   freemarker:
     template-loader-path: classpath:/templates/
     default-encoding: UTF-8
+  # Spring Modulith 事件配置
+  modulith:
+    republish-outstanding-events-on-restart: true  # 启动时重新发布未完成事件
 
 #------------------------mybatis-plus配置--------------------------------
 mybatis-plus:

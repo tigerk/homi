@@ -85,6 +85,4 @@
             <artifactId>UserAgentUtils</artifactId>
         </dependency>
     </dependencies>
-
-
 </project>
