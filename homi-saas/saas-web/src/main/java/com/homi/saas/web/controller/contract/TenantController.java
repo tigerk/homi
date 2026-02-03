@@ -98,15 +98,15 @@ public class TenantController {
     }
 
     /**
-     * 根据租客ID查询租客历史账单列表
+     * 根据租客ID查询租客无效账单列表
      *
      * @param queryDTO  查询参数
      * @param loginUser 登录用户
      * @return 历史账单列表VO
      */
-    @PostMapping("/bill/history/list")
-    @Operation(summary = "根据租客ID查询租客历史账单列表")
-    public ResponseResult<List<TenantBillListVO>> getBillHistoryList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+    @PostMapping("/bill/invalid/list")
+    @Operation(summary = "根据租客ID查询租客无效账单列表")
+    public ResponseResult<List<TenantBillListVO>> getBillInvalidList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(tenantBillService.getBillListByTenantId(queryDTO.getTenantId(), Boolean.FALSE));
     }
 
