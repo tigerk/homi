@@ -19,6 +19,7 @@ import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.tenant.TenantBillService;
 import com.homi.service.service.tenant.TenantContractService;
 import com.homi.service.service.tenant.TenantService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -85,14 +86,28 @@ public class TenantController {
     }
 
     @PostMapping("/detail")
-    @Schema(description = "根据租客ID查询租客详情")
+    @Schema(description = "根据租客ID查询租客详情，不包含租客账单其他费用")
     public ResponseResult<TenantDetailVO> getTenantDetail(@RequestBody TenantQueryDTO query) {
         return ResponseResult.ok(tenantService.getTenantDetailById(query.getTenantId()));
     }
 
     @PostMapping("/bill/list")
+    @Operation(summary = "根据租客ID查询租客账单列表")
     public ResponseResult<List<TenantBillListVO>> getBillList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(tenantBillService.getBillListByTenantId(queryDTO.getTenantId(), Boolean.TRUE));
+    }
+
+    /**
+     * 根据租客ID查询租客历史账单列表
+     *
+     * @param queryDTO  查询参数
+     * @param loginUser 登录用户
+     * @return 历史账单列表VO
+     */
+    @PostMapping("/bill/history/list")
+    @Operation(summary = "根据租客ID查询租客历史账单列表")
+    public ResponseResult<List<TenantBillListVO>> getBillHistoryList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(tenantBillService.getBillListByTenantId(queryDTO.getTenantId(), Boolean.FALSE));
     }
 
     @PostMapping(value = "/contract/download")

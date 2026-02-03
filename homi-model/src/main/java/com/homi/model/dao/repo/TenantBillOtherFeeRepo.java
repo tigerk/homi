@@ -28,4 +28,17 @@ public class TenantBillOtherFeeRepo extends ServiceImpl<TenantBillOtherFeeMapper
     public List<TenantBillOtherFee> getOtherFeesByBillId(Long billId) {
         return list(new LambdaQueryWrapper<TenantBillOtherFee>().eq(TenantBillOtherFee::getBillId, billId));
     }
+
+    /**
+     * 根据账单ID列表批量查询其他费用
+     *
+     * @param billIds 账单ID列表
+     * @return 其他费用列表
+     */
+    public List<TenantBillOtherFee> getOtherFeesByBillIds(List<Long> billIds) {
+        if (billIds == null || billIds.isEmpty()) {
+            return List.of();
+        }
+        return list(new LambdaQueryWrapper<TenantBillOtherFee>().in(TenantBillOtherFee::getBillId, billIds));
+    }
 }
