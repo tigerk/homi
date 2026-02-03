@@ -32,7 +32,6 @@
             <groupId>org.springframework.modulith</groupId>
             <artifactId>spring-modulith-starter-core</artifactId>
         </dependency>
-        <!-- 如果使用 JDBC 而不是 JPA -->
         <dependency>
             <groupId>org.springframework.modulith</groupId>
             <artifactId>spring-modulith-starter-jdbc</artifactId>
