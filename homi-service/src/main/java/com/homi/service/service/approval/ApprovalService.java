@@ -74,7 +74,7 @@ public class ApprovalService {
         approvalInstanceRepo.save(instance);
 
         // 4. 创建审批动作（第一个节点的待审批动作）
-        ApprovalNode firstNode = nodes.get(0);
+        ApprovalNode firstNode = nodes.getFirst();
         createApprovalActions(instance, firstNode);
 
         // 5. 发布状态变更事件

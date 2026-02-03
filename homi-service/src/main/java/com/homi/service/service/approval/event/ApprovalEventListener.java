@@ -115,6 +115,7 @@ public class ApprovalEventListener {
             // 发送通知给业务人员，审核已通过，可以让租客进行合同签字了。
 
         } else if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
+            tenantRepo.updateStatusById(tenantId, TenantStatusEnum.CANCELLED.getCode());
             // 审批驳回 -> 租客状态保持待签约，可重新提交
             log.info("租客入住审批驳回: tenantId={}", tenantId);
 
