@@ -99,4 +99,21 @@ public class TenantRepo extends ServiceImpl<TenantMapper, Tenant> {
 
         return updateById(tenant);
     }
+
+    /**
+     * 更新租客状态和审批状态
+     *
+     * @param tenantId       租客ID
+     * @param status         租客状态
+     * @param approvalStatus 租客审批状态
+     * @return 是否初始化成功
+     */
+    public boolean updateStatusAndApprovalStatus(Long tenantId, Integer status, Integer approvalStatus) {
+        Tenant tenant = new Tenant();
+        tenant.setId(tenantId);
+        tenant.setStatus(status);
+        tenant.setApprovalStatus(approvalStatus);
+
+        return updateById(tenant);
+    }
 }

@@ -2,11 +2,10 @@ package com.homi.model.dao.repo;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.enums.approval.ApprovalInstanceStatusEnum;
 import com.homi.model.dao.entity.ApprovalInstance;
 import com.homi.model.dao.mapper.ApprovalInstanceMapper;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * 审批实例 Repo
@@ -21,11 +20,11 @@ public class ApprovalInstanceRepo extends ServiceImpl<ApprovalInstanceMapper, Ap
      * @param bizId   业务ID
      * @return 审批实例
      */
-    public ApprovalInstance getByBiz(String bizType, Long bizId) {
+    public ApprovalInstance getProcessingByBiz(String bizType, Long bizId) {
         return lambdaQuery()
             .eq(ApprovalInstance::getBizType, bizType)
             .eq(ApprovalInstance::getBizId, bizId)
-            .eq(ApprovalInstance::getDeleted, false)
+            .in(ApprovalInstance::getStatus, ApprovalInstanceStatusEnum.PENDING.getCode(), ApprovalInstanceStatusEnum.DRAFT.getCode())
             .one();
     }
 

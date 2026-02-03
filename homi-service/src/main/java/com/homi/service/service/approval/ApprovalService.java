@@ -64,7 +64,7 @@ public class ApprovalService {
         }
 
         // 2. 检查是否已存在审批实例
-        ApprovalInstance existInstance = approvalInstanceRepo.getByBiz(dto.getBizType(), dto.getBizId());
+        ApprovalInstance existInstance = approvalInstanceRepo.getProcessingByBiz(dto.getBizType(), dto.getBizId());
         if (existInstance != null && ApprovalInstanceStatusEnum.PENDING.getCode().equals(existInstance.getStatus())) {
             throw new IllegalArgumentException("该业务已在审批中，请勿重复提交");
         }

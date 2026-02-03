@@ -1,12 +1,16 @@
 package com.homi.service.service.approval.event;
 
+import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.ApprovalInstanceStatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
+import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantCheckOutStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.common.lib.exception.BizException;
+import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.repo.HouseRepo;
+import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.dao.repo.TenantCheckoutRepo;
 import com.homi.model.dao.repo.TenantRepo;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ApprovalEventListener {
 
     private final TenantRepo tenantRepo;
+    private final RoomRepo roomRepo;
     private final TenantCheckoutRepo tenantCheckoutRepo;
     private final HouseRepo houseRepo;
 
@@ -115,11 +120,18 @@ public class ApprovalEventListener {
             // 发送通知给业务人员，审核已通过，可以让租客进行合同签字了。
 
         } else if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
-            tenantRepo.updateStatusById(tenantId, TenantStatusEnum.CANCELLED.getCode());
-            // 审批驳回 -> 租客状态保持待签约，可重新提交
             log.info("租客入住审批驳回: tenantId={}", tenantId);
 
-            // TODO: 可以发送驳回通知
+            // 1. 审批驳回 -> 租客状态改为已取消，可以再次提交。
+            tenantRepo.updateStatusById(tenantId, TenantStatusEnum.CANCELLED.getCode());
+
+            Tenant currentTenantByRoomId = tenantRepo.getCurrentTenantByRoomId(tenantId);
+            // 2. 更新房间状态为空置
+            if (currentTenantByRoomId != null && currentTenantByRoomId.getRoomIds() != null) {
+                roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(currentTenantByRoomId.getRoomIds(), Long.class), RoomStatusEnum.AVAILABLE.getCode());
+            }
+
+            // TODO: 可以发送驳回通知，发送给提交人，告诉他审批被驳回了。
 
         } else if (ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
             // 撤回 -> 租客状态保持待签约，可重新提交

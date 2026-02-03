@@ -43,7 +43,7 @@ public class ApprovalQueryService {
      * 根据业务获取审批实例
      */
     public ApprovalInstanceVO getInstanceByBiz(String bizType, Long bizId) {
-        ApprovalInstance instance = approvalInstanceRepo.getByBiz(bizType, bizId);
+        ApprovalInstance instance = approvalInstanceRepo.getProcessingByBiz(bizType, bizId);
         return convertToInstanceVO(instance);
     }
 

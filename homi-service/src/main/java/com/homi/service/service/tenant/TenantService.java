@@ -188,11 +188,12 @@ public class TenantService {
                 .applicantId(createDTO.getCreateBy())
                 .build(),
             // 需要审批：PENDING
-            bizId -> tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.PENDING.getCode()),
+            bizId -> {
+                tenantRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.PENDING_APPROVAL.getCode(), BizApprovalStatusEnum.PENDING.getCode());
+            },
             // 无需审批：APPROVED + 生效
             bizId -> {
-                tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.APPROVED.getCode());
-                tenantRepo.updateStatusById(bizId, TenantStatusEnum.TO_SIGN.getCode());
+                tenantRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.TO_SIGN.getCode(), BizApprovalStatusEnum.APPROVED.getCode());
             }
         );
 
@@ -574,10 +575,8 @@ public class TenantService {
         // 8. 更新合同（如果合同模板发生变更）
         tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), originalTenant);
 
-        // 9. 租客重置为待签约状态（如果当前是已作废状态）
-        if (Objects.equals(updatedTenant.getStatus(), TenantStatusEnum.CANCELLED.getCode())) {
-            tenantRepo.updateStatusById(tenantId, TenantStatusEnum.TO_SIGN.getCode());
-        }
+        // 更新房间状态为已租
+        roomRepo.updateRoomStatusByRoomIds(createDTO.getTenant().getRoomIds(), RoomStatusEnum.LEASED.getCode());
 
         // 修改租客时，会重新生成审批数据。
         ApprovalResult approvalResult = approvalTemplate.submitIfNeed(
@@ -589,11 +588,12 @@ public class TenantService {
                 .applicantId(createDTO.getCreateBy())
                 .build(),
             // 需要审批：PENDING
-            bizId -> tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.PENDING.getCode()),
+            bizId -> {
+                tenantRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.PENDING_APPROVAL.getCode(), BizApprovalStatusEnum.PENDING.getCode());
+            },
             // 无需审批：APPROVED + 生效
             bizId -> {
-                tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.APPROVED.getCode());
-                tenantRepo.updateStatusById(bizId, TenantStatusEnum.TO_SIGN.getCode());
+                tenantRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.TO_SIGN.getCode(), BizApprovalStatusEnum.APPROVED.getCode());
             }
         );
 
