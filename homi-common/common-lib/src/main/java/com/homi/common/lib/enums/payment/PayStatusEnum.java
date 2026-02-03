@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum PaymentStatusEnum {
+public enum PayStatusEnum {
     UNPAID(0, "未支付"),
     PARTIALLY_PAID(1, "部分支付"),
     PAID(2, "已支付"),

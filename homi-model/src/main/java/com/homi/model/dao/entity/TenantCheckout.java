@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2026-01-26
+ * @since 2026-02-03
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -67,7 +67,7 @@ public class TenantCheckout implements Serializable {
 
     @Schema(description = "实际退租日")
     @TableField("actual_checkout_date")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date actualCheckoutDate;
 
     @Schema(description = "押金总额")

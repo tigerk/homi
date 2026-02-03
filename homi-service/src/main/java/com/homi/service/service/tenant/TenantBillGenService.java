@@ -2,7 +2,7 @@ package com.homi.service.service.tenant;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
-import com.homi.common.lib.enums.payment.PaymentStatusEnum;
+import com.homi.common.lib.enums.payment.PayStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.common.lib.enums.tenant.TenantBillTypeEnum;
@@ -320,7 +320,7 @@ public class TenantBillGenService {
         bill.setOtherFeeAmount(context.otherFeeAmount);
         bill.setTotalAmount(context.rentalAmount.add(context.otherFeeAmount));
         bill.setDueDate(context.dueDate);
-        bill.setPayStatus(PaymentStatusEnum.UNPAID.getCode());
+        bill.setPayStatus(PayStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
         bill.setCreateBy(context.tenant.getCreateBy());
         bill.setCreateTime(DateUtil.date());
@@ -500,7 +500,7 @@ public class TenantBillGenService {
         bill.setOtherFeeAmount(feeAmount);
         bill.setTotalAmount(feeAmount);
         bill.setDueDate(calculateDueDate(config));
-        bill.setPayStatus(PaymentStatusEnum.UNPAID.getCode());
+        bill.setPayStatus(PayStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
         bill.setCreateBy(context.tenant.getCreateBy());
         bill.setCreateTime(new Date());
@@ -639,7 +639,7 @@ public class TenantBillGenService {
         Date dueDate = calculateDepositDueDate(tenant);
         depositBill.setDueDate(dueDate);
 
-        depositBill.setPayStatus(PaymentStatusEnum.UNPAID.getCode());
+        depositBill.setPayStatus(PayStatusEnum.UNPAID.getCode());
         depositBill.setRemark("押金账单");
         depositBill.setDeleted(false);
         depositBill.setCreateBy(tenant.getCreateBy());
@@ -736,7 +736,7 @@ public class TenantBillGenService {
     public boolean invalidUnpaidTenantBill(Long tenantId) {
         return tenantBillRepo.lambdaUpdate()
             .eq(TenantBill::getTenantId, tenantId)
-            .eq(TenantBill::getPayStatus, PaymentStatusEnum.UNPAID.getCode())
+            .eq(TenantBill::getPayStatus, PayStatusEnum.UNPAID.getCode())
             .set(TenantBill::getValid, false)
             .update();
     }

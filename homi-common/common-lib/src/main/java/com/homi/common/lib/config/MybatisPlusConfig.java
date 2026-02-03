@@ -50,7 +50,8 @@ public class MybatisPlusConfig {
         // 审批节点表
         "approval_node",
         // 审批动作表
-        "approval_action"
+        "approval_action",
+        "tenant_checkout_fee"
     );
 
     /**

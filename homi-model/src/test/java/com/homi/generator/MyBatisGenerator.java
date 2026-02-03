@@ -57,12 +57,8 @@ public class MyBatisGenerator {
             .mapperPackageName("com.homi.model.dao.mapper")
             .servicePackageName("com.homi.model.dao.repo")
             .tblNameList(ListUtil.of(
-                "approval_flow",
-                "approval_instance",
-                "approval_node",
-                "approval_action",
                 "tenant_checkout",
-                "tenant_checkout_item"
+                "tenant_checkout_fee"
             )).build();
 
         myBatisGenerator.generate();
