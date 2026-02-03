@@ -548,8 +548,8 @@ public class TenantService {
         }
 
         // 2. 检查租客状态是否允许修改
-        if (Objects.equals(originalTenant.getStatus(), TenantStatusEnum.TERMINATED.getCode()) || Objects.equals(createDTO.getTenant().getStatus(), TenantStatusEnum.CANCELLED.getCode())) {
-            throw new IllegalArgumentException("租客已终止，不允许修改");
+        if (Objects.equals(originalTenant.getStatus(), TenantStatusEnum.TERMINATED.getCode()) || Objects.equals(createDTO.getTenant().getStatus(), TenantStatusEnum.EFFECTIVE.getCode())) {
+            throw new IllegalArgumentException("租客在租或退租时，不允许修改");
         }
         TenantDTO toUpdateTenant = createDTO.getTenant();
         /* !important 判断是否有关键信息变更（需要重新生成账单和合同）*/
