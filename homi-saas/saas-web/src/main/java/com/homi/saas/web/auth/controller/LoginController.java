@@ -182,7 +182,19 @@ public class LoginController {
     }
 
     @PostMapping("/saas/login/sms/send")
-    public ResponseResult<Boolean> sendSmsCode(@RequestParam("phone") Long phone) {
+    public ResponseResult<Boolean> sendSmsCode(@RequestParam("phone") Long phone, @RequestParam("captcha") String captcha) {
+        String captchaCode = redisTemplate.opsForValue().get(RedisKey.CAPTCHA.format(phone));
+        if (captchaCode == null || !captchaCode.equalsIgnoreCase(captcha)) {
+            throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
+        }
+
+        String rateKey = RedisKey.SMS_RATE_LIMIT.format(phone);
+        Boolean rateLimit = redisTemplate.hasKey(rateKey);
+        if (Boolean.TRUE.equals(rateLimit)) {
+            throw new BizException("发送过于频繁，请稍后再试");
+        }
+        redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
+
         RandomGenerator verifyCodeGenerator = new RandomGenerator("0123456789", 4);
         String verifyCode = verifyCodeGenerator.generate();
         // 保存到 Redis，key: sms:phone，value: code，有效期10分钟
