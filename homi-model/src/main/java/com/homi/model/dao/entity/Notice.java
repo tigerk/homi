@@ -4,15 +4,14 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -20,7 +19,7 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-07-30
+ * @since 2026-02-04
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -41,15 +40,28 @@ public class Notice implements Serializable {
 
     @Schema(description = "公告内容")
     @TableField("content")
-    private byte[] content;
+    private String content;
 
-    @Schema(description = "公告类型（1通知 2公告）")
+    @Schema(description = "公司 ID")
+    @TableField("company_id")
+    private Long companyId;
+
+    @Schema(description = "公告类型（1=通知，2=消息）")
     @TableField("type")
     private Integer type;
 
-    @Schema(description = "公告状态（0正常 1关闭）")
+    @Schema(description = "公告状态（1正常 0关闭）")
     @TableField("status")
     private Integer status;
+
+    @Schema(description = "备注")
+    @TableField("remark")
+    private String remark;
+
+    @Schema(description = "是否删除：0 否，1 是")
+    @TableField("deleted")
+    @TableLogic
+    private Boolean deleted;
 
     @Schema(description = "创建者")
     @TableField("create_by")
@@ -68,13 +80,4 @@ public class Notice implements Serializable {
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
-
-    @Schema(description = "是否删除：0 否，1 是")
-    @TableField("deleted")
-    @TableLogic
-    private Boolean deleted;
-
-    @Schema(description = "备注")
-    @TableField("remark")
-    private String remark;
 }
