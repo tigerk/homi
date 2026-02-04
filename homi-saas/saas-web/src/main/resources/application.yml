@@ -72,3 +72,9 @@ springdoc:
     path: /v3/api-docs
 
 default-avatar: https://avatars.githubusercontent.com/u/44761321
+
+#------------------------微信小程序配置--------------------------------
+wechat:
+  miniapp:
+    app-id: touristappid
+    app-secret: touristsecret

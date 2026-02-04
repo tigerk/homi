@@ -12,13 +12,18 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.menu.vo.AsyncRoutesVO;
 import com.homi.saas.web.auth.dto.account.UserProfileUpdateDTO;
 import com.homi.saas.web.auth.dto.login.LoginDTO;
+import com.homi.saas.web.auth.dto.login.SmsLoginDTO;
+import com.homi.saas.web.auth.dto.login.WechatBindDTO;
+import com.homi.saas.web.auth.dto.login.WechatLoginDTO;
 import com.homi.saas.web.auth.dto.login.LoginUpdateDTO;
 import com.homi.saas.web.auth.dto.login.TokenRefreshDTO;
 import com.homi.saas.web.auth.service.AuthService;
+import com.homi.saas.web.auth.service.WechatAuthService;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.service.external.aliyun.SmsClient;
 import com.homi.service.service.company.CompanyUserService;
+import com.homi.service.service.sys.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +49,9 @@ import java.util.Objects;
 @RestController
 public class LoginController {
     private final AuthService authService;
+    private final WechatAuthService wechatAuthService;
     private final CompanyUserService companyUserService;
+    private final UserService userService;
 
     private final StringRedisTemplate redisTemplate;
 
@@ -66,6 +73,16 @@ public class LoginController {
         UserLoginVO userLogin = authService.checkUserLogin(loginDTO);
 
         return ResponseResult.ok(authService.login(userLogin));
+    }
+
+    @PostMapping("/saas/wechat/login")
+    public ResponseResult<UserLoginVO> wechatLogin(@Valid @RequestBody WechatLoginDTO wechatLoginDTO) {
+        return ResponseResult.ok(wechatAuthService.loginByCode(wechatLoginDTO.getCode()));
+    }
+
+    @PostMapping("/saas/wechat/bind")
+    public ResponseResult<UserLoginVO> wechatBind(@Valid @RequestBody WechatBindDTO wechatBindDTO) {
+        return ResponseResult.ok(wechatAuthService.bindAndLogin(wechatBindDTO.getCode(), wechatBindDTO.getUsername(), wechatBindDTO.getPassword()));
     }
 
     @GetMapping("/saas/captcha/{username}")
@@ -143,6 +160,25 @@ public class LoginController {
         }
 
         return ResponseResult.ok(authService.loginWithCompanyId(currentUser.getId(), companyId));
+    }
+
+    @PostMapping("/saas/login/sms")
+    public ResponseResult<UserLoginVO> smsLogin(@Valid @RequestBody SmsLoginDTO smsLoginDTO) {
+        String verifyCode = redisTemplate.opsForValue().get(RedisKey.SMS_CODE.format(Long.valueOf(smsLoginDTO.getPhone())));
+        if (verifyCode == null) {
+            throw new BizException("请先发送验证码");
+        }
+
+        if (!smsLoginDTO.getVerifyCode().equals(verifyCode)) {
+            throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
+        }
+
+        var user = userService.getUserByPhone(smsLoginDTO.getPhone());
+        if (user == null) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
+        }
+
+        return ResponseResult.ok(authService.loginByUserId(user.getId()));
     }
 
     @PostMapping("/saas/login/sms/send")

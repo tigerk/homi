@@ -31,7 +31,6 @@ import com.homi.service.service.company.CompanyPackageService;
 import com.homi.service.service.sys.MenuService;
 import com.homi.service.service.sys.RoleService;
 import com.homi.service.service.sys.UserService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.BeanUtils;
@@ -160,20 +159,8 @@ public class AuthService {
         if (!user.getPassword().equals(password)) {
             throw new BizException(ResponseCodeEnum.LOGIN_ERROR);
         }
-        // 获取绑定该用户的公司列表
-        List<UserCompanyListDTO> companyUserList = companyUserRepo.getCompanyListByUserId(user.getId());
-        if (companyUserList.isEmpty()) {
-            throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
-        }
 
-        UserLoginVO userLogin = new UserLoginVO();
-        BeanUtils.copyProperties(user, userLogin);
-
-        UserCompanyListDTO first = companyUserList.getFirst();
-        userLogin.setCurCompanyId(first.getCompanyId());
-        userLogin.setIsCompanyAdmin(isCompanyAdmin(first.getUserType()));
-
-        return userLogin;
+        return getUserLoginVO(user);
     }
 
     /**
@@ -269,6 +256,46 @@ public class AuthService {
         Triple<Pair<List<Long>, List<String>>, List<AsyncRoutesVO>, List<String>> userAuth = getUserAuth(user);
         // 构建菜单树
         return userAuth.getMiddle();
+    }
+
+    public UserLoginVO loginByUserId(Long userId) {
+        User user = userRepo.getById(userId);
+        if (Objects.isNull(user)) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
+        }
+        if (user.getStatus().equals(StatusEnum.DISABLED.getValue())) {
+            throw new BizException(ResponseCodeEnum.USER_FREEZE);
+        }
+
+        UserLoginVO userLogin = getUserLoginVO(user);
+
+        return login(userLogin);
+    }
+
+    /**
+     * 获取用户登录信息
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/6/9 13:40
+     *
+     * @param user 参数说明
+     * @return com.homi.saas.web.admin.auth.vo.login.UserLoginVO
+     */
+    private UserLoginVO getUserLoginVO(User user) {
+        // 获取绑定该用户的公司列表
+        List<UserCompanyListDTO> companyUserList = companyUserRepo.getCompanyListByUserId(user.getId());
+        if (companyUserList.isEmpty()) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
+        }
+
+        UserLoginVO userLogin = new UserLoginVO();
+        BeanUtils.copyProperties(user, userLogin);
+
+        UserCompanyListDTO first = companyUserList.getFirst();
+        userLogin.setCurCompanyId(first.getCompanyId());
+        userLogin.setIsCompanyAdmin(isCompanyAdmin(first.getUserType()));
+
+        return userLogin;
     }
 
     public Boolean kickUserByUsername(String username) {

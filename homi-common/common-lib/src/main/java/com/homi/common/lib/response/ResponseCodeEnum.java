@@ -111,6 +111,13 @@ public enum ResponseCodeEnum {
     WEIBO_LOGIN_ERROR(720, "微博登录错误"),
 
     /**
+     * 微信小程序登录
+     */
+    WECHAT_NOT_BIND(730, "微信账号未绑定，请先绑定"),
+    WECHAT_BIND_CONFLICT(731, "该微信已绑定其他账号"),
+    WECHAT_LOGIN_ERROR(732, "微信登录错误"),
+
+    /**
      * 合同 生成PDF失败
      */
     PDF_GENERATE_ERROR(800, "生成PDF失败"),
