@@ -93,4 +93,8 @@ public class SysNotice implements Serializable {
     @Schema(description = "发布人昵称")
     @TableField(exist = false)
     private String createByName;
+
+    @Schema(description = "是否已读")
+    @TableField(exist = false)
+    private Boolean isRead;
 }

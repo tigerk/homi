@@ -52,7 +52,8 @@ public class MybatisPlusConfig {
         // 审批动作表
         "approval_action",
         "tenant_checkout_fee",
-        "sys_notice_role"
+        "sys_notice_role",
+        "sys_notice_read"
     );
 
     /**

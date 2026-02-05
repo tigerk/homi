@@ -6,14 +6,9 @@ import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dao.entity.SysMessage;
-import com.homi.model.dao.entity.SysNotice;
-import com.homi.model.dao.entity.SysNoticeRole;
-import com.homi.model.dao.entity.SysTodo;
+import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
-import com.homi.model.notice.dto.SysNoticeCreateDTO;
-import com.homi.model.notice.dto.SysNoticePageDTO;
-import com.homi.model.notice.dto.SysNoticeRecentDTO;
+import com.homi.model.notice.dto.*;
 import com.homi.model.notice.vo.RecentNoticeVO;
 import com.homi.model.notice.vo.SysNoticeDetailVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -39,6 +34,7 @@ public class SysNoticeController {
     private final SysMessageRepo sysMessageRepo;
     private final SysNoticeRepo sysNoticeRepo;
     private final SysNoticeRoleRepo sysNoticeRoleRepo;
+    private final SysNoticeReadRepo sysNoticeReadRepo;
     private final SysTodoRepo sysTodoRepo;
     private final CompanyUserRepo companyUserRepo;
     private final UserRepo userRepo;
@@ -49,10 +45,11 @@ public class SysNoticeController {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         int days = dto.getDays() == null || dto.getDays() <= 0 ? 3 : dto.getDays();
         Date startTime = DateUtil.offsetDay(DateUtil.date(), -days);
-        List<Long> roleIds = currentUser.getRoles().stream().map(Long::valueOf).collect(Collectors.toList());
+        List<Long> roleIds = currentUser.getRoles() == null ? List.of() : currentUser.getRoles().stream().map(Long::valueOf).collect(Collectors.toList());
 
         List<SysMessage> messages = sysMessageRepo.getRecentMessages(currentUser.getCurCompanyId(), currentUser.getId(), startTime);
         List<SysNotice> notices = sysNoticeRepo.getRecentNotices(currentUser.getCurCompanyId(), startTime, roleIds);
+        markNoticeReadState(notices, currentUser.getId());
         List<SysTodo> todos = sysTodoRepo.getRecentTodos(currentUser.getCurCompanyId(), currentUser.getId(), startTime);
 
         return ResponseResult.ok(new RecentNoticeVO(messages, notices, todos));
@@ -69,7 +66,7 @@ public class SysNoticeController {
     @Operation(summary = "获取系统公告分页")
     public ResponseResult<PageVO<SysNotice>> getNoticePage(@RequestBody SysNoticePageDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        List<Long> roleIds = currentUser.getRoles().stream().map(Long::valueOf).collect(Collectors.toList());
+        List<Long> roleIds = currentUser.getRoles() == null ? List.of() : currentUser.getRoles().stream().map(Long::valueOf).collect(Collectors.toList());
         return ResponseResult.ok(sysNoticeRepo.getNoticePage(dto, currentUser.getCurCompanyId(), roleIds));
     }
 
@@ -78,6 +75,45 @@ public class SysNoticeController {
     public ResponseResult<PageVO<SysTodo>> getTodoPage(@RequestBody SysNoticePageDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         return ResponseResult.ok(sysTodoRepo.getTodoPage(dto, currentUser.getCurCompanyId(), currentUser.getId()));
+    }
+
+    @PostMapping("/message/read")
+    @Operation(summary = "标记消息已读")
+    public ResponseResult<Boolean> markMessageRead(@RequestBody SysMessageReadDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        SysMessage message = sysMessageRepo.getById(dto.getId());
+        if (message == null) {
+            throw new BizException(ResponseCodeEnum.NO_FOUND);
+        }
+        if (!Objects.equals(message.getReceiverId(), currentUser.getId())) {
+            throw new BizException(ResponseCodeEnum.AUTHORIZED);
+        }
+        message.setIsRead(true);
+        message.setReadTime(DateUtil.date());
+        return ResponseResult.ok(sysMessageRepo.updateById(message));
+    }
+
+    @PostMapping("/notice/read")
+    @Operation(summary = "标记公告已读")
+    public ResponseResult<Boolean> markNoticeRead(@RequestBody SysNoticeReadDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        SysNotice notice = sysNoticeRepo.getById(dto.getId());
+        if (notice == null) {
+            throw new BizException(ResponseCodeEnum.NO_FOUND);
+        }
+        boolean exists = sysNoticeReadRepo.exists(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<SysNoticeRead>()
+            .eq(SysNoticeRead::getUserId, currentUser.getId())
+            .eq(SysNoticeRead::getNoticeId, dto.getId()));
+        if (exists) {
+            return ResponseResult.ok(true);
+        }
+        SysNoticeRead read = new SysNoticeRead();
+        read.setId(com.baomidou.mybatisplus.core.toolkit.IdWorker.getId(read));
+        read.setNoticeId(dto.getId());
+        read.setUserId(currentUser.getId());
+        read.setReadTime(DateUtil.date());
+        sysNoticeReadRepo.save(read);
+        return ResponseResult.ok(true);
     }
 
     @PostMapping("/create")
@@ -174,5 +210,20 @@ public class SysNoticeController {
             role.setRoleId(roleId);
             sysNoticeRoleRepo.save(role);
         });
+    }
+
+    private void markNoticeReadState(List<SysNotice> notices, Long userId) {
+        if (notices == null || notices.isEmpty()) {
+            return;
+        }
+        List<Long> noticeIds = notices.stream()
+            .map(SysNotice::getId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+        if (noticeIds.isEmpty()) {
+            return;
+        }
+        List<Long> readIds = sysNoticeReadRepo.listNoticeIdsByUserIdAndNoticeIds(userId, noticeIds);
+        notices.forEach(item -> item.setIsRead(readIds.contains(item.getId())));
     }
 }
