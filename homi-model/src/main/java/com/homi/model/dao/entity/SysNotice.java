@@ -15,18 +15,18 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 通知公告表
+ * 系统公告表
  * </p>
  *
  * @author tk
- * @since 2026-02-04
+ * @since 2026-02-05
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("notice")
-@Schema(name = "Notice", description = "通知公告表")
-public class Notice implements Serializable {
+@TableName("sys_notice")
+@Schema(name = "SysNotice", description = "系统公告表")
+public class SysNotice implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -34,31 +34,40 @@ public class Notice implements Serializable {
     @TableId("id")
     private Long id;
 
+    @Schema(description = "公司/租户ID")
+    @TableField("company_id")
+    private Long companyId;
+
     @Schema(description = "公告标题")
     @TableField("title")
     private String title;
 
-    @Schema(description = "公告内容")
+    @Schema(description = "公告内容（富文本）")
     @TableField("content")
     private String content;
 
-    @Schema(description = "公司 ID")
-    @TableField("company_id")
-    private Long companyId;
+    @Schema(description = "类型：1=系统公告 2=运营通知")
+    @TableField("notice_type")
+    private Integer noticeType;
 
-    @Schema(description = "公告类型（1=通知，2=消息）")
-    @TableField("type")
-    private Integer type;
+    @Schema(description = "发布范围：1=全员 2=房东 3=租客 4=指定角色")
+    @TableField("target_scope")
+    private Integer targetScope;
 
-    @Schema(description = "公告状态（1正常 0关闭）")
+    @Schema(description = "0=草稿 1=已发布 2=已撤回")
     @TableField("status")
     private Integer status;
+
+    @Schema(description = "发布时间")
+    @TableField("publish_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date publishTime;
 
     @Schema(description = "备注")
     @TableField("remark")
     private String remark;
 
-    @Schema(description = "是否删除：0 否，1 是")
+    @Schema(description = "是否删除：0=否 1=是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;

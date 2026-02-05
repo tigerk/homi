@@ -1,18 +1,18 @@
 package com.homi.model.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.homi.model.dao.entity.Notice;
+import com.homi.model.dao.entity.SysNoticeRead;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 通知公告表 Mapper 接口
+ * 公告已读记录表 Mapper 接口
  * </p>
  *
  * @author tk
- * @since 2025-04-17
+ * @since 2026-02-05
  */
 @Mapper
-public interface NoticeMapper extends BaseMapper<Notice> {
+public interface SysNoticeReadMapper extends BaseMapper<SysNoticeRead> {
 
 }
