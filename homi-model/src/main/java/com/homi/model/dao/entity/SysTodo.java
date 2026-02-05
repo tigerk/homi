@@ -98,6 +98,10 @@ public class SysTodo implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
+    @Schema(description = "更新人")
+    @TableField("update_by")
+    private Long updateBy;
+
     @Schema(description = "更新时间")
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
