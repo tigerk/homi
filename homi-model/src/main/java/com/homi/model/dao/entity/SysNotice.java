@@ -89,4 +89,8 @@ public class SysNotice implements Serializable {
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
+
+    @Schema(description = "发布人昵称")
+    @TableField(exist = false)
+    private String createByName;
 }

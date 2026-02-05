@@ -1562,3 +1562,15 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='统一用户表';
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ----------------------------
+-- Table structure for sys_notice_role
+-- ----------------------------
+DROP TABLE IF EXISTS `sys_notice_role`;
+CREATE TABLE `sys_notice_role` (
+  `id` bigint NOT NULL COMMENT '主键ID',
+  `notice_id` bigint NOT NULL COMMENT '公告ID',
+  `role_id` bigint NOT NULL COMMENT '角色ID',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `uk_notice_role` (`notice_id`, `role_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='公告角色关联表';
