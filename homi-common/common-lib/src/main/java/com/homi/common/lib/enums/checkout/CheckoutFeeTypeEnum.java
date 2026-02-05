@@ -17,8 +17,9 @@ public enum CheckoutFeeTypeEnum {
     PENALTY(5, "违约金", 1),
     CLEANING(6, "清洁费", 1),
     OTHER_DEDUCTION(7, "其他扣款", 1),
-    RENT_REFUND(8, "多收租金退还", 2),
-    DEPOSIT_REFUND(9, "押金退还", 2);
+    RENT_REFUND(8, "租金退还", 2),
+    DEPOSIT_REFUND(9, "押金退还", 2),
+    OTHER_REFUND(10, "其他退款", 2);
 
     private final Integer code;
     private final String name;
