@@ -1,12 +1,15 @@
 package com.homi.model.checkout.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 退租费用明细 DTO
+ * 对应截图中的费用清算表格行
  */
 @Data
 public class TenantCheckoutFeeDTO {
@@ -17,15 +20,21 @@ public class TenantCheckoutFeeDTO {
     private Long id;
 
     /**
-     * 费用类型
+     * 收支类型：1=收（租客应付），2=支（退还租客）
+     */
+    @NotNull(message = "收支类型不能为空")
+    private Integer feeDirection;
+
+    /**
+     * 费用类型（枚举code）
      */
     @NotNull(message = "费用类型不能为空")
     private Integer feeType;
 
     /**
-     * 费用名称
+     * 费用子类名称（如"房屋押金"）
      */
-    private String feeName;
+    private String feeSubName;
 
     /**
      * 费用金额
@@ -34,18 +43,24 @@ public class TenantCheckoutFeeDTO {
     private BigDecimal feeAmount;
 
     /**
-     * 方向：1=扣款，2=退款
+     * 费用周期开始
      */
-    @NotNull(message = "费用方向不能为空")
-    private Integer feeDirection;
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date feePeriodStart;
 
     /**
-     * 关联账单ID
+     * 费用周期结束
      */
-    private Long billId;
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date feePeriodEnd;
 
     /**
-     * 备注
+     * 费用备注
      */
     private String remark;
+
+    /**
+     * 关联账单ID（如有）
+     */
+    private Long billId;
 }

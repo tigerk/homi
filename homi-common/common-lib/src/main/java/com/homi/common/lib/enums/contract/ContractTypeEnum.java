@@ -7,11 +7,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ContractTypeEnum {
     /*
-     * 合同模板类型：1=租客、2=业主、3=预定
+     * 合同模板类型：1=租客、2=业主、3=预定、4=退租
      */
     TENANT(1, "租客"),
     OWNER(2, "房东"),
-    BOOKING(3, "预定");
+    BOOKING(3, "预定"),
+    CHECKOUT(4, "退租");
 
     private final Integer code;
     private final String name;

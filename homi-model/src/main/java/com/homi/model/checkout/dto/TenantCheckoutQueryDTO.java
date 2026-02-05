@@ -32,7 +32,7 @@ public class TenantCheckoutQueryDTO extends PageDTO {
     private String tenantName;
 
     /**
-     * 退租类型
+     * 退租类型：1=正常退，2=违约退
      */
     private Integer checkoutType;
 

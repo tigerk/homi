@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 退租单 VO
+ * 退租单 VO（退租并结账详情）
  */
 @Data
 public class TenantCheckoutVO {
@@ -28,25 +28,54 @@ public class TenantCheckoutVO {
      */
     private Long companyId;
 
+    // ===== 合同信息 =====
+
     /**
      * 租客ID
      */
     private Long tenantId;
 
     /**
-     * 租客姓名
+     * 房源地址
+     */
+    private String roomAddress;
+
+    /**
+     * 合同开始日
+     */
+    private LocalDate leaseStart;
+
+    /**
+     * 合同到期日
+     */
+    private LocalDate leaseEnd;
+
+    /**
+     * 承租人姓名
      */
     private String tenantName;
 
     /**
-     * 租客电话
+     * 承租人电话
      */
     private String tenantPhone;
 
     /**
-     * 房间信息
+     * 委托人信息
      */
-    private String roomInfo;
+    private String agentInfo;
+
+    /**
+     * 月租金
+     */
+    private BigDecimal rentPrice;
+
+    /**
+     * 押金总额
+     */
+    private BigDecimal depositAmount;
+
+    // ===== 退租信息 =====
 
     /**
      * 交割单ID
@@ -54,7 +83,7 @@ public class TenantCheckoutVO {
     private Long deliveryId;
 
     /**
-     * 退租类型
+     * 退租类型：1=正常退，2=违约退
      */
     private Integer checkoutType;
 
@@ -64,39 +93,112 @@ public class TenantCheckoutVO {
     private String checkoutTypeName;
 
     /**
-     * 退租原因
-     */
-    private String checkoutReason;
-
-    /**
-     * 合同到期日
-     */
-    private LocalDate leaseEnd;
-
-    /**
-     * 实际退租日
+     * 实际离房日期
      */
     private LocalDate actualCheckoutDate;
 
     /**
-     * 押金总额
+     * 解约原因（违约退时填写）
      */
-    private BigDecimal depositAmount;
+    private String breachReason;
+
+    // ===== 费用结算 =====
 
     /**
-     * 扣款总额
+     * 收入总额（租客应付）
      */
-    private BigDecimal deductionAmount;
+    private BigDecimal incomeAmount;
 
     /**
-     * 应退金额
+     * 支出总额（退还租客）
      */
-    private BigDecimal refundAmount;
+    private BigDecimal expenseAmount;
 
     /**
-     * 最终结算
+     * 最终结算金额（负数=应退租客，正数=租客补缴）
      */
     private BigDecimal finalAmount;
+
+    /**
+     * 预计收/付款时间
+     */
+    private LocalDate expectedPaymentDate;
+
+    /**
+     * 账单处理方式
+     */
+    private Integer settlementMethod;
+
+    /**
+     * 账单处理方式名称
+     */
+    private String settlementMethodName;
+
+    /**
+     * 费用明细列表
+     */
+    private List<TenantCheckoutFeeVO> feeList;
+
+    // ===== 其他信息 =====
+
+    /**
+     * 退租备注
+     */
+    private String remark;
+
+    /**
+     * 退租凭证附件列表
+     */
+    private List<String> attachmentUrls;
+
+    // ===== 收款人信息 =====
+
+    /**
+     * 收款人姓名
+     */
+    private String payeeName;
+
+    /**
+     * 收款人电话
+     */
+    private String payeePhone;
+
+    /**
+     * 收款人证件类型
+     */
+    private String payeeIdType;
+
+    /**
+     * 收款人证件号
+     */
+    private String payeeIdNumber;
+
+    /**
+     * 银行类型
+     */
+    private String bankType;
+
+    /**
+     * 银行卡类型
+     */
+    private String bankCardType;
+
+    /**
+     * 银行账号
+     */
+    private String bankAccount;
+
+    /**
+     * 银行名称
+     */
+    private String bankName;
+
+    /**
+     * 支行名称
+     */
+    private String bankBranch;
+
+    // ===== 状态 =====
 
     /**
      * 状态
@@ -122,16 +224,6 @@ public class TenantCheckoutVO {
      * 结算完成时间
      */
     private LocalDateTime settlementTime;
-
-    /**
-     * 备注
-     */
-    private String remark;
-
-    /**
-     * 费用明细列表
-     */
-    private List<TenantCheckoutFeeVO> feeList;
 
     /**
      * 创建人ID

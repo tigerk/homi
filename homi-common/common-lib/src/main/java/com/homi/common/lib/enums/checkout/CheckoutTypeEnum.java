@@ -5,16 +5,14 @@ import lombok.Getter;
 
 /**
  * 退租类型枚举
+ * 只有两种：正常退、违约退
  */
 @Getter
 @AllArgsConstructor
 public enum CheckoutTypeEnum {
 
-    NORMAL_EXPIRE(1, "正常到期"),
-    EARLY_CHECKOUT(2, "提前退租"),
-    ROOM_CHANGE(3, "换房退租"),
-    BREACH(4, "违约退租"),
-    NEGOTIATION(5, "协商解约");
+    NORMAL(1, "正常退"),
+    BREACH(2, "违约退");
 
     private final Integer code;
     private final String name;
@@ -32,5 +30,19 @@ public enum CheckoutTypeEnum {
     public static String getNameByCode(Integer code) {
         CheckoutTypeEnum e = getByCode(code);
         return e != null ? e.getName() : "";
+    }
+
+    /**
+     * 是否为正常退租
+     */
+    public boolean isNormal() {
+        return this == NORMAL;
+    }
+
+    /**
+     * 是否为违约退租（默认不退押金）
+     */
+    public boolean isBreach() {
+        return this == BREACH;
     }
 }

@@ -1,7 +1,9 @@
 package com.homi.service.service.room;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.EnumUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 应用于 homi
@@ -51,6 +54,7 @@ public class RoomService {
     private final RoomPricePlanRepo roomPricePlanRepo;
     private final BookingRepo bookingRepo;
     private final TenantRepo tenantRepo;
+    private final HouseRepo houseRepo;
 
     /**
      * 获取房间列表
@@ -316,5 +320,42 @@ public class RoomService {
         }
 
         return RoomStatusEnum.AVAILABLE.getCode();
+    }
+
+    /**
+     * 根据房间ID列表获取拼接后的地址字符串
+     * <p>
+     * 多个房间用 "、" 连接，例如：
+     * - 单间: "12312栋12单元-104室"
+     * - 多间: "12312栋12单元-104室、12312栋12单元-105室"
+     *
+     * @param roomIds 房间ID列表
+     * @return 拼接后的房间地址，如果为空返回空字符串
+     */
+    public String getRoomAddressByIds(List<Long> roomIds) {
+        if (CollUtil.isEmpty(roomIds)) {
+            return "";
+        }
+
+        List<Room> rooms = roomRepo.listByIds(roomIds);
+        if (CollUtil.isEmpty(rooms)) {
+            return "";
+        }
+
+        return rooms.stream().map(this::buildRoomAddress).filter(StrUtil::isNotBlank).collect(Collectors.joining("、"));
+    }
+
+    /**
+     * 拼接单个房间的地址
+     * 格式: {楼栋名}{单元名}-{房间号}
+     * 示例: "12312栋12单元-104室"
+     * <p>
+     * 请根据你实际的 Room 实体字段名做调整，
+     * 下面列出了几种常见的字段命名方式。
+     */
+    private String buildRoomAddress(Room room) {
+        House house = houseRepo.getById(room.getHouseId());
+        
+        return String.format("%s-%s", house.getHouseName(), room.getRoomNumber());
     }
 }

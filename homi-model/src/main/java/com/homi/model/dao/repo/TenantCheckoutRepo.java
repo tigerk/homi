@@ -8,21 +8,16 @@ import com.homi.model.dao.mapper.TenantCheckoutMapper;
 import org.springframework.stereotype.Service;
 
 /**
- * <p>
  * 退租主表 服务实现类
- * </p>
  *
  * @author tk
- * @since 2026-01-26
+ * @since 2026-02-05
  */
 @Service
 public class TenantCheckoutRepo extends ServiceImpl<TenantCheckoutMapper, TenantCheckout> {
 
     /**
      * 更新退租状态
-     *
-     * @param checkoutId 退租主表ID
-     * @param status     状态
      */
     public void updateStatus(Long checkoutId, int status) {
         TenantCheckout tenantCheckout = new TenantCheckout();
@@ -32,6 +27,9 @@ public class TenantCheckoutRepo extends ServiceImpl<TenantCheckoutMapper, Tenant
         updateById(tenantCheckout);
     }
 
+    /**
+     * 更新审批状态
+     */
     public void updateApprovalStatus(Long checkoutId, Integer bizApprovalStatus) {
         TenantCheckout tenantCheckout = new TenantCheckout();
         tenantCheckout.setId(checkoutId);
@@ -40,6 +38,9 @@ public class TenantCheckoutRepo extends ServiceImpl<TenantCheckoutMapper, Tenant
         updateById(tenantCheckout);
     }
 
+    /**
+     * 根据租客ID获取非取消状态的退租单
+     */
     public TenantCheckout getByTenantId(Long tenantId) {
         return lambdaQuery()
             .eq(TenantCheckout::getTenantId, tenantId)
@@ -48,6 +49,9 @@ public class TenantCheckoutRepo extends ServiceImpl<TenantCheckoutMapper, Tenant
             .one();
     }
 
+    /**
+     * 判断租客是否有进行中的退租单（草稿或待确认）
+     */
     public boolean hasActiveCheckout(Long tenantId) {
         return lambdaQuery()
             .eq(TenantCheckout::getTenantId, tenantId)

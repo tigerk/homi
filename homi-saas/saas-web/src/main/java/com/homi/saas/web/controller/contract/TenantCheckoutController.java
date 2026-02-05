@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 退租管理 Controller
+ * 退租管理 Controller（退租并结账）
  */
 @RestController
 @RequestMapping("/saas/tenant/checkout")
@@ -28,7 +28,7 @@ public class TenantCheckoutController {
     private final TenantCheckoutService tenantCheckoutService;
 
     /**
-     * 获取退租初始化数据
+     * 获取退租初始化数据（合同信息 + 未付账单 + 预填费用）
      */
     @PostMapping("/init")
     public ResponseResult<CheckoutInitVO> getCheckoutInitData(
@@ -38,23 +38,32 @@ public class TenantCheckoutController {
     }
 
     /**
-     * 保存退租单（新建/修改）
+     * 保存退租单（新建/修改，退租并结账）
      */
     @PostMapping("/save")
-    public ResponseResult<Long> saveCheckout(@RequestBody @Validated TenantCheckoutDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<Long> saveCheckout(
+        @RequestBody @Validated TenantCheckoutDTO dto,
+        @AuthenticationPrincipal UserLoginVO loginUser) {
         dto.setCompanyId(loginUser.getCurCompanyId());
         dto.setOperatorId(loginUser.getId());
-
         Long checkoutId = tenantCheckoutService.saveCheckout(dto);
         return ResponseResult.ok(checkoutId);
     }
 
     /**
-     * 提交退租审批
+     * 提交退租审批（确定）
      */
     @PostMapping("/submit")
-    public ResponseResult<Void> submitCheckout(@RequestBody TenantCheckoutQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
-        tenantCheckoutService.submitCheckout(query.getTenantId(), OperatorDTO.builder().operatorId(loginUser.getId()).operatorName(loginUser.getNickname()).build());
+    public ResponseResult<Void> submitCheckout(
+        @RequestBody TenantCheckoutQueryDTO query,
+        @AuthenticationPrincipal UserLoginVO loginUser) {
+        tenantCheckoutService.submitCheckout(
+            query.getTenantId(),
+            OperatorDTO.builder()
+                .operatorId(loginUser.getId())
+                .operatorName(loginUser.getNickname())
+                .build()
+        );
         return ResponseResult.ok();
     }
 
@@ -62,8 +71,16 @@ public class TenantCheckoutController {
      * 取消退租单
      */
     @PostMapping("/cancel")
-    public ResponseResult<Void> cancelCheckout(@RequestBody TenantCheckoutQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
-        tenantCheckoutService.cancelCheckout(query.getTenantId(), OperatorDTO.builder().operatorId(loginUser.getId()).operatorName(loginUser.getNickname()).build());
+    public ResponseResult<Void> cancelCheckout(
+        @RequestBody TenantCheckoutQueryDTO query,
+        @AuthenticationPrincipal UserLoginVO loginUser) {
+        tenantCheckoutService.cancelCheckout(
+            query.getTenantId(),
+            OperatorDTO.builder()
+                .operatorId(loginUser.getId())
+                .operatorName(loginUser.getNickname())
+                .build()
+        );
         return ResponseResult.ok();
     }
 
@@ -71,7 +88,8 @@ public class TenantCheckoutController {
      * 获取退租单详情
      */
     @PostMapping("/detail")
-    public ResponseResult<TenantCheckoutVO> getCheckoutDetail(@RequestBody TenantCheckoutQueryDTO query) {
+    public ResponseResult<TenantCheckoutVO> getCheckoutDetail(
+        @RequestBody TenantCheckoutQueryDTO query) {
         TenantCheckoutVO vo = tenantCheckoutService.getCheckoutDetail(query.getTenantId());
         return ResponseResult.ok(vo);
     }
@@ -80,7 +98,8 @@ public class TenantCheckoutController {
      * 根据租客ID获取退租单
      */
     @PostMapping("/getByTenant")
-    public ResponseResult<TenantCheckoutVO> getCheckoutByTenantId(@RequestBody TenantCheckoutQueryDTO query) {
+    public ResponseResult<TenantCheckoutVO> getCheckoutByTenantId(
+        @RequestBody TenantCheckoutQueryDTO query) {
         TenantCheckoutVO vo = tenantCheckoutService.getCheckoutByTenantId(query.getTenantId());
         return ResponseResult.ok(vo);
     }
@@ -89,7 +108,9 @@ public class TenantCheckoutController {
      * 查询退租单列表
      */
     @PostMapping("/list")
-    public ResponseResult<PageVO<TenantCheckoutVO>> queryCheckoutList(@RequestBody TenantCheckoutQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<PageVO<TenantCheckoutVO>> queryCheckoutList(
+        @RequestBody TenantCheckoutQueryDTO query,
+        @AuthenticationPrincipal UserLoginVO loginUser) {
         query.setCompanyId(loginUser.getCurCompanyId());
         PageVO<TenantCheckoutVO> page = tenantCheckoutService.queryCheckoutList(query);
         return ResponseResult.ok(page);

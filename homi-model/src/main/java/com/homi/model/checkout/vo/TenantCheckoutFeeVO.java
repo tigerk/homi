@@ -3,9 +3,11 @@ package com.homi.model.checkout.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * 退租费用明细 VO
+ * 对应截图中费用清算表格行的展示
  */
 @Data
 public class TenantCheckoutFeeVO {
@@ -21,6 +23,16 @@ public class TenantCheckoutFeeVO {
     private Long checkoutId;
 
     /**
+     * 收支类型：1=收，2=支
+     */
+    private Integer feeDirection;
+
+    /**
+     * 收支类型名称
+     */
+    private String feeDirectionName;
+
+    /**
      * 费用类型
      */
     private Integer feeType;
@@ -31,9 +43,9 @@ public class TenantCheckoutFeeVO {
     private String feeTypeName;
 
     /**
-     * 费用名称
+     * 费用子类名称（如"房屋押金"）
      */
-    private String feeName;
+    private String feeSubName;
 
     /**
      * 费用金额
@@ -41,22 +53,22 @@ public class TenantCheckoutFeeVO {
     private BigDecimal feeAmount;
 
     /**
-     * 方向：1=扣款，2=退款
+     * 费用周期开始
      */
-    private Integer feeDirection;
+    private Date feePeriodStart;
 
     /**
-     * 方向名称
+     * 费用周期结束
      */
-    private String feeDirectionName;
+    private Date feePeriodEnd;
+
+    /**
+     * 费用备注
+     */
+    private String remark;
 
     /**
      * 关联账单ID
      */
     private Long billId;
-
-    /**
-     * 备注
-     */
-    private String remark;
 }

@@ -3,12 +3,15 @@ package com.homi.service.service.checkout;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutFeeTypeEnum;
+import com.homi.common.lib.enums.checkout.CheckoutSettlementMethodEnum;
 import com.homi.common.lib.enums.checkout.CheckoutStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutTypeEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
@@ -39,10 +42,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
- * 退租服务
+ * 退租服务（退租并结账）
  */
 @Slf4j
 @Service
@@ -61,6 +65,7 @@ public class TenantCheckoutService {
 
     /**
      * 获取退租初始化数据
+     * 返回合同信息、未付账单、预填费用行
      */
     public CheckoutInitVO getCheckoutInitData(Long tenantId) {
         Tenant tenant = tenantRepo.getById(tenantId);
@@ -75,7 +80,7 @@ public class TenantCheckoutService {
 
         // 获取房间信息
         List<Long> roomIds = JSONUtil.toList(tenant.getRoomIds(), Long.class);
-//        String roomInfo = roomService.getRoomInfoByIds(roomIds);
+        String roomAddress = roomService.getRoomAddressByIds(roomIds);
 
         // 获取未付账单
         List<TenantBill> unpaidBills = tenantBillRepo.getBillListByTenantId(tenantId, Boolean.TRUE);
@@ -83,15 +88,18 @@ public class TenantCheckoutService {
         BigDecimal unpaidAmount = BigDecimal.ZERO;
 
         for (TenantBill bill : unpaidBills) {
-            BigDecimal payAmount = bill.getPayAmount() != null ? bill.getPayAmount() : BigDecimal.ZERO;
-            BigDecimal billTotal = bill.getTotalAmount() != null ? bill.getTotalAmount() : BigDecimal.ZERO;
+            BigDecimal payAmount = ObjectUtil.defaultIfNull(bill.getPayAmount(), BigDecimal.ZERO);
+            BigDecimal billTotal = ObjectUtil.defaultIfNull(bill.getTotalAmount(), BigDecimal.ZERO);
             BigDecimal unpaidMoney = billTotal.subtract(payAmount);
             unpaidAmount = unpaidAmount.add(unpaidMoney);
 
             unpaidBillVOs.add(CheckoutInitVO.UnpaidBillVO.builder()
                 .billId(bill.getId())
                 .billType(bill.getBillType())
-                .billPeriod(bill.getRentPeriodStart().toString() + " ~ " + bill.getRentPeriodEnd().toString())
+                .billTypeName(getBillTypeName(bill.getBillType()))
+                .periodStart(bill.getRentPeriodStart())
+                .periodEnd(bill.getRentPeriodEnd())
+                .billPeriod(bill.getRentPeriodStart() + " ~ " + bill.getRentPeriodEnd())
                 .totalAmount(billTotal)
                 .payAmount(payAmount)
                 .unpaidAmount(unpaidMoney)
@@ -99,24 +107,84 @@ public class TenantCheckoutService {
         }
 
         // 计算押金总额
-        BigDecimal depositAmount = tenant.getRentPrice().multiply(BigDecimal.valueOf(tenant.getDepositMonths()));
+        BigDecimal depositAmount = tenant.getRentPrice()
+            .multiply(BigDecimal.valueOf(ObjectUtil.defaultIfNull(tenant.getDepositMonths(), 0)));
+
+        // 构建预填费用行（根据未付账单自动生成）
+        List<CheckoutInitVO.PresetFeeVO> presetFees = buildPresetFees(tenant, unpaidBills, depositAmount);
+
+        // 收款人信息
+        CheckoutInitVO.PayeeInfoVO payeeInfo = CheckoutInitVO.PayeeInfoVO.builder()
+            .payeeName(tenant.getTenantName())
+            .payeePhone(tenant.getTenantPhone())
+            .build();
 
         return CheckoutInitVO.builder()
             .tenantId(tenantId)
-            .tenantName(tenant.getTenantName())
-            .tenantPhone(tenant.getTenantPhone())
-//            .roomInfo(roomInfo)
+            .roomAddress(roomAddress)
             .leaseStart(tenant.getLeaseStart())
             .leaseEnd(tenant.getLeaseEnd())
+            .tenantName(tenant.getTenantName())
+            .tenantPhone(tenant.getTenantPhone())
             .rentPrice(tenant.getRentPrice())
             .depositAmount(depositAmount)
+            .depositMonths(tenant.getDepositMonths())
             .unpaidBills(unpaidBillVOs)
             .unpaidAmount(unpaidAmount)
+            .presetFees(presetFees)
+            .payeeInfo(payeeInfo)
             .build();
     }
 
     /**
-     * 创建/保存退租单
+     * 构建预填费用行
+     * 自动根据押金、未付账单等生成费用清算表初始行
+     */
+    private List<CheckoutInitVO.PresetFeeVO> buildPresetFees(
+        Tenant tenant,
+        List<TenantBill> unpaidBills,
+        BigDecimal depositAmount
+    ) {
+        List<CheckoutInitVO.PresetFeeVO> presetFees = new ArrayList<>();
+        Date today = DateUtil.date();
+
+        // 1. 押金退还（支出方向）- 默认正常退时预填
+        if (depositAmount != null && depositAmount.compareTo(BigDecimal.ZERO) > 0) {
+            presetFees.add(CheckoutInitVO.PresetFeeVO.builder()
+                .feeDirection(2) // 支
+                .feeType(CheckoutFeeTypeEnum.DEPOSIT_REFUND.getCode())
+                .feeSubName("房屋押金")
+                .feeAmount(depositAmount)
+                .feePeriodStart(tenant.getLeaseStart())
+                .feePeriodEnd(tenant.getLeaseEnd())
+                .remark(DateUtil.formatDate(today) + "退租清算\"预退押金" + depositAmount + "元\"")
+                .build());
+        }
+
+        // 2. 未付账单（收入方向）
+        for (TenantBill bill : unpaidBills) {
+            BigDecimal unpaid = ObjectUtil.defaultIfNull(bill.getTotalAmount(), BigDecimal.ZERO)
+                .subtract(ObjectUtil.defaultIfNull(bill.getPayAmount(), BigDecimal.ZERO));
+            if (unpaid.compareTo(BigDecimal.ZERO) > 0) {
+                String typeName = getBillTypeName(bill.getBillType());
+                presetFees.add(CheckoutInitVO.PresetFeeVO.builder()
+                    .feeDirection(1) // 收
+                    .feeType(mapBillTypeToFeeType(bill.getBillType()))
+                    .feeSubName(typeName)
+                    .feeAmount(unpaid)
+                    .feePeriodStart(bill.getRentPeriodStart())
+                    .feePeriodEnd(bill.getRentPeriodEnd())
+                    .remark(DateUtil.formatDate(today) + "退租清算\"应退" + unpaid + "元\"")
+                    .billId(bill.getId())
+                    .build());
+            }
+        }
+
+        return presetFees;
+    }
+
+    /**
+     * 创建/保存退租单（退租并结账）
      */
     @Transactional(rollbackFor = Exception.class)
     public Long saveCheckout(TenantCheckoutDTO dto) {
@@ -128,20 +196,60 @@ public class TenantCheckoutService {
         boolean isNew = dto.getId() == null;
         TenantCheckout checkout = isNew ? createNewCheckout(dto, tenant) : updateExistingCheckout(dto);
 
-        // 设置基本信息
+        // 设置退租基本信息
         checkout.setCheckoutType(dto.getCheckoutType());
-        checkout.setCheckoutReason(dto.getCheckoutReason());
         checkout.setActualCheckoutDate(dto.getActualCheckoutDate());
-        checkout.setDepositAmount(ObjectUtil.defaultIfNull(dto.getDepositAmount(), BigDecimal.ZERO));
+        BigDecimal depositAmount = tenant.getRentPrice().multiply(BigDecimal.valueOf(ObjectUtil.defaultIfNull(tenant.getDepositMonths(), 0)));
+        checkout.setDepositAmount(depositAmount);
+        checkout.setExpectedPaymentDate(dto.getExpectedPaymentDate());
+        checkout.setSettlementMethod(dto.getSettlementMethod());
+        // 坏账原因（标记坏账时必填）
+        if (CheckoutSettlementMethodEnum.BAD_DEBT.getCode().equals(dto.getSettlementMethod())) {
+            if (CharSequenceUtil.isBlank(dto.getBadDebtReason())) {
+                throw new BizException("标记坏账时坏账原因不能为空");
+            }
+            checkout.setBadDebtReason(dto.getBadDebtReason());
+        } else {
+            checkout.setBadDebtReason(null);
+        }
         checkout.setRemark(dto.getRemark());
 
-        // 计算并设置费用
+        // 解约原因（违约退时保存）
+        if (CheckoutTypeEnum.BREACH.getCode().equals(dto.getCheckoutType())) {
+            checkout.setBreachReason(dto.getBreachReason());
+        } else {
+            checkout.setBreachReason(null);
+        }
+
+        // 退租凭证附件
+        if (CollUtil.isNotEmpty(dto.getAttachmentIds())) {
+            checkout.setAttachmentIds(JSONUtil.toJsonStr(dto.getAttachmentIds()));
+        }
+
+        // 收款人信息
+        checkout.setPayeeName(dto.getPayeeName());
+        checkout.setPayeePhone(dto.getPayeePhone());
+        checkout.setPayeeIdType(dto.getPayeeIdType());
+        checkout.setPayeeIdNumber(dto.getPayeeIdNumber());
+        checkout.setBankType(dto.getBankType());
+        checkout.setBankCardType(dto.getBankCardType());
+        checkout.setBankAccount(dto.getBankAccount());
+        checkout.setBankName(dto.getBankName());
+        checkout.setBankBranch(dto.getBankBranch());
+
+        // 发送确认单
+        checkout.setSendConfirmation(dto.getSendConfirmation());
+        checkout.setConfirmationTemplate(dto.getConfirmationTemplate());
+
+        // 计算费用汇总
         calculateAndSetFees(checkout, dto.getFeeList());
 
         // 保存退租单和费用明细
         saveCheckoutAndFees(checkout, isNew, dto.getFeeList(), dto.getOperatorId());
 
-        log.info("退租单保存成功: checkoutId={}, tenantId={}", checkout.getId(), dto.getTenantId());
+        log.info("退租单保存成功: checkoutId={}, tenantId={}, type={}",
+            checkout.getId(), dto.getTenantId(),
+            CheckoutTypeEnum.getNameByCode(dto.getCheckoutType()));
         return checkout.getId();
     }
 
@@ -186,25 +294,30 @@ public class TenantCheckoutService {
     }
 
     /**
-     * 计算并设置费用
+     * 计算并设置费用汇总
+     * 收入 = 收方向费用合计
+     * 支出 = 支方向费用合计
+     * 最终结算 = 支出 - 收入（负数=应退租客）
      */
     private void calculateAndSetFees(TenantCheckout checkout, List<TenantCheckoutFeeDTO> feeList) {
-        BigDecimal deductionAmount = BigDecimal.ZERO;
-        BigDecimal refundAmount = BigDecimal.ZERO;
+        BigDecimal incomeAmount = BigDecimal.ZERO;   // 收（租客应付）
+        BigDecimal expenseAmount = BigDecimal.ZERO;  // 支（退还租客）
 
         if (CollUtil.isNotEmpty(feeList)) {
             for (TenantCheckoutFeeDTO fee : feeList) {
-                if (fee.getFeeDirection() == 1) {
-                    deductionAmount = deductionAmount.add(fee.getFeeAmount());
-                } else {
-                    refundAmount = refundAmount.add(fee.getFeeAmount());
+                BigDecimal amount = ObjectUtil.defaultIfNull(fee.getFeeAmount(), BigDecimal.ZERO);
+                if (fee.getFeeDirection() != null && fee.getFeeDirection() == 1) {
+                    incomeAmount = incomeAmount.add(amount);
+                } else if (fee.getFeeDirection() != null && fee.getFeeDirection() == 2) {
+                    expenseAmount = expenseAmount.add(amount);
                 }
             }
         }
 
-        checkout.setDeductionAmount(deductionAmount);
-        checkout.setRefundAmount(refundAmount);
-        checkout.setFinalAmount(deductionAmount.subtract(refundAmount));
+        checkout.setIncomeAmount(incomeAmount);
+        checkout.setExpenseAmount(expenseAmount);
+        // finalAmount = 收入 - 支出：正数=租客补缴，负数=应退租客
+        checkout.setFinalAmount(incomeAmount.subtract(expenseAmount));
     }
 
     /**
@@ -223,8 +336,15 @@ public class TenantCheckoutService {
             List<TenantCheckoutFee> fees = new ArrayList<>();
             for (TenantCheckoutFeeDTO feeDTO : feeList) {
                 TenantCheckoutFee fee = new TenantCheckoutFee();
-                BeanUtil.copyProperties(feeDTO, fee);
                 fee.setCheckoutId(checkout.getId());
+                fee.setFeeDirection(feeDTO.getFeeDirection());
+                fee.setFeeType(feeDTO.getFeeType());
+                fee.setFeeSubName(feeDTO.getFeeSubName());
+                fee.setFeeAmount(feeDTO.getFeeAmount());
+                fee.setFeePeriodStart(feeDTO.getFeePeriodStart());
+                fee.setFeePeriodEnd(feeDTO.getFeePeriodEnd());
+                fee.setRemark(feeDTO.getRemark());
+                fee.setBillId(feeDTO.getBillId());
                 fee.setCreateBy(operatorId);
                 fee.setCreateTime(DateUtil.date());
                 fees.add(fee);
@@ -260,12 +380,12 @@ public class TenantCheckoutService {
                 .companyId(checkout.getCompanyId())
                 .bizType(ApprovalBizTypeEnum.TENANT_CHECKOUT.getCode())
                 .bizId(checkout.getId())
-                .title("退租审批 - " + tenant.getTenantName())
+                .title("退租并结账 - " + (tenant != null ? tenant.getTenantName() : ""))
                 .applicantId(operatorDTO.getOperatorId())
                 .build(),
-            // 需要审批：PENDING
+            // 需要审批
             bizId -> tenantCheckoutRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.PENDING.getCode()),
-            // 无需审批：APPROVED + 执行退租
+            // 无需审批：直接完成
             bizId -> {
                 tenantCheckoutRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.APPROVED.getCode());
                 completeCheckout(bizId, operatorDTO.getOperatorId());
@@ -276,7 +396,7 @@ public class TenantCheckoutService {
     }
 
     /**
-     * 完成退租（审批通过后调用）未付账单不作废，保持原样。
+     * 完成退租（审批通过后调用）
      */
     @Transactional(rollbackFor = Exception.class)
     public void completeCheckout(Long checkoutId, Long operatorId) {
@@ -335,7 +455,6 @@ public class TenantCheckoutService {
         if (checkout == null) {
             return null;
         }
-
         return convertToVO(checkout);
     }
 
@@ -347,7 +466,6 @@ public class TenantCheckoutService {
         if (checkout == null) {
             return null;
         }
-
         return convertToVO(checkout);
     }
 
@@ -366,25 +484,34 @@ public class TenantCheckoutService {
         TenantCheckoutVO vo = BeanCopyUtils.copyBean(checkout, TenantCheckoutVO.class);
         assert vo != null;
 
-        // 租客信息
+        // 解约原因
+        vo.setBreachReason(checkout.getBreachReason());
+
+        // 租客信息 & 房间信息
         Tenant tenant = tenantRepo.getById(checkout.getTenantId());
         if (tenant != null) {
-
             vo.setTenantName(tenant.getTenantName());
             vo.setTenantPhone(tenant.getTenantPhone());
+            vo.setRentPrice(tenant.getRentPrice());
             List<Long> roomIds = JSONUtil.toList(tenant.getRoomIds(), Long.class);
-//            vo.setRoomInfo(roomService.getRoomInfoByIds(roomIds));
+            vo.setRoomAddress(roomService.getRoomAddressByIds(roomIds));
         }
 
-        // 状态名称
+        // 枚举名称
         vo.setCheckoutTypeName(CheckoutTypeEnum.getNameByCode(checkout.getCheckoutType()));
         vo.setStatusName(CheckoutStatusEnum.getNameByCode(checkout.getStatus()));
-        vo.setApprovalStatusName(BizApprovalStatusEnum.getByCode(checkout.getApprovalStatus()) != null
-            ? BizApprovalStatusEnum.getByCode(checkout.getApprovalStatus()).getName() : "");
+        vo.setSettlementMethodName(CheckoutSettlementMethodEnum.getNameByCode(checkout.getSettlementMethod()));
+        BizApprovalStatusEnum approvalEnum = BizApprovalStatusEnum.getByCode(checkout.getApprovalStatus());
+        vo.setApprovalStatusName(approvalEnum != null ? approvalEnum.getName() : "");
 
         // 创建人
         if (checkout.getCreateBy() != null) {
             vo.setCreateByName(userRepo.getUserNicknameById(checkout.getCreateBy()));
+        }
+
+        // 附件
+        if (StrUtil.isNotBlank(checkout.getAttachmentIds())) {
+            vo.setAttachmentUrls(JSONUtil.toList(checkout.getAttachmentIds(), String.class));
         }
 
         // 费用明细
@@ -407,11 +534,43 @@ public class TenantCheckoutService {
             TenantCheckoutFeeVO vo = new TenantCheckoutFeeVO();
             BeanUtil.copyProperties(fee, vo);
             vo.setFeeTypeName(CheckoutFeeTypeEnum.getNameByCode(fee.getFeeType()));
-            vo.setFeeDirectionName(fee.getFeeDirection() == 1 ? "扣款" : "退款");
+            vo.setFeeDirectionName(fee.getFeeDirection() == 1 ? "收" : "支");
             voList.add(vo);
         }
-
         return voList;
+    }
+
+    /**
+     * 账单类型转费用类型
+     */
+    private Integer mapBillTypeToFeeType(Integer billType) {
+        if (billType == null) return CheckoutFeeTypeEnum.OTHER.getCode();
+        return switch (billType) {
+            case 1 -> CheckoutFeeTypeEnum.RENT.getCode();           // 租金
+            case 2 -> CheckoutFeeTypeEnum.DEPOSIT.getCode();        // 押金
+            case 4 -> CheckoutFeeTypeEnum.WATER.getCode();          // 水费
+            case 5 -> CheckoutFeeTypeEnum.ELECTRIC.getCode();       // 电费
+            case 6 -> CheckoutFeeTypeEnum.GAS.getCode();            // 燃气费
+            case 7 -> CheckoutFeeTypeEnum.PROPERTY_FEE.getCode();   // 物业费
+            default -> CheckoutFeeTypeEnum.OTHER.getCode();         // 其他
+        };
+    }
+
+    /**
+     * 账单类型名称
+     */
+    private String getBillTypeName(Integer billType) {
+        if (billType == null) return "其他费用";
+        return switch (billType) {
+            case 1 -> "租金";
+            case 2 -> "押金";
+            case 3 -> "优惠减免";
+            case 4 -> "水费";
+            case 5 -> "电费";
+            case 6 -> "燃气费";
+            case 7 -> "物业费";
+            default -> "其他费用";
+        };
     }
 
     /**

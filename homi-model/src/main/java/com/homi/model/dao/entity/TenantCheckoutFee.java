@@ -1,27 +1,22 @@
 package com.homi.model.dao.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
 import java.io.Serial;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
- * <p>
  * 退租费用明细表
- * </p>
  *
  * @author tk
- * @since 2026-02-03
+ * @since 2026-02-05
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -40,29 +35,39 @@ public class TenantCheckoutFee implements Serializable {
     @TableField("checkout_id")
     private Long checkoutId;
 
-    @Schema(description = "费用类型：1=欠缴租金，2=欠缴杂费，3=水电燃气，4=物品损坏，5=违约金，6=清洁费，7=其他扣款，8=多收租金退还，9=押金退还")
+    @Schema(description = "收支类型：1=收（租客应付），2=支（退还租客）")
+    @TableField("fee_direction")
+    private Integer feeDirection;
+
+    @Schema(description = "费用类型")
     @TableField("fee_type")
     private Integer feeType;
 
-    @Schema(description = "费用名称")
-    @TableField("fee_name")
-    private String feeName;
+    @Schema(description = "费用子类名称（如'房屋押金'）")
+    @TableField("fee_sub_name")
+    private String feeSubName;
 
     @Schema(description = "费用金额（正数）")
     @TableField("fee_amount")
     private BigDecimal feeAmount;
 
-    @Schema(description = "方向：1=扣款（租客应付），2=退款（退还租客）")
-    @TableField("fee_direction")
-    private Integer feeDirection;
+    @Schema(description = "费用周期开始")
+    @TableField("fee_period_start")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date feePeriodStart;
+
+    @Schema(description = "费用周期结束")
+    @TableField("fee_period_end")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date feePeriodEnd;
+
+    @Schema(description = "费用备注")
+    @TableField("remark")
+    private String remark;
 
     @Schema(description = "关联账单ID（如有）")
     @TableField("bill_id")
     private Long billId;
-
-    @Schema(description = "备注")
-    @TableField("remark")
-    private String remark;
 
     @Schema(description = "是否删除")
     @TableField("deleted")
