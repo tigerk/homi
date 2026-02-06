@@ -8,11 +8,11 @@ import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantCheckOutStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.common.lib.exception.BizException;
-import com.homi.model.dao.entity.Tenant;
+import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.RoomRepo;
-import com.homi.model.dao.repo.TenantCheckoutRepo;
-import com.homi.model.dao.repo.TenantRepo;
+import com.homi.model.dao.repo.LeaseCheckoutRepo;
+import com.homi.model.dao.repo.LeaseRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.modulith.events.ApplicationModuleListener;
@@ -35,9 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ApprovalEventListener {
 
-    private final TenantRepo tenantRepo;
+    private final LeaseRepo leaseRepo;
     private final RoomRepo roomRepo;
-    private final TenantCheckoutRepo tenantCheckoutRepo;
+    private final LeaseCheckoutRepo leaseCheckoutRepo;
     private final HouseRepo houseRepo;
 
     /**
@@ -71,7 +71,7 @@ public class ApprovalEventListener {
         try {
             switch (bizTypeEnum) {
                 case TENANT_CHECKIN -> handleTenantCheckin(bizId, approvalStatus, bizApprovalStatus);
-                case TENANT_CHECKOUT -> handleTenantCheckout(bizId, approvalStatus, bizApprovalStatus);
+                case TENANT_CHECKOUT -> handleLeaseCheckout(bizId, approvalStatus, bizApprovalStatus);
                 case HOUSE_CREATE -> handleHouseCreate(bizId, approvalStatus, bizApprovalStatus);
                 default -> handleDefaultBiz(bizType, bizId, approvalStatus, bizApprovalStatus);
             }
@@ -106,50 +106,50 @@ public class ApprovalEventListener {
     /**
      * 处理租客入住审批
      */
-    private void handleTenantCheckin(Long tenantId, Integer approvalStatus, Integer bizApprovalStatus) {
+    private void handleTenantCheckin(Long leaseId, Integer approvalStatus, Integer bizApprovalStatus) {
         // 1. 更新业务表的审批状态
-        tenantRepo.updateApprovalStatus(tenantId, bizApprovalStatus);
+        leaseRepo.updateApprovalStatus(leaseId, bizApprovalStatus);
 
         // 2. 根据审批结果更新业务状态
         if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
             // 审批通过 -> 租客状态改为生效
-            tenantRepo.updateStatusById(tenantId, TenantStatusEnum.TO_SIGN.getCode());
-            log.info("租客入住审批通过，已更新为待签约状态，允许租客签约合同: tenantId={}", tenantId);
+            leaseRepo.updateStatusById(leaseId, TenantStatusEnum.TO_SIGN.getCode());
+            log.info("租客入住审批通过，已更新为待签约状态，允许租客签约合同: leaseId={}", leaseId);
 
             // TODO: 可以在这里执行审批通过后的业务逻辑，做一个通用的消息通知功能。
             // 发送通知给业务人员，审核已通过，可以让租客进行合同签字了。
 
         } else if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
-            log.info("租客入住审批驳回: tenantId={}", tenantId);
+            log.info("租客入住审批驳回: leaseId={}", leaseId);
 
             // 1. 审批驳回 -> 租客状态改为已取消，可以再次提交。
-            tenantRepo.updateStatusById(tenantId, TenantStatusEnum.CANCELLED.getCode());
+            leaseRepo.updateStatusById(leaseId, TenantStatusEnum.CANCELLED.getCode());
 
-            Tenant currentTenantByRoomId = tenantRepo.getCurrentTenantByRoomId(tenantId);
+            Lease lease = leaseRepo.getById(leaseId);
             // 2. 更新房间状态为空置
-            if (currentTenantByRoomId != null && currentTenantByRoomId.getRoomIds() != null) {
-                roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(currentTenantByRoomId.getRoomIds(), Long.class), RoomStatusEnum.AVAILABLE.getCode());
+            if (lease != null && lease.getRoomIds() != null) {
+                roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), RoomStatusEnum.AVAILABLE.getCode());
             }
 
             // TODO: 可以发送驳回通知，发送给提交人，告诉他审批被驳回了。
 
         } else if (ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
             // 撤回 -> 租客状态保持待签约，可重新提交
-            log.info("租客入住审批撤回: tenantId={}", tenantId);
+            log.info("租客入住审批撤回: leaseId={}", leaseId);
         }
     }
 
     /**
      * 处理退租审批
      */
-    private void handleTenantCheckout(Long checkoutId, Integer approvalStatus, Integer bizApprovalStatus) {
+    private void handleLeaseCheckout(Long checkoutId, Integer approvalStatus, Integer bizApprovalStatus) {
         // 1. 更新退租单的审批状态
-        tenantCheckoutRepo.updateApprovalStatus(checkoutId, bizApprovalStatus);
+        leaseCheckoutRepo.updateApprovalStatus(checkoutId, bizApprovalStatus);
 
         // 2. 根据审批结果处理
         if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
             // 审批通过 -> 执行退租流程
-            tenantCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.NORMAL_CHECK_OUT.getCode());
+            leaseCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.NORMAL_CHECK_OUT.getCode());
             log.info("退租审批通过: checkoutId={}", checkoutId);
             // TODO: 执行退租后续操作
             // 1. 更新租客状态为已退租
@@ -157,12 +157,12 @@ public class ApprovalEventListener {
             // 3. 作废未付账单
         } else if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
             // 审批驳回 -> 退租单状态改为草稿，可重新编辑
-            tenantCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
+            leaseCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
             log.info("退租审批驳回: checkoutId={}", checkoutId);
 
         } else if (ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
             // 撤回 -> 退租单状态改为草稿
-            tenantCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
+            leaseCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
             log.info("退租审批撤回: checkoutId={}", checkoutId);
         }
     }

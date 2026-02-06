@@ -127,6 +127,10 @@ public class DictDataService {
         return dictDataRepo.getById(id);
     }
 
+    public List<DictData> getDictDataByIds(List<Long> idList) {
+        return dictDataRepo.listByIds(idList);
+    }
+
     public Boolean deleteByIds(List<Long> idList) {
         return dictDataRepo.removeByIds(idList);
     }
@@ -152,4 +156,3 @@ public class DictDataService {
         return dictRepo.getBaseMapper().listDictListWithData(parentId);
     }
 }
-

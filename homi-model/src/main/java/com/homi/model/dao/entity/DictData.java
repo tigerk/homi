@@ -1,17 +1,18 @@
 package com.homi.model.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -19,7 +20,7 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-07-30
+ * @since 2026-02-06
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -31,7 +32,7 @@ public class DictData implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "主键ID")
-    @TableId("id")
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     @Schema(description = "公司ID")
@@ -46,8 +47,8 @@ public class DictData implements Serializable {
     @TableField("name")
     private String name;
 
-    @Schema(description = "数据项值")
-    @TableField("`value`")
+    @Schema(description = "数据项Code")
+    @TableField("value")
     private String value;
 
     @Schema(description = "排序")
@@ -58,9 +59,22 @@ public class DictData implements Serializable {
     @TableField("color")
     private String color;
 
-    @Schema(description = "状态（0开启 1关闭）")
+    @Schema(description = "状态（1开启 0关闭）")
     @TableField("status")
     private Integer status;
+
+    @Schema(description = "是否可删除（1可删除 0不可删除）")
+    @TableField("deletable")
+    private Boolean deletable;
+
+    @Schema(description = "备注")
+    @TableField("remark")
+    private String remark;
+
+    @Schema(description = "是否删除：0 否，1 是")
+    @TableField("deleted")
+    @TableLogic
+    private Boolean deleted;
 
     @Schema(description = "创建者")
     @TableField("create_by")
@@ -79,8 +93,4 @@ public class DictData implements Serializable {
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
-
-    @Schema(description = "备注")
-    @TableField("remark")
-    private String remark;
 }

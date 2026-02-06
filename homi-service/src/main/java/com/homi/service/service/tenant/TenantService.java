@@ -19,7 +19,7 @@ import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.approval.dto.ApprovalSubmitDTO;
-import com.homi.model.contract.vo.TenantContractVO;
+import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.room.dto.price.OtherFeeDTO;
@@ -57,23 +57,23 @@ import java.util.stream.Collectors;
 public class TenantService {
     private final RoomRepo roomRepo;
     private final TenantRepo tenantRepo;
+    private final LeaseRepo leaseRepo;
     private final TenantPersonalRepo tenantPersonalRepo;
     private final TenantCompanyRepo tenantCompanyRepo;
     private final FileAttachRepo fileAttachRepo;
-    private final TenantOtherFeeRepo tenantOtherFeeRepo;
+    private final LeaseOtherFeeRepo tenantOtherFeeRepo;
     private final BookingRepo bookingRepo;
-    private final TenantBillRepo tenantBillRepo;
-    private final TenantBillOtherFeeRepo tenantBillOtherFeeRepo;
 
     private final RoomService roomService;
-    private final TenantBillGenService tenantBillGenService;
-    private final TenantContractService tenantContractService;
+    private final LeaseBillGenService tenantBillGenService;
+    private final LeaseContractService leaseContractService;
     private final UserService userService;
     private final DeptService deptService;
-    private final TenantBillService tenantBillService;
+    private final LeaseBillService tenantBillService;
     private final DictDataService dictDataService;
     private final TenantMateService tenantMateService;
     private final CompanyCodeService companyCodeService;
+    private final DepositCarryOverService depositCarryOverService;
 
     private final ApprovalTemplate approvalTemplate;
 
@@ -82,7 +82,7 @@ public class TenantService {
      */
     @Transactional(rollbackFor = Exception.class)
     public Long saveTenantOrFromBooking(TenantCreateDTO createDTO) {
-        if (Objects.nonNull(createDTO.getBooking().getId())) {
+        if (createDTO.getBooking() != null && Objects.nonNull(createDTO.getBooking().getId())) {
             // 从预定转换为租客
             return convertBookingToTenant(createDTO);
         } else {
@@ -97,30 +97,49 @@ public class TenantService {
      * @param query 查询参数
      * @return 租客列表
      */
-    public PageVO<TenantListVO> getTenantList(TenantQueryDTO query) {
-        PageVO<TenantListVO> tenantContractListVOPageVO = tenantRepo.queryTenantList(query);
+    public PageVO<LeaseListVO> getTenantList(TenantQueryDTO query) {
+        List<Long> tenantIds = null;
+        if (query.getName() != null || query.getPhone() != null || query.getTenantType() != null) {
+            tenantIds = tenantRepo.lambdaQuery()
+                .like(query.getName() != null && !query.getName().isBlank(), Tenant::getTenantName, query.getName())
+                .eq(query.getPhone() != null && !query.getPhone().isBlank(), Tenant::getTenantPhone, query.getPhone())
+                .eq(query.getTenantType() != null, Tenant::getTenantType, query.getTenantType())
+                .list()
+                .stream()
+                .map(Tenant::getId)
+                .toList();
+        }
 
-        tenantContractListVOPageVO.getList().forEach(tenantListVO -> {
-            TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, tenantListVO.getTenantType());
-            if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
-                TenantPersonalVO tenantPersonalVO = tenantPersonalRepo.getTenantById(tenantListVO.getTenantTypeId());
-                tenantListVO.setTenantPersonal(tenantPersonalVO);
-            } else {
-                TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenantListVO.getTenantTypeId());
-                tenantListVO.setTenantCompany(tenantCompanyVO);
+        PageVO<LeaseListVO> leaseList = leaseRepo.queryLeaseList(query, tenantIds);
+
+        leaseList.getList().forEach(leaseListVO -> {
+            Tenant tenant = tenantRepo.getById(leaseListVO.getTenantId());
+            if (tenant != null) {
+                leaseListVO.setTenantType(tenant.getTenantType());
+                leaseListVO.setTenantTypeId(tenant.getTenantTypeId());
+                leaseListVO.setTenantName(tenant.getTenantName());
+                leaseListVO.setTenantPhone(tenant.getTenantPhone());
+
+                TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, tenant.getTenantType());
+                if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
+                    TenantPersonalVO tenantPersonalVO = tenantPersonalRepo.getTenantById(tenant.getTenantTypeId());
+                    leaseListVO.setTenantPersonal(tenantPersonalVO);
+                } else {
+                    TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenant.getTenantTypeId());
+                    leaseListVO.setTenantCompany(tenantCompanyVO);
+                }
             }
 
-            tenantListVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(tenantListVO.getRoomIds(), Long.class)));
+            leaseListVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(leaseListVO.getRoomIds(), Long.class)));
 
-            User salesmanUser = userService.getUserById(tenantListVO.getSalesmanId());
-            tenantListVO.setSalesmanName(salesmanUser.getRealName());
+            User salesmanUser = userService.getUserById(leaseListVO.getSalesmanId());
+            leaseListVO.setSalesmanName(salesmanUser.getRealName());
 
-            Dept deptById = deptService.getDeptById(tenantListVO.getDeptId());
-            tenantListVO.setDeptName(deptById.getName());
-
+            Dept deptById = deptService.getDeptById(leaseListVO.getDeptId());
+            leaseListVO.setDeptName(deptById.getName());
         });
 
-        return tenantContractListVOPageVO;
+        return leaseList;
     }
 
     /**
@@ -133,102 +152,110 @@ public class TenantService {
      * @return java.lang.Long
      */
     public Long createTenant(TenantCreateDTO createDTO) {
-        // 检查租客的房间是否已经预定或者出租、如果有则不能创建租客
-        List<Room> roomList = roomRepo.listByIds(createDTO.getTenant().getRoomIds());
-        if (roomList.stream().anyMatch(room -> Objects.equals(room.getRoomStatus(), RoomStatusEnum.LEASED.getCode()) || Objects.equals(room.getRoomStatus(), RoomStatusEnum.BOOKED.getCode()))) {
-            throw new IllegalArgumentException("房间已被出租，不能创建租客");
+        LeaseDTO leaseDTO = resolveLeaseDTO(createDTO);
+
+        // 检查租约房间是否已被预定/出租
+        List<Room> roomList = roomRepo.listByIds(leaseDTO.getRoomIds());
+        if (roomList.stream().anyMatch(room ->
+            Objects.equals(room.getRoomStatus(), RoomStatusEnum.LEASED.getCode()) ||
+                Objects.equals(room.getRoomStatus(), RoomStatusEnum.BOOKED.getCode()))) {
+            throw new IllegalArgumentException("房间已被出租，不能创建租约");
         }
 
-        TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, createDTO.getTenant().getTenantType());
+        TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, leaseDTO.getTenantType());
         if (tenantTypeEnum == null) {
             throw new IllegalArgumentException("租户类型不存在");
         }
 
-        // 增加租客个人信息
-        Triple<Long, String, String> addedTenant;
-        if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
-            createDTO.getTenantPersonal().setCreateBy(createDTO.getCreateBy());
-            // 保存个人租客
-            addedTenant = addTenantPersonal(createDTO.getTenantPersonal());
+        Long tenantId;
+        if (leaseDTO.getTenantId() != null) {
+            tenantId = leaseDTO.getTenantId();
         } else {
-            createDTO.getTenantCompany().setCreateBy(createDTO.getCreateBy());
-            // 保存企业租客
-            addedTenant = addTenantEnterprise(createDTO.getTenantCompany());
+            Triple<Long, String, String> addedTenant;
+            if (tenantTypeEnum == TenantTypeEnum.PERSONAL) {
+                createDTO.getTenantPersonal().setCreateBy(createDTO.getCreateBy());
+                addedTenant = addTenantPersonal(createDTO.getTenantPersonal());
+            } else {
+                createDTO.getTenantCompany().setCreateBy(createDTO.getCreateBy());
+                addedTenant = addTenantEnterprise(createDTO.getTenantCompany());
+            }
+
+            Tenant tenant = saveTenantRecord(addedTenant, leaseDTO, createDTO.getCreateBy());
+            tenantId = tenant.getId();
         }
 
-        // 保存租客租赁信息
-        createDTO.getTenant().setTenantTypeId(addedTenant.getLeft());
-        createDTO.getTenant().setTenantName(addedTenant.getMiddle());
-        createDTO.getTenant().setTenantPhone(addedTenant.getRight());
+        Lease lease = saveLease(tenantId, leaseDTO, createDTO.getOtherFees());
 
-        createDTO.getTenant().setCreateBy(createDTO.getCreateBy());
-        Tenant tenant = addTenant(createDTO.getTenant(), createDTO.getOtherFees());
+        tenantMateService.saveTenantMateList(tenantId, createDTO.getTenantMateList());
 
-        // 添加同住人
-        tenantMateService.saveTenantMateList(tenant.getId(), createDTO.getTenantMateList());
+        tenantBillGenService.addLeaseBill(lease.getId(), tenantId, leaseDTO, createDTO.getOtherFees());
 
-        // 生成租客账单
-        tenantBillGenService.addTenantBill(tenant.getId(), createDTO.getTenant(), createDTO.getOtherFees());
+        if (leaseDTO.getParentLeaseId() != null) {
+            depositCarryOverService.carryOverDeposit(
+                leaseDTO.getParentLeaseId(), lease.getId(), tenantId, leaseDTO);
+        }
 
-        TenantDetailVO tenantDetailById = getTenantDetailById(tenant.getId());
+        LeaseDetailVO leaseDetail = getLeaseDetailById(lease.getId());
+        leaseContractService.addLeaseContract(leaseDTO.getContractTemplateId(), leaseDetail);
 
-        // 生成租客合同
-        tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), tenantDetailById);
+        roomRepo.updateRoomStatusByRoomIds(leaseDTO.getRoomIds(), RoomStatusEnum.LEASED.getCode());
 
-        // 更新房间状态为已租
-        roomRepo.updateRoomStatusByRoomIds(createDTO.getTenant().getRoomIds(), RoomStatusEnum.LEASED.getCode());
-
-        // 2. 提交审批（一行搞定）
+        Tenant tenant = tenantRepo.getById(tenantId);
         ApprovalResult approvalResult = approvalTemplate.submitIfNeed(
             ApprovalSubmitDTO.builder()
-                .companyId(tenant.getCompanyId())
+                .companyId(lease.getCompanyId())
                 .bizType(ApprovalBizTypeEnum.TENANT_CHECKIN.getCode())
-                .bizId(tenant.getId())
-                .title(String.format("【租客入住审批】-租客：%s", tenant.getTenantName()))
+                .bizId(lease.getId())
+                .title(String.format("【租客入住审批】-租客：%s", tenant != null ? tenant.getTenantName() : ""))
                 .applicantId(createDTO.getCreateBy())
                 .build(),
-            // 需要审批：PENDING
-            bizId -> {
-                tenantRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.PENDING_APPROVAL.getCode(), BizApprovalStatusEnum.PENDING.getCode());
-            },
-            // 无需审批：APPROVED + 生效
-            bizId -> {
-                tenantRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.TO_SIGN.getCode(), BizApprovalStatusEnum.APPROVED.getCode());
-            }
+            bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId,
+                TenantStatusEnum.PENDING_APPROVAL.getCode(),
+                BizApprovalStatusEnum.PENDING.getCode()),
+            bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId,
+                TenantStatusEnum.TO_SIGN.getCode(),
+                BizApprovalStatusEnum.APPROVED.getCode())
         );
 
-        log.info("租客入住处理完成: tenantId={}, needApproval={}", tenant.getId(), approvalResult.isNeedApproval());
+        log.info("租约创建处理完成: leaseId={}, needApproval={}", lease.getId(), approvalResult.isNeedApproval());
 
-        return addedTenant.getLeft();
+        return lease.getId();
     }
 
-    /**
-     * 添加租客合同
-     *
-     * @param tenantDTO 租客信息
-     * @param otherFees 其他费用
-     * @return 返回创建的租客
-     */
-    private Tenant addTenant(TenantDTO tenantDTO, List<OtherFeeDTO> otherFees) {
-        Tenant tenant = BeanCopyUtils.copyBean(tenantDTO, Tenant.class);
-
-        assert tenant != null;
-        tenant.setRoomIds(JSONUtil.toJsonStr(tenantDTO.getRoomIds()));
-
-        tenant.setStatus(TenantStatusEnum.PENDING_APPROVAL.getCode());
-        tenant.setCreateBy(tenantDTO.getCreateBy());
+    private Tenant saveTenantRecord(Triple<Long, String, String> addedTenant, LeaseDTO leaseDTO, Long createBy) {
+        Tenant tenant = new Tenant();
+        tenant.setCompanyId(leaseDTO.getCompanyId());
+        tenant.setTenantType(leaseDTO.getTenantType());
+        tenant.setTenantTypeId(addedTenant.getLeft());
+        tenant.setTenantName(addedTenant.getMiddle());
+        tenant.setTenantPhone(addedTenant.getRight());
+        tenant.setStatus(1);
+        tenant.setCreateBy(createBy);
         tenant.setCreateTime(DateUtil.date());
-
         tenantRepo.save(tenant);
-
-        otherFees.forEach(otherFeeDTO -> {
-            TenantOtherFee tenantOtherFee = BeanCopyUtils.copyBean(otherFeeDTO, TenantOtherFee.class);
-            assert tenantOtherFee != null;
-            tenantOtherFee.setTenantId(tenant.getId());
-            tenantOtherFeeRepo.save(tenantOtherFee);
-        });
-
         return tenant;
+    }
+
+    private Lease saveLease(Long tenantId, LeaseDTO leaseDTO, List<OtherFeeDTO> otherFees) {
+        Lease lease = BeanCopyUtils.copyBean(leaseDTO, Lease.class);
+        assert lease != null;
+        lease.setTenantId(tenantId);
+        lease.setRoomIds(JSONUtil.toJsonStr(leaseDTO.getRoomIds()));
+        lease.setStatus(TenantStatusEnum.PENDING_APPROVAL.getCode());
+        lease.setCreateBy(leaseDTO.getCreateBy());
+        lease.setCreateTime(DateUtil.date());
+        leaseRepo.save(lease);
+
+        if (otherFees != null) {
+            otherFees.forEach(otherFeeDTO -> {
+                LeaseOtherFee tenantOtherFee = BeanCopyUtils.copyBean(otherFeeDTO, LeaseOtherFee.class);
+                assert tenantOtherFee != null;
+                tenantOtherFee.setLeaseId(lease.getId());
+                tenantOtherFeeRepo.save(tenantOtherFee);
+            });
+        }
+
+        return lease;
     }
 
     /**
@@ -295,6 +322,20 @@ public class TenantService {
         return Triple.of(tenantPersonal.getId(), tenantPersonal.getName(), tenantPersonal.getPhone());
     }
 
+    private LeaseDTO resolveLeaseDTO(TenantCreateDTO createDTO) {
+        LeaseDTO leaseDTO = createDTO.getLease();
+        if (leaseDTO == null && createDTO.getTenant() != null) {
+            leaseDTO = BeanCopyUtils.copyBean(createDTO.getTenant(), LeaseDTO.class);
+        }
+        if (leaseDTO == null) {
+            throw new IllegalArgumentException("租约信息不能为空");
+        }
+        if (leaseDTO.getCreateBy() == null) {
+            leaseDTO.setCreateBy(createDTO.getCreateBy());
+        }
+        return leaseDTO;
+    }
+
 
     /**
      * 获取租客状态总数
@@ -307,12 +348,12 @@ public class TenantService {
      */
     public List<TenantTotalItemVO> getTenantStatusTotal(TenantQueryDTO query) {
         Map<Integer, TenantTotalItemVO> result = initTenantTotalItemMap();
-
-        List<TenantTotalItemVO> statusTotal = tenantRepo.getBaseMapper().getStatusTotal(query);
-        statusTotal.forEach(tenantTotalItemVO -> {
-            TenantTotalItemVO orDefault = result.getOrDefault(tenantTotalItemVO.getStatus(), tenantTotalItemVO);
-            orDefault.setTotal(tenantTotalItemVO.getTotal());
-        });
+        for (TenantTotalItemVO item : result.values()) {
+            Long count = leaseRepo.lambdaQuery()
+                .eq(Lease::getStatus, item.getStatus())
+                .count();
+            item.setTotal(count.intValue());
+        }
 
         return result.values().stream().toList().stream().sorted(Comparator.comparingInt(TenantTotalItemVO::getSortOrder)).collect(Collectors.toList());
     }
@@ -340,53 +381,57 @@ public class TenantService {
         return result;
     }
 
-    public TenantDetailVO getTenantDetailById(Long tenantId) {
-        Tenant byId = tenantRepo.getById(tenantId);
-        if (Objects.isNull(byId)) {
+    public LeaseDetailVO getLeaseDetailById(Long leaseId) {
+        Lease lease = leaseRepo.getById(leaseId);
+        if (Objects.isNull(lease)) {
+            throw new IllegalArgumentException("租约不存在");
+        }
+
+        Tenant tenant = tenantRepo.getById(lease.getTenantId());
+        if (tenant == null) {
             throw new IllegalArgumentException("租客不存在");
         }
 
-        TenantDetailVO tenantDetailVO = BeanCopyUtils.copyBean(byId, TenantDetailVO.class);
-        assert tenantDetailVO != null;
+        LeaseDetailVO leaseDetailVO = BeanCopyUtils.copyBean(lease, LeaseDetailVO.class);
+        assert leaseDetailVO != null;
 
-        tenantDetailVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(tenantDetailVO.getRoomIds(), Long.class)));
+        leaseDetailVO.setLeaseId(lease.getId());
+        leaseDetailVO.setTenantId(tenant.getId());
+        leaseDetailVO.setTenantType(tenant.getTenantType());
+        leaseDetailVO.setTenantTypeId(tenant.getTenantTypeId());
+        leaseDetailVO.setTenantName(tenant.getTenantName());
+        leaseDetailVO.setTenantPhone(tenant.getTenantPhone());
 
-        User salesmanUser = userService.getUserById(tenantDetailVO.getSalesmanId());
-        tenantDetailVO.setSalesmanName(salesmanUser.getRealName());
+        leaseDetailVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(leaseDetailVO.getRoomIds(), Long.class)));
 
-        Dept deptById = deptService.getDeptById(tenantDetailVO.getDeptId());
-        tenantDetailVO.setDeptName(deptById.getName());
+        User salesmanUser = userService.getUserById(leaseDetailVO.getSalesmanId());
+        leaseDetailVO.setSalesmanName(salesmanUser.getRealName());
 
-        // 获取成交渠道名称
-        if (Objects.nonNull(tenantDetailVO.getDealChannel())) {
-            DictData dictData = dictDataService.getDictDataById(tenantDetailVO.getDealChannel());
-            tenantDetailVO.setDealChannelName(dictData.getName());
+        Dept deptById = deptService.getDeptById(leaseDetailVO.getDeptId());
+        leaseDetailVO.setDeptName(deptById.getName());
+
+        if (Objects.nonNull(leaseDetailVO.getDealChannel())) {
+            DictData dictData = dictDataService.getDictDataById(leaseDetailVO.getDealChannel());
+            leaseDetailVO.setDealChannelName(dictData.getName());
         }
-        // 获取租客来源名称
-        if (Objects.nonNull(tenantDetailVO.getTenantSource())) {
-            DictData tenantSource = dictDataService.getDictDataById(tenantDetailVO.getTenantSource());
-            tenantDetailVO.setTenantSourceName(tenantSource.getName());
+        if (Objects.nonNull(leaseDetailVO.getTenantSource())) {
+            DictData tenantSource = dictDataService.getDictDataById(leaseDetailVO.getTenantSource());
+            leaseDetailVO.setTenantSourceName(tenantSource.getName());
         }
 
-        // 获取文件附件列表
-        getTenantTypeInfo(tenantDetailVO);
+        getTenantTypeInfo(leaseDetailVO);
 
-        // 获取其他费用
-        tenantDetailVO.setOtherFees(tenantOtherFeeRepo.getTenantOtherFeeByTenantId(tenantDetailVO.getId()));
+        leaseDetailVO.setOtherFees(tenantOtherFeeRepo.getLeaseOtherFeeByLeaseId(leaseDetailVO.getLeaseId()));
 
-        // 获取租客的合同信息
-        tenantDetailVO.setTenantContract(tenantContractService.getTenantContractByTenantId(tenantDetailVO.getId()));
+        leaseDetailVO.setLeaseContract(leaseContractService.getContractByLeaseId(leaseDetailVO.getLeaseId()));
 
-        // 获取租客的租客成员信息
-        List<TenantMateVO> tenantMateListByTenantId = tenantMateService.getTenantMateListByTenantId(tenantDetailVO.getId());
-        tenantDetailVO.setTenantMateList(tenantMateListByTenantId);
+        List<TenantMateVO> tenantMateListByTenantId = tenantMateService.getTenantMateListByTenantId(tenant.getId());
+        leaseDetailVO.setTenantMateList(tenantMateListByTenantId);
 
-        // 获取租客账单列表
-        tenantDetailVO.setTenantBillList(tenantBillService.getBillListByTenantId(tenantDetailVO.getId(), Boolean.TRUE));
-        // 获取租客无效账单列表
-        tenantDetailVO.setTenantInvalidBillList(tenantBillService.getBillListByTenantId(tenantDetailVO.getId(), Boolean.FALSE));
+        leaseDetailVO.setLeaseBillList(tenantBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.TRUE));
+        leaseDetailVO.setLeaseInvalidBillList(tenantBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.FALSE));
 
-        return tenantDetailVO;
+        return leaseDetailVO;
     }
 
     /**
@@ -397,7 +442,7 @@ public class TenantService {
      *
      * @param tenantDetail 参数说明
      */
-    public void getTenantTypeInfo(TenantDetailVO tenantDetail) {
+    public void getTenantTypeInfo(LeaseDetailVO tenantDetail) {
         if (Objects.equals(tenantDetail.getTenantType(), TenantTypeEnum.PERSONAL.getCode())) {
             TenantPersonalVO tenantPersonalVO = tenantPersonalRepo.getTenantById(tenantDetail.getTenantTypeId());
 
@@ -409,7 +454,7 @@ public class TenantService {
 
         if (Objects.equals(tenantDetail.getTenantType(), TenantTypeEnum.PERSONAL.getCode())) {  // 个人租客
             // 获取租客图片数据
-            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(tenantDetail.getId(), ListUtil.of(
+            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(tenantDetail.getTenantId(), ListUtil.of(
                 FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType(),
                 FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType(),
                 FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(),
@@ -435,7 +480,7 @@ public class TenantService {
                 }
             });
         } else {
-            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(tenantDetail.getId(), ListUtil.of(
+            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(tenantDetail.getTenantId(), ListUtil.of(
                 FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType(),
                 FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType()
             ));
@@ -462,12 +507,12 @@ public class TenantService {
      * @param tenantId 参数说明
      * @return byte[]
      */
-    public byte[] downloadContract(Long tenantId) {
-        // 获取租客合同信息
-        TenantContractVO tenantContractByTenantId = tenantContractService.getTenantContractByTenantId(tenantId);
+    public byte[] downloadContract(Long leaseId) {
+        // 获取租约合同信息
+        LeaseContractVO leaseContractByTenantId = leaseContractService.getContractByLeaseId(leaseId);
 
         // 生成 PDF 文件
-        return ConvertHtml2PdfUtils.generatePdf(tenantContractByTenantId.getContractContent());
+        return ConvertHtml2PdfUtils.generatePdf(leaseContractByTenantId.getContractContent());
     }
 
     /**
@@ -484,7 +529,9 @@ public class TenantService {
 
         // 1. 如果来自预定，可以在备注中自动追加来源信息
         if (Objects.nonNull(createDTO.getBooking().getId())) {
-            createDTO.getTenant().setRemark(createDTO.getTenant().getRemark() + " [预定转合同，预定ID:" + createDTO.getBooking().getId() + "]");
+            LeaseDTO leaseDTO = resolveLeaseDTO(createDTO);
+            String remark = leaseDTO.getRemark() == null ? "" : leaseDTO.getRemark();
+            leaseDTO.setRemark(remark + " [预定转合同，预定ID:" + createDTO.getBooking().getId() + "]");
         }
 
         // 2. 将预定金转化为一笔“抵扣项”
@@ -506,12 +553,13 @@ public class TenantService {
 
         // 2. 执行复杂的租客创建
         // Call transactional methods via an injected dependency instead of directly via 'this'.
-        Long tenantId = createTenant(createDTO);
+        Long leaseId = createTenant(createDTO);
+        Lease lease = leaseRepo.getById(leaseId);
 
         // 获取预定的原始房间
         List<Long> originalRoomIds = JSONUtil.toList(booking.getRoomIds(), Long.class);
         // 获取签约时最终确定的房间
-        List<Long> finalRoomIds = createDTO.getTenant().getRoomIds();
+        List<Long> finalRoomIds = resolveLeaseDTO(createDTO).getRoomIds();
 
         /*
          * 4. 房间状态对冲逻辑，如果签约房间和预定房间不一致，其他房间释放为空置
@@ -521,10 +569,12 @@ public class TenantService {
 
         // 5. 更新预定单状态
         booking.setBookingStatus(BookingStatusEnum.CONTRACTED.getCode()); // 已转合同
-        booking.setTenantId(tenantId); // 建立双向关联
+        if (lease != null) {
+            booking.setTenantId(lease.getTenantId()); // 建立双向关联
+        }
         bookingRepo.updateById(booking);
 
-        return tenantId;
+        return leaseId;
     }
 
     /**
@@ -535,77 +585,63 @@ public class TenantService {
      */
     @Transactional(rollbackFor = Exception.class)
     public Long updateTenant(TenantCreateDTO createDTO) {
-        Long tenantId = createDTO.getTenant().getId();
-        if (tenantId == null) {
-            throw new IllegalArgumentException("租客ID不能为空");
+        LeaseDTO leaseDTO = resolveLeaseDTO(createDTO);
+        Long leaseId = leaseDTO.getId();
+        if (leaseId == null) {
+            throw new IllegalArgumentException("租约ID不能为空");
         }
 
-        // 1. 获取原租客信息
-        TenantDetailVO originalTenant = getTenantDetailById(tenantId);
-        if (originalTenant == null) {
-            throw new IllegalArgumentException("租客不存在");
+        LeaseDetailVO originalLease = getLeaseDetailById(leaseId);
+
+        if (Objects.equals(originalLease.getStatus(), TenantStatusEnum.TERMINATED.getCode()) ||
+            Objects.equals(originalLease.getStatus(), TenantStatusEnum.EFFECTIVE.getCode())) {
+            throw new IllegalArgumentException("租约在租或退租时，不允许修改");
         }
 
-        // 2. 检查租客状态是否允许修改
-        if (Objects.equals(originalTenant.getStatus(), TenantStatusEnum.TERMINATED.getCode()) || Objects.equals(createDTO.getTenant().getStatus(), TenantStatusEnum.EFFECTIVE.getCode())) {
-            throw new IllegalArgumentException("租客在租或退租时，不允许修改");
-        }
-        TenantDTO toUpdateTenant = createDTO.getTenant();
-        /* !important 判断是否有关键信息变更（需要重新生成账单和合同）*/
-        boolean needRegenerate = isKeyInfoChanged(toUpdateTenant, originalTenant);
+        boolean needRegenerate = isKeyInfoChanged(leaseDTO, originalLease);
 
-        // 3. 处理租客类型信息变更
-        Triple<Long, String, String> tenantTypeInfo = handleTenantTypeUpdate(createDTO, originalTenant.getTenantType(), originalTenant.getTenantTypeId());
+        Triple<Long, String, String> tenantTypeInfo = handleTenantTypeUpdate(createDTO, originalLease.getTenantType(), originalLease.getTenantTypeId());
 
-        // 4. 处理租赁信息变更
-        Tenant updatedTenant = handleTenantInfoUpdate(createDTO, tenantTypeInfo);
+        handleTenantIdentityUpdate(originalLease.getTenantId(), tenantTypeInfo, leaseDTO.getTenantType());
 
-        // 5. 处理同住人变更
-        tenantMateService.handleTenantMateUpdate(tenantId, createDTO.getTenantMateList(), originalTenant.getTenantMateList());
+        Lease updatedLease = handleLeaseInfoUpdate(leaseId, leaseDTO);
 
-        // 6. 处理其他费用变更
-        boolean otherFeeChanged = handleOtherFeeUpdate(tenantId, createDTO.getOtherFees(), originalTenant.getOtherFees());
+        tenantMateService.handleTenantMateUpdate(originalLease.getTenantId(), createDTO.getTenantMateList(), originalLease.getTenantMateList());
 
-        // 7. 如果关键信息变更，需要重新生成合同和账单
+        boolean otherFeeChanged = handleOtherFeeUpdate(leaseId, createDTO.getOtherFees(), originalLease.getOtherFees());
+
         if (needRegenerate || otherFeeChanged) {
-            regenerateTenantBill(tenantId, createDTO);
+            regenerateLeaseBill(leaseId, createDTO);
         }
 
-        // 8. 更新合同（如果合同模板发生变更）
-        tenantContractService.addTenantContract(createDTO.getTenant().getContractTemplateId(), originalTenant);
+        LeaseDetailVO leaseDetail = getLeaseDetailById(leaseId);
+        leaseContractService.addLeaseContract(leaseDTO.getContractTemplateId(), leaseDetail);
 
-        // 更新房间状态为已租
-        roomRepo.updateRoomStatusByRoomIds(createDTO.getTenant().getRoomIds(), RoomStatusEnum.LEASED.getCode());
+        roomRepo.updateRoomStatusByRoomIds(leaseDTO.getRoomIds(), RoomStatusEnum.LEASED.getCode());
 
-        // 修改租客时，会重新生成审批数据。
+        Tenant tenant = tenantRepo.getById(originalLease.getTenantId());
         ApprovalResult approvalResult = approvalTemplate.submitIfNeed(
             ApprovalSubmitDTO.builder()
-                .companyId(createDTO.getTenant().getCompanyId())
+                .companyId(leaseDTO.getCompanyId())
                 .bizType(ApprovalBizTypeEnum.TENANT_CHECKIN.getCode())
-                .bizId(createDTO.getTenant().getId())
-                .title(String.format("【租客入住审批】-租客：%s", createDTO.getTenant().getTenantName()))
+                .bizId(leaseId)
+                .title(String.format("【租客入住审批】-租客：%s", tenant != null ? tenant.getTenantName() : ""))
                 .applicantId(createDTO.getCreateBy())
                 .build(),
-            // 需要审批：PENDING
-            bizId -> {
-                tenantRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.PENDING_APPROVAL.getCode(), BizApprovalStatusEnum.PENDING.getCode());
-            },
-            // 无需审批：APPROVED + 生效
-            bizId -> {
-                tenantRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.TO_SIGN.getCode(), BizApprovalStatusEnum.APPROVED.getCode());
-            }
+            bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.PENDING_APPROVAL.getCode(), BizApprovalStatusEnum.PENDING.getCode()),
+            bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.TO_SIGN.getCode(), BizApprovalStatusEnum.APPROVED.getCode())
         );
 
-        log.info("租客修改处理完成: tenantId={}, needApproval={}", createDTO.getTenant().getId(), approvalResult.isNeedApproval());
+        log.info("租约修改处理完成: leaseId={}, needApproval={}", leaseId, approvalResult.isNeedApproval());
 
-        return tenantId;
+        return leaseId;
     }
 
     /**
      * 处理租客类型信息变更（个人/企业）
      */
     private Triple<Long, String, String> handleTenantTypeUpdate(TenantCreateDTO createDTO, Integer originalType, Long originalTypeId) {
-        Integer newType = createDTO.getTenant().getTenantType();
+        Integer newType = resolveLeaseDTO(createDTO).getTenantType();
         TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, newType);
 
         if (tenantTypeEnum == null) {
@@ -751,56 +787,63 @@ public class TenantService {
         return Triple.of(tenantCompany.getId(), tenantCompany.getCompanyName(), tenantCompany.getContactPhone());
     }
 
-    /**
-     * 处理租赁信息变更
-     *
-     * @return 更新后的租客实体
-     */
-    private Tenant handleTenantInfoUpdate(TenantCreateDTO createDTO, Triple<Long, String, String> tenantTypeInfo) {
-        Tenant tenant = tenantRepo.getById(createDTO.getTenant().getId());
+    private void handleTenantIdentityUpdate(Long tenantId, Triple<Long, String, String> tenantTypeInfo, Integer tenantType) {
+        Tenant tenant = tenantRepo.getById(tenantId);
         if (tenant == null) {
             throw new IllegalArgumentException("租客不存在");
         }
 
-        TenantDTO newTenantDTO = createDTO.getTenant();
-
-        // 更新租客基本信息
+        tenant.setTenantType(tenantType);
         tenant.setTenantTypeId(tenantTypeInfo.getLeft());
         tenant.setTenantName(tenantTypeInfo.getMiddle());
         tenant.setTenantPhone(tenantTypeInfo.getRight());
-        tenant.setRoomIds(JSONUtil.toJsonStr(newTenantDTO.getRoomIds()));
-        tenant.setLeaseStart(newTenantDTO.getLeaseStart());
-        tenant.setLeaseEnd(newTenantDTO.getLeaseEnd());
-        tenant.setRentPrice(newTenantDTO.getRentPrice());
-        tenant.setDepositMonths(newTenantDTO.getDepositMonths());
-        tenant.setPaymentMonths(newTenantDTO.getPaymentMonths());
-        tenant.setRentDueType(newTenantDTO.getRentDueType());
-        tenant.setRentDueDay(newTenantDTO.getRentDueDay());
-        tenant.setRentDueOffsetDays(newTenantDTO.getRentDueOffsetDays());
-        tenant.setSalesmanId(newTenantDTO.getSalesmanId());
-        tenant.setDeptId(newTenantDTO.getDeptId());
-        tenant.setDealChannel(newTenantDTO.getDealChannel());
-        tenant.setTenantSource(newTenantDTO.getTenantSource());
-        tenant.setRemark(newTenantDTO.getRemark());
         tenant.setUpdateTime(DateUtil.date());
-
         tenantRepo.updateById(tenant);
+    }
 
-        return tenant;
+    /**
+     * 处理租约信息变更
+     *
+     * @return 更新后的租约实体
+     */
+    private Lease handleLeaseInfoUpdate(Long leaseId, LeaseDTO leaseDTO) {
+        Lease lease = leaseRepo.getById(leaseId);
+        if (lease == null) {
+            throw new IllegalArgumentException("租约不存在");
+        }
+
+        lease.setRoomIds(JSONUtil.toJsonStr(leaseDTO.getRoomIds()));
+        lease.setLeaseStart(leaseDTO.getLeaseStart());
+        lease.setLeaseEnd(leaseDTO.getLeaseEnd());
+        lease.setRentPrice(leaseDTO.getRentPrice());
+        lease.setDepositMonths(leaseDTO.getDepositMonths());
+        lease.setPaymentMonths(leaseDTO.getPaymentMonths());
+        lease.setRentDueType(leaseDTO.getRentDueType());
+        lease.setRentDueDay(leaseDTO.getRentDueDay());
+        lease.setRentDueOffsetDays(leaseDTO.getRentDueOffsetDays());
+        lease.setSalesmanId(leaseDTO.getSalesmanId());
+        lease.setDeptId(leaseDTO.getDeptId());
+        lease.setDealChannel(leaseDTO.getDealChannel());
+        lease.setTenantSource(leaseDTO.getTenantSource());
+        lease.setRemark(leaseDTO.getRemark());
+        lease.setUpdateTime(DateUtil.date());
+
+        leaseRepo.updateById(lease);
+        return lease;
     }
 
     /**
      * 判断关键信息是否变更
      */
-    private boolean isKeyInfoChanged(TenantDTO newTenant, TenantDetailVO original) {
-        return !Objects.equals(newTenant.getRentPrice(), original.getRentPrice())
-            || !Objects.equals(newTenant.getDepositMonths(), original.getDepositMonths())
-            || !Objects.equals(newTenant.getPaymentMonths(), original.getPaymentMonths())
-            || !Objects.equals(newTenant.getLeaseStart(), original.getLeaseStart())
-            || !Objects.equals(newTenant.getLeaseEnd(), original.getLeaseEnd())
-            || !Objects.equals(newTenant.getRentDueType(), original.getRentDueType())
-            || !Objects.equals(newTenant.getRentDueDay(), original.getRentDueDay())
-            || !Objects.equals(newTenant.getRentDueOffsetDays(), original.getRentDueOffsetDays());
+    private boolean isKeyInfoChanged(LeaseDTO newLease, LeaseDetailVO original) {
+        return !Objects.equals(newLease.getRentPrice(), original.getRentPrice())
+            || !Objects.equals(newLease.getDepositMonths(), original.getDepositMonths())
+            || !Objects.equals(newLease.getPaymentMonths(), original.getPaymentMonths())
+            || !Objects.equals(newLease.getLeaseStart(), original.getLeaseStart())
+            || !Objects.equals(newLease.getLeaseEnd(), original.getLeaseEnd())
+            || !Objects.equals(newLease.getRentDueType(), original.getRentDueType())
+            || !Objects.equals(newLease.getRentDueDay(), original.getRentDueDay())
+            || !Objects.equals(newLease.getRentDueOffsetDays(), original.getRentDueOffsetDays());
     }
 
     /**
@@ -808,7 +851,7 @@ public class TenantService {
      *
      * @return 是否发生变更
      */
-    private boolean handleOtherFeeUpdate(Long tenantId, List<OtherFeeDTO> newFees, List<OtherFeeDTO> originalFees) {
+    private boolean handleOtherFeeUpdate(Long leaseId, List<OtherFeeDTO> newFees, List<OtherFeeDTO> originalFees) {
         if (newFees == null) {
             newFees = new ArrayList<>();
         }
@@ -824,13 +867,13 @@ public class TenantService {
         }
 
         // 删除旧的费用记录
-        tenantOtherFeeRepo.lambdaUpdate().eq(TenantOtherFee::getTenantId, tenantId).remove();
+        tenantOtherFeeRepo.lambdaUpdate().eq(LeaseOtherFee::getLeaseId, leaseId).remove();
 
         // 保存新的费用记录
         newFees.forEach(feeDTO -> {
-            TenantOtherFee tenantOtherFee = BeanCopyUtils.copyBean(feeDTO, TenantOtherFee.class);
+            LeaseOtherFee tenantOtherFee = BeanCopyUtils.copyBean(feeDTO, LeaseOtherFee.class);
             assert tenantOtherFee != null;
-            tenantOtherFee.setTenantId(tenantId);
+            tenantOtherFee.setLeaseId(leaseId);
             tenantOtherFeeRepo.save(tenantOtherFee);
         });
 
@@ -865,11 +908,17 @@ public class TenantService {
      * @param tenantId  参数说明
      * @param createDTO 参数说明
      */
-    private void regenerateTenantBill(Long tenantId, TenantCreateDTO createDTO) {
+    private void regenerateLeaseBill(Long leaseId, TenantCreateDTO createDTO) {
         // 1. 无效化租客未支付的账单
-        tenantBillGenService.invalidUnpaidTenantBill(tenantId);
+        tenantBillGenService.invalidUnpaidLeaseBill(leaseId);
 
         // 2. 重新生成账单
-        tenantBillGenService.addTenantBill(tenantId, createDTO.getTenant(), createDTO.getOtherFees());
+        LeaseDTO leaseDTO = resolveLeaseDTO(createDTO);
+        Lease lease = leaseRepo.getById(leaseId);
+        if (lease == null) {
+            throw new IllegalArgumentException("租约不存在");
+        }
+        Long tenantId = lease.getTenantId();
+        tenantBillGenService.addLeaseBill(leaseId, tenantId, leaseDTO, createDTO.getOtherFees());
     }
 }

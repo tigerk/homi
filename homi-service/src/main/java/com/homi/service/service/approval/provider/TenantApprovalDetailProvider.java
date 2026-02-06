@@ -3,7 +3,7 @@ package com.homi.service.service.approval.provider;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.model.approval.vo.ApprovalInstanceVO;
 import com.homi.model.approval.vo.ApprovalTodoVO;
-import com.homi.model.tenant.vo.TenantDetailVO;
+import com.homi.model.tenant.vo.LeaseDetailVO;
 import com.homi.service.service.tenant.TenantService;
 import org.springframework.stereotype.Component;
 
@@ -33,17 +33,17 @@ public class TenantApprovalDetailProvider implements ApprovalBizDetailProvider {
 
     @Override
     public void fillTodoBizDetail(ApprovalTodoVO todoVO, Long bizId) {
-        TenantDetailVO tenantDetail = tenantService.getTenantDetailById(bizId);
-        if (Objects.nonNull(tenantDetail)) {
-            todoVO.setTenantDetail(tenantDetail);
+        LeaseDetailVO leaseDetail = tenantService.getLeaseDetailById(bizId);
+        if (Objects.nonNull(leaseDetail)) {
+            todoVO.setTenantDetail(leaseDetail);
         }
     }
 
     @Override
     public void fillInstanceBizDetail(ApprovalInstanceVO instanceVO, Long bizId) {
-        TenantDetailVO tenantDetail = tenantService.getTenantDetailById(bizId);
-        if (Objects.nonNull(tenantDetail)) {
-            instanceVO.setTenantDetail(tenantDetail);
+        LeaseDetailVO leaseDetail = tenantService.getLeaseDetailById(bizId);
+        if (Objects.nonNull(leaseDetail)) {
+            instanceVO.setTenantDetail(leaseDetail);
         }
     }
 }

@@ -33,6 +33,10 @@ public class TenantCreateDTO {
 
     private List<TenantMateDTO> tenantMateList;
 
+    @Schema(description = "租约信息")
+    private LeaseDTO lease;
+
+    @Deprecated
     private TenantDTO tenant;
 
     private List<OtherFeeDTO> otherFees;

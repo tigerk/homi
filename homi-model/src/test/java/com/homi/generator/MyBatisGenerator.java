@@ -57,10 +57,7 @@ public class MyBatisGenerator {
             .mapperPackageName("com.homi.model.dao.mapper")
             .servicePackageName("com.homi.model.dao.repo")
             .tblNameList(ListUtil.of(
-                "sys_message",
-                "sys_notice",
-                "sys_notice_read",
-                "sys_todo"
+                "dict_data"
             )).build();
 
         myBatisGenerator.generate();

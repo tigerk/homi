@@ -15,7 +15,7 @@ import com.homi.model.contract.dto.ContractTemplateDeleteDTO;
 import com.homi.model.contract.dto.ContractTemplateQueryDTO;
 import com.homi.model.contract.dto.ContractTemplateStatusDTO;
 import com.homi.model.contract.vo.ContractTemplateListVO;
-import com.homi.model.contract.vo.TenantContractVO;
+import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.dao.entity.CompanyUser;
 import com.homi.model.dao.entity.ContractTemplate;
 import com.homi.model.dao.repo.CompanyUserRepo;
@@ -23,11 +23,11 @@ import com.homi.model.dao.repo.ContractTemplateRepo;
 import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.vo.RoomListVO;
-import com.homi.model.tenant.vo.TenantDetailVO;
+import com.homi.model.tenant.vo.LeaseDetailVO;
 import com.homi.model.tenant.vo.TenantMateVO;
 import com.homi.model.tenant.vo.TenantPersonalVO;
-import com.homi.model.tenant.vo.bill.TenantBillListVO;
-import com.homi.service.service.tenant.TenantContractService;
+import com.homi.model.tenant.vo.bill.LeaseBillListVO;
+import com.homi.service.service.tenant.LeaseContractService;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -48,7 +48,7 @@ import java.util.*;
 public class ContractTemplateService {
     private final CompanyUserRepo companyUserRepo;
     private final ContractTemplateRepo contractTemplateRepo;
-    private final TenantContractService tenantContractService;
+    private final LeaseContractService leaseContractService;
 
     public PageVO<ContractTemplateListVO> getContractTemplateList(ContractTemplateQueryDTO query) {
 
@@ -139,10 +139,11 @@ public class ContractTemplateService {
         assert contractTemplate != null;
 
         // 创建完整的租户详情模拟数据
-        TenantDetailVO tenantDetailVO = new TenantDetailVO();
+        LeaseDetailVO tenantDetailVO = new LeaseDetailVO();
 
         // 基本信息
-        tenantDetailVO.setId(1L);
+        tenantDetailVO.setLeaseId(1L);
+        tenantDetailVO.setTenantId(1L);
         tenantDetailVO.setContractNature(1); // 1=新签
         tenantDetailVO.setCompanyId(1001L);
         tenantDetailVO.setDeptId(2001L);
@@ -236,16 +237,16 @@ public class ContractTemplateService {
         tenantDetailVO.setRemark("无特殊要求");
 
         // 合同信息
-        TenantContractVO tenantContract = new TenantContractVO();
-        tenantContract.setId(5001L);
-        tenantContract.setTenantId(1L);
-        tenantContract.setContractCode("HT20250101001");
-        tenantContract.setContractTemplateId(query.getId());
-        tenantContract.setContractTemplateName(contractTemplate.getTemplateName());
-        tenantContract.setContractContent(contractTemplate.getTemplateContent());
-        tenantContract.setSignStatus(0);
-        tenantContract.setRemark("合同预览");
-        tenantDetailVO.setTenantContract(tenantContract);
+        LeaseContractVO leaseContract = new LeaseContractVO();
+        leaseContract.setId(5001L);
+        leaseContract.setLeaseId(1L);
+        leaseContract.setContractCode("HT20250101001");
+        leaseContract.setContractTemplateId(query.getId());
+        leaseContract.setContractTemplateName(contractTemplate.getTemplateName());
+        leaseContract.setContractContent(contractTemplate.getTemplateContent());
+        leaseContract.setSignStatus(0);
+        leaseContract.setRemark("合同预览");
+        tenantDetailVO.setLeaseContract(leaseContract);
 
         // 其他费用
         List<OtherFeeDTO> otherFees = new ArrayList<>();
@@ -267,8 +268,8 @@ public class ContractTemplateService {
         tenantDetailVO.setOtherFees(otherFees);
 
         // 账单列表
-        List<TenantBillListVO> tenantBillList = new ArrayList<>();
-        TenantBillListVO bill1 = new TenantBillListVO();
+        List<LeaseBillListVO> leaseBillList = new ArrayList<>();
+        LeaseBillListVO bill1 = new LeaseBillListVO();
         bill1.setId(6001L);
         bill1.setTenantId(1L);
         bill1.setSortOrder(1);
@@ -279,8 +280,8 @@ public class ContractTemplateService {
         bill1.setTotalAmount(new BigDecimal(25850));
         bill1.setDueDate(new Date());
         bill1.setPayStatus(0); // 0=未支付
-        tenantBillList.add(bill1);
-        tenantDetailVO.setTenantBillList(tenantBillList);
+        leaseBillList.add(bill1);
+        tenantDetailVO.setLeaseBillList(leaseBillList);
 
         // 同住人列表
         List<TenantMateVO> tenantMateList = new ArrayList<>();
@@ -300,7 +301,7 @@ public class ContractTemplateService {
         tenantDetailVO.setCreateTime(new Date());
         tenantDetailVO.setUpdateTime(new Date());
 
-        String renderedContent = tenantContractService.replaceContractVariables(contractTemplate.getTemplateContent(), tenantDetailVO);
+        String renderedContent = leaseContractService.replaceContractVariables(contractTemplate.getTemplateContent(), tenantDetailVO);
 
         return ConvertHtml2PdfUtils.generatePdf(renderedContent);
     }

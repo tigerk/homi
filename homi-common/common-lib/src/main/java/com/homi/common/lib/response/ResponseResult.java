@@ -111,6 +111,17 @@ public final class ResponseResult<T> implements Serializable {
     }
 
     /**
+     * 业务处理失败，返回错误码并追加错误信息（支持泛型）
+     */
+    public static <T> ResponseResult<T> fail(ResponseCodeEnum errorCode, String message) {
+        String mergedMessage = errorCode.getMsg();
+        if (message != null && !message.isBlank()) {
+            mergedMessage = mergedMessage + "：" + message;
+        }
+        return new ResponseResult<>(errorCode.getCode(), mergedMessage);
+    }
+
+    /**
      * 系统错误（支持泛型）
      */
     public static <T> ResponseResult<T> error() {

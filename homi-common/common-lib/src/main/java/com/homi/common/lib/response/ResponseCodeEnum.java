@@ -131,6 +131,9 @@ public enum ResponseCodeEnum {
      * 系统错统一使用 900 开头
      */
     DICT_NOT_FOUND(900, "字典不存在"),
+    PARAM_ERROR(901, "参数错误"),
+    DATA_NOT_FOUND(902, "数据不存在"),
+    OPERATION_FAILED(903, "操作失败"),
 
     /**
      * token异常

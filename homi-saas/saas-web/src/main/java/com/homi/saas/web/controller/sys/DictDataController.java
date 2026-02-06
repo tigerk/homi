@@ -111,7 +111,18 @@ public class DictDataController {
     @PostMapping("/delete")
 //    @SaCheckPermission("system:dict:data:delete")
     public ResponseResult<Boolean> delete(@RequestBody List<Long> idList) {
+        if (idList == null || idList.isEmpty()) {
+            return ResponseResult.fail(ResponseCodeEnum.PARAM_ERROR);
+        }
+        List<DictData> dictDataList = dictDataService.getDictDataByIds(idList);
+        if (dictDataList == null || dictDataList.isEmpty()) {
+            return ResponseResult.fail(ResponseCodeEnum.DATA_NOT_FOUND);
+        }
+        boolean hasNotDeletable = dictDataList.stream()
+            .anyMatch(item -> Boolean.FALSE.equals(item.getDeletable()));
+        if (hasNotDeletable) {
+            return ResponseResult.fail(ResponseCodeEnum.OPERATION_FAILED, "删除失败：该字典项不允许删除");
+        }
         return ResponseResult.ok(dictDataService.deleteByIds(idList));
     }
 }
-

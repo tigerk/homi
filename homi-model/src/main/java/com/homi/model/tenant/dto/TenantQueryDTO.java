@@ -18,6 +18,9 @@ public class TenantQueryDTO extends PageDTO {
     @Schema(description = "租客 ID", example = "1")
     private Long tenantId;
 
+    @Schema(description = "租约 ID", example = "1")
+    private Long leaseId;
+
     @Schema(description = "租客姓名", example = "张三")
     private String name;
 

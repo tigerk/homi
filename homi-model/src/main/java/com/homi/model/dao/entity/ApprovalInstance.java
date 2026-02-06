@@ -51,7 +51,7 @@ public class ApprovalInstance implements Serializable {
     @TableField("biz_type")
     private String bizType;
 
-    @Schema(description = "业务ID（如 tenant_checkout.id）")
+    @Schema(description = "业务ID（如 lease_checkout.id）")
     @TableField("biz_id")
     private Long bizId;
 

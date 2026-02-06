@@ -31,7 +31,7 @@ public class ApprovalSubmitDTO {
     private String bizType;
 
     /**
-     * 业务ID（如 tenant_checkout.id）
+     * 业务ID（如 lease_checkout.id）
      */
     @NotNull(message = "业务ID不能为空")
     private Long bizId;

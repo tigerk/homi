@@ -53,6 +53,7 @@ public class RoomService {
     private final RoomPriceConfigRepo roomPriceConfigRepo;
     private final RoomPricePlanRepo roomPricePlanRepo;
     private final BookingRepo bookingRepo;
+    private final LeaseRepo leaseRepo;
     private final TenantRepo tenantRepo;
     private final HouseRepo houseRepo;
 
@@ -260,13 +261,18 @@ public class RoomService {
     public void getRoomLeaseInfo(RoomListVO room) {
         if (Objects.equals(room.getRoomStatus(), RoomStatusEnum.LEASED.getCode())) {
             // 查询当前租客的租约信息
-            Tenant tenant = tenantRepo.getCurrentTenantByRoomId(room.getRoomId());
-            if (tenant != null) {
+            Lease lease = leaseRepo.lambdaQuery()
+                .apply("JSON_CONTAINS(room_ids,JSON_ARRAY('{0}'))", room.getRoomId())
+                .in(Lease::getStatus, com.homi.common.lib.enums.tenant.TenantStatusEnum.getValidStatus())
+                .last("LIMIT 1")
+                .one();
+            if (lease != null) {
+                Tenant tenant = tenantRepo.getById(lease.getTenantId());
                 LeaseInfoVO build = LeaseInfoVO.builder()
-                    .tenantName(tenant.getTenantName())
-                    .tenantPhone(tenant.getTenantPhone())
-                    .leaseStartDate(tenant.getLeaseStart())
-                    .leaseEndDate(tenant.getLeaseEnd())
+                    .tenantName(tenant != null ? tenant.getTenantName() : "")
+                    .tenantPhone(tenant != null ? tenant.getTenantPhone() : "")
+                    .leaseStartDate(lease.getLeaseStart())
+                    .leaseEndDate(lease.getLeaseEnd())
                     .build();
 
                 room.setLeaseInfo(build);

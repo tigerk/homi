@@ -1,6 +1,6 @@
 package com.homi.model.approval.vo;
 
-import com.homi.model.tenant.vo.TenantDetailVO;
+import com.homi.model.tenant.vo.LeaseDetailVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -125,5 +125,5 @@ public class ApprovalTodoVO {
      * 租户详情
      */
     @Schema(description = "租户详情")
-    private TenantDetailVO tenantDetail;
+    private LeaseDetailVO tenantDetail;
 }
