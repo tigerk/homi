@@ -23,4 +23,13 @@ public class RecentNoticeVO {
 
     @Schema(description = "待办消息")
     private List<SysTodo> todos;
+
+    @Schema(description = "未读消息数量")
+    private Long unreadMessageCount;
+
+    @Schema(description = "未读公告数量")
+    private Long unreadNoticeCount;
+
+    @Schema(description = "未处理待办数量")
+    private Long pendingTodoCount;
 }

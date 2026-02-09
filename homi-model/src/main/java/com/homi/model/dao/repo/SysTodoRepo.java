@@ -58,4 +58,13 @@ public class SysTodoRepo extends ServiceImpl<SysTodoMapper, SysTodo> {
             .orderByDesc(SysTodo::getCreateTime);
         return page(page, wrapper).getRecords();
     }
+
+    public Long countPendingTodos(Long companyId, Long userId) {
+        LambdaQueryWrapper<SysTodo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysTodo::getCompanyId, companyId)
+            .eq(SysTodo::getUserId, userId)
+            .eq(SysTodo::getStatus, 0)
+            .eq(SysTodo::getDeleted, false);
+        return count(wrapper);
+    }
 }

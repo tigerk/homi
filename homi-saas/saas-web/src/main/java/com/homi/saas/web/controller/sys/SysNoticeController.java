@@ -52,7 +52,21 @@ public class SysNoticeController {
         markNoticeReadState(notices, currentUser.getId());
         List<SysTodo> todos = sysTodoRepo.getRecentTodos(currentUser.getCurCompanyId(), currentUser.getId(), startTime);
 
-        return ResponseResult.ok(new RecentNoticeVO(messages, notices, todos));
+        Long unreadMessageCount = sysMessageRepo.countUnreadMessages(currentUser.getCurCompanyId(), currentUser.getId());
+        List<Long> noticeIds = sysNoticeRepo.listNoticeIdsForUser(currentUser.getCurCompanyId(), roleIds);
+        Long readNoticeCount = sysNoticeReadRepo.countReadByUserAndNoticeIds(currentUser.getId(), noticeIds);
+        Long unreadNoticeCount = Math.max(0L, noticeIds.size() - readNoticeCount);
+        Long pendingTodoCount = sysTodoRepo.countPendingTodos(currentUser.getCurCompanyId(), currentUser.getId());
+
+        RecentNoticeVO vo = new RecentNoticeVO();
+        vo.setMessages(messages);
+        vo.setNotices(notices);
+        vo.setTodos(todos);
+        vo.setUnreadMessageCount(unreadMessageCount);
+        vo.setUnreadNoticeCount(unreadNoticeCount);
+        vo.setPendingTodoCount(pendingTodoCount);
+
+        return ResponseResult.ok(vo);
     }
 
     @PostMapping("/message/page")
@@ -68,6 +82,13 @@ public class SysNoticeController {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         List<Long> roleIds = currentUser.getRoles() == null ? List.of() : currentUser.getRoles().stream().map(Long::valueOf).collect(Collectors.toList());
         return ResponseResult.ok(sysNoticeRepo.getNoticePage(dto, currentUser.getCurCompanyId(), roleIds));
+    }
+
+    @PostMapping("/notice/my/page")
+    @Operation(summary = "获取我的公告分页")
+    public ResponseResult<PageVO<SysNotice>> getMyNoticePage(@RequestBody SysNoticePageDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        return ResponseResult.ok(sysNoticeRepo.getMyNoticePage(dto, currentUser.getCurCompanyId(), currentUser.getId()));
     }
 
     @PostMapping("/todo/page")

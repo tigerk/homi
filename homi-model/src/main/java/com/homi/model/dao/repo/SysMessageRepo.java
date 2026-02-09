@@ -62,4 +62,13 @@ public class SysMessageRepo extends ServiceImpl<SysMessageMapper, SysMessage> {
 
         return page(page, wrapper).getRecords();
     }
+
+    public Long countUnreadMessages(Long companyId, Long userId) {
+        LambdaQueryWrapper<SysMessage> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysMessage::getCompanyId, companyId)
+            .eq(SysMessage::getReceiverId, userId)
+            .eq(SysMessage::getDeletedByReceiver, false)
+            .eq(SysMessage::getIsRead, false);
+        return count(wrapper);
+    }
 }

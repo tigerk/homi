@@ -40,4 +40,13 @@ public class SysNoticeReadRepo extends ServiceImpl<SysNoticeReadMapper, SysNotic
             .distinct()
             .collect(Collectors.toList());
     }
+
+    public Long countReadByUserAndNoticeIds(Long userId, List<Long> noticeIds) {
+        if (noticeIds == null || noticeIds.isEmpty()) {
+            return 0L;
+        }
+        return count(new LambdaQueryWrapper<SysNoticeRead>()
+            .eq(SysNoticeRead::getUserId, userId)
+            .in(SysNoticeRead::getNoticeId, noticeIds));
+    }
 }

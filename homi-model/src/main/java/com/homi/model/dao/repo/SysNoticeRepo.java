@@ -77,6 +77,44 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
         return list;
     }
 
+    public List<Long> listNoticeIdsForUser(Long companyId, List<Long> roleIds) {
+        LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
+        wrapper.select(SysNotice::getId);
+        wrapper.eq(SysNotice::getCompanyId, companyId)
+            .eq(SysNotice::getStatus, StatusEnum.ACTIVE.getValue());
+        applyRoleScopeFilter(wrapper, roleIds);
+        return list(wrapper).stream()
+            .map(SysNotice::getId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    }
+
+    public PageVO<SysNotice> getMyNoticePage(SysNoticePageDTO dto, Long companyId, Long userId) {
+        Page<SysNotice> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
+        LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysNotice::getCompanyId, companyId)
+            .eq(SysNotice::getCreateBy, userId);
+
+        if (CharSequenceUtil.isNotBlank(dto.getKeyword())) {
+            wrapper.and(w -> w.like(SysNotice::getTitle, dto.getKeyword())
+                .or()
+                .like(SysNotice::getContent, dto.getKeyword()));
+        }
+
+        wrapper.orderByDesc(SysNotice::getPublishTime);
+        IPage<SysNotice> pageResult = getBaseMapper().selectPage(page, wrapper);
+        List<SysNotice> records = pageResult.getRecords();
+        fillCreateByName(records);
+
+        PageVO<SysNotice> pageVO = new PageVO<>();
+        pageVO.setTotal(pageResult.getTotal());
+        pageVO.setList(records);
+        pageVO.setCurrentPage(pageResult.getCurrent());
+        pageVO.setPageSize(pageResult.getSize());
+        pageVO.setPages(pageResult.getPages());
+        return pageVO;
+    }
+
     private void applyRoleScopeFilter(LambdaQueryWrapper<SysNotice> wrapper, List<Long> roleIds) {
         if (roleIds == null || roleIds.isEmpty()) {
             wrapper.ne(SysNotice::getTargetScope, SysNoticeTargetScopeEnum.SPECIFIED_ROLE.getCode());
