@@ -6,15 +6,16 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.extra.pinyin.PinyinUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dict.data.dto.DictDataQueryDTO;
-import com.homi.common.lib.response.ResponseCodeEnum;
-import com.homi.model.dict.vo.DictWithDataVO;
 import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.response.ResponseCodeEnum;
+import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.DictData;
 import com.homi.model.dao.mapper.DictDataMapper;
 import com.homi.model.dao.repo.DictDataRepo;
 import com.homi.model.dao.repo.DictRepo;
+import com.homi.model.dict.data.dto.DictDataQueryDTO;
+import com.homi.model.dict.data.dto.DictDataUpdateDTO;
+import com.homi.model.dict.vo.DictWithDataVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -104,10 +105,10 @@ public class DictDataService {
     public PageVO<DictData> list(DictDataQueryDTO queryDTO) {
         LambdaQueryWrapper<DictData> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictData::getDictId, queryDTO.getDictId())
-                .like(CharSequenceUtil.isNotEmpty(queryDTO.getName()), DictData::getName, queryDTO.getName())
-                .like(CharSequenceUtil.isNotEmpty(queryDTO.getValue()), DictData::getValue, queryDTO.getValue())
-                .eq(Objects.nonNull(queryDTO.getStatus()), DictData::getStatus, queryDTO.getStatus())
-                .orderByAsc(DictData::getSortOrder);
+            .like(CharSequenceUtil.isNotEmpty(queryDTO.getName()), DictData::getName, queryDTO.getName())
+            .like(CharSequenceUtil.isNotEmpty(queryDTO.getValue()), DictData::getValue, queryDTO.getValue())
+            .eq(Objects.nonNull(queryDTO.getStatus()), DictData::getStatus, queryDTO.getStatus())
+            .orderByAsc(DictData::getSortOrder);
 
         Page<DictData> page = new Page<>(queryDTO.getCurrentPage(), queryDTO.getPageSize());
 
@@ -147,12 +148,22 @@ public class DictDataService {
     public List<DictData> listByDictId(Long dictId) {
         LambdaQueryWrapper<DictData> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DictData::getDictId, dictId)
-                .orderByAsc(DictData::getSortOrder);
+            .orderByAsc(DictData::getSortOrder);
 
         return dictDataRepo.list(queryWrapper);
     }
 
     public List<DictWithDataVO> listByParentCode(Long parentId) {
         return dictRepo.getBaseMapper().listDictListWithData(parentId);
+    }
+
+    public Boolean updateDictDataStatus(DictDataUpdateDTO dictData) {
+        DictData update = new DictData();
+        update.setId(dictData.getId());
+        update.setStatus(dictData.getStatus());
+        update.setUpdateBy(dictData.getUpdateBy());
+        update.setUpdateTime(DateUtil.date());
+
+        return dictDataRepo.updateById(update);
     }
 }

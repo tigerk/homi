@@ -13,4 +13,7 @@ public class DictDataUpdateDTO {
     @NotNull(message = "状态不能为空")
     @Schema(description = "状态（1正常 0停用）")
     private Integer status;
+
+    @Schema(description = "更新人ID", hidden = true)
+    private Long updateBy;
 }

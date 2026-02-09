@@ -412,11 +412,11 @@ public class TenantService {
 
         if (Objects.nonNull(leaseDetailVO.getDealChannel())) {
             DictData dictData = dictDataService.getDictDataById(leaseDetailVO.getDealChannel());
-            leaseDetailVO.setDealChannelName(dictData.getName());
+            leaseDetailVO.setDealChannelName(Objects.nonNull(dictData) ? dictData.getName() : null);
         }
         if (Objects.nonNull(leaseDetailVO.getTenantSource())) {
             DictData tenantSource = dictDataService.getDictDataById(leaseDetailVO.getTenantSource());
-            leaseDetailVO.setTenantSourceName(tenantSource.getName());
+            leaseDetailVO.setTenantSourceName(Objects.nonNull(tenantSource) ? tenantSource.getName() : null);
         }
 
         getTenantTypeInfo(leaseDetailVO);

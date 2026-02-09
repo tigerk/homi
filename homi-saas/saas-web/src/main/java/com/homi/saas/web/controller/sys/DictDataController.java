@@ -2,19 +2,21 @@ package com.homi.saas.web.controller.sys;
 
 
 import com.homi.common.lib.annotation.Log;
-import com.homi.common.lib.vo.PageVO;
-import com.homi.common.lib.response.ResponseResult;
-import com.homi.model.dict.dto.DictCodeDTO;
-import com.homi.model.dict.data.dto.DictDataCreateDTO;
-import com.homi.model.dict.data.dto.DictDataQueryDTO;
 import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseCodeEnum;
-import com.homi.model.dict.vo.DictWithDataVO;
+import com.homi.common.lib.response.ResponseResult;
+import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Dict;
 import com.homi.model.dao.entity.DictData;
+import com.homi.model.dict.data.dto.DictDataCreateDTO;
+import com.homi.model.dict.data.dto.DictDataQueryDTO;
+import com.homi.model.dict.data.dto.DictDataUpdateDTO;
+import com.homi.model.dict.dto.DictCodeDTO;
+import com.homi.model.dict.vo.DictWithDataVO;
+import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.sys.DictDataService;
 import com.homi.service.service.sys.DictService;
-import com.homi.common.lib.utils.BeanCopyUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,9 +49,9 @@ public class DictDataController {
      * @param queryDTO 查询实体
      * @return 所有数据
      */
-    @GetMapping("/list")
+    @PostMapping("/list")
 //    @SaCheckPermission("system:dict:data:query")
-    public ResponseResult<PageVO<DictData>> list(@Valid DictDataQueryDTO queryDTO) {
+    public ResponseResult<PageVO<DictData>> list(@RequestBody @Valid DictDataQueryDTO queryDTO) {
         return ResponseResult.ok(dictDataService.list(queryDTO));
     }
 
@@ -99,6 +101,18 @@ public class DictDataController {
         } else {
             return ResponseResult.ok(dictDataService.updateDictData(dictData));
         }
+    }
+
+    @PostMapping("/status/toggle")
+    public ResponseResult<Boolean> toggleStatus(@Valid @RequestBody DictDataUpdateDTO dataUpdateDTO) {
+        DictData dictDataById = dictDataService.getDictDataById(dataUpdateDTO.getId());
+        if (Boolean.FALSE.equals(dictDataById.getDeletable())) {
+            return ResponseResult.fail(ResponseCodeEnum.OPERATION_FAILED, "操作失败：该字典项不允许删除");
+        }
+
+        dataUpdateDTO.setUpdateBy(LoginManager.getUserId());
+
+        return ResponseResult.ok(dictDataService.updateDictDataStatus(dataUpdateDTO));
     }
 
     /**
