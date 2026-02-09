@@ -2,6 +2,8 @@ package com.homi.saas.web.controller.sys;
 
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.homi.common.lib.annotation.Log;
+import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.enums.sys.notice.SysNoticeTargetScopeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
@@ -22,11 +24,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -124,6 +122,7 @@ public class SysNoticeController {
 
     @PostMapping("/message/send")
     @Operation(summary = "发送站内信")
+    @Log(title = "发送站内信", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<Boolean> sendMessage(@RequestBody SysMessageSendDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         Long companyId = currentUser.getCurCompanyId();
@@ -286,6 +285,7 @@ public class SysNoticeController {
 
     @PostMapping("/create")
     @Operation(summary = "发布/修改系统公告")
+    @Log(title = "发布/修改系统公告", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Boolean> createOrUpdate(@RequestBody SysNoticeCreateDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         Date now = DateUtil.date();
@@ -355,6 +355,7 @@ public class SysNoticeController {
 
     @PostMapping("/delete")
     @Operation(summary = "删除系统公告")
+    @Log(title = "删除系统公告", operationType = OperationTypeEnum.DELETE)
     public ResponseResult<Boolean> delete(@RequestBody SysNoticeCreateDTO dto) {
         if (dto.getId() == null) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR);
