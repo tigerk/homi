@@ -86,4 +86,8 @@ public class SysMessage implements Serializable {
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
+
+    @Schema(description = "接收人昵称")
+    @TableField(exist = false)
+    private String receiverName;
 }

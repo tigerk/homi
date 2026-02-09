@@ -84,6 +84,15 @@ public class SysTodo implements Serializable {
     @TableField("handle_remark")
     private String handleRemark;
 
+    @Schema(description = "是否已读")
+    @TableField("is_read")
+    private Boolean isRead;
+
+    @Schema(description = "已读时间")
+    @TableField("read_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date readTime;
+
     @Schema(description = "是否删除：0=否 1=是")
     @TableField("deleted")
     @TableLogic
@@ -106,4 +115,8 @@ public class SysTodo implements Serializable {
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
+
+    @Schema(description = "执行人昵称")
+    @TableField(exist = false)
+    private String executorName;
 }

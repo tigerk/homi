@@ -1,6 +1,7 @@
 package com.homi.saas.web.controller.sys;
 
 import cn.hutool.core.date.DateUtil;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.homi.common.lib.enums.sys.notice.SysNoticeTargetScopeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
@@ -21,9 +22,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -43,14 +46,15 @@ public class SysNoticeController {
     @Operation(summary = "获取最近系统通知")
     public ResponseResult<RecentNoticeVO> getRecent(@RequestBody SysNoticeRecentDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        int days = dto.getDays() == null || dto.getDays() <= 0 ? 3 : dto.getDays();
-        Date startTime = DateUtil.offsetDay(DateUtil.date(), -days);
         List<Long> roleIds = currentUser.getRoles() == null ? List.of() : currentUser.getRoles().stream().map(Long::valueOf).collect(Collectors.toList());
 
-        List<SysMessage> messages = sysMessageRepo.getRecentMessages(currentUser.getCurCompanyId(), currentUser.getId(), startTime);
-        List<SysNotice> notices = sysNoticeRepo.getRecentNotices(currentUser.getCurCompanyId(), startTime, roleIds);
+        // 默认获取三条数据
+        int limit = 3;
+
+        List<SysMessage> messages = sysMessageRepo.getRecentMessages(currentUser.getCurCompanyId(), currentUser.getId(), limit);
+        List<SysNotice> notices = sysNoticeRepo.getRecentNotices(currentUser.getCurCompanyId(), limit, roleIds);
         markNoticeReadState(notices, currentUser.getId());
-        List<SysTodo> todos = sysTodoRepo.getRecentTodos(currentUser.getCurCompanyId(), currentUser.getId(), startTime);
+        List<SysTodo> todos = sysTodoRepo.getRecentTodos(currentUser.getCurCompanyId(), currentUser.getId(), limit);
 
         Long unreadMessageCount = sysMessageRepo.countUnreadMessages(currentUser.getCurCompanyId(), currentUser.getId());
         List<Long> noticeIds = sysNoticeRepo.listNoticeIdsForUser(currentUser.getCurCompanyId(), roleIds);
@@ -69,33 +73,76 @@ public class SysNoticeController {
         return ResponseResult.ok(vo);
     }
 
-    @PostMapping("/message/page")
+    @PostMapping("/message/my/page")
     @Operation(summary = "获取个人消息分页")
     public ResponseResult<PageVO<SysMessage>> getMessagePage(@RequestBody SysNoticePageDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         return ResponseResult.ok(sysMessageRepo.getMessagePage(dto, currentUser.getCurCompanyId(), currentUser.getId()));
     }
 
-    @PostMapping("/notice/page")
-    @Operation(summary = "获取系统公告分页")
+    @PostMapping("/message/admin/page")
+    @Operation(summary = "获取消息分页（管理端）")
+    public ResponseResult<PageVO<SysMessage>> getMessageAdminPage(@RequestBody SysNoticePageDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        PageVO<SysMessage> pageVO = sysMessageRepo.getMessagePageForAdmin(dto, currentUser.getCurCompanyId());
+        fillMessageReceiverName(pageVO.getList());
+        return ResponseResult.ok(pageVO);
+    }
+
+    @PostMapping("/notice/admin/page")
+    @Operation(summary = "获取系统公告分页（管理端）")
     public ResponseResult<PageVO<SysNotice>> getNoticePage(@RequestBody SysNoticePageDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        List<Long> roleIds = currentUser.getRoles() == null ? List.of() : currentUser.getRoles().stream().map(Long::valueOf).collect(Collectors.toList());
-        return ResponseResult.ok(sysNoticeRepo.getNoticePage(dto, currentUser.getCurCompanyId(), roleIds));
+        PageVO<SysNotice> pageVO = sysNoticeRepo.getNoticePageForAdmin(dto, currentUser.getCurCompanyId());
+        return ResponseResult.ok(pageVO);
     }
 
     @PostMapping("/notice/my/page")
     @Operation(summary = "获取我的公告分页")
     public ResponseResult<PageVO<SysNotice>> getMyNoticePage(@RequestBody SysNoticePageDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        return ResponseResult.ok(sysNoticeRepo.getMyNoticePage(dto, currentUser.getCurCompanyId(), currentUser.getId()));
+        PageVO<SysNotice> pageVO = sysNoticeRepo.getMyNoticePage(dto, currentUser.getCurCompanyId(), currentUser.getId());
+        markNoticeReadState(pageVO.getList(), currentUser.getId());
+        return ResponseResult.ok(pageVO);
     }
 
-    @PostMapping("/todo/page")
+    @PostMapping("/todo/my/page")
     @Operation(summary = "获取待办消息分页")
     public ResponseResult<PageVO<SysTodo>> getTodoPage(@RequestBody SysNoticePageDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         return ResponseResult.ok(sysTodoRepo.getTodoPage(dto, currentUser.getCurCompanyId(), currentUser.getId()));
+    }
+
+    @PostMapping("/todo/admin/page")
+    @Operation(summary = "获取待办分页（管理端）")
+    public ResponseResult<PageVO<SysTodo>> getTodoAdminPage(@RequestBody SysNoticePageDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        PageVO<SysTodo> pageVO = sysTodoRepo.getTodoPageForAdmin(dto, currentUser.getCurCompanyId());
+        fillTodoExecutorName(pageVO.getList());
+        return ResponseResult.ok(pageVO);
+    }
+
+    @PostMapping("/message/send")
+    @Operation(summary = "发送站内信")
+    public ResponseResult<Boolean> sendMessage(@RequestBody SysMessageSendDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        Long companyId = currentUser.getCurCompanyId();
+        if (companyUserRepo.getCompanyUser(companyId, dto.getReceiverId()) == null) {
+            throw new BizException(ResponseCodeEnum.NO_FOUND);
+        }
+        SysMessage message = new SysMessage();
+        message.setId(com.baomidou.mybatisplus.core.toolkit.IdWorker.getId(message));
+        message.setCompanyId(companyId);
+        message.setSenderId(currentUser.getId());
+        message.setReceiverId(dto.getReceiverId());
+        message.setTitle(dto.getTitle());
+        message.setContent(dto.getContent());
+        message.setMsgType(dto.getMsgType());
+        message.setIsRead(false);
+        message.setDeletedBySender(false);
+        message.setDeletedByReceiver(false);
+        message.setCreateTime(DateUtil.date());
+        return ResponseResult.ok(sysMessageRepo.save(message));
     }
 
     @PostMapping("/message/read")
@@ -112,6 +159,22 @@ public class SysNoticeController {
         message.setIsRead(true);
         message.setReadTime(DateUtil.date());
         return ResponseResult.ok(sysMessageRepo.updateById(message));
+    }
+
+    @PostMapping("/message/read/batch")
+    @Operation(summary = "批量标记消息已读")
+    public ResponseResult<Boolean> markMessageReadBatch(@RequestBody SysReadBatchDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        if (dto.getIds() == null || dto.getIds().isEmpty()) {
+            return ResponseResult.ok(true);
+        }
+        Date now = DateUtil.date();
+        boolean updated = sysMessageRepo.update(new LambdaUpdateWrapper<SysMessage>()
+            .set(SysMessage::getIsRead, true)
+            .set(SysMessage::getReadTime, now)
+            .eq(SysMessage::getReceiverId, currentUser.getId())
+            .in(SysMessage::getId, dto.getIds()));
+        return ResponseResult.ok(updated);
     }
 
     @PostMapping("/notice/read")
@@ -135,6 +198,90 @@ public class SysNoticeController {
         read.setReadTime(DateUtil.date());
         sysNoticeReadRepo.save(read);
         return ResponseResult.ok(true);
+    }
+
+    @PostMapping("/notice/read/batch")
+    @Operation(summary = "批量标记公告已读")
+    public ResponseResult<Boolean> markNoticeReadBatch(@RequestBody SysReadBatchDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        if (dto.getIds() == null || dto.getIds().isEmpty()) {
+            return ResponseResult.ok(true);
+        }
+        List<Long> existing = sysNoticeReadRepo.listNoticeIdsByUserIdAndNoticeIds(currentUser.getId(), dto.getIds());
+        List<Long> toSave = dto.getIds().stream()
+            .filter(id -> !existing.contains(id))
+            .toList();
+        if (toSave.isEmpty()) {
+            return ResponseResult.ok(true);
+        }
+        Date now = DateUtil.date();
+        List<SysNoticeRead> records = new ArrayList<>(toSave.size());
+        toSave.forEach(id -> {
+            SysNoticeRead read = new SysNoticeRead();
+            read.setId(com.baomidou.mybatisplus.core.toolkit.IdWorker.getId(read));
+            read.setNoticeId(id);
+            read.setUserId(currentUser.getId());
+            read.setReadTime(now);
+            records.add(read);
+        });
+        sysNoticeReadRepo.saveBatch(records);
+        return ResponseResult.ok(true);
+    }
+
+    @PostMapping("/todo/read")
+    @Operation(summary = "标记待办已读")
+    public ResponseResult<Boolean> markTodoRead(@RequestBody SysTodoReadDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        SysTodo todo = sysTodoRepo.getById(dto.getId());
+        if (todo == null) {
+            throw new BizException(ResponseCodeEnum.NO_FOUND);
+        }
+        if (!Objects.equals(todo.getUserId(), currentUser.getId())) {
+            throw new BizException(ResponseCodeEnum.AUTHORIZED);
+        }
+        todo.setIsRead(true);
+        todo.setReadTime(DateUtil.date());
+        todo.setUpdateBy(currentUser.getId());
+        todo.setUpdateTime(DateUtil.date());
+        return ResponseResult.ok(sysTodoRepo.updateById(todo));
+    }
+
+    @PostMapping("/todo/read/batch")
+    @Operation(summary = "批量标记待办已读")
+    public ResponseResult<Boolean> markTodoReadBatch(@RequestBody SysReadBatchDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        if (dto.getIds() == null || dto.getIds().isEmpty()) {
+            return ResponseResult.ok(true);
+        }
+        Date now = DateUtil.date();
+        boolean updated = sysTodoRepo.update(new LambdaUpdateWrapper<SysTodo>()
+            .set(SysTodo::getIsRead, true)
+            .set(SysTodo::getReadTime, now)
+            .set(SysTodo::getUpdateBy, currentUser.getId())
+            .set(SysTodo::getUpdateTime, now)
+            .eq(SysTodo::getUserId, currentUser.getId())
+            .in(SysTodo::getId, dto.getIds()));
+        return ResponseResult.ok(updated);
+    }
+
+    @PostMapping("/todo/handle")
+    @Operation(summary = "标记待办已处理")
+    public ResponseResult<Boolean> handleTodo(@RequestBody SysTodoHandleDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        SysTodo todo = sysTodoRepo.getById(dto.getId());
+        if (todo == null) {
+            throw new BizException(ResponseCodeEnum.NO_FOUND);
+        }
+        if (!Objects.equals(todo.getUserId(), currentUser.getId())) {
+            throw new BizException(ResponseCodeEnum.AUTHORIZED);
+        }
+        Date now = DateUtil.date();
+        todo.setStatus(1);
+        todo.setHandleRemark(dto.getHandleRemark());
+        todo.setHandleTime(now);
+        todo.setUpdateBy(currentUser.getId());
+        todo.setUpdateTime(now);
+        return ResponseResult.ok(sysTodoRepo.updateById(todo));
     }
 
     @PostMapping("/create")
@@ -246,5 +393,39 @@ public class SysNoticeController {
         }
         List<Long> readIds = sysNoticeReadRepo.listNoticeIdsByUserIdAndNoticeIds(userId, noticeIds);
         notices.forEach(item -> item.setIsRead(readIds.contains(item.getId())));
+    }
+
+    private void fillMessageReceiverName(List<SysMessage> list) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        List<Long> userIds = list.stream()
+            .map(SysMessage::getReceiverId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
+        if (userIds.isEmpty()) {
+            return;
+        }
+        Map<Long, String> nameMap = userRepo.listByIds(userIds).stream()
+            .collect(Collectors.toMap(User::getId, User::getNickname, (a, b) -> a));
+        list.forEach(item -> item.setReceiverName(nameMap.getOrDefault(item.getReceiverId(), "")));
+    }
+
+    private void fillTodoExecutorName(List<SysTodo> list) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        List<Long> userIds = list.stream()
+            .map(SysTodo::getUserId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .collect(Collectors.toList());
+        if (userIds.isEmpty()) {
+            return;
+        }
+        Map<Long, String> nameMap = userRepo.listByIds(userIds).stream()
+            .collect(Collectors.toMap(User::getId, User::getNickname, (a, b) -> a));
+        list.forEach(item -> item.setExecutorName(nameMap.getOrDefault(item.getUserId(), "")));
     }
 }

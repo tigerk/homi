@@ -15,7 +15,10 @@ import com.homi.model.notice.dto.SysNoticePageDTO;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -62,8 +65,35 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
         return pageVO;
     }
 
-    public List<SysNotice> getRecentNotices(Long companyId, Date startTime, List<Long> roleIds) {
-        Page<SysNotice> page = new Page<>(1, 10); // 第1页，每页10条
+    public PageVO<SysNotice> getNoticePageForAdmin(SysNoticePageDTO dto, Long companyId) {
+        Page<SysNotice> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
+        LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysNotice::getCompanyId, companyId).eq(SysNotice::getStatus, StatusEnum.ACTIVE.getValue());
+
+        if (CharSequenceUtil.isNotBlank(dto.getKeyword())) {
+            wrapper.and(w -> w.like(SysNotice::getTitle, dto.getKeyword())
+                .or()
+                .like(SysNotice::getContent, dto.getKeyword()));
+        }
+
+        wrapper.orderByDesc(SysNotice::getPublishTime);
+        IPage<SysNotice> pageResult = getBaseMapper().selectPage(page, wrapper);
+
+        List<SysNotice> records = pageResult.getRecords();
+        fillCreateByName(records);
+
+        PageVO<SysNotice> pageVO = new PageVO<>();
+        pageVO.setTotal(pageResult.getTotal());
+        pageVO.setList(records);
+        pageVO.setCurrentPage(pageResult.getCurrent());
+        pageVO.setPageSize(pageResult.getSize());
+        pageVO.setPages(pageResult.getPages());
+
+        return pageVO;
+    }
+
+    public List<SysNotice> getRecentNotices(Long companyId, int limit, List<Long> roleIds) {
+        Page<SysNotice> page = new Page<>(1, limit);
 
         LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysNotice::getCompanyId, companyId)

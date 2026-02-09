@@ -11,7 +11,6 @@ import com.homi.model.dao.mapper.SysMessageMapper;
 import com.homi.model.notice.dto.SysNoticePageDTO;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -51,8 +50,32 @@ public class SysMessageRepo extends ServiceImpl<SysMessageMapper, SysMessage> {
         return pageVO;
     }
 
-    public List<SysMessage> getRecentMessages(Long companyId, Long userId, Date startTime) {
-        Page<SysMessage> page = new Page<>(1, 10); // 第1页，每页10条
+    public PageVO<SysMessage> getMessagePageForAdmin(SysNoticePageDTO dto, Long companyId) {
+        Page<SysMessage> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
+        LambdaQueryWrapper<SysMessage> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysMessage::getCompanyId, companyId);
+
+        if (CharSequenceUtil.isNotBlank(dto.getKeyword())) {
+            wrapper.and(w -> w.like(SysMessage::getTitle, dto.getKeyword())
+                .or()
+                .like(SysMessage::getContent, dto.getKeyword()));
+        }
+
+        wrapper.orderByDesc(SysMessage::getCreateTime);
+        IPage<SysMessage> pageResult = getBaseMapper().selectPage(page, wrapper);
+
+        PageVO<SysMessage> pageVO = new PageVO<>();
+        pageVO.setTotal(pageResult.getTotal());
+        pageVO.setList(pageResult.getRecords());
+        pageVO.setCurrentPage(pageResult.getCurrent());
+        pageVO.setPageSize(pageResult.getSize());
+        pageVO.setPages(pageResult.getPages());
+
+        return pageVO;
+    }
+
+    public List<SysMessage> getRecentMessages(Long companyId, Long userId, int limit) {
+        Page<SysMessage> page = new Page<>(1, limit);
 
         LambdaQueryWrapper<SysMessage> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysMessage::getCompanyId, companyId)
