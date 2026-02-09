@@ -5,13 +5,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.mapper.LeaseMapper;
 import com.homi.model.tenant.dto.TenantQueryDTO;
 import com.homi.model.tenant.vo.LeaseListVO;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -117,18 +118,43 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
         return updateById(lease);
     }
 
-    public boolean updateStatusAndApprovalStatus(Long leaseId, Integer status, Integer approvalStatus) {
+    public void updateStatusAndApprovalStatus(Long leaseId, Integer status, Integer approvalStatus) {
         Lease lease = new Lease();
         lease.setId(leaseId);
         lease.setStatus(status);
         lease.setApprovalStatus(approvalStatus);
-        return updateById(lease);
+        updateById(lease);
     }
 
-    public boolean updateApprovalStatus(Long leaseId, Integer approvalStatus) {
+    public void updateApprovalStatus(Long leaseId, Integer approvalStatus) {
         Lease lease = new Lease();
         lease.setId(leaseId);
         lease.setApprovalStatus(approvalStatus);
-        return updateById(lease);
+        updateById(lease);
+    }
+
+    public boolean existsConflict(List<Long> roomIds, Date leaseStart, Date leaseEnd, Long excludeLeaseId) {
+        if (roomIds == null || roomIds.isEmpty() || leaseStart == null || leaseEnd == null) {
+            return false;
+        }
+        LambdaQueryWrapper<Lease> wrapper = new LambdaQueryWrapper<>();
+        wrapper.lt(Lease::getLeaseStart, leaseEnd);
+        wrapper.gt(Lease::getLeaseEnd, leaseStart);
+        wrapper.in(Lease::getStatus, TenantStatusEnum.getValidStatus());
+        if (excludeLeaseId != null) {
+            wrapper.ne(Lease::getId, excludeLeaseId);
+        }
+        wrapper.and(query -> {
+            boolean first = true;
+            for (Long roomId : roomIds) {
+                if (first) {
+                    query.apply("JSON_CONTAINS(room_ids, JSON_ARRAY({0}))", roomId);
+                    first = false;
+                } else {
+                    query.or().apply("JSON_CONTAINS(room_ids, JSON_ARRAY({0}))", roomId);
+                }
+            }
+        });
+        return count(wrapper) > 0;
     }
 }

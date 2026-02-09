@@ -154,12 +154,22 @@ public class TenantService {
     public Long createTenant(TenantCreateDTO createDTO) {
         LeaseDTO leaseDTO = resolveLeaseDTO(createDTO);
 
-        // 检查租约房间是否已被预定/出租
+        // 检查房间是否存在
         List<Room> roomList = roomRepo.listByIds(leaseDTO.getRoomIds());
-        if (roomList.stream().anyMatch(room ->
-            Objects.equals(room.getRoomStatus(), RoomStatusEnum.LEASED.getCode()) ||
-                Objects.equals(room.getRoomStatus(), RoomStatusEnum.BOOKED.getCode()))) {
-            throw new IllegalArgumentException("房间已被出租，不能创建租约");
+        if (roomList == null || roomList.size() != leaseDTO.getRoomIds().size()) {
+            throw new IllegalArgumentException("房间不存在，不能创建租约");
+        }
+
+        // 检查租期是否与已有租约冲突（续签时排除原租约）
+        Long excludeLeaseId = leaseDTO.getParentLeaseId();
+        boolean hasConflict = leaseRepo.existsConflict(
+            leaseDTO.getRoomIds(),
+            leaseDTO.getLeaseStart(),
+            leaseDTO.getLeaseEnd(),
+            excludeLeaseId
+        );
+        if (hasConflict) {
+            throw new IllegalArgumentException("房间在该租期内已被出租，不能创建租约");
         }
 
         TenantTypeEnum tenantTypeEnum = EnumUtil.getBy(TenantTypeEnum::getCode, leaseDTO.getTenantType());
@@ -504,7 +514,7 @@ public class TenantService {
      * {@code @author} tk
      * {@code @date} 2025/12/14 04:00
      *
-     * @param tenantId 参数说明
+     * @param leaseId 参数说明
      * @return byte[]
      */
     public byte[] downloadContract(Long leaseId) {
@@ -905,7 +915,7 @@ public class TenantService {
      * {@code @author} tk
      * {@code @date} 2026/1/21 15:35
      *
-     * @param tenantId  参数说明
+     * @param leaseId  参数说明
      * @param createDTO 参数说明
      */
     private void regenerateLeaseBill(Long leaseId, TenantCreateDTO createDTO) {
