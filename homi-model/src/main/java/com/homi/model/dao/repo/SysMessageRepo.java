@@ -52,12 +52,14 @@ public class SysMessageRepo extends ServiceImpl<SysMessageMapper, SysMessage> {
     }
 
     public List<SysMessage> getRecentMessages(Long companyId, Long userId, Date startTime) {
+        Page<SysMessage> page = new Page<>(1, 10); // 第1页，每页10条
+
         LambdaQueryWrapper<SysMessage> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysMessage::getCompanyId, companyId)
             .eq(SysMessage::getReceiverId, userId)
             .eq(SysMessage::getDeletedByReceiver, false)
-            .ge(SysMessage::getCreateTime, startTime)
             .orderByDesc(SysMessage::getCreateTime);
-        return getBaseMapper().selectList(wrapper);
+
+        return page(page, wrapper).getRecords();
     }
 }

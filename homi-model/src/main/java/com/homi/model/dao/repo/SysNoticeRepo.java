@@ -63,14 +63,16 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
     }
 
     public List<SysNotice> getRecentNotices(Long companyId, Date startTime, List<Long> roleIds) {
+        Page<SysNotice> page = new Page<>(1, 10); // 第1页，每页10条
+
         LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysNotice::getCompanyId, companyId)
             .eq(SysNotice::getStatus, StatusEnum.ACTIVE.getValue())
             .notIn(SysNotice::getTargetScope, SysNoticeTargetScopeEnum.LANDLORD.getCode(), SysNoticeTargetScopeEnum.TENANT.getCode())
-            .ge(SysNotice::getPublishTime, startTime)
             .orderByDesc(SysNotice::getPublishTime);
         applyRoleScopeFilter(wrapper, roleIds);
-        List<SysNotice> list = getBaseMapper().selectList(wrapper);
+        List<SysNotice> list = page(page, wrapper).getRecords();
+
         fillCreateByName(list);
         return list;
     }

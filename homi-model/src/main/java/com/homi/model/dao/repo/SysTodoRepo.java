@@ -50,11 +50,12 @@ public class SysTodoRepo extends ServiceImpl<SysTodoMapper, SysTodo> {
     }
 
     public List<SysTodo> getRecentTodos(Long companyId, Long userId, Date startTime) {
+        Page<SysTodo> page = new Page<>(1, 10);
+
         LambdaQueryWrapper<SysTodo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysTodo::getCompanyId, companyId)
             .eq(SysTodo::getUserId, userId)
-            .ge(SysTodo::getCreateTime, startTime)
             .orderByDesc(SysTodo::getCreateTime);
-        return getBaseMapper().selectList(wrapper);
+        return page(page, wrapper).getRecords();
     }
 }
