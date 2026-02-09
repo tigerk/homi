@@ -9,6 +9,7 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.SysMessage;
 import com.homi.model.dao.mapper.SysMessageMapper;
 import com.homi.model.notice.dto.SysNoticePageDTO;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,13 +25,18 @@ import java.util.List;
 @Service
 public class SysMessageRepo extends ServiceImpl<SysMessageMapper, SysMessage> {
 
-    public PageVO<SysMessage> getMessagePage(SysNoticePageDTO dto, Long companyId, Long userId) {
+    public PageVO<SysMessage> getMyMessagePage(SysNoticePageDTO dto, Long companyId, Long userId) {
         Page<SysMessage> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
         LambdaQueryWrapper<SysMessage> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysMessage::getCompanyId, companyId)
             .eq(SysMessage::getReceiverId, userId)
             .eq(SysMessage::getDeletedByReceiver, false);
 
+        return getSysMessagePageVO(dto, page, wrapper);
+    }
+
+    @NotNull
+    private PageVO<SysMessage> getSysMessagePageVO(SysNoticePageDTO dto, Page<SysMessage> page, LambdaQueryWrapper<SysMessage> wrapper) {
         if (CharSequenceUtil.isNotBlank(dto.getKeyword())) {
             wrapper.and(w -> w.like(SysMessage::getTitle, dto.getKeyword())
                 .or()
@@ -55,23 +61,7 @@ public class SysMessageRepo extends ServiceImpl<SysMessageMapper, SysMessage> {
         LambdaQueryWrapper<SysMessage> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysMessage::getCompanyId, companyId);
 
-        if (CharSequenceUtil.isNotBlank(dto.getKeyword())) {
-            wrapper.and(w -> w.like(SysMessage::getTitle, dto.getKeyword())
-                .or()
-                .like(SysMessage::getContent, dto.getKeyword()));
-        }
-
-        wrapper.orderByDesc(SysMessage::getCreateTime);
-        IPage<SysMessage> pageResult = getBaseMapper().selectPage(page, wrapper);
-
-        PageVO<SysMessage> pageVO = new PageVO<>();
-        pageVO.setTotal(pageResult.getTotal());
-        pageVO.setList(pageResult.getRecords());
-        pageVO.setCurrentPage(pageResult.getCurrent());
-        pageVO.setPageSize(pageResult.getSize());
-        pageVO.setPages(pageResult.getPages());
-
-        return pageVO;
+        return getSysMessagePageVO(dto, page, wrapper);
     }
 
     public List<SysMessage> getRecentMessages(Long companyId, Long userId, int limit) {

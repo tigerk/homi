@@ -9,6 +9,7 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.SysTodo;
 import com.homi.model.dao.mapper.SysTodoMapper;
 import com.homi.model.notice.dto.SysNoticePageDTO;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,11 +25,16 @@ import java.util.List;
 @Service
 public class SysTodoRepo extends ServiceImpl<SysTodoMapper, SysTodo> {
 
-    public PageVO<SysTodo> getTodoPage(SysNoticePageDTO dto, Long companyId, Long userId) {
+    public PageVO<SysTodo> getMyTodoPage(SysNoticePageDTO dto, Long companyId, Long userId) {
         Page<SysTodo> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
         LambdaQueryWrapper<SysTodo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysTodo::getCompanyId, companyId).eq(SysTodo::getUserId, userId);
 
+        return getSysTodoPageVO(dto, page, wrapper);
+    }
+
+    @NotNull
+    private PageVO<SysTodo> getSysTodoPageVO(SysNoticePageDTO dto, Page<SysTodo> page, LambdaQueryWrapper<SysTodo> wrapper) {
         if (CharSequenceUtil.isNotBlank(dto.getKeyword())) {
             wrapper.and(w -> w.like(SysTodo::getTitle, dto.getKeyword())
                 .or()
@@ -53,23 +59,7 @@ public class SysTodoRepo extends ServiceImpl<SysTodoMapper, SysTodo> {
         LambdaQueryWrapper<SysTodo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysTodo::getCompanyId, companyId);
 
-        if (CharSequenceUtil.isNotBlank(dto.getKeyword())) {
-            wrapper.and(w -> w.like(SysTodo::getTitle, dto.getKeyword())
-                .or()
-                .like(SysTodo::getContent, dto.getKeyword()));
-        }
-
-        wrapper.orderByDesc(SysTodo::getCreateTime);
-        IPage<SysTodo> pageResult = getBaseMapper().selectPage(page, wrapper);
-
-        PageVO<SysTodo> pageVO = new PageVO<>();
-        pageVO.setTotal(pageResult.getTotal());
-        pageVO.setList(pageResult.getRecords());
-        pageVO.setCurrentPage(pageResult.getCurrent());
-        pageVO.setPageSize(pageResult.getSize());
-        pageVO.setPages(pageResult.getPages());
-
-        return pageVO;
+        return getSysTodoPageVO(dto, page, wrapper);
     }
 
     public List<SysTodo> getRecentTodos(Long companyId, Long userId, int limit) {

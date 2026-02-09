@@ -75,7 +75,7 @@ public class SysNoticeController {
     @Operation(summary = "获取个人消息分页")
     public ResponseResult<PageVO<SysMessage>> getMessagePage(@RequestBody SysNoticePageDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        return ResponseResult.ok(sysMessageRepo.getMessagePage(dto, currentUser.getCurCompanyId(), currentUser.getId()));
+        return ResponseResult.ok(sysMessageRepo.getMyMessagePage(dto, currentUser.getCurCompanyId(), currentUser.getId()));
     }
 
     @PostMapping("/message/admin/page")
@@ -108,7 +108,7 @@ public class SysNoticeController {
     @Operation(summary = "获取待办消息分页")
     public ResponseResult<PageVO<SysTodo>> getTodoPage(@RequestBody SysNoticePageDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        return ResponseResult.ok(sysTodoRepo.getTodoPage(dto, currentUser.getCurCompanyId(), currentUser.getId()));
+        return ResponseResult.ok(sysTodoRepo.getMyTodoPage(dto, currentUser.getCurCompanyId(), currentUser.getId()));
     }
 
     @PostMapping("/todo/admin/page")
@@ -396,37 +396,44 @@ public class SysNoticeController {
         notices.forEach(item -> item.setIsRead(readIds.contains(item.getId())));
     }
 
-    private void fillMessageReceiverName(List<SysMessage> list) {
+    /**
+     * 通用的用户名填充方法
+     *
+     * @param list            需要填充的列表
+     * @param userIdExtractor 用户ID提取函数
+     * @param nameSetter      用户名设置函数
+     * @param <T>             列表元素类型
+     */
+    private <T> void fillUserName(List<T> list,
+                                  java.util.function.Function<T, Long> userIdExtractor,
+                                  java.util.function.BiConsumer<T, String> nameSetter) {
         if (list == null || list.isEmpty()) {
             return;
         }
+
         List<Long> userIds = list.stream()
-            .map(SysMessage::getReceiverId)
+            .map(userIdExtractor)
             .filter(Objects::nonNull)
             .distinct()
             .collect(Collectors.toList());
+
         if (userIds.isEmpty()) {
             return;
         }
+
         Map<Long, String> nameMap = userRepo.listByIds(userIds).stream()
             .collect(Collectors.toMap(User::getId, User::getNickname, (a, b) -> a));
-        list.forEach(item -> item.setReceiverName(nameMap.getOrDefault(item.getReceiverId(), "")));
+
+        list.forEach(item -> nameSetter.accept(item,
+            nameMap.getOrDefault(userIdExtractor.apply(item), "")));
+    }
+
+    // 简化后的方法
+    private void fillMessageReceiverName(List<SysMessage> list) {
+        fillUserName(list, SysMessage::getReceiverId, SysMessage::setReceiverName);
     }
 
     private void fillTodoExecutorName(List<SysTodo> list) {
-        if (list == null || list.isEmpty()) {
-            return;
-        }
-        List<Long> userIds = list.stream()
-            .map(SysTodo::getUserId)
-            .filter(Objects::nonNull)
-            .distinct()
-            .collect(Collectors.toList());
-        if (userIds.isEmpty()) {
-            return;
-        }
-        Map<Long, String> nameMap = userRepo.listByIds(userIds).stream()
-            .collect(Collectors.toMap(User::getId, User::getNickname, (a, b) -> a));
-        list.forEach(item -> item.setExecutorName(nameMap.getOrDefault(item.getUserId(), "")));
+        fillUserName(list, SysTodo::getUserId, SysTodo::setExecutorName);
     }
 }

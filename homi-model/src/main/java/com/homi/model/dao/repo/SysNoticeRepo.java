@@ -13,6 +13,7 @@ import com.homi.model.dao.entity.User;
 import com.homi.model.dao.mapper.SysNoticeMapper;
 import com.homi.model.notice.dto.SysNoticePageDTO;
 import jakarta.annotation.Resource;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -37,39 +38,16 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
     @Resource
     private SysNoticeRoleRepo sysNoticeRoleRepo;
 
-    public PageVO<SysNotice> getNoticePage(SysNoticePageDTO dto, Long companyId, List<Long> roleIds) {
-        Page<SysNotice> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
-        LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysNotice::getCompanyId, companyId).eq(SysNotice::getStatus, StatusEnum.ACTIVE.getValue());
-        applyRoleScopeFilter(wrapper, roleIds);
-
-        if (CharSequenceUtil.isNotBlank(dto.getKeyword())) {
-            wrapper.and(w -> w.like(SysNotice::getTitle, dto.getKeyword())
-                .or()
-                .like(SysNotice::getContent, dto.getKeyword()));
-        }
-
-        wrapper.orderByDesc(SysNotice::getPublishTime);
-        IPage<SysNotice> pageResult = getBaseMapper().selectPage(page, wrapper);
-
-        List<SysNotice> records = pageResult.getRecords();
-        fillCreateByName(records);
-
-        PageVO<SysNotice> pageVO = new PageVO<>();
-        pageVO.setTotal(pageResult.getTotal());
-        pageVO.setList(records);
-        pageVO.setCurrentPage(pageResult.getCurrent());
-        pageVO.setPageSize(pageResult.getSize());
-        pageVO.setPages(pageResult.getPages());
-
-        return pageVO;
-    }
-
     public PageVO<SysNotice> getNoticePageForAdmin(SysNoticePageDTO dto, Long companyId) {
         Page<SysNotice> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
         LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysNotice::getCompanyId, companyId).eq(SysNotice::getStatus, StatusEnum.ACTIVE.getValue());
 
+        return getSysNoticePageVO(dto, page, wrapper);
+    }
+
+    @NotNull
+    private PageVO<SysNotice> getSysNoticePageVO(SysNoticePageDTO dto, Page<SysNotice> page, LambdaQueryWrapper<SysNotice> wrapper) {
         if (CharSequenceUtil.isNotBlank(dto.getKeyword())) {
             wrapper.and(w -> w.like(SysNotice::getTitle, dto.getKeyword())
                 .or()
@@ -125,24 +103,7 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
         wrapper.eq(SysNotice::getCompanyId, companyId)
             .eq(SysNotice::getCreateBy, userId);
 
-        if (CharSequenceUtil.isNotBlank(dto.getKeyword())) {
-            wrapper.and(w -> w.like(SysNotice::getTitle, dto.getKeyword())
-                .or()
-                .like(SysNotice::getContent, dto.getKeyword()));
-        }
-
-        wrapper.orderByDesc(SysNotice::getPublishTime);
-        IPage<SysNotice> pageResult = getBaseMapper().selectPage(page, wrapper);
-        List<SysNotice> records = pageResult.getRecords();
-        fillCreateByName(records);
-
-        PageVO<SysNotice> pageVO = new PageVO<>();
-        pageVO.setTotal(pageResult.getTotal());
-        pageVO.setList(records);
-        pageVO.setCurrentPage(pageResult.getCurrent());
-        pageVO.setPageSize(pageResult.getSize());
-        pageVO.setPages(pageResult.getPages());
-        return pageVO;
+        return getSysNoticePageVO(dto, page, wrapper);
     }
 
     private void applyRoleScopeFilter(LambdaQueryWrapper<SysNotice> wrapper, List<Long> roleIds) {
