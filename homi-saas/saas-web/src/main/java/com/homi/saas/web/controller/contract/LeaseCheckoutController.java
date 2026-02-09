@@ -110,9 +110,7 @@ public class LeaseCheckoutController {
      * 查询退租单列表
      */
     @PostMapping("/list")
-    public ResponseResult<PageVO<LeaseCheckoutVO>> queryCheckoutList(
-        @RequestBody LeaseCheckoutQueryDTO query,
-        @AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<PageVO<LeaseCheckoutVO>> queryCheckoutList(@RequestBody LeaseCheckoutQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
         query.setCompanyId(loginUser.getCurCompanyId());
         PageVO<LeaseCheckoutVO> page = leaseCheckoutService.queryCheckoutList(query);
         return ResponseResult.ok(page);

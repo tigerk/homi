@@ -3,8 +3,7 @@ package com.homi.model.checkout.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -48,12 +47,12 @@ public class LeaseCheckoutVO {
     /**
      * 合同开始日
      */
-    private LocalDate leaseStart;
+    private Date leaseStart;
 
     /**
      * 合同到期日
      */
-    private LocalDate leaseEnd;
+    private java.util.Date leaseEnd;
 
     /**
      * 承租人姓名
@@ -100,7 +99,7 @@ public class LeaseCheckoutVO {
     /**
      * 实际离房日期
      */
-    private LocalDate actualCheckoutDate;
+    private Date actualCheckoutDate;
 
     /**
      * 解约原因（违约退时填写）
@@ -127,7 +126,7 @@ public class LeaseCheckoutVO {
     /**
      * 预计收/付款时间
      */
-    private LocalDate expectedPaymentDate;
+    private Date expectedPaymentDate;
 
     /**
      * 账单处理方式
@@ -228,7 +227,7 @@ public class LeaseCheckoutVO {
     /**
      * 结算完成时间
      */
-    private LocalDateTime settlementTime;
+    private Date settlementTime;
 
     /**
      * 创建人ID
@@ -243,5 +242,5 @@ public class LeaseCheckoutVO {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private Date createTime;
 }
