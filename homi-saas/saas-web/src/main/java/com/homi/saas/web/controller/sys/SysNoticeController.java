@@ -145,6 +145,21 @@ public class SysNoticeController {
         return ResponseResult.ok(sysMessageRepo.save(message));
     }
 
+    @PostMapping("/message/delete")
+    @Operation(summary = "删除站内信")
+    @Log(title = "删除站内信", operationType = OperationTypeEnum.DELETE)
+    public ResponseResult<Boolean> deleteMessage(@RequestBody SysMessageDeleteDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        SysMessage message = sysMessageRepo.getById(dto.getId());
+        if (message == null) {
+            throw new BizException(ResponseCodeEnum.NO_FOUND);
+        }
+        if (!Objects.equals(message.getCompanyId(), currentUser.getCurCompanyId())) {
+            throw new BizException(ResponseCodeEnum.AUTHORIZED);
+        }
+        return ResponseResult.ok(sysMessageRepo.removeById(dto.getId()));
+    }
+
     @PostMapping("/message/read")
     @Operation(summary = "标记消息已读")
     public ResponseResult<Boolean> markMessageRead(@RequestBody SysMessageReadDTO dto) {

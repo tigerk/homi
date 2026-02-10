@@ -4,19 +4,16 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.captcha.generator.RandomGenerator;
+import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.annotation.LoginLog;
+import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.menu.vo.AsyncRoutesVO;
 import com.homi.saas.web.auth.dto.account.UserProfileUpdateDTO;
-import com.homi.saas.web.auth.dto.login.LoginDTO;
-import com.homi.saas.web.auth.dto.login.SmsLoginDTO;
-import com.homi.saas.web.auth.dto.login.WechatBindDTO;
-import com.homi.saas.web.auth.dto.login.WechatLoginDTO;
-import com.homi.saas.web.auth.dto.login.LoginUpdateDTO;
-import com.homi.saas.web.auth.dto.login.TokenRefreshDTO;
+import com.homi.saas.web.auth.dto.login.*;
 import com.homi.saas.web.auth.service.AuthService;
 import com.homi.saas.web.auth.service.WechatAuthService;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -69,6 +66,7 @@ public class LoginController {
      */
     @LoginLog
     @PostMapping("/saas/login")
+    @Log(title = "登录", operationType = OperationTypeEnum.OTHER)
     public ResponseResult<UserLoginVO> login(@Valid @RequestBody LoginDTO loginDTO) {
         UserLoginVO userLogin = authService.checkUserLogin(loginDTO);
 
@@ -76,6 +74,7 @@ public class LoginController {
     }
 
     @PostMapping("/saas/wechat/login")
+    @Log(title = "微信登录", operationType = OperationTypeEnum.OTHER)
     public ResponseResult<UserLoginVO> wechatLogin(@Valid @RequestBody WechatLoginDTO wechatLoginDTO) {
         return ResponseResult.ok(wechatAuthService.loginByCode(wechatLoginDTO.getCode()));
     }
@@ -163,6 +162,7 @@ public class LoginController {
     }
 
     @PostMapping("/saas/login/sms")
+    @Log(title = "短信登录", operationType = OperationTypeEnum.OTHER)
     public ResponseResult<UserLoginVO> smsLogin(@Valid @RequestBody SmsLoginDTO smsLoginDTO) {
         String verifyCode = redisTemplate.opsForValue().get(RedisKey.SMS_CODE.format(Long.valueOf(smsLoginDTO.getPhone())));
         if (verifyCode == null) {
@@ -182,6 +182,7 @@ public class LoginController {
     }
 
     @PostMapping("/saas/login/sms/send")
+    @Log(title = "发送登录短信", operationType = OperationTypeEnum.OTHER)
     public ResponseResult<Boolean> sendSmsCode(@RequestParam("phone") Long phone, @RequestParam("captcha") String captcha) {
         String captchaCode = redisTemplate.opsForValue().get(RedisKey.CAPTCHA.format(phone));
         if (captchaCode == null || !captchaCode.equalsIgnoreCase(captcha)) {
@@ -190,7 +191,7 @@ public class LoginController {
 
         String rateKey = RedisKey.SMS_RATE_LIMIT.format(phone);
         Boolean rateLimit = redisTemplate.hasKey(rateKey);
-        if (Boolean.TRUE.equals(rateLimit)) {
+        if (rateLimit) {
             throw new BizException("发送过于频繁，请稍后再试");
         }
         redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
@@ -209,6 +210,7 @@ public class LoginController {
     }
 
     @PostMapping("/saas/login/update")
+    @Log(title = "更新密码", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Boolean> sendSmsCode(@RequestBody LoginUpdateDTO loginUpdate) {
         String verifyCode = redisTemplate.opsForValue().get(RedisKey.SMS_CODE.format(loginUpdate.getPhone()));
         if (verifyCode == null) {
@@ -248,6 +250,7 @@ public class LoginController {
      * @return com.homi.common.lib.response.ResponseResult<com.homi.saas.web.auth.vo.login.UserLoginVO>
      */
     @PostMapping("/saas/login/profile/update")
+    @Log(title = "更新个人信息", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Boolean> updateLoginUserProfile(@RequestBody UserProfileUpdateDTO userProfileUpdateDTO) {
         return ResponseResult.ok(authService.updateUserProfile(userProfileUpdateDTO));
     }
