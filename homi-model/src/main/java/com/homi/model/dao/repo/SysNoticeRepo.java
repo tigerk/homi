@@ -41,7 +41,7 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
     public PageVO<SysNotice> getNoticePageForAdmin(SysNoticePageDTO dto, Long companyId) {
         Page<SysNotice> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
         LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysNotice::getCompanyId, companyId).eq(SysNotice::getStatus, StatusEnum.ACTIVE.getValue());
+        wrapper.eq(SysNotice::getCompanyId, companyId);
 
         return getSysNoticePageVO(dto, page, wrapper);
     }
@@ -97,11 +97,13 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
             .collect(Collectors.toList());
     }
 
-    public PageVO<SysNotice> getMyNoticePage(SysNoticePageDTO dto, Long companyId, Long userId) {
+    public PageVO<SysNotice> getMyNoticePage(SysNoticePageDTO dto, Long companyId, List<Long> roleIds) {
         Page<SysNotice> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
         LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysNotice::getCompanyId, companyId)
-            .eq(SysNotice::getCreateBy, userId);
+            .notIn(SysNotice::getTargetScope, SysNoticeTargetScopeEnum.LANDLORD.getCode(), SysNoticeTargetScopeEnum.TENANT.getCode())
+            .eq(SysNotice::getStatus, StatusEnum.ACTIVE.getValue());
+        applyRoleScopeFilter(wrapper, roleIds);
 
         return getSysNoticePageVO(dto, page, wrapper);
     }

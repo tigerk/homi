@@ -99,7 +99,8 @@ public class SysNoticeController {
     @Operation(summary = "获取我的公告分页")
     public ResponseResult<PageVO<SysNotice>> getMyNoticePage(@RequestBody SysNoticePageDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        PageVO<SysNotice> pageVO = sysNoticeRepo.getMyNoticePage(dto, currentUser.getCurCompanyId(), currentUser.getId());
+        List<Long> roleIds = currentUser.getRoles() == null ? List.of() : currentUser.getRoles().stream().map(Long::valueOf).collect(Collectors.toList());
+        PageVO<SysNotice> pageVO = sysNoticeRepo.getMyNoticePage(dto, currentUser.getCurCompanyId(), roleIds);
         markNoticeReadState(pageVO.getList(), currentUser.getId());
         return ResponseResult.ok(pageVO);
     }
