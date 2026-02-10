@@ -20,6 +20,7 @@ import com.homi.saas.web.auth.service.WechatAuthService;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.service.external.aliyun.SmsClient;
+import com.homi.service.external.mail.MailClient;
 import com.homi.service.service.company.CompanyUserService;
 import com.homi.service.service.sys.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -52,6 +53,8 @@ public class LoginController {
     private final UserService userService;
 
     private final StringRedisTemplate redisTemplate;
+
+    private final MailClient mailClient;
 
     // 短信客户端
     private final SmsClient smsClient;
@@ -331,7 +334,7 @@ public class LoginController {
         redisTemplate.opsForValue().set(RedisKey.ACCOUNT_EMAIL_CODE.format(email), verifyCode, RedisKey.ACCOUNT_EMAIL_CODE.getTimeout(), RedisKey.ACCOUNT_EMAIL_CODE.getUnit());
 
         log.info("发送更换邮箱验证码，邮箱：{}，验证码：{}", email, verifyCode);
-        // TODO: 邮件发送
+        mailClient.send(email, "邮箱验证码", "您的邮箱验证码为：" + verifyCode + "，10分钟内有效。");
 
         return ResponseResult.ok(Boolean.TRUE);
     }
