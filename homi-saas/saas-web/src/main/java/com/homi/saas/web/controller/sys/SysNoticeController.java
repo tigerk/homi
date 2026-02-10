@@ -146,8 +146,8 @@ public class SysNoticeController {
     }
 
     @PostMapping("/message/delete")
-    @Operation(summary = "删除站内信")
-    @Log(title = "删除站内信", operationType = OperationTypeEnum.DELETE)
+    @Operation(summary = "删除个人消息")
+    @Log(title = "删除个人消息", operationType = OperationTypeEnum.DELETE)
     public ResponseResult<Boolean> deleteMessage(@RequestBody SysMessageDeleteDTO dto) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         SysMessage message = sysMessageRepo.getById(dto.getId());
