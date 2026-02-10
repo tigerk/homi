@@ -61,6 +61,11 @@ public class OperationLogEvent {
     private Integer operatorType;
 
     /**
+     * 操作用户ID
+     */
+    private Long userId;
+
+    /**
      * 操作用户名
      */
     private String username;

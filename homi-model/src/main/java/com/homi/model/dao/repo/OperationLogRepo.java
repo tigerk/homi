@@ -6,13 +6,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.event.OperationLogEvent;
-import com.homi.common.lib.vo.PageVO;
-import com.homi.model.monitor.OperationLogDTO;
-import com.homi.model.dao.entity.OperationLog;
-import com.homi.model.dao.mapper.OperationLogMapper;
 import com.homi.common.lib.utils.AddressUtils;
 import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.common.lib.vo.PageVO;
+import com.homi.model.dao.entity.OperationLog;
+import com.homi.model.dao.mapper.OperationLogMapper;
+import com.homi.model.monitor.OperationLogDTO;
 import jakarta.annotation.Resource;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -72,6 +73,27 @@ public class OperationLogRepo extends ServiceImpl<OperationLogMapper, OperationL
         }
         lambdaQueryWrapper.orderByDesc(OperationLog::getRequestTime);
 
+        return getOperationLogPageVO(page, lambdaQueryWrapper);
+    }
+
+    public OperationLog getDetailById(Long id) {
+        return getBaseMapper().selectById(id);
+    }
+
+    public PageVO<OperationLog> getMineOperationLogs(Long companyId, Long userId, List<String> titles, long currentPage, long pageSize) {
+        Page<OperationLog> page = new Page<>(currentPage, pageSize);
+
+        LambdaQueryWrapper<OperationLog> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(OperationLog::getCompanyId, companyId)
+            .eq(OperationLog::getUserId, userId)
+            .in(OperationLog::getTitle, titles)
+            .orderByDesc(OperationLog::getRequestTime);
+
+        return getOperationLogPageVO(page, lambdaQueryWrapper);
+    }
+
+    @NotNull
+    private PageVO<OperationLog> getOperationLogPageVO(Page<OperationLog> page, LambdaQueryWrapper<OperationLog> lambdaQueryWrapper) {
         IPage<OperationLog> operationLogPage = getBaseMapper().selectPage(page, lambdaQueryWrapper);
 
         PageVO<OperationLog> pageVO = new PageVO<>();
@@ -84,15 +106,11 @@ public class OperationLogRepo extends ServiceImpl<OperationLogMapper, OperationL
         return pageVO;
     }
 
-    public OperationLog getDetailById(Long id) {
-        return getBaseMapper().selectById(id);
-    }
-
     public int clearAllByCompanyId(Long companyId) {
         return getBaseMapper().delete(new LambdaQueryWrapper<OperationLog>().eq(OperationLog::getCompanyId, companyId));
     }
 
-    public int batchDeleteByIds(List<Long> ids) {
-        return getBaseMapper().deleteBatchIds(ids);
+    public boolean batchDeleteByIds(List<Long> ids) {
+        return removeByIds(ids);
     }
 }

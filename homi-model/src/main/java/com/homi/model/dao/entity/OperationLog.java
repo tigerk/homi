@@ -49,6 +49,10 @@ public class OperationLog implements Serializable {
     @TableField("company_id")
     private Long companyId;
 
+    @Schema(description = "操作用户ID")
+    @TableField("user_id")
+    private Long userId;
+
     @Schema(description = "操作用户名")
     @TableField("username")
     private String username;
