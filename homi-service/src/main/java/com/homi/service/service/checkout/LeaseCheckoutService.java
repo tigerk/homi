@@ -78,6 +78,7 @@ public class LeaseCheckoutService {
         if (lease == null) {
             throw new BizException("租约不存在");
         }
+
         if (query.getLeaseId() != null && !query.getTenantId().equals(lease.getTenantId())) {
             throw new BizException("租约与租客不匹配");
         }
@@ -202,9 +203,7 @@ public class LeaseCheckoutService {
         if (tenant == null) {
             throw new BizException("租客不存在");
         }
-        Lease lease = dto.getLeaseId() != null
-            ? leaseRepo.getById(dto.getLeaseId())
-            : leaseRepo.getCurrentLeaseByTenantId(dto.getTenantId(), TenantStatusEnum.getValidStatus());
+        Lease lease = dto.getLeaseId() != null ? leaseRepo.getById(dto.getLeaseId()) : leaseRepo.getCurrentLeaseByTenantId(dto.getTenantId(), TenantStatusEnum.getValidStatus());
         if (lease == null) {
             throw new BizException("租约不存在");
         }
@@ -415,7 +414,6 @@ public class LeaseCheckoutService {
     /**
      * 完成退租（审批通过后调用）
      */
-    @Transactional(rollbackFor = Exception.class)
     public void completeCheckout(Long checkoutId, Long operatorId) {
         LeaseCheckout checkout = leaseCheckoutRepo.getById(checkoutId);
         if (checkout == null) {

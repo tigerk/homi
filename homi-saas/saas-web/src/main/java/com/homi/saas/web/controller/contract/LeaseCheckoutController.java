@@ -41,9 +41,7 @@ public class LeaseCheckoutController {
      * 保存退租单（新建/修改，退租并结账）
      */
     @PostMapping("/save")
-    public ResponseResult<Long> saveCheckout(
-        @RequestBody @Validated LeaseCheckoutDTO dto,
-        @AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<Long> saveCheckout(@RequestBody @Validated LeaseCheckoutDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
         dto.setCompanyId(loginUser.getCurCompanyId());
         dto.setOperatorId(loginUser.getId());
         Long checkoutId = leaseCheckoutService.saveCheckout(dto);
@@ -54,16 +52,8 @@ public class LeaseCheckoutController {
      * 提交退租审批（确定）
      */
     @PostMapping("/submit")
-    public ResponseResult<Void> submitCheckout(
-        @RequestBody LeaseCheckoutQueryDTO query,
-        @AuthenticationPrincipal UserLoginVO loginUser) {
-        leaseCheckoutService.submitCheckout(
-            query.getCheckoutId(),
-            OperatorDTO.builder()
-                .operatorId(loginUser.getId())
-                .operatorName(loginUser.getNickname())
-                .build()
-        );
+    public ResponseResult<Void> submitCheckout(@RequestBody LeaseCheckoutQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
+        leaseCheckoutService.submitCheckout(query.getCheckoutId(), OperatorDTO.builder().operatorId(loginUser.getId()).operatorName(loginUser.getNickname()).build());
         return ResponseResult.ok();
     }
 
