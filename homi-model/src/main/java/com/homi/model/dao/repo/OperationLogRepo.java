@@ -59,6 +59,9 @@ public class OperationLogRepo extends ServiceImpl<OperationLogMapper, OperationL
         if (CharSequenceUtil.isNotBlank(dto.getTitle())) {
             lambdaQueryWrapper.like(OperationLog::getTitle, dto.getTitle());
         }
+        if (CharSequenceUtil.isNotBlank(dto.getUsername())) {
+            lambdaQueryWrapper.like(OperationLog::getUsername, dto.getUsername());
+        }
         if (Objects.nonNull(dto.getStatus())) {
             lambdaQueryWrapper.eq(OperationLog::getStatus, dto.getStatus());
         }

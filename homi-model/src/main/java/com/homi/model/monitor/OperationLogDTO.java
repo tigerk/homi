@@ -30,4 +30,7 @@ public class OperationLogDTO extends PageDTO {
 
     @Schema(description = "操作时间")
     private List<OffsetDateTime> requestTime;
+
+    @Schema(description = "操作账号")
+    private String username;
 }
