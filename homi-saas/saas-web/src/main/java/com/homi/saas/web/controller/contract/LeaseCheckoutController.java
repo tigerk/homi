@@ -61,9 +61,7 @@ public class LeaseCheckoutController {
      * 取消退租单
      */
     @PostMapping("/cancel")
-    public ResponseResult<Void> cancelCheckout(
-        @RequestBody LeaseCheckoutQueryDTO query,
-        @AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<Void> cancelCheckout(@RequestBody LeaseCheckoutQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
         leaseCheckoutService.cancelCheckout(
             query.getCheckoutId(),
             OperatorDTO.builder()
