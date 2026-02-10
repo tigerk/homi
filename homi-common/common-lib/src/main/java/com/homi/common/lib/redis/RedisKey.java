@@ -21,7 +21,16 @@ public enum RedisKey {
     HOUSE_CODE_COUNTER("house:count:%s:%s", 86400, TimeUnit.SECONDS),
 
     // 登录用户公司
-    LOGIN_USER_COMPANY("login:user:company:%s", 30, TimeUnit.DAYS);
+    LOGIN_USER_COMPANY("login:user:company:%s", 30, TimeUnit.DAYS),
+
+    // 账户变更验证码（原手机号）
+    ACCOUNT_PHONE_OLD_CODE("account:phone:old:%s", 10, TimeUnit.MINUTES),
+
+    // 账户变更验证码（新手机号）
+    ACCOUNT_PHONE_NEW_CODE("account:phone:new:%s", 10, TimeUnit.MINUTES),
+
+    // 账户变更验证码（邮箱）
+    ACCOUNT_EMAIL_CODE("account:email:%s", 10, TimeUnit.MINUTES);
 
 
     private final String keyPattern;

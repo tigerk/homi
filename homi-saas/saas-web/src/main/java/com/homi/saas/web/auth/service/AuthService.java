@@ -347,6 +347,41 @@ public class AuthService {
         return true;
     }
 
+    public Boolean updateUserPasswordByUserId(Long userId, String oldPassword, String newPassword) {
+        User user = userRepo.getById(userId);
+        if (Objects.isNull(user)) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
+        }
+        String oldPasswordMd5 = cn.dev33.satoken.secure.SaSecureUtil.md5(oldPassword);
+        if (!Objects.equals(user.getPassword(), oldPasswordMd5)) {
+            throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "原密码错误");
+        }
+        user.setPassword(newPassword);
+        userService.resetPassword(user);
+        return true;
+    }
+
+    public Boolean updateUserPhone(Long userId, String phone) {
+        User user = userRepo.getById(userId);
+        if (Objects.isNull(user)) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
+        }
+        userService.validateUserUniqueness(userId, phone, user.getEmail(), phone);
+        user.setUsername(phone);
+        user.setPhone(phone);
+        return userRepo.updateById(user);
+    }
+
+    public Boolean updateUserEmail(Long userId, String email) {
+        User user = userRepo.getById(userId);
+        if (Objects.isNull(user)) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
+        }
+        userService.validateUserUniqueness(userId, user.getUsername(), email, user.getPhone());
+        user.setEmail(email);
+        return userRepo.updateById(user);
+    }
+
     /**
      * 更新用户个人信息
      * <p>

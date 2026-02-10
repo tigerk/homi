@@ -26,6 +26,16 @@ public class UserProfileUpdateDTO {
     @Size(max = 300, message = "简介长度不能超过300个字符")
     private String remark;
 
+    /**
+     * 邮箱
+     */
+    private String email;
+
+    /**
+     * 联系电话
+     */
+    private String phone;
+
     private Integer gender;
 
     /**

@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.captcha.generator.RandomGenerator;
+import cn.hutool.core.text.CharSequenceUtil;
 import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.annotation.LoginLog;
 import com.homi.common.lib.enums.OperationTypeEnum;
@@ -191,7 +192,7 @@ public class LoginController {
 
         String rateKey = RedisKey.SMS_RATE_LIMIT.format(phone);
         Boolean rateLimit = redisTemplate.hasKey(rateKey);
-        if (rateLimit) {
+        if (Boolean.TRUE.equals(rateLimit)) {
             throw new BizException("发送过于频繁，请稍后再试");
         }
         redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
@@ -253,5 +254,135 @@ public class LoginController {
     @Log(title = "更新个人信息", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Boolean> updateLoginUserProfile(@RequestBody UserProfileUpdateDTO userProfileUpdateDTO) {
         return ResponseResult.ok(authService.updateUserProfile(userProfileUpdateDTO));
+    }
+
+    @PostMapping("/saas/account/password/update")
+    @Log(title = "修改密码", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Boolean> updatePassword(@Valid @RequestBody com.homi.saas.web.auth.dto.account.AccountPasswordUpdateDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        return ResponseResult.ok(authService.updateUserPasswordByUserId(currentUser.getId(), dto.getOldPassword(), dto.getNewPassword()));
+    }
+
+    @PostMapping("/saas/account/phone/old/sms/send")
+    @Log(title = "发送原手机号验证码", operationType = OperationTypeEnum.OTHER)
+    public ResponseResult<Boolean> sendOldPhoneChangeSms() {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        String phone = currentUser.getPhone();
+        if (CharSequenceUtil.isBlank(phone)) {
+            throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "当前账号未绑定手机号");
+        }
+        String rateKey = RedisKey.SMS_RATE_LIMIT.format(phone);
+        Boolean rateLimit = redisTemplate.hasKey(rateKey);
+        if (Boolean.TRUE.equals(rateLimit)) {
+            throw new BizException("发送过于频繁，请稍后再试");
+        }
+        redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
+
+        RandomGenerator verifyCodeGenerator = new RandomGenerator("0123456789", 4);
+        String verifyCode = verifyCodeGenerator.generate();
+        redisTemplate.opsForValue().set(RedisKey.ACCOUNT_PHONE_OLD_CODE.format(phone), verifyCode, RedisKey.ACCOUNT_PHONE_OLD_CODE.getTimeout(), RedisKey.ACCOUNT_PHONE_OLD_CODE.getUnit());
+
+        log.info("发送原手机号验证码，手机号：{}，验证码：{}", phone, verifyCode);
+        // smsClient.send(phone, "", "SMS_256500000", verifyCode);
+
+        return ResponseResult.ok(Boolean.TRUE);
+    }
+
+    @PostMapping("/saas/account/phone/new/sms/send")
+    @Log(title = "发送新手机号验证码", operationType = OperationTypeEnum.OTHER)
+    public ResponseResult<Boolean> sendNewPhoneChangeSms(@RequestBody com.homi.saas.web.auth.dto.account.AccountPhoneUpdateDTO dto) {
+        String phone = dto.getPhone();
+        if (CharSequenceUtil.isBlank(phone)) {
+            throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "手机号不能为空");
+        }
+        String rateKey = RedisKey.SMS_RATE_LIMIT.format(phone);
+        Boolean rateLimit = redisTemplate.hasKey(rateKey);
+        if (Boolean.TRUE.equals(rateLimit)) {
+            throw new BizException("发送过于频繁，请稍后再试");
+        }
+        redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
+
+        RandomGenerator verifyCodeGenerator = new RandomGenerator("0123456789", 4);
+        String verifyCode = verifyCodeGenerator.generate();
+        redisTemplate.opsForValue().set(RedisKey.ACCOUNT_PHONE_NEW_CODE.format(phone), verifyCode, RedisKey.ACCOUNT_PHONE_NEW_CODE.getTimeout(), RedisKey.ACCOUNT_PHONE_NEW_CODE.getUnit());
+
+        log.info("发送新手机号验证码，手机号：{}，验证码：{}", phone, verifyCode);
+        // smsClient.send(phone, "", "SMS_256500000", verifyCode);
+
+        return ResponseResult.ok(Boolean.TRUE);
+    }
+
+    @PostMapping("/saas/account/email/code/send")
+    @Log(title = "发送更换邮箱验证码", operationType = OperationTypeEnum.OTHER)
+    public ResponseResult<Boolean> sendEmailChangeCode(@RequestBody com.homi.saas.web.auth.dto.account.AccountEmailUpdateDTO dto) {
+        String email = dto.getEmail();
+        if (CharSequenceUtil.isBlank(email)) {
+            throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "邮箱不能为空");
+        }
+        String rateKey = RedisKey.SMS_RATE_LIMIT.format(email);
+        Boolean rateLimit = redisTemplate.hasKey(rateKey);
+        if (Boolean.TRUE.equals(rateLimit)) {
+            throw new BizException("发送过于频繁，请稍后再试");
+        }
+        redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
+
+        RandomGenerator verifyCodeGenerator = new RandomGenerator("0123456789", 4);
+        String verifyCode = verifyCodeGenerator.generate();
+        redisTemplate.opsForValue().set(RedisKey.ACCOUNT_EMAIL_CODE.format(email), verifyCode, RedisKey.ACCOUNT_EMAIL_CODE.getTimeout(), RedisKey.ACCOUNT_EMAIL_CODE.getUnit());
+
+        log.info("发送更换邮箱验证码，邮箱：{}，验证码：{}", email, verifyCode);
+        // TODO: 邮件发送
+
+        return ResponseResult.ok(Boolean.TRUE);
+    }
+
+    @PostMapping("/saas/account/phone/update")
+    @Log(title = "更换手机号", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Boolean> updatePhone(@Valid @RequestBody com.homi.saas.web.auth.dto.account.AccountPhoneChangeDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        String oldPhone = currentUser.getPhone();
+        if (CharSequenceUtil.isBlank(oldPhone)) {
+            throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "当前账号未绑定手机号");
+        }
+        String oldVerifyCode = redisTemplate.opsForValue().get(RedisKey.ACCOUNT_PHONE_OLD_CODE.format(oldPhone));
+        if (oldVerifyCode == null) {
+            throw new BizException("请先发送原手机号验证码");
+        }
+        if (!dto.getOldVerifyCode().equals(oldVerifyCode)) {
+            throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
+        }
+        String newVerifyCode = redisTemplate.opsForValue().get(RedisKey.ACCOUNT_PHONE_NEW_CODE.format(dto.getNewPhone()));
+        if (newVerifyCode == null) {
+            throw new BizException("请先发送新手机号验证码");
+        }
+        if (!dto.getNewVerifyCode().equals(newVerifyCode)) {
+            throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
+        }
+        boolean updated = authService.updateUserPhone(currentUser.getId(), dto.getNewPhone());
+        if (updated) {
+            currentUser.setUsername(dto.getNewPhone());
+            currentUser.setPhone(dto.getNewPhone());
+            LoginManager.updateLoginUserInfo(currentUser);
+        }
+        return ResponseResult.ok(updated);
+    }
+
+    @PostMapping("/saas/account/email/update")
+    @Log(title = "更换邮箱", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Boolean> updateEmail(@Valid @RequestBody com.homi.saas.web.auth.dto.account.AccountEmailUpdateDTO dto) {
+        String verifyCode = redisTemplate.opsForValue().get(RedisKey.ACCOUNT_EMAIL_CODE.format(dto.getEmail()));
+        if (verifyCode == null) {
+            throw new BizException("请先发送验证码");
+        }
+        if (!dto.getVerifyCode().equals(verifyCode)) {
+            throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
+        }
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        boolean updated = authService.updateUserEmail(currentUser.getId(), dto.getEmail());
+        if (updated) {
+            currentUser.setEmail(dto.getEmail());
+            LoginManager.updateLoginUserInfo(currentUser);
+        }
+        return ResponseResult.ok(updated);
     }
 }
