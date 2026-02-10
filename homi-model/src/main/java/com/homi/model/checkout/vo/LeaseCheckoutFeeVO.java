@@ -1,5 +1,6 @@
 package com.homi.model.checkout.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -55,11 +56,13 @@ public class LeaseCheckoutFeeVO {
     /**
      * 费用周期开始
      */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date feePeriodStart;
 
     /**
      * 费用周期结束
      */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date feePeriodEnd;
 
     /**

@@ -1,5 +1,6 @@
 package com.homi.model.checkout.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -47,11 +48,13 @@ public class LeaseCheckoutVO {
     /**
      * 合同开始日
      */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date leaseStart;
 
     /**
      * 合同到期日
      */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private java.util.Date leaseEnd;
 
     /**
@@ -99,6 +102,7 @@ public class LeaseCheckoutVO {
     /**
      * 实际离房日期
      */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date actualCheckoutDate;
 
     /**
@@ -126,6 +130,7 @@ public class LeaseCheckoutVO {
     /**
      * 预计收/付款时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date expectedPaymentDate;
 
     /**
@@ -227,6 +232,7 @@ public class LeaseCheckoutVO {
     /**
      * 结算完成时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date settlementTime;
 
     /**
@@ -242,5 +248,6 @@ public class LeaseCheckoutVO {
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 }
