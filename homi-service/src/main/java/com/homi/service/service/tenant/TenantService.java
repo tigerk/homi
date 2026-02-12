@@ -61,21 +61,22 @@ public class TenantService {
     private final TenantPersonalRepo tenantPersonalRepo;
     private final TenantCompanyRepo tenantCompanyRepo;
     private final FileAttachRepo fileAttachRepo;
-    private final LeaseOtherFeeRepo tenantOtherFeeRepo;
+    private final LeaseOtherFeeRepo leaseOtherFeeRepo;
     private final BookingRepo bookingRepo;
 
     private final RoomService roomService;
-    private final LeaseBillGenService tenantBillGenService;
+    private final LeaseBillGenService leaseBillGenService;
     private final LeaseContractService leaseContractService;
     private final UserService userService;
     private final DeptService deptService;
-    private final LeaseBillService tenantBillService;
+    private final LeaseBillService leaseBillService;
     private final DictDataService dictDataService;
     private final TenantMateService tenantMateService;
     private final CompanyCodeService companyCodeService;
     private final DepositCarryOverService depositCarryOverService;
 
     private final ApprovalTemplate approvalTemplate;
+    private final LeaseRoomRepo leaseRoomRepo;
 
     /**
      * 统一创建租客入口（编排逻辑）
@@ -198,7 +199,7 @@ public class TenantService {
 
         tenantMateService.saveTenantMateList(tenantId, createDTO.getTenantMateList());
 
-        tenantBillGenService.addLeaseBill(lease.getId(), tenantId, leaseDTO, createDTO.getOtherFees());
+        leaseBillGenService.addLeaseBill(lease.getId(), tenantId, leaseDTO, createDTO.getOtherFees());
 
         if (leaseDTO.getParentLeaseId() != null) {
             depositCarryOverService.carryOverDeposit(
@@ -256,12 +257,14 @@ public class TenantService {
         lease.setCreateTime(DateUtil.date());
         leaseRepo.save(lease);
 
+        leaseRoomRepo.saveLeaseRoomBatch(lease.getId(), leaseDTO.getRoomIds());
+
         if (otherFees != null) {
             otherFees.forEach(otherFeeDTO -> {
                 LeaseOtherFee tenantOtherFee = BeanCopyUtils.copyBean(otherFeeDTO, LeaseOtherFee.class);
                 assert tenantOtherFee != null;
                 tenantOtherFee.setLeaseId(lease.getId());
-                tenantOtherFeeRepo.save(tenantOtherFee);
+                leaseOtherFeeRepo.save(tenantOtherFee);
             });
         }
 
@@ -429,15 +432,15 @@ public class TenantService {
 
         getTenantTypeInfo(leaseDetailVO);
 
-        leaseDetailVO.setOtherFees(tenantOtherFeeRepo.getLeaseOtherFeeByLeaseId(leaseDetailVO.getLeaseId()));
+        leaseDetailVO.setOtherFees(leaseOtherFeeRepo.getLeaseOtherFeeByLeaseId(leaseDetailVO.getLeaseId()));
 
         leaseDetailVO.setLeaseContract(leaseContractService.getContractByLeaseId(leaseDetailVO.getLeaseId()));
 
         List<TenantMateVO> tenantMateListByTenantId = tenantMateService.getTenantMateListByTenantId(tenant.getId());
         leaseDetailVO.setTenantMateList(tenantMateListByTenantId);
 
-        leaseDetailVO.setLeaseBillList(tenantBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.TRUE));
-        leaseDetailVO.setLeaseInvalidBillList(tenantBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.FALSE));
+        leaseDetailVO.setLeaseBillList(leaseBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.TRUE));
+        leaseDetailVO.setLeaseInvalidBillList(leaseBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.FALSE));
 
         return leaseDetailVO;
     }
@@ -838,6 +841,9 @@ public class TenantService {
         lease.setUpdateTime(DateUtil.date());
 
         leaseRepo.updateById(lease);
+
+        leaseRoomRepo.saveLeaseRoomBatch(lease.getId(), leaseDTO.getRoomIds());
+
         return lease;
     }
 
@@ -876,14 +882,14 @@ public class TenantService {
         }
 
         // 删除旧的费用记录
-        tenantOtherFeeRepo.lambdaUpdate().eq(LeaseOtherFee::getLeaseId, leaseId).remove();
+        leaseOtherFeeRepo.lambdaUpdate().eq(LeaseOtherFee::getLeaseId, leaseId).remove();
 
         // 保存新的费用记录
         newFees.forEach(feeDTO -> {
             LeaseOtherFee tenantOtherFee = BeanCopyUtils.copyBean(feeDTO, LeaseOtherFee.class);
             assert tenantOtherFee != null;
             tenantOtherFee.setLeaseId(leaseId);
-            tenantOtherFeeRepo.save(tenantOtherFee);
+            leaseOtherFeeRepo.save(tenantOtherFee);
         });
 
         return true;
@@ -919,7 +925,7 @@ public class TenantService {
      */
     private void regenerateLeaseBill(Long leaseId, TenantCreateDTO createDTO) {
         // 1. 无效化租客未支付的账单
-        tenantBillGenService.invalidUnpaidLeaseBill(leaseId);
+        leaseBillGenService.invalidUnpaidLeaseBill(leaseId);
 
         // 2. 重新生成账单
         LeaseDTO leaseDTO = resolveLeaseDTO(createDTO);
@@ -928,6 +934,6 @@ public class TenantService {
             throw new IllegalArgumentException("租约不存在");
         }
         Long tenantId = lease.getTenantId();
-        tenantBillGenService.addLeaseBill(leaseId, tenantId, leaseDTO, createDTO.getOtherFees());
+        leaseBillGenService.addLeaseBill(leaseId, tenantId, leaseDTO, createDTO.getOtherFees());
     }
 }
