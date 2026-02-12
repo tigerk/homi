@@ -278,15 +278,15 @@ public class LeaseBillGenService {
     /**
      * 计算一次性支付的单个费用金额(不乘以月数)
      *
-     * @param fee          费用配置
-     * @param rentalAmount 租金总额(用于比例计算)
+     * @param fee       费用配置
+     * @param rentPrice 月租金(用于比例计算)
      * @return 费用金额
      */
-    private BigDecimal calculateSingleFeeAmountForOneTime(OtherFeeDTO fee, BigDecimal rentalAmount) {
+    private BigDecimal calculateSingleFeeAmountForOneTime(OtherFeeDTO fee, BigDecimal rentPrice) {
         PriceMethodEnum priceMethodEnum = EnumUtil.getBy(PriceMethodEnum::getCode, fee.getPriceMethod());
         return switch (priceMethodEnum) {
             case FIXED -> fee.getPriceInput(); // 固定金额,不乘月数
-            case RATIO -> calculateRatioFee(rentalAmount, fee.getPriceInput());
+            case RATIO -> calculateRatioFee(rentPrice, fee.getPriceInput());
         };
     }
 
@@ -498,8 +498,7 @@ public class LeaseBillGenService {
 
         if (isOneTimePayment) {
             // 一次性全额支付: 直接使用固定金额或租金总额的比例,不乘以月数
-            BigDecimal totalRentalAmount = context.lease.getRentPrice().multiply(BigDecimal.valueOf(actualMonths));
-            feeAmount = calculateSingleFeeAmountForOneTime(context.fee, totalRentalAmount).setScale(2, RoundingMode.HALF_UP);
+            feeAmount = calculateSingleFeeAmountForOneTime(context.fee, context.lease.getRentPrice()).setScale(2, RoundingMode.HALF_UP);
         } else {
             // 周期性支付: 按月数计算
             BigDecimal rentalAmount = context.lease.getRentPrice()

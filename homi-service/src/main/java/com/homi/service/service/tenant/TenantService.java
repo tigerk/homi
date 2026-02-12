@@ -187,7 +187,7 @@ public class TenantService {
                 addedTenant = addTenantPersonal(createDTO.getTenantPersonal());
             } else {
                 createDTO.getTenantCompany().setCreateBy(createDTO.getCreateBy());
-                addedTenant = addTenantEnterprise(createDTO.getTenantCompany());
+                addedTenant = addTenantCompany(createDTO.getTenantCompany());
             }
 
             Tenant tenant = saveTenantRecord(addedTenant, leaseDTO, createDTO.getCreateBy());
@@ -277,7 +277,7 @@ public class TenantService {
      * @param tenantCompany 参数说明
      * @return java.lang.Long
      */
-    private Triple<Long, String, String> addTenantEnterprise(TenantCompanyDTO tenantCompany) {
+    private Triple<Long, String, String> addTenantCompany(TenantCompanyDTO tenantCompany) {
         TenantCompany tenantCompanyEntity = new TenantCompany();
         BeanUtils.copyProperties(tenantCompany, tenantCompanyEntity);
 
@@ -462,7 +462,7 @@ public class TenantService {
 
         if (Objects.equals(leaseDetail.getTenantType(), TenantTypeEnum.PERSONAL.getCode())) {  // 个人租客
             // 获取租客图片数据
-            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(leaseDetail.getTenantId(), ListUtil.of(
+            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(leaseDetail.getTenantPersonal().getId(), ListUtil.of(
                 FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType(),
                 FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType(),
                 FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(),
@@ -488,7 +488,7 @@ public class TenantService {
                 }
             });
         } else {
-            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(leaseDetail.getTenantId(), ListUtil.of(
+            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(leaseDetail.getTenantCompany().getId(), ListUtil.of(
                 FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType(),
                 FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType()
             ));
@@ -676,7 +676,7 @@ public class TenantService {
             return addTenantPersonal(createDTO.getTenantPersonal());
         } else {
             createDTO.getTenantCompany().setCreateBy(createDTO.getCreateBy());
-            return addTenantEnterprise(createDTO.getTenantCompany());
+            return addTenantCompany(createDTO.getTenantCompany());
         }
     }
 
