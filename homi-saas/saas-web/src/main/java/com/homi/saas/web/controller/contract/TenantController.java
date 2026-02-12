@@ -47,7 +47,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @RestController
-@RequestMapping("/saas/contract/lease")
+@RequestMapping("/saas/contract/tenant")
 public class TenantController {
     private final TenantService tenantService;
     private final LeaseBillService leaseBillService;
