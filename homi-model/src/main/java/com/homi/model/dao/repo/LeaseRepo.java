@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.common.lib.vo.PageVO;
 import com.homi.common.lib.enums.tenant.TenantStatusEnum;
+import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.mapper.LeaseMapper;
 import com.homi.model.tenant.dto.TenantQueryDTO;
@@ -38,10 +38,7 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
         }
 
         if (query.getRoomId() != null) {
-            wrapper.apply(
-                "JSON_CONTAINS(room_ids,JSON_ARRAY('{0}'))",
-                query.getRoomId()
-            );
+            wrapper.apply("JSON_CONTAINS(room_ids, {0})", String.valueOf(query.getRoomId()));
         }
 
         wrapper.orderByDesc(Lease::getId);
@@ -148,13 +145,23 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
             boolean first = true;
             for (Long roomId : roomIds) {
                 if (first) {
-                    query.apply("JSON_CONTAINS(room_ids, JSON_ARRAY({0}))", roomId);
+                    query.apply("JSON_CONTAINS(room_ids, {0})", String.valueOf(roomId));
                     first = false;
                 } else {
-                    query.or().apply("JSON_CONTAINS(room_ids, JSON_ARRAY({0}))", roomId);
+                    query.or().apply("JSON_CONTAINS(room_ids, {0})", String.valueOf(roomId));
                 }
             }
         });
         return count(wrapper) > 0;
+    }
+
+    public Lease getCurrentLeasesByRoomId(Long roomId, List<Integer> validStatus) {
+        LambdaQueryWrapper<Lease> wrapper = new LambdaQueryWrapper<>();
+        wrapper.apply("JSON_CONTAINS(room_ids, {0})", String.valueOf(roomId));
+        wrapper.in(Lease::getStatus, validStatus);
+        wrapper.orderByDesc(Lease::getId);
+        wrapper.last("LIMIT 1");
+
+        return getOne(wrapper);
     }
 }

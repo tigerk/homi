@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.enums.tenant.TenantStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.JsonUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -260,12 +261,8 @@ public class RoomService {
      */
     public void getRoomLeaseInfo(RoomListVO room) {
         if (Objects.equals(room.getRoomStatus(), RoomStatusEnum.LEASED.getCode())) {
-            // 查询当前租客的租约信息
-            Lease lease = leaseRepo.lambdaQuery()
-                .apply("JSON_CONTAINS(room_ids,JSON_ARRAY('{0}'))", room.getRoomId())
-                .in(Lease::getStatus, com.homi.common.lib.enums.tenant.TenantStatusEnum.getValidStatus())
-                .last("LIMIT 1")
-                .one();
+            // 查询
+            Lease lease = leaseRepo.getCurrentLeasesByRoomId(room.getRoomId(), TenantStatusEnum.getValidStatus());
             if (lease != null) {
                 Tenant tenant = tenantRepo.getById(lease.getTenantId());
                 LeaseInfoVO build = LeaseInfoVO.builder()
@@ -361,7 +358,7 @@ public class RoomService {
      */
     private String buildRoomAddress(Room room) {
         House house = houseRepo.getById(room.getHouseId());
-        
+
         return String.format("%s-%s", house.getHouseName(), room.getRoomNumber());
     }
 }
