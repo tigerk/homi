@@ -276,7 +276,22 @@ public class LeaseBillGenService {
     }
 
     /**
-     * 计算固定金额费用：固定金额 × 月数
+     * 计算一次性支付的单个费用金额(不乘以月数)
+     *
+     * @param fee          费用配置
+     * @param rentalAmount 租金总额(用于比例计算)
+     * @return 费用金额
+     */
+    private BigDecimal calculateSingleFeeAmountForOneTime(OtherFeeDTO fee, BigDecimal rentalAmount) {
+        PriceMethodEnum priceMethodEnum = EnumUtil.getBy(PriceMethodEnum::getCode, fee.getPriceMethod());
+        return switch (priceMethodEnum) {
+            case FIXED -> fee.getPriceInput(); // 固定金额,不乘月数
+            case RATIO -> calculateRatioFee(rentalAmount, fee.getPriceInput());
+        };
+    }
+
+    /**
+     * 计算固定金额费用: 固定金额 × 月数
      *
      * @param priceInput   单价
      * @param actualMonths 实际月数
@@ -375,7 +390,6 @@ public class LeaseBillGenService {
                 LeaseBill bill = createSingleOtherFeeBill(billContext);
                 billList.add(bill);
                 feeWithBillsList.add(new FeeWithBills(fee, List.of(bill)));
-
             } else {
                 // 按周期付款（月付、季付等）
                 List<LeaseBill> periodicBills = createPeriodicOtherFeeBills(
@@ -477,10 +491,22 @@ public class LeaseBillGenService {
         int actualMonths = calculateMonths(startDate, endDate);
 
         // 计算费用金额
-        BigDecimal rentalAmount = context.lease.getRentPrice()
-            .multiply(BigDecimal.valueOf(actualMonths));
-        BigDecimal feeAmount = calculateSingleFeeAmount(context.fee, rentalAmount, actualMonths)
-            .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal feeAmount;
+
+        // 判断是否为一次性全额支付
+        boolean isOneTimePayment = PaymentMethodEnum.ALL.getCode().equals(context.fee.getPaymentMethod());
+
+        if (isOneTimePayment) {
+            // 一次性全额支付: 直接使用固定金额或租金总额的比例,不乘以月数
+            BigDecimal totalRentalAmount = context.lease.getRentPrice().multiply(BigDecimal.valueOf(actualMonths));
+            feeAmount = calculateSingleFeeAmountForOneTime(context.fee, totalRentalAmount).setScale(2, RoundingMode.HALF_UP);
+        } else {
+            // 周期性支付: 按月数计算
+            BigDecimal rentalAmount = context.lease.getRentPrice()
+                .multiply(BigDecimal.valueOf(actualMonths));
+            feeAmount = calculateSingleFeeAmount(context.fee, rentalAmount, actualMonths)
+                .setScale(2, RoundingMode.HALF_UP);
+        }
 
         // 创建账单配置
         BillConfig config = BillConfig.builder()

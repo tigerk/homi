@@ -448,59 +448,59 @@ public class TenantService {
      * {@code @author} tk
      * {@code @date} 2025/12/14 04:00
      *
-     * @param tenantDetail 参数说明
+     * @param leaseDetail 参数说明
      */
-    public void getTenantTypeInfo(LeaseDetailVO tenantDetail) {
-        if (Objects.equals(tenantDetail.getTenantType(), TenantTypeEnum.PERSONAL.getCode())) {
-            TenantPersonalVO tenantPersonalVO = tenantPersonalRepo.getTenantById(tenantDetail.getTenantTypeId());
+    public void getTenantTypeInfo(LeaseDetailVO leaseDetail) {
+        if (Objects.equals(leaseDetail.getTenantType(), TenantTypeEnum.PERSONAL.getCode())) {
+            TenantPersonalVO tenantPersonalVO = tenantPersonalRepo.getTenantById(leaseDetail.getTenantTypeId());
 
-            tenantDetail.setTenantPersonal(tenantPersonalVO);
+            leaseDetail.setTenantPersonal(tenantPersonalVO);
         } else {
-            TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(tenantDetail.getTenantTypeId());
-            tenantDetail.setTenantCompany(tenantCompanyVO);
+            TenantCompanyVO tenantCompanyVO = tenantCompanyRepo.getTenantCompanyById(leaseDetail.getTenantTypeId());
+            leaseDetail.setTenantCompany(tenantCompanyVO);
         }
 
-        if (Objects.equals(tenantDetail.getTenantType(), TenantTypeEnum.PERSONAL.getCode())) {  // 个人租客
+        if (Objects.equals(leaseDetail.getTenantType(), TenantTypeEnum.PERSONAL.getCode())) {  // 个人租客
             // 获取租客图片数据
-            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(tenantDetail.getTenantId(), ListUtil.of(
+            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(leaseDetail.getTenantId(), ListUtil.of(
                 FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType(),
                 FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType(),
                 FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(),
                 FileAttachBizTypeEnum.TENANT_ID_CARD_IN_HAND.getBizType()
             ));
 
-            tenantDetail.getTenantPersonal().setOtherImageList(new ArrayList<>());
-            tenantDetail.getTenantPersonal().setIdCardBackList(new ArrayList<>());
-            tenantDetail.getTenantPersonal().setIdCardFrontList(new ArrayList<>());
-            tenantDetail.getTenantPersonal().setIdCardInHandList(new ArrayList<>());
+            leaseDetail.getTenantPersonal().setOtherImageList(new ArrayList<>());
+            leaseDetail.getTenantPersonal().setIdCardBackList(new ArrayList<>());
+            leaseDetail.getTenantPersonal().setIdCardFrontList(new ArrayList<>());
+            leaseDetail.getTenantPersonal().setIdCardInHandList(new ArrayList<>());
 
 
             // 分类并保存到 TenantPersonalVO
             fileAttachList.forEach(fileAttach -> {
                 if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType())) {
-                    tenantDetail.getTenantPersonal().getOtherImageList().add(fileAttach.getFileUrl());
+                    leaseDetail.getTenantPersonal().getOtherImageList().add(fileAttach.getFileUrl());
                 } else if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType())) {
-                    tenantDetail.getTenantPersonal().getIdCardBackList().add(fileAttach.getFileUrl());
+                    leaseDetail.getTenantPersonal().getIdCardBackList().add(fileAttach.getFileUrl());
                 } else if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType())) {
-                    tenantDetail.getTenantPersonal().getIdCardFrontList().add(fileAttach.getFileUrl());
+                    leaseDetail.getTenantPersonal().getIdCardFrontList().add(fileAttach.getFileUrl());
                 } else if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.TENANT_ID_CARD_IN_HAND.getBizType())) {
-                    tenantDetail.getTenantPersonal().getIdCardInHandList().add(fileAttach.getFileUrl());
+                    leaseDetail.getTenantPersonal().getIdCardInHandList().add(fileAttach.getFileUrl());
                 }
             });
         } else {
-            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(tenantDetail.getTenantId(), ListUtil.of(
+            List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(leaseDetail.getTenantId(), ListUtil.of(
                 FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType(),
                 FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType()
             ));
 
-            tenantDetail.getTenantCompany().setOtherImageList(new ArrayList<>());
-            tenantDetail.getTenantCompany().setBusinessLicenseList(new ArrayList<>());
+            leaseDetail.getTenantCompany().setOtherImageList(new ArrayList<>());
+            leaseDetail.getTenantCompany().setBusinessLicenseList(new ArrayList<>());
 
             fileAttachList.forEach(fileAttach -> {
                 if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType())) {
-                    tenantDetail.getTenantCompany().getBusinessLicenseList().add(fileAttach.getFileUrl());
+                    leaseDetail.getTenantCompany().getBusinessLicenseList().add(fileAttach.getFileUrl());
                 } else if (Objects.equals(fileAttach.getBizType(), FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType())) {
-                    tenantDetail.getTenantCompany().getOtherImageList().add(fileAttach.getFileUrl());
+                    leaseDetail.getTenantCompany().getOtherImageList().add(fileAttach.getFileUrl());
                 }
             });
         }
@@ -613,6 +613,7 @@ public class TenantService {
         handleTenantIdentityUpdate(originalLease.getTenantId(), tenantTypeInfo, leaseDTO.getTenantType());
 
         Lease updatedLease = handleLeaseInfoUpdate(leaseId, leaseDTO);
+        log.info("更新后的租约信息: {}", updatedLease);
 
         tenantMateService.handleTenantMateUpdate(originalLease.getTenantId(), createDTO.getTenantMateList(), originalLease.getTenantMateList());
 
@@ -913,7 +914,7 @@ public class TenantService {
      * {@code @author} tk
      * {@code @date} 2026/1/21 15:35
      *
-     * @param leaseId  参数说明
+     * @param leaseId   参数说明
      * @param createDTO 参数说明
      */
     private void regenerateLeaseBill(Long leaseId, TenantCreateDTO createDTO) {
