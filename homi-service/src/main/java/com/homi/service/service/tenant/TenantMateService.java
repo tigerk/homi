@@ -41,6 +41,10 @@ public class TenantMateService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void saveTenantMateList(Long tenantId, List<TenantMateDTO> tenantMateList) {
+        if (CollUtil.isEmpty(tenantMateList)) {
+            return;
+        }
+
         tenantMateList.forEach(tenantMateDTO -> {
             TenantMate tenantMate = BeanCopyUtils.copyBean(tenantMateDTO, TenantMate.class);
             assert tenantMate != null;

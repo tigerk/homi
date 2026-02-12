@@ -334,9 +334,7 @@ public class TenantService {
 
     private LeaseDTO resolveLeaseDTO(TenantCreateDTO createDTO) {
         LeaseDTO leaseDTO = createDTO.getLease();
-        if (leaseDTO == null && createDTO.getTenant() != null) {
-            leaseDTO = BeanCopyUtils.copyBean(createDTO.getTenant(), LeaseDTO.class);
-        }
+
         if (leaseDTO == null) {
             throw new IllegalArgumentException("租约信息不能为空");
         }

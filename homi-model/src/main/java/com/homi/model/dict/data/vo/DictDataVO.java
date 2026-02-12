@@ -1,14 +1,14 @@
 package com.homi.model.dict.data.vo;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * @author tigerk
  * @version 1.0
- * @date 2024-09-03 10:36
- * @description: 字典数据
  */
 @Data
+@Schema(description = "字典数据")
 public class DictDataVO {
     private String id;
 

@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * 应用于 homi-boot
  *
- * @author 金华云 E-mail:jinhuayun001@ke.com
+ * @author tigerk
  * @version v1.0
  * {@code @date} 2025/4/26
  */
@@ -47,10 +47,10 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @RestController
-@RequestMapping("/saas/contract/tenant")
+@RequestMapping("/saas/contract/lease")
 public class TenantController {
     private final TenantService tenantService;
-    private final LeaseBillService tenantBillService;
+    private final LeaseBillService leaseBillService;
     private final LeaseContractService leaseContractService;
 
     @PostMapping("/create")
@@ -108,7 +108,7 @@ public class TenantController {
     @PostMapping("/bill/list")
     @Operation(summary = "根据租客ID查询租客账单列表")
     public ResponseResult<List<LeaseBillListVO>> getBillList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(tenantBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.TRUE));
+        return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.TRUE));
     }
 
     /**
@@ -121,7 +121,7 @@ public class TenantController {
     @PostMapping("/bill/invalid/list")
     @Operation(summary = "根据租客ID查询租客无效账单列表")
     public ResponseResult<List<LeaseBillListVO>> getBillInvalidList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(tenantBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.FALSE));
+        return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.FALSE));
     }
 
     @PostMapping(value = "/contract/download")

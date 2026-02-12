@@ -2,6 +2,7 @@ package com.homi.service.service.tenant;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.util.EnumUtil;
 import com.homi.common.lib.enums.payment.PayStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
@@ -157,13 +158,10 @@ public class LeaseBillGenService {
      *
      * @param bill            账单
      * @param rentRelatedFees 随房租付的费用列表
-     * @param tenant          租客信息
+     * @param lease           租约信息
      * @return 费用明细列表
      */
-    private List<LeaseBillOtherFee> createOtherFeeDetails(
-        LeaseBill bill,
-        List<OtherFeeDTO> rentRelatedFees,
-        LeaseDTO lease) {
+    private List<LeaseBillOtherFee> createOtherFeeDetails(LeaseBill bill, List<OtherFeeDTO> rentRelatedFees, LeaseDTO lease) {
 
         List<LeaseBillOtherFee> details = new ArrayList<>();
 
@@ -269,10 +267,9 @@ public class LeaseBillGenService {
      * @param actualMonths 实际月数
      * @return 费用金额
      */
-    private BigDecimal calculateSingleFeeAmount(OtherFeeDTO fee,
-                                                BigDecimal rentalAmount,
-                                                int actualMonths) {
-        return switch (PriceMethodEnum.values()[fee.getPriceMethod()]) {
+    private BigDecimal calculateSingleFeeAmount(OtherFeeDTO fee, BigDecimal rentalAmount, int actualMonths) {
+        PriceMethodEnum priceMethodEnum = EnumUtil.getBy(PriceMethodEnum::getCode, fee.getPriceMethod());
+        return switch (priceMethodEnum) {
             case FIXED -> calculateFixedFee(fee.getPriceInput(), actualMonths);
             case RATIO -> calculateRatioFee(rentalAmount, fee.getPriceInput());
         };
@@ -431,7 +428,7 @@ public class LeaseBillGenService {
      * @return 账单列表
      */
     private List<LeaseBill> createPeriodicOtherFeeBills(Long leaseId, Long tenantId, LeaseDTO lease,
-                                                         OtherFeeDTO fee, int baseSortOrder) {
+                                                        OtherFeeDTO fee, int baseSortOrder) {
         List<LeaseBill> billList = new ArrayList<>();
 
         // 根据付款方式确定周期月数
@@ -662,7 +659,7 @@ public class LeaseBillGenService {
     /**
      * 计算押金应收日期
      *
-     * @param tenant 租客信息
+     * @param lease 租约信息
      * @return 应收日期
      */
     private Date calculateDepositDueDate(LeaseDTO lease) {

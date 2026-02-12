@@ -36,9 +36,6 @@ public class TenantCreateDTO {
     @Schema(description = "租约信息")
     private LeaseDTO lease;
 
-    @Deprecated
-    private TenantDTO tenant;
-
     private List<OtherFeeDTO> otherFees;
 
     @Schema(description = "创建人ID", hidden = true)

@@ -24,6 +24,4 @@ public enum PriceMethodEnum {
     private final Integer code;
 
     private final String name;
-
-
 }

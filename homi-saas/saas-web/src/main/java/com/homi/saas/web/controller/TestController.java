@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 应用于 homi-boot
  *
- * @author 金华云 E-mail:jinhuayun001@ke.com
+ * @author tigerk
  * @version v1.0
  * {@code @date} 2025/4/26
  */
