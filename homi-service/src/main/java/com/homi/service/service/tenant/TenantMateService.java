@@ -155,7 +155,7 @@ public class TenantMateService {
                 // 更新
                 TenantMate existingMate = tenantMateRepo.getById(mateDTO.getId());
                 if (existingMate != null) {
-                    BeanUtils.copyProperties(mateDTO, existingMate, "id", "tenantId", "createTime");
+                    BeanUtils.copyProperties(mateDTO, existingMate, "id", "leaseId", "createTime");
                     existingMate.setUpdateTime(DateUtil.date());
                     tenantMateRepo.updateById(existingMate);
 

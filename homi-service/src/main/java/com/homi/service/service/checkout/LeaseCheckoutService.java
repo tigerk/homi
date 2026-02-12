@@ -262,7 +262,7 @@ public class LeaseCheckoutService {
         // 保存退租单和费用明细
         saveCheckoutAndFees(checkout, isNew, dto.getFeeList(), dto.getOperatorId());
 
-        log.info("退租单保存成功: checkoutId={}, tenantId={}, type={}",
+        log.info("退租单保存成功: checkoutId={}, leaseId={}, type={}",
             checkout.getId(), dto.getTenantId(),
             CheckoutTypeEnum.getNameByCode(dto.getCheckoutType()));
         return checkout.getId();
@@ -439,7 +439,7 @@ public class LeaseCheckoutService {
             roomRepo.updateRoomStatusByRoomIds(roomIds, RoomStatusEnum.AVAILABLE.getCode());
         }
 
-        log.info("退租完成: checkoutId={}, tenantId={}", checkoutId, checkout.getTenantId());
+        log.info("退租完成: checkoutId={}, leaseId={}", checkoutId, checkout.getTenantId());
     }
 
     /**

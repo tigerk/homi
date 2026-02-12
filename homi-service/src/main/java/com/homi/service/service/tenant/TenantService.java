@@ -581,7 +581,7 @@ public class TenantService {
         // 5. 更新预定单状态
         booking.setBookingStatus(BookingStatusEnum.CONTRACTED.getCode()); // 已转合同
         if (lease != null) {
-            booking.setTenantId(lease.getTenantId()); // 建立双向关联
+            booking.setLeaseId(lease.getId()); // 建立双向关联
         }
         bookingRepo.updateById(booking);
 

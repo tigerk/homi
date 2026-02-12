@@ -78,8 +78,8 @@ public class BookingListVO implements Serializable {
     @Schema(description = "预定状态名称")
     private String bookingStatusName;
 
-    @Schema(description = "转合同后关联的租客表 ID")
-    private Long tenantId;
+    @Schema(description = "转合同后关联的租约ID")
+    private Long leaseId;
 
     @Schema(description = "备注")
     private String remark;

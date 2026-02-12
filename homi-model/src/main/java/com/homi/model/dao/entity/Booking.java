@@ -89,9 +89,9 @@ public class Booking implements Serializable {
     @TableField("booking_status")
     private Integer bookingStatus;
 
-    @Schema(description = "转合同后关联的租客表 ID")
-    @TableField("tenant_id")
-    private Long tenantId;
+    @Schema(description = "转合同后关联的租约ID")
+    @TableField("lease_id")
+    private Long leaseId;
 
     @Schema(description = "备注")
     @TableField("remark")
