@@ -299,6 +299,21 @@ public class SysNoticeController {
         return ResponseResult.ok(sysTodoRepo.updateById(todo));
     }
 
+    @PostMapping("/todo/delete")
+    @Operation(summary = "删除待办消息")
+    @Log(title = "删除待办消息", operationType = OperationTypeEnum.DELETE)
+    public ResponseResult<Boolean> deleteTodo(@RequestBody SysTodoReadDTO dto) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        SysTodo todo = sysTodoRepo.getById(dto.getId());
+        if (todo == null) {
+            throw new BizException(ResponseCodeEnum.NO_FOUND);
+        }
+        if (!Objects.equals(todo.getCompanyId(), currentUser.getCurCompanyId())) {
+            throw new BizException(ResponseCodeEnum.AUTHORIZED);
+        }
+        return ResponseResult.ok(sysTodoRepo.removeById(dto.getId()));
+    }
+
     @PostMapping("/create")
     @Operation(summary = "发布/修改系统公告")
     @Log(title = "发布/修改系统公告", operationType = OperationTypeEnum.UPDATE)
