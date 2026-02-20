@@ -8,10 +8,12 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.grid.RoomGridDTO;
+import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.room.vo.RoomTotalItemVO;
 import com.homi.model.room.vo.RoomTotalVO;
 import com.homi.saas.web.config.LoginManager;
+import com.homi.service.service.price.PriceConfigService;
 import com.homi.service.service.room.RoomGridService;
 import com.homi.service.service.room.RoomSearchService;
 import com.homi.service.service.room.RoomService;
@@ -34,6 +36,8 @@ public class RoomController {
 
     private final RoomSearchService roomSearchService;
 
+    private final PriceConfigService priceConfigService;
+
     @PostMapping("/list")
     public ResponseResult<PageVO<RoomListVO>> getRoomList(@RequestBody RoomQueryDTO query) {
         Long userId = LoginManager.getCurrentUser().getId();
@@ -52,7 +56,6 @@ public class RoomController {
     }
 
     @PostMapping("/reset/keyword")
-
     public ResponseResult<Boolean> resetKeyword() {
         Boolean result = roomSearchService.resetKeyword();
         return ResponseResult.ok(result);
@@ -86,5 +89,30 @@ public class RoomController {
     public ResponseResult<Integer> openRoom(@RequestBody RoomIdDTO query) {
         return ResponseResult.ok(roomService.openRoom(query));
     }
-}
 
+    // ==================== 单个房间租金配置 ====================
+
+    /**
+     * 保存单个房间的租金配置（新增/更新）
+     * 复用已有 PriceConfigService.createOrUpdatePriceConfig()
+     *
+     * @param dto PriceConfigDTO（roomId, price, floorPriceMethod, floorPriceInput, otherFees, pricePlans）
+     */
+    @PostMapping("/price-config/save")
+    @Log(title = "保存房间租金配置", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Boolean> saveRoomPriceConfig(@RequestBody PriceConfigDTO dto) {
+        return ResponseResult.ok(priceConfigService.createOrUpdatePriceConfig(dto));
+    }
+
+    /**
+     * 获取单个房间的租金配置
+     * 复用已有 RoomService.getPriceConfigByRoomId()
+     *
+     * @param dto RoomIdDTO（roomId）
+     */
+    @PostMapping("/price-config/get")
+    public ResponseResult<PriceConfigDTO> getRoomPriceConfig(@RequestBody RoomIdDTO dto) {
+        PriceConfigDTO config = roomService.getPriceConfigByRoomId(dto.getRoomId());
+        return ResponseResult.ok(config);
+    }
+}
