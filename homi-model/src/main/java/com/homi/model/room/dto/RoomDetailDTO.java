@@ -48,6 +48,12 @@ public class RoomDetailDTO {
     @Schema(description = "空置开始时间")
     private Date vacancyStartTime;
 
+    @Schema(description = "房间状态")
+    private Integer roomStatus;
+
+    @Schema(description = "房间备注")
+    private String remark;
+
     @Schema(description = "设施、从字典dict_data获取并配置")
     private List<FacilityItemDTO> facilities;
 

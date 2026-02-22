@@ -6,13 +6,11 @@ import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.house.RentalTypeEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
-import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.room.dto.RoomDetailDTO;
 import com.homi.model.scatter.ScatterCreateDTO;
-import com.homi.model.scatter.ScatterHouseVO;
 import com.homi.service.service.house.HouseCodeGenerator;
 import com.homi.service.service.price.PriceConfigService;
 import com.homi.service.service.room.RoomSearchService;
@@ -276,25 +274,5 @@ public class ScatterService {
         roomListToDelete.forEach(roomDetailDTO -> roomRepo.removeById(roomDetailDTO.getId()));
 
         roomList.forEach(roomDetailDTO -> createOrUpdateScatterRoom(house, roomDetailDTO));
-    }
-
-    public ScatterHouseVO getScatterHouseById(Long houseId) {
-        House house = houseRepo.getById(houseId);
-        ScatterHouseVO scatterHouseVO = new ScatterHouseVO();
-        BeanUtils.copyProperties(house, scatterHouseVO);
-
-        // 加载小区数据
-        CommunityDTO communityDTO = communityRepo.getCommunityById(house.getCommunityId());
-        scatterHouseVO.setCommunity(communityDTO);
-
-        // 加载户型数据
-        HouseLayoutDTO houseLayoutById = houseLayoutRepo.getHouseLayoutById(house.getHouseLayoutId());
-        scatterHouseVO.setHouseLayout(houseLayoutById);
-
-        List<RoomDetailDTO> roomList = roomService.getRoomListByHouseId(house.getId());
-
-        scatterHouseVO.setRoomList(roomList);
-
-        return scatterHouseVO;
     }
 }
