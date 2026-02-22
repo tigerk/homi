@@ -42,6 +42,9 @@ public class HouseDetailVO {
     @Schema(description = "业务员ID")
     private Long salesmanId;
 
+    @Schema(description = "业务员")
+    private String salesmanName;
+
     @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
     private Integer leaseMode;
 
