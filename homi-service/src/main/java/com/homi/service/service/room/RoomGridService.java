@@ -129,7 +129,8 @@ public class RoomGridService {
                 room.setRoomStatusColor(roomStatusEnum.getColor());
 
                 // 如果房间是已租时，获取当前租客的租约信息
-                roomService.getRoomLeaseInfo(room);
+
+                room.setLeaseInfo(roomService.getRoomLeaseInfo(room.getRoomId(), room.getRoomStatus()));
             });
 
             roomGridItemVO.setRooms(entry.getValue());

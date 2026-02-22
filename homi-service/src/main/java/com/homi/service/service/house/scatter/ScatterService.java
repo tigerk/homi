@@ -9,7 +9,7 @@ import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.HouseLayoutDTO;
-import com.homi.model.room.dto.RoomDetailDTO;
+import com.homi.model.room.vo.RoomDetailVO;
 import com.homi.model.scatter.ScatterCreateDTO;
 import com.homi.service.service.house.HouseCodeGenerator;
 import com.homi.service.service.price.PriceConfigService;
@@ -175,7 +175,7 @@ public class ScatterService {
      * @param houseLayout 参数说明
      * @param roomList    参数说明
      */
-    private void copyHouseLayoutToRoom(HouseLayoutDTO houseLayout, List<RoomDetailDTO> roomList) {
+    private void copyHouseLayoutToRoom(HouseLayoutDTO houseLayout, List<RoomDetailVO> roomList) {
         if (Objects.isNull(houseLayout) || CollectionUtils.isEmpty(roomList)) {
             return;
         }
@@ -220,12 +220,12 @@ public class ScatterService {
      * {@code @date} 2025/10/23 15:40
      *
      * @param house         参数说明
-     * @param roomDetailDTO 参数说明
+     * @param roomDetailVO 参数说明
      */
-    public void createOrUpdateScatterRoom(House house, RoomDetailDTO roomDetailDTO) {
+    public void createOrUpdateScatterRoom(House house, RoomDetailVO roomDetailVO) {
         Room room = new Room();
 
-        BeanUtils.copyProperties(roomDetailDTO, room);
+        BeanUtils.copyProperties(roomDetailVO, room);
 
         room.setHouseId(house.getId());
         room.setFloor(house.getFloor());
@@ -235,18 +235,18 @@ public class ScatterService {
         room.setKeywords(roomSearchService.generateKeywords(room));
 
         // 设置可出租日期
-        if (Objects.nonNull(roomDetailDTO.getAvailableDate())) {
-            room.setAvailableDate(roomDetailDTO.getAvailableDate());
+        if (Objects.nonNull(roomDetailVO.getAvailableDate())) {
+            room.setAvailableDate(roomDetailVO.getAvailableDate());
         } else {
             room.setAvailableDate(DateUtil.date());
         }
 
-        room.setTags(JSONUtil.toJsonStr(roomDetailDTO.getTags()));
-        room.setFacilities(JSONUtil.toJsonStr(roomDetailDTO.getFacilities()));
-        room.setImageList(JSONUtil.toJsonStr(roomDetailDTO.getImageList()));
-        room.setVideoList(JSONUtil.toJsonStr(roomDetailDTO.getVideoList()));
+        room.setTags(JSONUtil.toJsonStr(roomDetailVO.getTags()));
+        room.setFacilities(JSONUtil.toJsonStr(roomDetailVO.getFacilities()));
+        room.setImageList(JSONUtil.toJsonStr(roomDetailVO.getImageList()));
+        room.setVideoList(JSONUtil.toJsonStr(roomDetailVO.getVideoList()));
 
-        if (Objects.nonNull(roomDetailDTO.getId())) {
+        if (Objects.nonNull(roomDetailVO.getId())) {
             room.setUpdateBy(house.getUpdateBy());
             room.setUpdateTime(DateUtil.date());
 
@@ -259,14 +259,14 @@ public class ScatterService {
             roomRepo.save(room);
         }
 
-        roomDetailDTO.getPriceConfig().setRoomId(room.getId());
-        priceConfigService.createOrUpdatePriceConfig(roomDetailDTO.getPriceConfig());
+        roomDetailVO.getPriceConfig().setRoomId(room.getId());
+        priceConfigService.createOrUpdatePriceConfig(roomDetailVO.getPriceConfig());
     }
 
-    public void createScatterRoomList(House house, List<RoomDetailDTO> roomList) {
-        List<RoomDetailDTO> roomListByHouseId = roomService.getRoomListByHouseId(house.getId());
+    public void createScatterRoomList(House house, List<RoomDetailVO> roomList) {
+        List<RoomDetailVO> roomListByHouseId = roomService.getRoomListByHouseId(house.getId());
         // 过滤出不再 roomList的房间。
-        List<RoomDetailDTO> roomListToDelete = roomListByHouseId.stream()
+        List<RoomDetailVO> roomListToDelete = roomListByHouseId.stream()
             .filter(roomDetailDTO -> roomList.stream().noneMatch(room -> room.getId().equals(roomDetailDTO.getId())))
             .toList();
 

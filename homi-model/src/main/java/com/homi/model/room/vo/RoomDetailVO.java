@@ -1,4 +1,4 @@
-package com.homi.model.room.dto;
+package com.homi.model.room.vo;
 
 import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
@@ -23,7 +23,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "房间创建DTO，包含房间基本信息和价格配置")
-public class RoomDetailDTO {
+public class RoomDetailVO {
     @Schema(description = "房间id")
     private Long id;
 
@@ -68,4 +68,7 @@ public class RoomDetailDTO {
 
     @Schema(description = "房间价格配置")
     private PriceConfigDTO priceConfig;
+
+    @Schema(description = "租约信息")
+    private LeaseInfoVO leaseInfo;
 }

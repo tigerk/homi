@@ -9,7 +9,7 @@ import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.house.vo.HouseDetailVO;
-import com.homi.model.room.dto.RoomDetailDTO;
+import com.homi.model.room.vo.RoomDetailVO;
 import com.homi.service.service.room.RoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +62,7 @@ public class HouseService {
         HouseLayoutDTO houseLayoutById = houseLayoutRepo.getHouseLayoutById(house.getHouseLayoutId());
         houseDetail.setHouseLayout(houseLayoutById);
 
-        List<RoomDetailDTO> roomList = roomService.getRoomListByHouseId(house.getId());
+        List<RoomDetailVO> roomList = roomService.getRoomListByHouseId(house.getId());
         houseDetail.setRoomList(roomList);
 
         return houseDetail;

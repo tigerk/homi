@@ -2,7 +2,7 @@ package com.homi.model.house.vo;
 
 import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.house.dto.HouseLayoutDTO;
-import com.homi.model.room.dto.RoomDetailDTO;
+import com.homi.model.room.vo.RoomDetailVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -161,5 +161,5 @@ public class HouseDetailVO {
      * 合租使用：房间列表，每个房间包含房间号、面积、价格等信息
      */
     @Schema(description = "合租使用：房间列表，每个房间包含房间号、面积、价格等信息")
-    private List<RoomDetailDTO> roomList;
+    private List<RoomDetailVO> roomList;
 }

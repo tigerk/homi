@@ -16,7 +16,7 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.FacilityItemDTO;
-import com.homi.model.room.dto.RoomDetailDTO;
+import com.homi.model.room.vo.RoomDetailVO;
 import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.price.OtherFeeDTO;
@@ -175,36 +175,38 @@ public class RoomService {
      * {@code @date} 2025/11/11 13:41
      *
      * @param id 参数说明
-     * @return java.util.List<com.homi.domain.dto.room.RoomDetailDTO>
+     * @return java.util.List<com.homi.domain.dto.room.RoomDetailVO>
      */
-    public List<RoomDetailDTO> getRoomListByHouseId(Long id) {
+    public List<RoomDetailVO> getRoomListByHouseId(Long id) {
         List<Room> roomListByHouseId = roomRepo.getRoomListByHouseId(id);
 
         return roomListByHouseId.stream().map(room -> {
-            RoomDetailDTO roomDetailDTO = new RoomDetailDTO();
-            BeanUtils.copyProperties(room, roomDetailDTO);
+            RoomDetailVO roomDetailVO = new RoomDetailVO();
+            BeanUtils.copyProperties(room, roomDetailVO);
 
             RoomDetail roomDetail = roomDetailRepo.getByRoomId(room.getId());
             if (Objects.nonNull(roomDetail)) {
-                BeanUtils.copyProperties(roomDetail, roomDetailDTO);
+                BeanUtils.copyProperties(roomDetail, roomDetailVO);
             }
 
             if (JsonUtils.isJson(room.getTags())) {
-                roomDetailDTO.setTags(JSONUtil.toList(room.getTags(), String.class));
+                roomDetailVO.setTags(JSONUtil.toList(room.getTags(), String.class));
             }
             if (JsonUtils.isJson(room.getVideoList())) {
-                roomDetailDTO.setVideoList(JSONUtil.toList(room.getVideoList(), String.class));
+                roomDetailVO.setVideoList(JSONUtil.toList(room.getVideoList(), String.class));
             }
             if (JsonUtils.isJson(room.getImageList())) {
-                roomDetailDTO.setImageList(JSONUtil.toList(room.getImageList(), String.class));
+                roomDetailVO.setImageList(JSONUtil.toList(room.getImageList(), String.class));
             }
             if (JsonUtils.isJson(room.getFacilities())) {
-                roomDetailDTO.setFacilities(JSONUtil.toList(room.getFacilities(), FacilityItemDTO.class));
+                roomDetailVO.setFacilities(JSONUtil.toList(room.getFacilities(), FacilityItemDTO.class));
             }
 
-            roomDetailDTO.setPriceConfig(getPriceConfigByRoomId(room.getId()));
+            roomDetailVO.setPriceConfig(getPriceConfigByRoomId(room.getId()));
 
-            return roomDetailDTO;
+            roomDetailVO.setLeaseInfo(getRoomLeaseInfo(room.getId(), room.getRoomStatus()));
+
+            return roomDetailVO;
         }).toList();
     }
 
@@ -255,39 +257,41 @@ public class RoomService {
      * 获取房间租约信息（按房间ID）
      * <p>
      * {@code @author} tk
-     * {@code @date} 2025/11/11 13:41
+     * {@code @date} 2026/2/23 03:06
      *
-     * @param room 房间信息
+     * @param roomId     参数说明
+     * @param roomStatus 参数说明
+     * @return com.homi.model.room.vo.LeaseInfoVO
      */
-    public void getRoomLeaseInfo(RoomListVO room) {
-        if (Objects.equals(room.getRoomStatus(), RoomStatusEnum.LEASED.getCode())) {
+    public LeaseInfoVO getRoomLeaseInfo(Long roomId, Integer roomStatus) {
+        if (Objects.equals(roomStatus, RoomStatusEnum.LEASED.getCode())) {
             // 查询
-            Lease lease = leaseRepo.getCurrentLeasesByRoomId(room.getRoomId(), TenantStatusEnum.getValidStatus());
+            Lease lease = leaseRepo.getCurrentLeasesByRoomId(roomId, TenantStatusEnum.getValidStatus());
             if (lease != null) {
                 Tenant tenant = tenantRepo.getById(lease.getTenantId());
-                LeaseInfoVO build = LeaseInfoVO.builder()
+                return LeaseInfoVO.builder()
                     .tenantName(tenant != null ? tenant.getTenantName() : "")
                     .tenantPhone(tenant != null ? tenant.getTenantPhone() : "")
                     .leaseStartDate(lease.getLeaseStart())
                     .leaseEndDate(lease.getLeaseEnd())
                     .build();
-
-                room.setLeaseInfo(build);
             }
         }
 
-        if (Objects.equals(room.getRoomStatus(), RoomStatusEnum.BOOKED.getCode())) {
+        if (Objects.equals(roomStatus, RoomStatusEnum.BOOKED.getCode())) {
             // 查询当前租客的租约信息
-            Booking booking = bookingRepo.getCurrentBookingByRoomId(room.getRoomId());
+            Booking booking = bookingRepo.getCurrentBookingByRoomId(roomId);
             if (booking != null) {
-                room.setLeaseInfo(LeaseInfoVO.builder()
+                return LeaseInfoVO.builder()
                     .tenantName(booking.getTenantName())
                     .tenantPhone(booking.getTenantPhone())
                     .leaseStartDate(booking.getExpectedLeaseStart())
                     .leaseEndDate(booking.getExpectedLeaseEnd())
-                    .build());
+                    .build();
             }
         }
+
+        return null;
     }
 
     public Integer lockRoom(RoomIdDTO query) {
