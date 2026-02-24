@@ -1,8 +1,9 @@
-package com.homi.model.room.vo;
+package com.homi.model.room.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
+import com.homi.model.room.vo.LeaseInfoVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,8 +24,8 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "房间详情DTO，包含房间基本信息和价格配置")
-public class RoomDetailVO {
+@Schema(description = "房间创建DTO，包含房间基本信息和价格配置")
+public class RoomCreateDTO {
     @Schema(description = "房间id")
     private Long id;
 
@@ -71,7 +72,4 @@ public class RoomDetailVO {
 
     @Schema(description = "房间价格配置")
     private PriceConfigDTO priceConfig;
-
-    @Schema(description = "租约信息")
-    private LeaseInfoVO leaseInfo;
 }

@@ -2,6 +2,7 @@ package com.homi.model.house.vo;
 
 import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.house.dto.HouseLayoutDTO;
+import com.homi.model.room.dto.RoomCreateDTO;
 import com.homi.model.room.vo.RoomDetailVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

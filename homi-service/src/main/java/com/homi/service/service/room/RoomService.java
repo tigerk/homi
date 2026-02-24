@@ -16,13 +16,13 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.FacilityItemDTO;
-import com.homi.model.room.vo.RoomDetailVO;
 import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.room.dto.price.PricePlanDTO;
 import com.homi.model.room.vo.LeaseInfoVO;
+import com.homi.model.room.vo.RoomDetailVO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.room.vo.RoomTotalItemVO;
 import lombok.RequiredArgsConstructor;
@@ -175,9 +175,9 @@ public class RoomService {
      * {@code @date} 2025/11/11 13:41
      *
      * @param id 参数说明
-     * @return java.util.List<com.homi.domain.dto.room.RoomDetailVO>
+     * @return java.util.List<com.homi.domain.dto.room.RoomCreateDTO>
      */
-    public List<RoomDetailVO> getRoomListByHouseId(Long id) {
+    public List<RoomDetailVO> getRoomDetailByHouseId(Long id) {
         List<Room> roomListByHouseId = roomRepo.getRoomListByHouseId(id);
 
         return roomListByHouseId.stream().map(room -> {

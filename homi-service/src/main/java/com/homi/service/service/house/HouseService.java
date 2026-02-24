@@ -62,7 +62,7 @@ public class HouseService {
         HouseLayoutDTO houseLayoutById = houseLayoutRepo.getHouseLayoutById(house.getHouseLayoutId());
         houseDetail.setHouseLayout(houseLayoutById);
 
-        List<RoomDetailVO> roomList = roomService.getRoomListByHouseId(house.getId());
+        List<RoomDetailVO> roomList = roomService.getRoomDetailByHouseId(house.getId());
         houseDetail.setRoomList(roomList);
 
         return houseDetail;
