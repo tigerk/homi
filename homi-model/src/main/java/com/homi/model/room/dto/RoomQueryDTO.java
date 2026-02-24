@@ -24,7 +24,7 @@ public class RoomQueryDTO extends PageDTO {
     @Schema(description = "空间查询参数")
     private List<RoomAggregatedVO> spatialQuery;
 
-    @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
+    @Schema(description = "房源租赁类型：1、集中式；2、分散式")
     private Integer leaseMode;
 
     @Schema(description = "模式引用ID")

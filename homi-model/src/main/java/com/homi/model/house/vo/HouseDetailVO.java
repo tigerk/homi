@@ -45,7 +45,7 @@ public class HouseDetailVO {
     @Schema(description = "业务员")
     private String salesmanName;
 
-    @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
+    @Schema(description = "房源租赁类型：1、集中式；2、分散式")
     private Integer leaseMode;
 
     @Schema(description = "来源id，集中式为集中式id，整租、合租为community_id")
@@ -60,7 +60,7 @@ public class HouseDetailVO {
     @Schema(description = "单元")
     private String unit;
 
-    @Schema(description = "门牌号，分散式独有")
+    @Schema(description = "门牌号")
     private String doorNumber;
 
     @Schema(description = "户型")

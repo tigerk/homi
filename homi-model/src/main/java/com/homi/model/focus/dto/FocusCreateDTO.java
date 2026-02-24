@@ -21,7 +21,7 @@ public class FocusCreateDTO {
     @Schema(description = "公司ID")
     private Long companyId;
 
-    @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
+    @Schema(description = "房源租赁类型：1、集中式；2、分散式")
     private Integer leaseMode;
 
     @Schema(description = "项目编号")

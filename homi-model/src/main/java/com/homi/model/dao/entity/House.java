@@ -55,7 +55,7 @@ public class House implements Serializable {
     @TableField("salesman_id")
     private Long salesmanId;
 
-    @Schema(description = "房源租赁类型：1、集中式；2、整租、3、合租")
+    @Schema(description = "房源租赁类型：1、集中式；2、分散式")
     @TableField("lease_mode")
     private Integer leaseMode;
 
@@ -75,7 +75,7 @@ public class House implements Serializable {
     @TableField("unit")
     private String unit;
 
-    @Schema(description = "门牌号，分散式独有")
+    @Schema(description = "门牌号")
     @TableField("door_number")
     private String doorNumber;
 
