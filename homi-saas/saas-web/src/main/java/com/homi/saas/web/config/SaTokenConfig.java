@@ -41,6 +41,7 @@ public class SaTokenConfig implements WebMvcConfigurer {
             SaRouter.notMatch("/favicon.ico",
                 "/uploads/**",
                 "/swagger-ui/**",
+                "/swagger-ui.html",
                 "/v3/api-docs/**",
                 ADMIN_PREFIX.concat("/login"),
                 ADMIN_PREFIX.concat("/wechat/login"),
