@@ -1,4 +1,4 @@
-package com.homi.common.lib.enums.tenant;
+package com.homi.common.lib.enums.lease;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

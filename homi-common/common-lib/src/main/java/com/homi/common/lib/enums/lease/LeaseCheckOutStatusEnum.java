@@ -1,4 +1,4 @@
-package com.homi.common.lib.enums.tenant;
+package com.homi.common.lib.enums.lease;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +13,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum TenantCheckOutStatusEnum {
+public enum LeaseCheckOutStatusEnum {
     /*
      * 租户退租状态：0=未退租、1=正常退、2=违约退、3=续约退、4=换房退、5=转租退
      */

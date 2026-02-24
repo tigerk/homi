@@ -5,8 +5,8 @@ import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.ApprovalInstanceStatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
-import com.homi.common.lib.enums.tenant.TenantCheckOutStatusEnum;
-import com.homi.common.lib.enums.tenant.TenantStatusEnum;
+import com.homi.common.lib.enums.lease.LeaseStatusEnum;
+import com.homi.common.lib.enums.lease.LeaseCheckOutStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.repo.HouseRepo;
@@ -113,7 +113,7 @@ public class ApprovalEventListener {
         // 2. 根据审批结果更新业务状态
         if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
             // 审批通过 -> 租客状态改为生效
-            leaseRepo.updateStatusById(leaseId, TenantStatusEnum.TO_SIGN.getCode());
+            leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.TO_SIGN.getCode());
             log.info("租客入住审批通过，已更新为待签约状态，允许租客签约合同: leaseId={}", leaseId);
 
             // TODO: 可以在这里执行审批通过后的业务逻辑，做一个通用的消息通知功能。
@@ -123,7 +123,7 @@ public class ApprovalEventListener {
             log.info("租客入住审批驳回: leaseId={}", leaseId);
 
             // 1. 审批驳回 -> 租客状态改为已取消，可以再次提交。
-            leaseRepo.updateStatusById(leaseId, TenantStatusEnum.CANCELLED.getCode());
+            leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.CANCELLED.getCode());
 
             Lease lease = leaseRepo.getById(leaseId);
             // 2. 更新房间状态为空置
@@ -149,7 +149,7 @@ public class ApprovalEventListener {
         // 2. 根据审批结果处理
         if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
             // 审批通过 -> 执行退租流程
-            leaseCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.NORMAL_CHECK_OUT.getCode());
+            leaseCheckoutRepo.updateStatus(checkoutId, LeaseCheckOutStatusEnum.NORMAL_CHECK_OUT.getCode());
             log.info("退租审批通过: checkoutId={}", checkoutId);
             // TODO: 执行退租后续操作
             // 1. 更新租客状态为已退租
@@ -157,12 +157,12 @@ public class ApprovalEventListener {
             // 3. 作废未付账单
         } else if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
             // 审批驳回 -> 退租单状态改为草稿，可重新编辑
-            leaseCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
+            leaseCheckoutRepo.updateStatus(checkoutId, LeaseCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
             log.info("退租审批驳回: checkoutId={}", checkoutId);
 
         } else if (ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
             // 撤回 -> 退租单状态改为草稿
-            leaseCheckoutRepo.updateStatus(checkoutId, TenantCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
+            leaseCheckoutRepo.updateStatus(checkoutId, LeaseCheckOutStatusEnum.UN_CHECK_OUT.getCode()); // 0=草稿
             log.info("退租审批撤回: checkoutId={}", checkoutId);
         }
     }

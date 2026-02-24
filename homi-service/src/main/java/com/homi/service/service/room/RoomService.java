@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
-import com.homi.common.lib.enums.tenant.TenantStatusEnum;
+import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.JsonUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -204,8 +204,6 @@ public class RoomService {
 
             roomDetailVO.setPriceConfig(getPriceConfigByRoomId(room.getId()));
 
-            roomDetailVO.setLeaseInfo(getRoomLeaseInfo(room.getId(), room.getRoomStatus()));
-
             return roomDetailVO;
         }).toList();
     }
@@ -266,7 +264,7 @@ public class RoomService {
     public LeaseInfoVO getRoomLeaseInfo(Long roomId, Integer roomStatus) {
         if (Objects.equals(roomStatus, RoomStatusEnum.LEASED.getCode())) {
             // 查询
-            Lease lease = leaseRepo.getCurrentLeasesByRoomId(roomId, TenantStatusEnum.getValidStatus());
+            Lease lease = leaseRepo.getCurrentLeasesByRoomId(roomId, LeaseStatusEnum.getValidStatus());
             if (lease != null) {
                 Tenant tenant = tenantRepo.getById(lease.getTenantId());
                 return LeaseInfoVO.builder()

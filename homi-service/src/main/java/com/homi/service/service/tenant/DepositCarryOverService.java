@@ -1,7 +1,7 @@
 package com.homi.service.service.tenant;
 
 import com.homi.common.lib.enums.payment.PayStatusEnum;
-import com.homi.common.lib.enums.tenant.LeaseBillTypeEnum;
+import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.repo.LeaseBillRepo;
 import com.homi.model.tenant.dto.LeaseDTO;

@@ -1,4 +1,4 @@
-package com.homi.common.lib.enums.tenant;
+package com.homi.common.lib.enums.lease;
 
 import cn.hutool.core.collection.ListUtil;
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public enum TenantStatusEnum {
+public enum LeaseStatusEnum {
     /**
      * 租客状态：0=待审批，1=待签字，2=在租中，3=已退租，-1=已作废
      */

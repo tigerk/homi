@@ -2,7 +2,7 @@ package com.homi.service.test;
 
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
-import com.homi.common.lib.enums.tenant.LeaseBillTypeEnum;
+import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.repo.LeaseBillRepo;
 import com.homi.model.room.dto.price.OtherFeeDTO;

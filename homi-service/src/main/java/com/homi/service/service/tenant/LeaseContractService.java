@@ -5,7 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
-import com.homi.common.lib.enums.tenant.TenantStatusEnum;
+import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.contract.vo.LeaseContractVO;
@@ -168,7 +168,7 @@ public class LeaseContractService {
         LeaseContract leaseContract = addLeaseContract(query.getContractTemplateId(), leaseDetail);
 
         // 租客重置为待签约状态
-        leaseRepo.updateStatusById(leaseDetail.getLeaseId(), TenantStatusEnum.TO_SIGN.getCode());
+        leaseRepo.updateStatusById(leaseDetail.getLeaseId(), LeaseStatusEnum.TO_SIGN.getCode());
 
         return BeanCopyUtils.copyBean(leaseContract, LeaseContractVO.class);
     }
@@ -185,12 +185,12 @@ public class LeaseContractService {
             throw new IllegalArgumentException("未找到租约！");
         }
 
-        if (Objects.equals(lease.getStatus(), TenantStatusEnum.CANCELLED.getCode()) || Objects.equals(lease.getStatus(), TenantStatusEnum.TERMINATED.getCode())) {
+        if (Objects.equals(lease.getStatus(), LeaseStatusEnum.CANCELLED.getCode()) || Objects.equals(lease.getStatus(), LeaseStatusEnum.TERMINATED.getCode())) {
             throw new IllegalArgumentException("租约已取消或已终止，无法签署合同！");
         }
 
         // 更新租客状态为有效
-        boolean isUpdateSuccess = leaseRepo.updateStatusById(leaseContract.getLeaseId(), TenantStatusEnum.EFFECTIVE.getCode());
+        boolean isUpdateSuccess = leaseRepo.updateStatusById(leaseContract.getLeaseId(), LeaseStatusEnum.EFFECTIVE.getCode());
         if (!isUpdateSuccess) {
             throw new IllegalArgumentException("更新租约状态失败！");
         }
@@ -218,11 +218,11 @@ public class LeaseContractService {
             throw new IllegalArgumentException("未找到指定的租约");
         }
 
-        leaseRepo.updateStatusById(leaseId, TenantStatusEnum.CANCELLED.getCode());
+        leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.CANCELLED.getCode());
 
         // 房间设置为“空置”
         roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), RoomStatusEnum.AVAILABLE.getCode());
 
-        return TenantStatusEnum.CANCELLED.getCode();
+        return LeaseStatusEnum.CANCELLED.getCode();
     }
 }

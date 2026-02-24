@@ -27,7 +27,7 @@ import java.util.function.LongConsumer;
  *     // 无需审批时：更新为 APPROVED 并设置业务状态为生效
  *     bizId -> {
  *         tenantRepo.updateApprovalStatus(bizId, BizApprovalStatusEnum.APPROVED.getCode());
- *         tenantRepo.updateStatusById(bizId, TenantStatusEnum.EFFECTIVE.getCode());
+ *         tenantRepo.updateStatusById(bizId, LeaseStatusEnum.EFFECTIVE.getCode());
  *     }
  * );
  * }</pre>

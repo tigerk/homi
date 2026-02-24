@@ -5,16 +5,15 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -22,7 +21,7 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2026-02-06
+ * @since 2026-02-24
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -33,15 +32,15 @@ public class Lease implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "租约 ID")
+    @Schema(description = "租约ID")
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @Schema(description = "租客 ID")
+    @Schema(description = "租客ID（关联 tenant.id）")
     @TableField("tenant_id")
     private Long tenantId;
 
-    @Schema(description = "上一份租约 ID")
+    @Schema(description = "上一份租约ID（续签/换房时关联）")
     @TableField("parent_lease_id")
     private Long parentLeaseId;
 
@@ -53,11 +52,11 @@ public class Lease implements Serializable {
     @TableField("company_id")
     private Long companyId;
 
-    @Schema(description = "部门 ID")
+    @Schema(description = "部门ID")
     @TableField("dept_id")
     private Long deptId;
 
-    @Schema(description = "房间 ids")
+    @Schema(description = "房间IDs")
     @TableField("room_ids")
     private String roomIds;
 
@@ -111,11 +110,11 @@ public class Lease implements Serializable {
     @TableField("rent_due_type")
     private Integer rentDueType;
 
-    @Schema(description = "固定收租日（1-31，0=当月最后一天）")
+    @Schema(description = "固定收租日")
     @TableField("rent_due_day")
     private Integer rentDueDay;
 
-    @Schema(description = "收租偏移天数（提前/延后）")
+    @Schema(description = "收租偏移天数")
     @TableField("rent_due_offset_days")
     private Integer rentDueOffsetDays;
 
@@ -127,19 +126,19 @@ public class Lease implements Serializable {
     @TableField("helper_id")
     private Long helperId;
 
-    @Schema(description = "签约状态：0=待签字、1=已签字")
+    @Schema(description = "签约状态：0=待签字，1=已签字")
     @TableField("sign_status")
     private Integer signStatus;
 
-    @Schema(description = "租户退租状态：0=未退租、1=正常退、2=换房退、3=违约退、4=作废")
+    @Schema(description = "退租状态：0=未退租，1=正常退，2=换房退，3=违约退，4=作废")
     @TableField("check_out_status")
     private Integer checkOutStatus;
 
-    @Schema(description = "合同状态：0=待签字，1=在租中，2=已退租，3=已作废")
+    @Schema(description = "租约状态：0=待审批，1=待签字，2=在租中，3=已退租，-1=已作废")
     @TableField("status")
     private Integer status;
 
-    @Schema(description = "审批状态：1-审批中 2-已通过 3-已驳回 4-已撤回")
+    @Schema(description = "审批状态：1=审批中，2=已通过，3=已驳回，4=已撤回")
     @TableField("approval_status")
     private Integer approvalStatus;
 

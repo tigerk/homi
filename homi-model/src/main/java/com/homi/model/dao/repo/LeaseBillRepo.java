@@ -59,9 +59,9 @@ public class LeaseBillRepo extends ServiceImpl<LeaseBillMapper, LeaseBill> {
         return lambdaQuery()
             .eq(LeaseBill::getTenantId, tenantId)
             .in(LeaseBill::getBillType,
-                com.homi.common.lib.enums.tenant.LeaseBillTypeEnum.DEPOSIT.getCode(),
-                com.homi.common.lib.enums.tenant.LeaseBillTypeEnum.DEPOSIT_CARRY_IN.getCode(),
-                com.homi.common.lib.enums.tenant.LeaseBillTypeEnum.DEPOSIT_CARRY_OUT.getCode())
+                com.homi.common.lib.enums.lease.LeaseBillTypeEnum.DEPOSIT.getCode(),
+                com.homi.common.lib.enums.lease.LeaseBillTypeEnum.DEPOSIT_CARRY_IN.getCode(),
+                com.homi.common.lib.enums.lease.LeaseBillTypeEnum.DEPOSIT_CARRY_OUT.getCode())
             .eq(LeaseBill::getValid, true)
             .orderByAsc(LeaseBill::getCreateTime)
             .list();

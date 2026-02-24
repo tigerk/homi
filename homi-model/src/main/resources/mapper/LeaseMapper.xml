@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.homi.model.dao.mapper.LeaseMapper">
+
+    <select id="getCurrentLeaseByRoomId" resultType="com.homi.model.tenant.vo.LeaseLiteVO">
+        SELECT
+        l.id as lease_id,
+        l.tenant_id,
+        l.company_id,
+        l.dept_id,
+        t.tenant_name AS tenant_name,
+        t.tenant_phone as tenant_phone,
+        l.rent_price,
+        l.lease_start,
+        l.lease_end,
+        l.status,
+        l.sign_status,
+        l.check_out_status
+        FROM lease l
+        JOIN lease_room lr ON l.id = lr.lease_id
+        JOIN tenant t ON l.tenant_id = t.id
+        WHERE l.status IN
+        <foreach item="item" index="index" collection="status" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        AND lr.room_id = #{roomId}
+    </select>
+</mapper>

@@ -1,11 +1,11 @@
-package com.homi.common.lib.enums.tenant;
+package com.homi.common.lib.enums.lease;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum TenantRentDueTypeEnum {
+public enum LeaseRentDueTypeEnum {
     /**
      * 收租类型：1=提前，2=固定，3=延后
      */

@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerIntercept
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
-import com.homi.common.lib.config.MyBatisTenantContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -43,6 +42,7 @@ public class MybatisPlusConfig {
         "room_price_config",
         "room_price_plan",
         "room_detail",
+        "lease_room",
         "lease_contract",
         "lease_other_fee",
         "lease_bill_other_fee",

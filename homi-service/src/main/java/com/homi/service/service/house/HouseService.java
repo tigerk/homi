@@ -3,14 +3,13 @@ package com.homi.service.service.house;
 import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.User;
-import com.homi.model.dao.repo.CommunityRepo;
-import com.homi.model.dao.repo.HouseLayoutRepo;
-import com.homi.model.dao.repo.HouseRepo;
-import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.house.vo.HouseDetailVO;
 import com.homi.model.room.vo.RoomDetailVO;
+import com.homi.service.service.booking.BookingService;
 import com.homi.service.service.room.RoomService;
+import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -36,6 +35,10 @@ public class HouseService {
     private final HouseLayoutRepo houseLayoutRepo;
     private final RoomService roomService;
     private final UserRepo userRepo;
+
+    private final LeaseRepo leaseRepo;
+    private final TenantService tenantService;
+    private final BookingService bookingService;
 
     /**
      * 根据房源ID获取房源详情。
@@ -63,6 +66,11 @@ public class HouseService {
         houseDetail.setHouseLayout(houseLayoutById);
 
         List<RoomDetailVO> roomList = roomService.getRoomDetailByHouseId(house.getId());
+        roomList.forEach(room -> {
+            room.setLease(tenantService.getCurrentLeaseByRoomId(room.getId()));
+        });
+
+
         houseDetail.setRoomList(roomList);
 
         return houseDetail;

@@ -6,9 +6,9 @@ import cn.hutool.core.util.EnumUtil;
 import com.homi.common.lib.enums.payment.PayStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
-import com.homi.common.lib.enums.tenant.LeaseBillTypeEnum;
-import com.homi.common.lib.enums.tenant.TenantFirstBillDayEnum;
-import com.homi.common.lib.enums.tenant.TenantRentDueTypeEnum;
+import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
+import com.homi.common.lib.enums.lease.LeaseFirstBillDayEnum;
+import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.entity.LeaseBillOtherFee;
 import com.homi.model.dao.repo.LeaseBillOtherFeeRepo;
@@ -565,7 +565,7 @@ public class LeaseBillGenService {
     private Date calculateDueDate(BillConfig config) {
         // 首期账单且跟随合同创建日
         if (config.isFirstBill && config.firstBillDay != null &&
-            config.firstBillDay.equals(TenantFirstBillDayEnum.FOLLOW_CONTRACT_CREATE.getCode())) {
+            config.firstBillDay.equals(LeaseFirstBillDayEnum.FOLLOW_CONTRACT_CREATE.getCode())) {
             return new Date();
         }
 
@@ -582,18 +582,18 @@ public class LeaseBillGenService {
      */
     private LocalDate calculateDueDateByType(BillConfig config) {
         // 提前收租：账期开始日 - 偏移天数
-        if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.EARLY.getCode())) {
+        if (Objects.equals(config.rentDueType, LeaseRentDueTypeEnum.EARLY.getCode())) {
             int offsetDays = config.rentDueOffsetDays != null ? config.rentDueOffsetDays : 0;
             return config.periodStart.minusDays(offsetDays);
         }
 
         // 固定日收租：当月的固定日期
-        if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.FIXED.getCode())) {
+        if (Objects.equals(config.rentDueType, LeaseRentDueTypeEnum.FIXED.getCode())) {
             return calculateFixedDueDate(config.periodStart, config.rentDueDay);
         }
 
         // 延后收租：账期开始日 + 偏移天数
-        if (Objects.equals(config.rentDueType, TenantRentDueTypeEnum.LATE.getCode())) {
+        if (Objects.equals(config.rentDueType, LeaseRentDueTypeEnum.LATE.getCode())) {
             int offsetDays = config.rentDueOffsetDays != null ? config.rentDueOffsetDays : 0;
             return config.periodStart.plusDays(offsetDays);
         }
@@ -689,7 +689,7 @@ public class LeaseBillGenService {
      */
     private Date calculateDepositDueDate(LeaseDTO lease) {
         // 如果首期账单跟随合同创建日，则押金立即应收（当天）
-        if (lease.getFirstBillDay() != null && lease.getFirstBillDay().equals(TenantFirstBillDayEnum.FOLLOW_CONTRACT_CREATE.getCode())) {
+        if (lease.getFirstBillDay() != null && lease.getFirstBillDay().equals(LeaseFirstBillDayEnum.FOLLOW_CONTRACT_CREATE.getCode())) {
             return new Date();
         }
 

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.common.lib.enums.tenant.TenantStatusEnum;
+import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.mapper.LeaseMapper;
@@ -137,7 +137,7 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
         LambdaQueryWrapper<Lease> wrapper = new LambdaQueryWrapper<>();
         wrapper.lt(Lease::getLeaseStart, leaseEnd);
         wrapper.gt(Lease::getLeaseEnd, leaseStart);
-        wrapper.in(Lease::getStatus, TenantStatusEnum.getValidStatus());
+        wrapper.in(Lease::getStatus, LeaseStatusEnum.getValidStatus());
         if (excludeLeaseId != null) {
             wrapper.ne(Lease::getId, excludeLeaseId);
         }

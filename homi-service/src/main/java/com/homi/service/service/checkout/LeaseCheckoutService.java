@@ -18,7 +18,7 @@ import com.homi.common.lib.enums.checkout.CheckoutSettlementMethodEnum;
 import com.homi.common.lib.enums.checkout.CheckoutStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutTypeEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
-import com.homi.common.lib.enums.tenant.TenantStatusEnum;
+import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -74,7 +74,7 @@ public class LeaseCheckoutService {
             throw new BizException("租客不存在");
         }
 
-        Lease lease = query.getLeaseId() != null ? leaseRepo.getById(query.getLeaseId()) : leaseRepo.getCurrentLeaseByTenantId(query.getTenantId(), TenantStatusEnum.getValidStatus());
+        Lease lease = query.getLeaseId() != null ? leaseRepo.getById(query.getLeaseId()) : leaseRepo.getCurrentLeaseByTenantId(query.getTenantId(), LeaseStatusEnum.getValidStatus());
         if (lease == null) {
             throw new BizException("租约不存在");
         }
@@ -203,7 +203,7 @@ public class LeaseCheckoutService {
         if (tenant == null) {
             throw new BizException("租客不存在");
         }
-        Lease lease = dto.getLeaseId() != null ? leaseRepo.getById(dto.getLeaseId()) : leaseRepo.getCurrentLeaseByTenantId(dto.getTenantId(), TenantStatusEnum.getValidStatus());
+        Lease lease = dto.getLeaseId() != null ? leaseRepo.getById(dto.getLeaseId()) : leaseRepo.getCurrentLeaseByTenantId(dto.getTenantId(), LeaseStatusEnum.getValidStatus());
         if (lease == null) {
             throw new BizException("租约不存在");
         }
@@ -430,7 +430,7 @@ public class LeaseCheckoutService {
         // 更新租客状态为已退租
         Lease lease = checkout.getLeaseId() != null ? leaseRepo.getById(checkout.getLeaseId()) : null;
         if (lease != null) {
-            leaseRepo.updateStatusById(lease.getId(), TenantStatusEnum.TERMINATED.getCode());
+            leaseRepo.updateStatusById(lease.getId(), LeaseStatusEnum.TERMINATED.getCode());
         }
 
         // 释放房间
@@ -479,7 +479,7 @@ public class LeaseCheckoutService {
      * 根据租客ID获取退租单
      */
     public LeaseCheckoutVO getCheckoutByTenantId(Long tenantId) {
-        Lease lease = leaseRepo.getCurrentLeaseByTenantId(tenantId, TenantStatusEnum.getValidStatus());
+        Lease lease = leaseRepo.getCurrentLeaseByTenantId(tenantId, LeaseStatusEnum.getValidStatus());
         if (lease == null) {
             return null;
         }

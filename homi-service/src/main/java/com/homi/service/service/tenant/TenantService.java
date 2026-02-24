@@ -13,7 +13,7 @@ import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
-import com.homi.common.lib.enums.tenant.TenantStatusEnum;
+import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
@@ -221,10 +221,10 @@ public class TenantService {
                 .applicantId(createDTO.getCreateBy())
                 .build(),
             bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId,
-                TenantStatusEnum.PENDING_APPROVAL.getCode(),
+                LeaseStatusEnum.PENDING_APPROVAL.getCode(),
                 BizApprovalStatusEnum.PENDING.getCode()),
             bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId,
-                TenantStatusEnum.TO_SIGN.getCode(),
+                LeaseStatusEnum.TO_SIGN.getCode(),
                 BizApprovalStatusEnum.APPROVED.getCode())
         );
 
@@ -252,7 +252,7 @@ public class TenantService {
         assert lease != null;
         lease.setTenantId(tenantId);
         lease.setRoomIds(JSONUtil.toJsonStr(leaseDTO.getRoomIds()));
-        lease.setStatus(TenantStatusEnum.PENDING_APPROVAL.getCode());
+        lease.setStatus(LeaseStatusEnum.PENDING_APPROVAL.getCode());
         lease.setCreateBy(leaseDTO.getCreateBy());
         lease.setCreateTime(DateUtil.date());
         leaseRepo.save(lease);
@@ -379,8 +379,8 @@ public class TenantService {
      */
     private @NotNull Map<Integer, TenantTotalItemVO> initTenantTotalItemMap() {
         Map<Integer, TenantTotalItemVO> result = new HashMap<>();
-        TenantStatusEnum[] values = TenantStatusEnum.values();
-        for (TenantStatusEnum contractStatusEnum : values) {
+        LeaseStatusEnum[] values = LeaseStatusEnum.values();
+        for (LeaseStatusEnum contractStatusEnum : values) {
             TenantTotalItemVO tenantTotalItemVO = new TenantTotalItemVO();
             tenantTotalItemVO.setStatus(contractStatusEnum.getCode());
             tenantTotalItemVO.setStatusName(contractStatusEnum.getName());
@@ -604,8 +604,8 @@ public class TenantService {
 
         LeaseDetailVO originalLease = getLeaseDetailById(leaseId);
 
-        if (Objects.equals(originalLease.getStatus(), TenantStatusEnum.TERMINATED.getCode()) ||
-            Objects.equals(originalLease.getStatus(), TenantStatusEnum.EFFECTIVE.getCode())) {
+        if (Objects.equals(originalLease.getStatus(), LeaseStatusEnum.TERMINATED.getCode()) ||
+            Objects.equals(originalLease.getStatus(), LeaseStatusEnum.EFFECTIVE.getCode())) {
             throw new IllegalArgumentException("租约在租或退租时，不允许修改");
         }
 
@@ -640,8 +640,8 @@ public class TenantService {
                 .title(String.format("【租客入住审批】-租客：%s", tenant != null ? tenant.getTenantName() : ""))
                 .applicantId(createDTO.getCreateBy())
                 .build(),
-            bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.PENDING_APPROVAL.getCode(), BizApprovalStatusEnum.PENDING.getCode()),
-            bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId, TenantStatusEnum.TO_SIGN.getCode(), BizApprovalStatusEnum.APPROVED.getCode())
+            bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId, LeaseStatusEnum.PENDING_APPROVAL.getCode(), BizApprovalStatusEnum.PENDING.getCode()),
+            bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId, LeaseStatusEnum.TO_SIGN.getCode(), BizApprovalStatusEnum.APPROVED.getCode())
         );
 
         log.info("租约修改处理完成: leaseId={}, needApproval={}", leaseId, approvalResult.isNeedApproval());
@@ -935,5 +935,15 @@ public class TenantService {
         }
         Long tenantId = lease.getTenantId();
         leaseBillGenService.addLeaseBill(leaseId, tenantId, leaseDTO, createDTO.getOtherFees());
+    }
+
+    public LeaseLiteVO getCurrentLeaseByRoomId(Long roomId) {
+        List<Integer> validStatus = ListUtil.of(
+            LeaseStatusEnum.PENDING_APPROVAL.getCode(),
+            LeaseStatusEnum.TO_SIGN.getCode(),
+            LeaseStatusEnum.EFFECTIVE.getCode()
+        );
+
+        return leaseRepo.getBaseMapper().getCurrentLeaseByRoomId(roomId, validStatus);
     }
 }
