@@ -98,22 +98,6 @@ public class Room implements Serializable {
     @TableLogic
     private Boolean deleted;
 
-    @TableField("create_by")
-    private Long createBy;
-
-    @Schema(description = "创建时间")
-    @TableField("create_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
-
-    @TableField("update_by")
-    private Long updateBy;
-
-    @Schema(description = "更新时间")
-    @TableField("update_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
-
     @Schema(description = "房间特色")
     @TableField("tags")
     private String tags;
@@ -129,4 +113,20 @@ public class Room implements Serializable {
     @Schema(description = "视频")
     @TableField("video_list")
     private String videoList;
+
+    @TableField("create_by")
+    private Long createBy;
+
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date createTime;
+
+    @TableField("update_by")
+    private Long updateBy;
+
+    @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date updateTime;
 }

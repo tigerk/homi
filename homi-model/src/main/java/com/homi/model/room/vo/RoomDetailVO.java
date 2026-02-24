@@ -1,5 +1,6 @@
 package com.homi.model.room.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -43,9 +44,11 @@ public class RoomDetailVO {
     private BigDecimal price;
 
     @Schema(description = "可出租日期")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date availableDate;
 
     @Schema(description = "空置开始时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date vacancyStartTime;
 
     @Schema(description = "房间状态")
