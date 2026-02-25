@@ -10,7 +10,7 @@ import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.room.dto.RoomCreateDTO;
-import com.homi.model.scatter.ScatterCreateDTO;
+import com.homi.model.scatter.dto.ScatterCreateDTO;
 import com.homi.service.service.house.HouseCodeGenerator;
 import com.homi.service.service.price.PriceConfigService;
 import com.homi.service.service.room.RoomSearchService;

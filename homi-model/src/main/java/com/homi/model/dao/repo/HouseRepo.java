@@ -8,7 +8,7 @@ import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.Room;
 import com.homi.model.dao.mapper.HouseMapper;
-import com.homi.model.scatter.ScatterHouseDTO;
+import com.homi.model.scatter.dto.ScatterHouseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

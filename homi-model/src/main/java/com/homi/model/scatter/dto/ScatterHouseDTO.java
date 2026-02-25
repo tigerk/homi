@@ -1,4 +1,4 @@
-package com.homi.model.scatter;
+package com.homi.model.scatter.dto;
 
 import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.room.dto.RoomCreateDTO;

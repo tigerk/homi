@@ -5,7 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.house.dto.HouseIdDTO;
 import com.homi.model.house.vo.HouseDetailVO;
-import com.homi.model.scatter.ScatterCreateDTO;
+import com.homi.model.scatter.dto.ScatterCreateDTO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.house.HouseService;

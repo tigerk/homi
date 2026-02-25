@@ -1,4 +1,4 @@
-package com.homi.model.scatter;
+package com.homi.model.scatter.vo;
 
 import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.house.dto.HouseLayoutDTO;
