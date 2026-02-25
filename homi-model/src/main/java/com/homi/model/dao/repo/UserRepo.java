@@ -7,8 +7,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.response.ResponseCodeEnum;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.utils.PasswordUtils;
 import com.homi.model.company.dto.CompanyCreateDTO;
+import com.homi.model.company.vo.user.UserLiteVO;
 import com.homi.model.dao.entity.User;
 import com.homi.model.dao.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,6 +80,25 @@ public class UserRepo extends ServiceImpl<UserMapper, User> {
         // 校验用户是否存在
         return getBaseMapper().selectOne(new LambdaQueryWrapper<User>().eq(User::getUsername, username)
             .or().eq(User::getPhone, phone));
+    }
+
+    public UserLiteVO getUserLiteById(Long userId) {
+        // 校验用户是否存在
+        if (Objects.isNull(userId)) {
+            return null;
+        }
+
+        User user = getById(userId);
+        if (Objects.isNull(user)) {
+            return null;
+        }
+
+        UserLiteVO userLiteVO = BeanCopyUtils.copyBean(user, UserLiteVO.class);
+        if (userLiteVO != null) {
+            userLiteVO.setUserId(user.getId());
+        }
+
+        return userLiteVO;
     }
 
     public String getUserNicknameById(Long createBy) {

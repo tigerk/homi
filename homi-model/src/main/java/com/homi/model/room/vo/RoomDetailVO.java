@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.model.booking.vo.BookingListVO;
 import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
-import com.homi.model.tenant.vo.LeaseDetailVO;
 import com.homi.model.tenant.vo.LeaseLiteVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -80,4 +79,7 @@ public class RoomDetailVO {
 
     @Schema(description = "房间预订信息")
     private BookingListVO booking;
+
+    @Schema(description = "房间跟进记录")
+    private List<RoomTrackVO> roomTracks;
 }

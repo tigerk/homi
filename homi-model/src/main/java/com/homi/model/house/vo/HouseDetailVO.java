@@ -1,8 +1,8 @@
 package com.homi.model.house.vo;
 
 import com.homi.model.community.dto.CommunityDTO;
+import com.homi.model.company.vo.user.UserLiteVO;
 import com.homi.model.house.dto.HouseLayoutDTO;
-import com.homi.model.room.dto.RoomCreateDTO;
 import com.homi.model.room.vo.RoomDetailVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -40,8 +40,13 @@ public class HouseDetailVO {
     @Schema(description = "部门ID")
     private Long deptId;
 
+    @Schema(description = "部门名称")
+    private String deptName;
+
     @Schema(description = "业务员ID")
     private Long salesmanId;
+
+    private UserLiteVO salesman;
 
     @Schema(description = "业务员")
     private String salesmanName;

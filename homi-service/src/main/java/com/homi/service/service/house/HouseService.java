@@ -1,12 +1,12 @@
 package com.homi.service.service.house;
 
-import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.booking.vo.BookingListVO;
 import com.homi.model.community.dto.CommunityDTO;
+import com.homi.model.company.vo.user.UserLiteVO;
 import com.homi.model.dao.entity.Booking;
+import com.homi.model.dao.entity.Dept;
 import com.homi.model.dao.entity.House;
-import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.house.vo.HouseDetailVO;
@@ -37,11 +37,13 @@ public class HouseService {
     private final HouseRepo houseRepo;
     private final CommunityRepo communityRepo;
     private final HouseLayoutRepo houseLayoutRepo;
-    private final RoomService roomService;
     private final UserRepo userRepo;
-
     private final LeaseRepo leaseRepo;
     private final BookingRepo bookingRepo;
+    private final DeptRepo deptRepo;
+    private final RoomTrackRepo roomTrackRepo;
+
+    private final RoomService roomService;
     private final TenantService tenantService;
     private final BookingService bookingService;
 
@@ -57,14 +59,18 @@ public class HouseService {
         HouseDetailVO houseDetail = new HouseDetailVO();
         BeanUtils.copyProperties(house, houseDetail);
 
-        User userById = userRepo.getById(house.getSalesmanId());
-        if (Objects.nonNull(userById)) {
-            houseDetail.setSalesmanName(userById.getNickname());
-        }
+        // 加载销售代表数据
+        UserLiteVO salesman = userRepo.getUserLiteById(house.getSalesmanId());
+        houseDetail.setSalesman(salesman);
 
         // 加载小区数据
         CommunityDTO communityDTO = communityRepo.getCommunityById(house.getCommunityId());
         houseDetail.setCommunity(communityDTO);
+
+        Dept dept = deptRepo.getById(house.getDeptId());
+        if (Objects.nonNull(dept)) {
+            houseDetail.setDeptName(dept.getName());
+        }
 
         // 加载户型数据
         HouseLayoutDTO houseLayoutById = houseLayoutRepo.getHouseLayoutById(house.getHouseLayoutId());
@@ -78,8 +84,9 @@ public class HouseService {
                 BookingListVO bookingListVO = BeanCopyUtils.copyBean(currentBookingByRoomId, BookingListVO.class);
                 room.setBooking(bookingListVO);
             }
-        });
 
+            room.setRoomTracks(roomTrackRepo.getRoomTracksByRoomId(room.getId()));
+        });
 
         houseDetail.setRoomList(roomList);
 

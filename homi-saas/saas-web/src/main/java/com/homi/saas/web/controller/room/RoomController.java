@@ -7,17 +7,21 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
+import com.homi.model.room.dto.RoomTrackDTO;
 import com.homi.model.room.dto.grid.RoomGridDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.room.vo.RoomTotalItemVO;
 import com.homi.model.room.vo.RoomTotalVO;
+import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.price.PriceConfigService;
 import com.homi.service.service.room.RoomGridService;
 import com.homi.service.service.room.RoomSearchService;
 import com.homi.service.service.room.RoomService;
+import com.homi.service.service.room.RoomTrackService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,6 +41,8 @@ public class RoomController {
     private final RoomSearchService roomSearchService;
 
     private final PriceConfigService priceConfigService;
+
+    private final RoomTrackService roomTrackService;
 
     @PostMapping("/list")
     public ResponseResult<PageVO<RoomListVO>> getRoomList(@RequestBody RoomQueryDTO query) {
@@ -114,5 +120,12 @@ public class RoomController {
     public ResponseResult<PriceConfigDTO> getRoomPriceConfig(@RequestBody RoomIdDTO dto) {
         PriceConfigDTO config = roomService.getPriceConfigByRoomId(dto.getRoomId());
         return ResponseResult.ok(config);
+    }
+
+    @PostMapping("/track/add")
+    public ResponseResult<Long> addRoomTrack(@RequestBody RoomTrackDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        dto.setUpdateBy(loginUser.getId());
+        dto.setCompanyId(loginUser.getCurCompanyId());
+        return ResponseResult.ok(roomTrackService.addRoomTrack(dto));
     }
 }
