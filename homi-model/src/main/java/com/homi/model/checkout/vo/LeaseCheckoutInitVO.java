@@ -1,5 +1,7 @@
 package com.homi.model.checkout.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,33 +16,39 @@ import java.util.List;
  */
 @Data
 @Builder
+@Schema(description = "退租初始化数据 VO")
 public class LeaseCheckoutInitVO {
-
     // ===== 合同信息 =====
-
     /**
      * 租客ID
      */
+    @Schema(description = "租客ID")
     private Long tenantId;
 
     /**
      * 租约ID
      */
+    @Schema(description = "租约ID")
     private Long leaseId;
 
     /**
      * 房源地址（如"12312栋12单元-104室"）
      */
+    @Schema(description = "房源地址（如\"12312栋12单元-104室\"）")
     private String roomAddress;
 
     /**
      * 合同开始日
      */
+    @Schema(description = "合同开始日")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date leaseStart;
 
     /**
      * 合同到期日
      */
+    @Schema(description = "合同到期日")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date leaseEnd;
 
     /**
@@ -108,7 +116,9 @@ public class LeaseCheckoutInitVO {
         private Integer billType;
         private String billTypeName;
         private String billPeriod;
+        @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
         private Date periodStart;
+        @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
         private Date periodEnd;
         private BigDecimal totalAmount;
         private BigDecimal payAmount;
@@ -140,10 +150,12 @@ public class LeaseCheckoutInitVO {
         /**
          * 费用周期开始
          */
+        @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
         private Date feePeriodStart;
         /**
          * 费用周期结束
          */
+        @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
         private Date feePeriodEnd;
         /**
          * 备注
