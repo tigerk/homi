@@ -4,7 +4,7 @@
 
     <select id="getRoomTracksByRoomId" resultType="com.homi.model.room.vo.RoomTrackVO">
         select rt.*, u.nickname as update_by_name
-        from room_follow rt,
+        from room_track rt,
              user u
         where rt.update_by = u.id
           and room_id = #{roomId}
