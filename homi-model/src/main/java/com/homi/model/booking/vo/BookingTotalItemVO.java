@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 /**
  * 应用于 homi
  *
@@ -16,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BookingTotalItemVO {
+public class BookingTotalItemVO implements Serializable {
     @Schema(description = "租客合同状态")
     private Integer status;
 
