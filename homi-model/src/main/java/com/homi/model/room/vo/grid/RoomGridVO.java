@@ -9,17 +9,10 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.List;
 
-/**
- * 应用于 homi
- *
- * @author tk
- * @version v1.0
- * {@code @date} 2025/8/7
- */
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Schema(description = "房间网格视图对象，用于展示房源的房间网格信息")
 public class RoomGridVO {
     private Long houseId;
 
@@ -42,6 +35,7 @@ public class RoomGridVO {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
+    @Schema(description = "楼层网格视图对象")
     public static class HouseFloorGridDTO {
         @Schema(description = "房间总数")
         private Long total;

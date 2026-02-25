@@ -1,7 +1,6 @@
 package com.homi.model.delivery.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -17,7 +16,7 @@ import java.time.LocalDate;
 @Data
 @Schema(description = "交割单查询DTO")
 public class DeliveryQueryDTO {
-    @NotNull(message = "交割单ID不能为空")
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "交割单ID")
     private Long id;
 
     private String subjectType;
