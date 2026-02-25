@@ -10,6 +10,7 @@ import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.mapper.LeaseMapper;
 import com.homi.model.tenant.dto.TenantQueryDTO;
 import com.homi.model.tenant.vo.LeaseListVO;
+import com.homi.model.tenant.vo.LeaseLiteVO;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -155,13 +156,16 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
         return count(wrapper) > 0;
     }
 
-    public Lease getCurrentLeasesByRoomId(Long roomId, List<Integer> validStatus) {
-        LambdaQueryWrapper<Lease> wrapper = new LambdaQueryWrapper<>();
-        wrapper.apply("JSON_CONTAINS(room_ids, {0})", String.valueOf(roomId));
-        wrapper.in(Lease::getStatus, validStatus);
-        wrapper.orderByDesc(Lease::getId);
-        wrapper.last("LIMIT 1");
-
-        return getOne(wrapper);
+    /**
+     * 根据房间ID查询当前有效的租赁信息
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/2/25 15:54
+     *
+     * @param roomId      房间 id
+     * @return com.homi.model.tenant.vo.LeaseLiteVO
+     */
+    public LeaseLiteVO getCurrentLeasesByRoomId(Long roomId) {
+        return getBaseMapper().getCurrentLeaseByRoomId(roomId, LeaseStatusEnum.getValidStatus());
     }
 }

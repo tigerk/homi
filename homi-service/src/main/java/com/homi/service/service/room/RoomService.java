@@ -25,6 +25,7 @@ import com.homi.model.room.vo.LeaseInfoVO;
 import com.homi.model.room.vo.RoomDetailVO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.room.vo.RoomTotalItemVO;
+import com.homi.model.tenant.vo.LeaseLiteVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -264,7 +265,7 @@ public class RoomService {
     public LeaseInfoVO getRoomLeaseInfo(Long roomId, Integer roomStatus) {
         if (Objects.equals(roomStatus, RoomStatusEnum.LEASED.getCode())) {
             // 查询
-            Lease lease = leaseRepo.getCurrentLeasesByRoomId(roomId, LeaseStatusEnum.getValidStatus());
+            LeaseLiteVO lease = leaseRepo.getCurrentLeasesByRoomId(roomId);
             if (lease != null) {
                 Tenant tenant = tenantRepo.getById(lease.getTenantId());
                 return LeaseInfoVO.builder()

@@ -1,6 +1,10 @@
 package com.homi.service.service.house;
 
+import com.homi.common.lib.enums.lease.LeaseStatusEnum;
+import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.model.booking.vo.BookingListVO;
 import com.homi.model.community.dto.CommunityDTO;
+import com.homi.model.dao.entity.Booking;
 import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.*;
@@ -37,6 +41,7 @@ public class HouseService {
     private final UserRepo userRepo;
 
     private final LeaseRepo leaseRepo;
+    private final BookingRepo bookingRepo;
     private final TenantService tenantService;
     private final BookingService bookingService;
 
@@ -67,7 +72,12 @@ public class HouseService {
 
         List<RoomDetailVO> roomList = roomService.getRoomDetailByHouseId(house.getId());
         roomList.forEach(room -> {
-            room.setLease(tenantService.getCurrentLeaseByRoomId(room.getId()));
+            room.setLease(leaseRepo.getCurrentLeasesByRoomId(room.getId()));
+            Booking currentBookingByRoomId = bookingRepo.getCurrentBookingByRoomId(room.getId());
+            if (Objects.nonNull(currentBookingByRoomId)) {
+                BookingListVO bookingListVO = BeanCopyUtils.copyBean(currentBookingByRoomId, BookingListVO.class);
+                room.setBooking(bookingListVO);
+            }
         });
 
 

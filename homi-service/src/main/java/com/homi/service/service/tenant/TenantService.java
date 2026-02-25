@@ -938,12 +938,6 @@ public class TenantService {
     }
 
     public LeaseLiteVO getCurrentLeaseByRoomId(Long roomId) {
-        List<Integer> validStatus = ListUtil.of(
-            LeaseStatusEnum.PENDING_APPROVAL.getCode(),
-            LeaseStatusEnum.TO_SIGN.getCode(),
-            LeaseStatusEnum.EFFECTIVE.getCode()
-        );
-
-        return leaseRepo.getBaseMapper().getCurrentLeaseByRoomId(roomId, validStatus);
+        return leaseRepo.getBaseMapper().getCurrentLeaseByRoomId(roomId, LeaseStatusEnum.getValidStatus());
     }
 }
