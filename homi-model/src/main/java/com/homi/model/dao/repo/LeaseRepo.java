@@ -1,5 +1,6 @@
 package com.homi.model.dao.repo;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -56,7 +57,7 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
                 vo.setContractNature(lease.getContractNature());
                 vo.setCompanyId(lease.getCompanyId());
                 vo.setDeptId(lease.getDeptId());
-                vo.setRoomIds(lease.getRoomIds());
+                vo.setRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class));
                 vo.setRentPrice(lease.getRentPrice());
                 vo.setDepositMonths(lease.getDepositMonths());
                 vo.setPaymentMonths(lease.getPaymentMonths());
@@ -162,7 +163,7 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
      * {@code @author} tk
      * {@code @date} 2026/2/25 15:54
      *
-     * @param roomId      房间 id
+     * @param roomId 房间 id
      * @return com.homi.model.tenant.vo.LeaseLiteVO
      */
     public LeaseLiteVO getCurrentLeasesByRoomId(Long roomId) {

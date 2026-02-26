@@ -11,9 +11,7 @@ import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.house.vo.HouseDetailVO;
 import com.homi.model.room.vo.RoomDetailVO;
-import com.homi.service.service.booking.BookingService;
 import com.homi.service.service.room.RoomService;
-import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -38,14 +36,11 @@ public class HouseService {
     private final CommunityRepo communityRepo;
     private final HouseLayoutRepo houseLayoutRepo;
     private final UserRepo userRepo;
-    private final LeaseRepo leaseRepo;
     private final BookingRepo bookingRepo;
     private final DeptRepo deptRepo;
     private final RoomTrackRepo roomTrackRepo;
 
     private final RoomService roomService;
-    private final TenantService tenantService;
-    private final BookingService bookingService;
 
     /**
      * 根据房源ID获取房源详情。
@@ -78,7 +73,7 @@ public class HouseService {
 
         List<RoomDetailVO> roomList = roomService.getRoomDetailByHouseId(house.getId());
         roomList.forEach(room -> {
-            room.setLease(leaseRepo.getCurrentLeasesByRoomId(room.getId()));
+            room.setLease(roomService.getCurrentLeasesByRoomId(room.getId()));
             Booking currentBookingByRoomId = bookingRepo.getCurrentBookingByRoomId(room.getId());
             if (Objects.nonNull(currentBookingByRoomId)) {
                 BookingListVO bookingListVO = BeanCopyUtils.copyBean(currentBookingByRoomId, BookingListVO.class);

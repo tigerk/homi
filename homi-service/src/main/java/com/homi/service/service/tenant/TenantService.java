@@ -130,8 +130,7 @@ public class TenantService {
                     leaseListVO.setTenantCompany(tenantCompanyVO);
                 }
             }
-
-            leaseListVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(leaseListVO.getRoomIds(), Long.class)));
+            leaseListVO.setRoomList(roomService.getRoomListByRoomIds(leaseListVO.getRoomIds()));
 
             User salesmanUser = userService.getUserById(leaseListVO.getSalesmanId());
             leaseListVO.setSalesmanName(salesmanUser.getRealName());
@@ -413,7 +412,9 @@ public class TenantService {
         leaseDetailVO.setTenantName(tenant.getTenantName());
         leaseDetailVO.setTenantPhone(tenant.getTenantPhone());
 
-        leaseDetailVO.setRoomList(roomService.getRoomListByRoomIds(JSONUtil.toList(leaseDetailVO.getRoomIds(), Long.class)));
+        List<Long> roomIdList = JSONUtil.toList(lease.getRoomIds(), Long.class);
+        leaseDetailVO.setRoomIds(roomIdList);
+        leaseDetailVO.setRoomList(roomService.getRoomListByRoomIds(roomIdList));
 
         User salesmanUser = userService.getUserById(leaseDetailVO.getSalesmanId());
         leaseDetailVO.setSalesmanName(salesmanUser.getRealName());

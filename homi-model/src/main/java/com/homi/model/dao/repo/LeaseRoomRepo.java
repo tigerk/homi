@@ -31,4 +31,14 @@ public class LeaseRoomRepo extends ServiceImpl<LeaseRoomMapper, LeaseRoom> {
             getBaseMapper().insert(leaseRoom);
         }
     }
+
+    /**
+     * 根据租约ID获取房间列表
+     *
+     * @param leaseId 租约ID
+     * @return 房间列表
+     */
+    public List<LeaseRoom> getListByLeaseId(Long leaseId) {
+        return list(new LambdaQueryWrapper<LeaseRoom>().eq(LeaseRoom::getLeaseId, leaseId));
+    }
 }

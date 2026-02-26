@@ -1,6 +1,7 @@
 package com.homi.model.tenant.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.model.room.vo.RoomListVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -59,4 +61,10 @@ public class LeaseLiteVO {
 
     @Schema(description = "合同状态：0=未生效，1=生效中，2=已退租，3=已逾期，4=已作废")
     private Integer status;
+
+    @Schema(description = "房间 ids")
+    private List<Long> roomIds;
+
+    @Schema(description = "合同房间列表")
+    private List<RoomListVO> roomList;
 }

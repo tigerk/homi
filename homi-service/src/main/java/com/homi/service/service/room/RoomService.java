@@ -57,6 +57,7 @@ public class RoomService {
     private final LeaseRepo leaseRepo;
     private final TenantRepo tenantRepo;
     private final HouseRepo houseRepo;
+    private final LeaseRoomRepo leaseRoomRepo;
 
     /**
      * 获取房间列表
@@ -203,7 +204,7 @@ public class RoomService {
             }
 
             PriceConfigDTO priceConfigByRoomId = getPriceConfigByRoomId(room.getId());
-            if(Objects.isNull(priceConfigByRoomId.getPrice())) {
+            if (Objects.isNull(priceConfigByRoomId.getPrice())) {
                 priceConfigByRoomId.setPrice(room.getPrice());
             }
             roomDetailVO.setPriceConfig(priceConfigByRoomId);
@@ -372,5 +373,21 @@ public class RoomService {
 
     public Room getRoomById(Long roomId) {
         return roomRepo.getById(roomId);
+    }
+
+    public LeaseLiteVO getCurrentLeasesByRoomId(Long roomId) {
+        LeaseLiteVO currentLeasesByRoomId = leaseRepo.getCurrentLeasesByRoomId(roomId);
+        if (Objects.isNull(currentLeasesByRoomId)) {
+            return null;
+        }
+
+        List<LeaseRoom> listByLeaseId = leaseRoomRepo.getListByLeaseId(currentLeasesByRoomId.getLeaseId());
+        List<Long> roomIds = listByLeaseId.stream().map(LeaseRoom::getRoomId).collect(Collectors.toList());
+        currentLeasesByRoomId.setRoomIds(roomIds);
+
+        List<RoomListVO> roomList = getRoomListByRoomIds(roomIds);
+        currentLeasesByRoomId.setRoomList(roomList);
+
+        return currentLeasesByRoomId;
     }
 }

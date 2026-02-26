@@ -39,9 +39,6 @@ public class LeaseListVO {
     private Long deptId;
     private String deptName;
 
-    @Schema(description = "房间 ids")
-    private String roomIds;
-
     @Schema(description = "租客类型关联ID")
     private Long tenantTypeId;
 
@@ -53,6 +50,9 @@ public class LeaseListVO {
 
     @Schema(description = "租客企业信息")
     private TenantCompanyVO tenantCompany;
+
+    @Schema(description = "房间 ids")
+    private List<Long> roomIds;
 
     @Schema(description = "合同房间列表")
     private List<RoomListVO> roomList;
