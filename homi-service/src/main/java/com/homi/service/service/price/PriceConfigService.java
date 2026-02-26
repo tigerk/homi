@@ -44,7 +44,7 @@ public class PriceConfigService {
             if (priceConfigDTO.getFloorPriceMethod().equals(PriceMethodEnum.FIXED.getCode())) {
                 roomPriceConfig.setFloorPrice(priceConfigDTO.getFloorPriceInput());
             } else {
-                roomPriceConfig.setFloorPrice(priceConfigDTO.getFloorPriceInput().multiply(priceConfigDTO.getPrice()).setScale(2, RoundingMode.HALF_UP));
+                roomPriceConfig.setFloorPrice(priceConfigDTO.getFloorPriceInput().multiply(priceConfigDTO.getPrice()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
             }
         }
 
@@ -74,6 +74,7 @@ public class PriceConfigService {
                 roomPricePlan.setPlanName(pricePlanDTO.getPlanName());
                 roomPricePlan.setPlanType(pricePlanDTO.getPlanType());
                 roomPricePlan.setOtherFees(JSONUtil.toJsonStr(pricePlanDTO.getOtherFees()));
+                roomPricePlan.setDefaultPlan(pricePlanDTO.getDefaultPlan());
 
                 LambdaQueryWrapper<RoomPricePlan> planQueryWrapper = new LambdaQueryWrapper<>();
                 planQueryWrapper.eq(RoomPricePlan::getRoomId, priceConfigDTO.getRoomId());

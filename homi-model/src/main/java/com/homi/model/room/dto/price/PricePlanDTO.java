@@ -36,5 +36,6 @@ public class PricePlanDTO {
     @Schema(description = "其他费用")
     private List<OtherFeeDTO> otherFees;
 
-
+    @Schema(description = "是否默认方案")
+    private Boolean defaultPlan;
 }

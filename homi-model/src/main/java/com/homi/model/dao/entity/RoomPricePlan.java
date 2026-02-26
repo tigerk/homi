@@ -16,7 +16,7 @@ import java.math.BigDecimal;
  * </p>
  *
  * @author tk
- * @since 2025-10-28
+ * @since 2026-02-26
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -54,8 +54,12 @@ public class RoomPricePlan implements Serializable {
     @TableField("other_fees")
     private String otherFees;
 
+    @Schema(description = "是否默认方案")
+    @TableField("default_plan")
+    private Boolean defaultPlan;
+
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")
     @TableLogic
-    private Integer deleted;
+    private Boolean deleted;
 }

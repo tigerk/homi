@@ -57,7 +57,7 @@ public class MyBatisGenerator {
             .mapperPackageName("com.homi.model.dao.mapper")
             .servicePackageName("com.homi.model.dao.repo")
             .tblNameList(ListUtil.of(
-                "room_track"
+                "room_price_plan"
             )).build();
 
         myBatisGenerator.generate();
