@@ -286,7 +286,7 @@ public class ContractTemplateService {
         // 同住人列表
         List<TenantMateVO> tenantMateList = new ArrayList<>();
         TenantMateVO mate1 = new TenantMateVO();
-        mate1.setId(1);
+        mate1.setId(1L);
         mate1.setTenantId(1);
         mate1.setName("李四");
         mate1.setGender(2); // 2=女

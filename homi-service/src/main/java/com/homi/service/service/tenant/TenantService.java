@@ -720,7 +720,7 @@ public class TenantService {
      */
     private Triple<Long, String, String> updateTenantPersonal(TenantPersonalDTO tenantPersonalDTO, Long originalId) {
         if (tenantPersonalDTO.getId() == null) {
-            tenantPersonalDTO.setId(originalId.intValue());
+            tenantPersonalDTO.setId(originalId);
         }
 
         TenantPersonal tenantPersonal = tenantPersonalRepo.getById(originalId);
@@ -782,7 +782,7 @@ public class TenantService {
         Long originalId) {
 
         if (tenantCompanyDTO.getId() == null) {
-            tenantCompanyDTO.setId(originalId.intValue());
+            tenantCompanyDTO.setId(originalId);
         }
 
         TenantCompany tenantCompany = tenantCompanyRepo.getById(originalId);

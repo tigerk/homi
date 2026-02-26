@@ -108,17 +108,17 @@ public class TenantMateService {
         }
 
         // 构建原始同住人ID映射
-        Map<Integer, TenantMateVO> originalMateMap = originalMateList.stream()
+        Map<Long, TenantMateVO> originalMateMap = originalMateList.stream()
             .collect(Collectors.toMap(TenantMateVO::getId, mate -> mate));
 
         // 构建新同住人ID映射
-        Set<Integer> newMateIds = newMateList.stream()
+        Set<Long> newMateIds = newMateList.stream()
             .map(TenantMateDTO::getId)
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
 
         // 1. 删除不在新列表中的同住人
-        List<Integer> toDeleteIds = originalMateMap.keySet().stream()
+        List<Long> toDeleteIds = originalMateMap.keySet().stream()
             .filter(id -> !newMateIds.contains(id))
             .collect(Collectors.toList());
 
@@ -127,7 +127,7 @@ public class TenantMateService {
             // 删除关联的附件
             toDeleteIds.forEach(id -> {
                 fileAttachRepo.deleteByBizIdAndBizTypes(
-                    id.longValue(),
+                    id,
                     ListUtil.of(
                         FileAttachBizTypeEnum.TENANT_MATE_ID_CARD_BACK.getBizType(),
                         FileAttachBizTypeEnum.TENANT_MATE_ID_CARD_FRONT.getBizType(),
