@@ -42,8 +42,8 @@ public class TenantCompanyDTO {
     @Schema(description = "注册地址", example = "北京市朝阳区某街道")
     private String registeredAddress;
 
-    @Schema(description = "营业执照附件", example = "https://example.com/businessLicense.jpg")
-    private String businessLicenseUrl;
+    @Schema(description = "营业执照附件")
+    private List<String> businessLicenseUrls;
 
     @Schema(description = "租客标签 (JSON 格式)", example = "{\"key\":\"value\"}")
     private List<String> tags;

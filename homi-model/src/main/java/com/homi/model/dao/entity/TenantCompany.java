@@ -67,10 +67,6 @@ public class TenantCompany implements Serializable {
     @TableField("registered_address")
     private String registeredAddress;
 
-    @Schema(description = "营业执照附件")
-    @TableField("business_license_url")
-    private String businessLicenseUrl;
-
     @Schema(description = "租客标签")
     @TableField("tags")
     private String tags;
