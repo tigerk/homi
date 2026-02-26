@@ -1,5 +1,6 @@
 package com.homi.service.service.contract;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
@@ -148,7 +149,7 @@ public class ContractTemplateService {
         tenantDetailVO.setCompanyId(1001L);
         tenantDetailVO.setDeptId(2001L);
         tenantDetailVO.setDeptName("租赁一部");
-        tenantDetailVO.setRoomIds("[1001,1002]");
+        tenantDetailVO.setRoomIds(ListUtil.of(1001L, 1002L));
         tenantDetailVO.setTenantType(0); // 0=个人
         tenantDetailVO.setTenantTypeId(1L);
 
