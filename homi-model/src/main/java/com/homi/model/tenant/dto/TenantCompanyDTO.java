@@ -16,7 +16,7 @@ import java.util.List;
 public class TenantCompanyDTO {
 
     @Schema(description = "企业租客ID", example = "1")
-    private Integer id;
+    private Long id;
 
     @Schema(description = "企业名称", example = "光辉未来科技有限公司")
     private String companyName;

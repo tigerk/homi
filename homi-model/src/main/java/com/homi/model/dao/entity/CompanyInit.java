@@ -30,7 +30,7 @@ public class CompanyInit implements Serializable {
 
     @Schema(description = "主键ID")
     @TableId("id")
-    private Integer id;
+    private Long id;
 
     @Schema(description = "字典默认数据")
     @TableField("dicts")

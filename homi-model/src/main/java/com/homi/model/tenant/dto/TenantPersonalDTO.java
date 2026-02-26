@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 public class TenantPersonalDTO {
     @Schema(description = "租户ID")
-    private Integer id;
+    private Long id;
 
     @Schema(description = "公司ID")
     private Integer companyId;

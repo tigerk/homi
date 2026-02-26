@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 public class TenantMateDTO {
     @Schema(description = "同住人ID", example = "1")
-    private Integer id;
+    private Long id;
 
     @Schema(description = "租客ID", example = "1")
     private Integer tenantId;
