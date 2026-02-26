@@ -5,6 +5,7 @@ import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.dao.entity.Room;
 import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.RoomTrackDTO;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Objects;
 
 
 @RestController
@@ -106,7 +108,8 @@ public class RoomController {
      */
     @PostMapping("/price-config/save")
     @Log(title = "保存房间租金配置", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Boolean> saveRoomPriceConfig(@RequestBody PriceConfigDTO dto) {
+    public ResponseResult<Boolean> saveRoomPriceConfig(@RequestBody PriceConfigDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        dto.setUpdateBy(loginUser.getId());
         return ResponseResult.ok(priceConfigService.createOrUpdatePriceConfig(dto));
     }
 
@@ -118,7 +121,12 @@ public class RoomController {
      */
     @PostMapping("/price-config/get")
     public ResponseResult<PriceConfigDTO> getRoomPriceConfig(@RequestBody RoomIdDTO dto) {
+        Room roomById = roomService.getRoomById(dto.getRoomId());
+
         PriceConfigDTO config = roomService.getPriceConfigByRoomId(dto.getRoomId());
+        if (Objects.isNull(config.getPrice())) {
+            config.setPrice(roomById.getPrice());
+        }
         return ResponseResult.ok(config);
     }
 

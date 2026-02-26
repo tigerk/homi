@@ -8,6 +8,7 @@ import com.homi.model.dao.entity.RoomPriceConfig;
 import com.homi.model.dao.entity.RoomPricePlan;
 import com.homi.model.dao.repo.RoomPriceConfigRepo;
 import com.homi.model.dao.repo.RoomPricePlanRepo;
+import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -50,7 +52,11 @@ public class PriceConfigService {
 
         roomPriceConfig.setFloorPriceMethod(priceConfigDTO.getFloorPriceMethod());
         roomPriceConfig.setFloorPriceInput(priceConfigDTO.getFloorPriceInput());
-        roomPriceConfig.setOtherFees(JSONUtil.toJsonStr(priceConfigDTO.getOtherFees()));
+
+        // priceConfigDTO.getOtherFees() 过滤掉没有dicDataId 的数据。
+        List<OtherFeeDTO> otherFeeDTOS = priceConfigDTO.getOtherFees().stream().filter(of -> of.getDictDataId() != null).toList();
+        roomPriceConfig.setOtherFees(JSONUtil.toJsonStr(otherFeeDTOS));
+        roomPriceConfig.setUpdateBy(priceConfigDTO.getUpdateBy());
 
         LambdaQueryWrapper<RoomPriceConfig> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(RoomPriceConfig::getRoomId, priceConfigDTO.getRoomId());
@@ -59,9 +65,12 @@ public class PriceConfigService {
         if (existingConfig != null) {
             // 如果存在，更新记录
             roomPriceConfig.setId(existingConfig.getId()); // 设置ID以确保更新正确的记录
+
             roomPriceConfigRepo.updateById(roomPriceConfig);
         } else {
             // 如果不存在，保存新记录
+            roomPriceConfig.setCreateBy(priceConfigDTO.getUpdateBy());
+
             roomPriceConfigRepo.save(roomPriceConfig);
         }
 

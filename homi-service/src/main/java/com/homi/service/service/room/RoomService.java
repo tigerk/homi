@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
-import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.JsonUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -203,7 +202,11 @@ public class RoomService {
                 roomDetailVO.setFacilities(JSONUtil.toList(room.getFacilities(), FacilityItemDTO.class));
             }
 
-            roomDetailVO.setPriceConfig(getPriceConfigByRoomId(room.getId()));
+            PriceConfigDTO priceConfigByRoomId = getPriceConfigByRoomId(room.getId());
+            if(Objects.isNull(priceConfigByRoomId.getPrice())) {
+                priceConfigByRoomId.setPrice(room.getPrice());
+            }
+            roomDetailVO.setPriceConfig(priceConfigByRoomId);
 
             return roomDetailVO;
         }).toList();
@@ -220,8 +223,10 @@ public class RoomService {
      */
     public PriceConfigDTO getPriceConfigByRoomId(Long roomId) {
         PriceConfigDTO priceConfigDTO = new PriceConfigDTO();
+        priceConfigDTO.setRoomId(roomId);
 
         RoomPriceConfig roomPriceConfig = roomPriceConfigRepo.getByRoomId(roomId);
+
         if (Objects.nonNull(roomPriceConfig)) {
             BeanUtils.copyProperties(roomPriceConfig, priceConfigDTO);
             List<OtherFeeDTO> otherFeeDTOList = JSONUtil.toList(roomPriceConfig.getOtherFees(), OtherFeeDTO.class);
@@ -363,5 +368,9 @@ public class RoomService {
         House house = houseRepo.getById(room.getHouseId());
 
         return String.format("%s-%s", house.getHouseName(), room.getRoomNumber());
+    }
+
+    public Room getRoomById(Long roomId) {
+        return roomRepo.getById(roomId);
     }
 }

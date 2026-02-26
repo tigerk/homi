@@ -10,6 +10,8 @@
                t.tenant_name  AS tenant_name,
                t.tenant_phone as tenant_phone,
                l.rent_price,
+               l.deposit_months,
+               l.payment_months,
                l.lease_start,
                l.lease_end,
                l.status,

@@ -37,6 +37,12 @@ public class LeaseLiteVO {
     @Schema(description = "租金价格")
     private BigDecimal rentPrice;
 
+    @Schema(description = "押金月数")
+    private Integer depositMonths;
+
+    @Schema(description = "支付周期（月）")
+    private Integer paymentMonths;
+
     @Schema(description = "租赁开始时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date leaseStart;

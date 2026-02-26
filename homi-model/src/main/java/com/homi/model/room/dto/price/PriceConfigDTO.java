@@ -42,4 +42,7 @@ public class PriceConfigDTO {
     @Schema(description = "房间租金方案表")
     private List<PricePlanDTO> pricePlans;
 
+    @Schema(description = "更新人")
+    private Long updateBy;
+
 }
