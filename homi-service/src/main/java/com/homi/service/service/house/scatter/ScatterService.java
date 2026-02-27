@@ -260,6 +260,7 @@ public class ScatterService {
         }
 
         roomCreateDTO.getPriceConfig().setRoomId(room.getId());
+        roomCreateDTO.getPriceConfig().setPrice(room.getPrice());
         priceConfigService.createOrUpdatePriceConfig(roomCreateDTO.getPriceConfig());
     }
 
