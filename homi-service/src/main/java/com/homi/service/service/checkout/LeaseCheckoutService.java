@@ -17,8 +17,8 @@ import com.homi.common.lib.enums.checkout.CheckoutFeeTypeEnum;
 import com.homi.common.lib.enums.checkout.CheckoutSettlementMethodEnum;
 import com.homi.common.lib.enums.checkout.CheckoutStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutTypeEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
+import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -57,6 +57,7 @@ public class LeaseCheckoutService {
     private final LeaseCheckoutFeeRepo leaseCheckoutFeeRepo;
     private final TenantRepo tenantRepo;
     private final LeaseRepo leaseRepo;
+    private final LeaseRoomRepo leaseRoomRepo;
     private final LeaseBillRepo leaseBillRepo;
     private final RoomService roomService;
     private final UserService userService;
@@ -69,12 +70,7 @@ public class LeaseCheckoutService {
      * 返回合同信息、未付账单、预填费用行
      */
     public LeaseCheckoutInitVO getCheckoutInitData(LeaseCheckoutQueryDTO query) {
-        Tenant tenant = tenantRepo.getById(query.getTenantId());
-        if (tenant == null) {
-            throw new BizException("租客不存在");
-        }
-
-        Lease lease = query.getLeaseId() != null ? leaseRepo.getById(query.getLeaseId()) : leaseRepo.getCurrentLeaseByTenantId(query.getTenantId(), LeaseStatusEnum.getValidStatus());
+        Lease lease = leaseRepo.getById(query.getLeaseId());
         if (lease == null) {
             throw new BizException("租约不存在");
         }
@@ -89,7 +85,7 @@ public class LeaseCheckoutService {
         }
 
         // 获取房间信息
-        List<Long> roomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
+        List<Long> roomIds = leaseRoomRepo.getListByLeaseId(lease.getId()).stream().map(LeaseRoom::getRoomId).toList();
         String roomAddress = roomService.getRoomAddressByIds(roomIds);
 
         // 获取未付账单
@@ -122,6 +118,11 @@ public class LeaseCheckoutService {
 
         // 构建预填费用行（根据未付账单自动生成）
         List<LeaseCheckoutInitVO.PresetFeeVO> presetFees = buildPresetFees(lease, unpaidBills, depositAmount);
+
+        Tenant tenant = tenantRepo.getById(query.getTenantId());
+        if (tenant == null) {
+            throw new BizException("租客不存在");
+        }
 
         // 收款人信息
         LeaseCheckoutInitVO.PayeeInfoVO payeeInfo = LeaseCheckoutInitVO.PayeeInfoVO.builder()
@@ -199,11 +200,7 @@ public class LeaseCheckoutService {
      */
     @Transactional(rollbackFor = Exception.class)
     public Long saveCheckout(LeaseCheckoutDTO dto) {
-        Tenant tenant = tenantRepo.getById(dto.getTenantId());
-        if (tenant == null) {
-            throw new BizException("租客不存在");
-        }
-        Lease lease = dto.getLeaseId() != null ? leaseRepo.getById(dto.getLeaseId()) : leaseRepo.getCurrentLeaseByTenantId(dto.getTenantId(), LeaseStatusEnum.getValidStatus());
+        Lease lease = leaseRepo.getById(dto.getLeaseId());
         if (lease == null) {
             throw new BizException("租约不存在");
         }
@@ -469,21 +466,6 @@ public class LeaseCheckoutService {
      */
     public LeaseCheckoutVO getCheckoutDetail(Long checkoutId) {
         LeaseCheckout checkout = leaseCheckoutRepo.getById(checkoutId);
-        if (checkout == null) {
-            return null;
-        }
-        return convertToVO(checkout);
-    }
-
-    /**
-     * 根据租客ID获取退租单
-     */
-    public LeaseCheckoutVO getCheckoutByTenantId(Long tenantId) {
-        Lease lease = leaseRepo.getCurrentLeaseByTenantId(tenantId, LeaseStatusEnum.getValidStatus());
-        if (lease == null) {
-            return null;
-        }
-        LeaseCheckout checkout = leaseCheckoutRepo.getByLeaseId(lease.getId());
         if (checkout == null) {
             return null;
         }

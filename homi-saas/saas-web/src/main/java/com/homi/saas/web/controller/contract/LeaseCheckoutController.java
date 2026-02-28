@@ -1,5 +1,6 @@
 package com.homi.saas.web.controller.contract;
 
+import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.checkout.dto.LeaseCheckoutDTO;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 退租管理 Controller（退租并结账）
  */
 @RestController
-@RequestMapping("/saas/tenant/checkout")
+@RequestMapping("/saas/lease/checkout")
 @RequiredArgsConstructor
 public class LeaseCheckoutController {
 
@@ -31,8 +32,7 @@ public class LeaseCheckoutController {
      * 获取退租初始化数据（合同信息 + 未付账单 + 预填费用）
      */
     @PostMapping("/init")
-    public ResponseResult<LeaseCheckoutInitVO> getCheckoutInitData(
-        @RequestBody LeaseCheckoutQueryDTO query) {
+    public ResponseResult<LeaseCheckoutInitVO> getCheckoutInitData(@RequestBody LeaseCheckoutQueryDTO query) {
         LeaseCheckoutInitVO data = leaseCheckoutService.getCheckoutInitData(query);
         return ResponseResult.ok(data);
     }
@@ -85,12 +85,13 @@ public class LeaseCheckoutController {
     /**
      * 根据租客ID获取退租单
      */
-    @PostMapping("/getByTenant")
-    public ResponseResult<LeaseCheckoutVO> getCheckoutByTenantId(
-        @RequestBody LeaseCheckoutQueryDTO query) {
-        LeaseCheckoutVO vo = query.getLeaseId() != null
-            ? leaseCheckoutService.getCheckoutByLeaseId(query.getLeaseId())
-            : leaseCheckoutService.getCheckoutByTenantId(query.getTenantId());
+    @PostMapping("/getByLease")
+    public ResponseResult<LeaseCheckoutVO> getCheckoutByLeaseId(@RequestBody LeaseCheckoutQueryDTO query) {
+        if (query.getLeaseId() == null) {
+            return ResponseResult.fail(ResponseCodeEnum.FAIL, "租约ID不能为空");
+        }
+
+        LeaseCheckoutVO vo = leaseCheckoutService.getCheckoutByLeaseId(query.getLeaseId());
         return ResponseResult.ok(vo);
     }
 
