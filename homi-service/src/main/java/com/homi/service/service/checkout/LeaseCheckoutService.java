@@ -75,10 +75,6 @@ public class LeaseCheckoutService {
             throw new BizException("租约不存在");
         }
 
-        if (query.getLeaseId() != null && !query.getTenantId().equals(lease.getTenantId())) {
-            throw new BizException("租约与租客不匹配");
-        }
-
         // 检查是否有进行中的退租单
         if (leaseCheckoutRepo.hasActiveCheckoutByLeaseId(lease.getId())) {
             throw new BizException("该租客已有进行中的退租单");
@@ -119,7 +115,7 @@ public class LeaseCheckoutService {
         // 构建预填费用行（根据未付账单自动生成）
         List<LeaseCheckoutInitVO.PresetFeeVO> presetFees = buildPresetFees(lease, unpaidBills, depositAmount);
 
-        Tenant tenant = tenantRepo.getById(query.getTenantId());
+        Tenant tenant = tenantRepo.getById(lease.getTenantId());
         if (tenant == null) {
             throw new BizException("租客不存在");
         }
@@ -131,7 +127,7 @@ public class LeaseCheckoutService {
             .build();
 
         return LeaseCheckoutInitVO.builder()
-            .tenantId(query.getTenantId())
+            .tenantId(lease.getTenantId())
             .leaseId(lease.getId())
             .roomAddress(roomAddress)
             .leaseStart(lease.getLeaseStart())

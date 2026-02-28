@@ -30,6 +30,9 @@ public class RoomDetailVO {
     @Schema(description = "房间id")
     private Long id;
 
+    @Schema(description = "房源id")
+    private Long houseId;
+
     @Schema(description = "房间号")
     private String roomNumber;
 
