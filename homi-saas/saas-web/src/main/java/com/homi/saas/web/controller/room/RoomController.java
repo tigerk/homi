@@ -8,6 +8,7 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Room;
 import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
+import com.homi.model.room.dto.RoomSaveRemarkDTO;
 import com.homi.model.room.dto.RoomTrackDTO;
 import com.homi.model.room.dto.grid.RoomGridDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
@@ -135,5 +136,12 @@ public class RoomController {
         dto.setUpdateBy(loginUser.getId());
         dto.setCompanyId(loginUser.getCurCompanyId());
         return ResponseResult.ok(roomTrackService.addRoomTrack(dto));
+    }
+
+    @PostMapping("/remark/save")
+    @Log(title = "保存房间备注", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> saveRoomRemark(@RequestBody RoomSaveRemarkDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        dto.setUpdateBy(loginUser.getId());
+        return ResponseResult.ok(roomService.addRoomRemark(dto));
     }
 }

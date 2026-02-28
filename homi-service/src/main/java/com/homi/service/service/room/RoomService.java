@@ -17,6 +17,7 @@ import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
+import com.homi.model.room.dto.RoomSaveRemarkDTO;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.room.dto.price.PricePlanDTO;
@@ -391,5 +392,14 @@ public class RoomService {
         currentLeasesByRoomId.setRoomList(roomList);
 
         return currentLeasesByRoomId;
+    }
+
+    public Long addRoomRemark(RoomSaveRemarkDTO dto) {
+        Room room = roomRepo.getById(dto.getRoomId());
+        room.setRemark(dto.getRemark());
+        room.setUpdateBy(dto.getUpdateBy());
+        roomRepo.updateById(room);
+
+        return room.getId();
     }
 }
