@@ -4,7 +4,7 @@ import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.model.approval.vo.ApprovalInstanceVO;
 import com.homi.model.approval.vo.ApprovalTodoVO;
 import com.homi.model.tenant.vo.LeaseDetailVO;
-import com.homi.service.service.tenant.TenantService;
+import com.homi.service.service.tenant.LeaseService;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -20,10 +20,10 @@ import java.util.Objects;
 @Component
 public class TenantApprovalDetailProvider implements ApprovalBizDetailProvider {
 
-    private final TenantService tenantService;
+    private final LeaseService leaseService;
 
-    public TenantApprovalDetailProvider(TenantService tenantService) {
-        this.tenantService = tenantService;
+    public TenantApprovalDetailProvider(LeaseService leaseService) {
+        this.leaseService = leaseService;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class TenantApprovalDetailProvider implements ApprovalBizDetailProvider {
 
     @Override
     public void fillTodoBizDetail(ApprovalTodoVO todoVO, Long bizId) {
-        LeaseDetailVO leaseDetail = tenantService.getLeaseDetailById(bizId);
+        LeaseDetailVO leaseDetail = leaseService.getLeaseDetailById(bizId);
         if (Objects.nonNull(leaseDetail)) {
             todoVO.setTenantDetail(leaseDetail);
         }
@@ -41,7 +41,7 @@ public class TenantApprovalDetailProvider implements ApprovalBizDetailProvider {
 
     @Override
     public void fillInstanceBizDetail(ApprovalInstanceVO instanceVO, Long bizId) {
-        LeaseDetailVO leaseDetail = tenantService.getLeaseDetailById(bizId);
+        LeaseDetailVO leaseDetail = leaseService.getLeaseDetailById(bizId);
         if (Objects.nonNull(leaseDetail)) {
             instanceVO.setTenantDetail(leaseDetail);
         }

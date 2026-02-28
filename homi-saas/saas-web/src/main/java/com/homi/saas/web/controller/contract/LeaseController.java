@@ -18,7 +18,7 @@ import com.homi.model.tenant.vo.bill.LeaseBillListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.tenant.LeaseBillService;
 import com.homi.service.service.tenant.LeaseContractService;
-import com.homi.service.service.tenant.TenantService;
+import com.homi.service.service.tenant.LeaseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
@@ -49,45 +49,45 @@ import java.util.List;
 @RestController
 @RequestMapping("/saas/contract/lease")
 public class LeaseController {
-    private final TenantService tenantService;
+    private final LeaseService leaseService;
     private final LeaseBillService leaseBillService;
     private final LeaseContractService leaseContractService;
 
     @PostMapping("/create")
     @Log(title = "创建租客", operationType = OperationTypeEnum.INSERT)
-    public ResponseResult<Long> createTenant(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<Long> createLease(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         createDTO.setCreateBy(loginUser.getId());
         if (createDTO.getLease() != null) {
             createDTO.getLease().setCompanyId(loginUser.getCurCompanyId());
         }
 
-        return ResponseResult.ok(tenantService.saveTenantOrFromBooking(createDTO));
+        return ResponseResult.ok(leaseService.saveTenantOrFromBooking(createDTO));
     }
 
     @PostMapping("/renew")
     @Log(title = "租客续签", operationType = OperationTypeEnum.INSERT)
-    public ResponseResult<Long> renewLease(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<Long> renew(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         createDTO.setCreateBy(loginUser.getId());
         if (createDTO.getLease() != null) {
             createDTO.getLease().setCompanyId(loginUser.getCurCompanyId());
         }
-        return ResponseResult.ok(tenantService.saveTenantOrFromBooking(createDTO));
+        return ResponseResult.ok(leaseService.saveTenantOrFromBooking(createDTO));
     }
 
     @PostMapping("/update")
     @Log(title = "修改租客", operationType = OperationTypeEnum.INSERT)
-    public ResponseResult<Long> updateTenant(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<Long> updateLease(@RequestBody TenantCreateDTO createDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         createDTO.setCreateBy(loginUser.getId());
         if (createDTO.getLease() != null) {
             createDTO.getLease().setCompanyId(loginUser.getCurCompanyId());
         }
 
-        return ResponseResult.ok(tenantService.updateTenant(createDTO));
+        return ResponseResult.ok(leaseService.updateTenant(createDTO));
     }
 
     @PostMapping("/total")
-    public ResponseResult<TenantTotalVO> getTenantTotal(@RequestBody TenantQueryDTO query) {
-        List<TenantTotalItemVO> tenantStatusTotal = tenantService.getTenantStatusTotal(query);
+    public ResponseResult<TenantTotalVO> getLeaseTotal(@RequestBody TenantQueryDTO query) {
+        List<TenantTotalItemVO> tenantStatusTotal = leaseService.getTenantStatusTotal(query);
         TenantTotalVO tenantTotalVO = new TenantTotalVO();
         tenantTotalVO.setStatusList(tenantStatusTotal);
 
@@ -95,14 +95,14 @@ public class LeaseController {
     }
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<LeaseListVO>> getTenantList(@RequestBody TenantQueryDTO query) {
-        return ResponseResult.ok(tenantService.getTenantList(query));
+    public ResponseResult<PageVO<LeaseListVO>> getLeaseList(@RequestBody TenantQueryDTO query) {
+        return ResponseResult.ok(leaseService.getLeaseList(query));
     }
 
     @PostMapping("/detail")
     @Schema(description = "根据租约ID查询租约详情，不包含租客账单其他费用")
     public ResponseResult<LeaseDetailVO> getTenantDetail(@RequestBody TenantQueryDTO query) {
-        return ResponseResult.ok(tenantService.getLeaseDetailById(query.getLeaseId()));
+        return ResponseResult.ok(leaseService.getLeaseDetailById(query.getLeaseId()));
     }
 
     @PostMapping("/bill/list")
@@ -127,7 +127,7 @@ public class LeaseController {
     @PostMapping(value = "/contract/download")
     @Log(title = "下载租客合同", operationType = OperationTypeEnum.INSERT)
     public ResponseEntity<byte[]> download(@RequestBody TenantQueryDTO query) {
-        byte[] pdfBytes = tenantService.downloadContract(query.getLeaseId());
+        byte[] pdfBytes = leaseService.downloadContract(query.getLeaseId());
 
         // 保存到本地，检查生成的 pdf 是否准确
         try (OutputStream os = new FileOutputStream("租客合同_" + DateUtil.date().toTimestamp() + ".pdf")) {
@@ -151,7 +151,7 @@ public class LeaseController {
     @PostMapping(value = "/contract/generate")
     @Log(title = "生成租客合同", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<LeaseContractVO> generate(@RequestBody LeaseContractGenerateDTO query) {
-        LeaseDetailVO leaseDetailVO = tenantService.getLeaseDetailById(query.getLeaseId());
+        LeaseDetailVO leaseDetailVO = leaseService.getLeaseDetailById(query.getLeaseId());
         if (leaseDetailVO == null) {
             throw new IllegalArgumentException("Lease not found");
         }

@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TenantService {
+public class LeaseService {
     private final RoomRepo roomRepo;
     private final TenantRepo tenantRepo;
     private final LeaseRepo leaseRepo;
@@ -98,7 +98,7 @@ public class TenantService {
      * @param query 查询参数
      * @return 租客列表
      */
-    public PageVO<LeaseListVO> getTenantList(TenantQueryDTO query) {
+    public PageVO<LeaseListVO> getLeaseList(TenantQueryDTO query) {
         List<Long> tenantIds = null;
         if (query.getName() != null || query.getPhone() != null || query.getTenantType() != null) {
             tenantIds = tenantRepo.lambdaQuery()
