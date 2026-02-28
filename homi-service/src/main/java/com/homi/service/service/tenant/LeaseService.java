@@ -3,6 +3,7 @@ package com.homi.service.service.tenant;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.StatusEnum;
@@ -10,10 +11,10 @@ import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.booking.BookingStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.common.lib.enums.room.RoomStatusEnum;
-import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
@@ -98,17 +99,11 @@ public class LeaseService {
      * @param query 查询参数
      * @return 租客列表
      */
-    public PageVO<LeaseListVO> getLeaseList(TenantQueryDTO query) {
-        List<Long> tenantIds = null;
-        if (query.getName() != null || query.getPhone() != null || query.getTenantType() != null) {
-            tenantIds = tenantRepo.lambdaQuery()
-                .like(query.getName() != null && !query.getName().isBlank(), Tenant::getTenantName, query.getName())
-                .eq(query.getPhone() != null && !query.getPhone().isBlank(), Tenant::getTenantPhone, query.getPhone())
-                .eq(query.getTenantType() != null, Tenant::getTenantType, query.getTenantType())
-                .list()
-                .stream()
-                .map(Tenant::getId)
-                .toList();
+    public PageVO<LeaseListVO> getLeaseList(LeaseQueryDTO query) {
+        List<Long> tenantIds = new ArrayList<>();
+        if (CharSequenceUtil.isNotBlank(query.getName()) || CharSequenceUtil.isNotBlank(query.getPhone()) || Objects.nonNull(query.getTenantType())) {
+            List<Tenant> tenantList = tenantRepo.getTenantList(query.getName(), query.getPhone(), query.getTenantType());
+            tenantList.stream().map(Tenant::getId).forEach(tenantIds::add);
         }
 
         PageVO<LeaseListVO> leaseList = leaseRepo.queryLeaseList(query, tenantIds);
@@ -356,7 +351,7 @@ public class LeaseService {
      * @param query 参数说明
      * @return java.util.List<com.homi.model.vo.tenantPersonal.TenantTotalItemVO>
      */
-    public List<TenantTotalItemVO> getTenantStatusTotal(TenantQueryDTO query) {
+    public List<TenantTotalItemVO> getTenantStatusTotal(LeaseQueryDTO query) {
         Map<Integer, TenantTotalItemVO> result = initTenantTotalItemMap();
         for (TenantTotalItemVO item : result.values()) {
             Long count = leaseRepo.lambdaQuery()

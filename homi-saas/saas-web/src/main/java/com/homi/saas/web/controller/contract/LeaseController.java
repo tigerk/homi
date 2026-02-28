@@ -11,8 +11,8 @@ import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.tenant.dto.LeaseContractGenerateDTO;
+import com.homi.model.tenant.dto.LeaseQueryDTO;
 import com.homi.model.tenant.dto.TenantCreateDTO;
-import com.homi.model.tenant.dto.TenantQueryDTO;
 import com.homi.model.tenant.vo.*;
 import com.homi.model.tenant.vo.bill.LeaseBillListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -86,7 +86,7 @@ public class LeaseController {
     }
 
     @PostMapping("/total")
-    public ResponseResult<TenantTotalVO> getLeaseTotal(@RequestBody TenantQueryDTO query) {
+    public ResponseResult<TenantTotalVO> getLeaseTotal(@RequestBody LeaseQueryDTO query) {
         List<TenantTotalItemVO> tenantStatusTotal = leaseService.getTenantStatusTotal(query);
         TenantTotalVO tenantTotalVO = new TenantTotalVO();
         tenantTotalVO.setStatusList(tenantStatusTotal);
@@ -95,19 +95,19 @@ public class LeaseController {
     }
 
     @PostMapping("/list")
-    public ResponseResult<PageVO<LeaseListVO>> getLeaseList(@RequestBody TenantQueryDTO query) {
+    public ResponseResult<PageVO<LeaseListVO>> getLeaseList(@RequestBody LeaseQueryDTO query) {
         return ResponseResult.ok(leaseService.getLeaseList(query));
     }
 
     @PostMapping("/detail")
     @Schema(description = "根据租约ID查询租约详情，不包含租客账单其他费用")
-    public ResponseResult<LeaseDetailVO> getTenantDetail(@RequestBody TenantQueryDTO query) {
+    public ResponseResult<LeaseDetailVO> getTenantDetail(@RequestBody LeaseQueryDTO query) {
         return ResponseResult.ok(leaseService.getLeaseDetailById(query.getLeaseId()));
     }
 
     @PostMapping("/bill/list")
     @Operation(summary = "根据租客ID查询租客账单列表")
-    public ResponseResult<List<LeaseBillListVO>> getBillList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<List<LeaseBillListVO>> getBillList(@RequestBody LeaseQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.TRUE));
     }
 
@@ -120,13 +120,13 @@ public class LeaseController {
      */
     @PostMapping("/bill/invalid/list")
     @Operation(summary = "根据租客ID查询租客无效账单列表")
-    public ResponseResult<List<LeaseBillListVO>> getBillInvalidList(@RequestBody TenantQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+    public ResponseResult<List<LeaseBillListVO>> getBillInvalidList(@RequestBody LeaseQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.FALSE));
     }
 
     @PostMapping(value = "/contract/download")
     @Log(title = "下载租客合同", operationType = OperationTypeEnum.INSERT)
-    public ResponseEntity<byte[]> download(@RequestBody TenantQueryDTO query) {
+    public ResponseEntity<byte[]> download(@RequestBody LeaseQueryDTO query) {
         byte[] pdfBytes = leaseService.downloadContract(query.getLeaseId());
 
         // 保存到本地，检查生成的 pdf 是否准确
@@ -181,7 +181,7 @@ public class LeaseController {
 
     @PostMapping(value = "/cancel")
     @Log(title = "租客作废", operationType = OperationTypeEnum.INSERT)
-    public ResponseResult<Integer> cancelTenant(@RequestBody TenantQueryDTO query) {
+    public ResponseResult<Integer> cancelTenant(@RequestBody LeaseQueryDTO query) {
 
         return ResponseResult.ok(leaseContractService.cancelLease(query.getLeaseId()));
     }
@@ -193,7 +193,7 @@ public class LeaseController {
      * {@code @date} 2025/11/12 17:32
      */
     @PostMapping("/contract/preview")
-    public ResponseEntity<byte[]> previewLeaseContract(@RequestBody TenantQueryDTO query) {
+    public ResponseEntity<byte[]> previewLeaseContract(@RequestBody LeaseQueryDTO query) {
         LeaseContractVO leaseContractVO = leaseContractService.getContractByLeaseId(query.getLeaseId());
         if (leaseContractVO == null) {
             throw new IllegalArgumentException("Tenant Contract not found");

@@ -1,9 +1,14 @@
 package com.homi.model.dao.repo;
 
+import cn.hutool.core.text.CharSequenceUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.mapper.TenantMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -15,27 +20,27 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TenantRepo extends ServiceImpl<TenantMapper, Tenant> {
-    public Tenant findOrCreateTenant(Long companyId, Integer tenantType, Long tenantTypeId,
-                                     String tenantName, String tenantPhone, Long createBy) {
-        Tenant existing = lambdaQuery()
-            .eq(Tenant::getTenantTypeId, tenantTypeId)
-            .eq(Tenant::getTenantType, tenantType)
-            .one();
-
-        if (existing != null) {
-            return existing;
+    /**
+     * 获取租客列表
+     *
+     * @param name       租客名称
+     * @param phone      租客手机号
+     * @param tenantType 租客类型
+     * @return 租客列表
+     */
+    public List<Tenant> getTenantList(String name, String phone, Integer tenantType) {
+        LambdaQueryWrapper<Tenant> query = new LambdaQueryWrapper<>();
+        if (CharSequenceUtil.isNotBlank(name)) {
+            query.like(Tenant::getTenantName, name);
+        }
+        if (CharSequenceUtil.isNotBlank(phone)) {
+            query.like(Tenant::getTenantPhone, phone);
         }
 
-        Tenant tenant = new Tenant();
-        tenant.setCompanyId(companyId);
-        tenant.setTenantType(tenantType);
-        tenant.setTenantTypeId(tenantTypeId);
-        tenant.setTenantName(tenantName);
-        tenant.setTenantPhone(tenantPhone);
-        tenant.setStatus(1);
-        tenant.setCreateBy(createBy);
-        tenant.setCreateTime(new java.util.Date());
-        save(tenant);
-        return tenant;
+        if (Objects.nonNull(tenantType)) {
+            query.eq(Tenant::getTenantType, tenantType);
+        }
+
+        return list(query);
     }
 }

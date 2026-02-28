@@ -14,7 +14,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class TenantQueryDTO extends PageDTO {
+public class LeaseQueryDTO extends PageDTO {
     @Schema(description = "租客 ID", example = "1")
     private Long tenantId;
 

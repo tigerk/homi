@@ -1,5 +1,6 @@
 package com.homi.model.dao.repo;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -9,7 +10,7 @@ import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.mapper.LeaseMapper;
-import com.homi.model.tenant.dto.TenantQueryDTO;
+import com.homi.model.tenant.dto.LeaseQueryDTO;
 import com.homi.model.tenant.vo.LeaseListVO;
 import com.homi.model.tenant.vo.LeaseLiteVO;
 import org.springframework.stereotype.Service;
@@ -19,12 +20,7 @@ import java.util.List;
 
 @Service
 public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
-
-    public PageVO<LeaseListVO> queryLeaseList(TenantQueryDTO query) {
-        return queryLeaseList(query, null);
-    }
-
-    public PageVO<LeaseListVO> queryLeaseList(TenantQueryDTO query, List<Long> tenantIds) {
+    public PageVO<LeaseListVO> queryLeaseList(LeaseQueryDTO query, List<Long> tenantIds) {
         Page<Lease> page = new Page<>(query.getCurrentPage(), query.getPageSize());
 
         LambdaQueryWrapper<Lease> wrapper = new LambdaQueryWrapper<>();
@@ -32,15 +28,8 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
             wrapper.eq(Lease::getStatus, query.getStatus());
         }
 
-        if (tenantIds != null) {
-            if (tenantIds.isEmpty()) {
-                return new PageVO<>();
-            }
+        if (CollUtil.isNotEmpty(tenantIds)) {
             wrapper.in(Lease::getTenantId, tenantIds);
-        }
-
-        if (query.getRoomId() != null) {
-            wrapper.apply("JSON_CONTAINS(room_ids, {0})", String.valueOf(query.getRoomId()));
         }
 
         wrapper.orderByDesc(Lease::getId);
