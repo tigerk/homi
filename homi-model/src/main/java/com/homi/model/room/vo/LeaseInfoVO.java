@@ -18,6 +18,9 @@ import java.util.Date;
 @Builder
 @Schema(description = "房间的租约信息，包括预定")
 public class LeaseInfoVO {
+    private Long leaseId;
+    private Long bookingId;
+
     @Schema(description = "租约开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date leaseStartDate;

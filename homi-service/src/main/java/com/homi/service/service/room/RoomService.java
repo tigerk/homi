@@ -275,6 +275,7 @@ public class RoomService {
             if (lease != null) {
                 Tenant tenant = tenantRepo.getById(lease.getTenantId());
                 return LeaseInfoVO.builder()
+                    .leaseId(lease.getLeaseId())
                     .tenantName(tenant != null ? tenant.getTenantName() : "")
                     .tenantPhone(tenant != null ? tenant.getTenantPhone() : "")
                     .leaseStartDate(lease.getLeaseStart())
@@ -288,6 +289,7 @@ public class RoomService {
             Booking booking = bookingRepo.getCurrentBookingByRoomId(roomId);
             if (booking != null) {
                 return LeaseInfoVO.builder()
+                    .bookingId(booking.getId())
                     .tenantName(booking.getTenantName())
                     .tenantPhone(booking.getTenantPhone())
                     .leaseStartDate(booking.getExpectedLeaseStart())
