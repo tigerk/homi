@@ -98,7 +98,7 @@
         order by r.id desc
     </select>
 
-    <select id="getStatusTotal" resultType="com.homi.model.room.vo.RoomTotalItemVO">
+    <select id="getStatusTotal" resultType="com.homi.model.room.vo.RoomOccupancyStatusTotalVO">
         SELECT occupancy_status, count(occupancy_status) AS total
         FROM room r
                  LEFT JOIN house h ON r.house_id = h.id
@@ -120,8 +120,8 @@
             </foreach>
         </if>
 
-        <if test="query.roomStatus != null and query.roomStatus != ''">
-            and r.room_status = #{query.roomStatus,jdbcType=INTEGER}
+        <if test="query.locked == null and query.closed == null and query.occupancyStatus != null">
+            and r.occupancy_status = #{query.occupancyStatus,jdbcType=INTEGER}
         </if>
 
         <if test="query.locked != null">

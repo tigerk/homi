@@ -36,7 +36,7 @@ public class RoomQueryDTO extends PageDTO {
 
     // ========== 房间状态查询（三个独立维度，不可混用）==========
     @Schema(description = "出租占用状态：0=空置，1=已租，2=已预定，3=配置中。locked=true 或 closed=true 时此字段无效")
-    private Integer roomStatus;
+    private Integer occupancyStatus;
 
     @Schema(description = "管理锁定状态：true=只查锁定房间。与 roomStatus 互斥，locked=true 时忽略 roomStatus")
     private Boolean locked;

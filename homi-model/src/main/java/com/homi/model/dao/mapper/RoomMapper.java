@@ -2,11 +2,11 @@ package com.homi.model.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.homi.model.dao.entity.Room;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.vo.RoomListVO;
-import com.homi.model.room.vo.RoomTotalItemVO;
+import com.homi.model.room.vo.RoomOccupancyStatusTotalVO;
 import com.homi.model.room.vo.grid.RoomAggregatedVO;
-import com.homi.model.dao.entity.Room;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -35,7 +35,7 @@ public interface RoomMapper extends BaseMapper<Room> {
      */
     IPage<RoomListVO> pageRoomList(IPage<RoomListVO> page, @Param("query") RoomQueryDTO query);
 
-    List<RoomTotalItemVO> getStatusTotal(@Param("query") RoomQueryDTO query);
+    List<RoomOccupancyStatusTotalVO> getStatusTotal(@Param("query") RoomQueryDTO query);
 
     /**
      * 查询小区的聚合数据

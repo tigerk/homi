@@ -107,9 +107,9 @@ public class RoomService {
     public RoomTotalVO getRoomStatusTotal(RoomQueryDTO query) {
         // 查询时不传 occupancyStatus / locked / closed，统计全量
         // 1. 业务状态统计（GROUP BY occupancy_status，只统计 closed=0 且 locked=0 的）
-        List<RoomTotalItemVO> statusRows = roomRepo.getBaseMapper().getStatusTotal(query);
+        List<RoomOccupancyStatusTotalVO> statusRows = roomRepo.getBaseMapper().getStatusTotal(query);
         Map<Integer, Integer> statusCountMap = statusRows.stream()
-            .collect(Collectors.toMap(RoomTotalItemVO::getRoomStatus, RoomTotalItemVO::getTotal));
+            .collect(Collectors.toMap(RoomOccupancyStatusTotalVO::getOccupancyStatus, RoomOccupancyStatusTotalVO::getTotal));
 
         // 2. 管理状态统计
         int lockedCount = roomRepo.countByLocked(query);
@@ -124,7 +124,7 @@ public class RoomService {
         statusList.add(RoomDisplayStatus.buildLockedItem(lockedCount));
 
         // 4. 全部 = 所有状态数量之和
-        int total = statusRows.stream().mapToInt(RoomTotalItemVO::getTotal).sum();
+        int total = statusRows.stream().mapToInt(RoomOccupancyStatusTotalVO::getTotal).sum();
 
         RoomTotalVO result = new RoomTotalVO();
         result.setTotal(total);
