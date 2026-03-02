@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -151,20 +152,31 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         return true;
     }
 
-    public Boolean lockRoomById(Long roomId) {
-        return lambdaUpdate()
-            .set(Room::getLocked, true)
-            .set(Room::getRoomStatus, RoomStatusEnum.LOCKED.getCode())
-            .eq(Room::getId, roomId)
-            .update();
+    /**
+     * 重置房间状态
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/1/9 12:00
+     *
+     * @param room 参数说明
+     * @return java.lang.Boolean
+     */
+    public Boolean resetRoomStatus(Room room) {
+        room.setRoomStatus(calculateRoomStatus(room).getCode());
+
+        return updateById(room);
     }
 
     public Boolean unlockRoomById(Long roomId) {
-        return lambdaUpdate()
-            .set(Room::getLocked, false)
-            .set(Room::getRoomStatus, RoomStatusEnum.AVAILABLE.getCode())
-            .eq(Room::getId, roomId)
-            .update();
+        Room room = getById(roomId);
+        if (Objects.isNull(room)) {
+            throw new BizException("房间不存在");
+        }
+
+        room.setLocked(Boolean.FALSE);
+        room.setRoomStatus(calculateRoomStatus(room).getCode());
+
+        return updateById(room);
     }
 
     public Boolean closeRoomById(Long roomId) {

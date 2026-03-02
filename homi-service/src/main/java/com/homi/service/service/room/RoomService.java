@@ -18,9 +18,7 @@ import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.RoomSaveRemarkDTO;
-import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
-import com.homi.model.room.dto.price.PricePlanDTO;
 import com.homi.model.room.vo.LeaseInfoVO;
 import com.homi.model.room.vo.RoomDetailVO;
 import com.homi.model.room.vo.RoomListVO;
@@ -272,20 +270,36 @@ public class RoomService {
     }
 
     public Integer lockRoom(RoomIdDTO query) {
-        Boolean locked = roomRepo.lockRoomById(query.getRoomId());
-        if (Boolean.FALSE.equals(locked)) {
+        Room room = roomRepo.getById(query.getRoomId());
+        if (Objects.isNull(room)) {
+            throw new BizException("房间不存在");
+        }
+
+        room.setLocked(Boolean.TRUE);
+        room.setRoomStatus(roomRepo.calculateRoomStatus(room).getCode());
+
+        boolean locked = roomRepo.updateById(room);
+        if (!locked) {
             throw new BizException("房间未能锁定");
         }
-        return RoomStatusEnum.LOCKED.getCode();
+
+        return room.getRoomStatus();
     }
 
     public Integer unlockRoom(RoomIdDTO query) {
-        Boolean unlocked = roomRepo.unlockRoomById(query.getRoomId());
-        if (Boolean.FALSE.equals(unlocked)) {
-            throw new BizException("房间未能解锁");
+        Room room = roomRepo.getById(query.getRoomId());
+        if (Objects.isNull(room)) {
+            throw new BizException("房间不存在");
         }
 
-        return RoomStatusEnum.AVAILABLE.getCode();
+        room.setLocked(Boolean.FALSE);
+        room.setRoomStatus(roomRepo.calculateRoomStatus(room).getCode());
+
+        boolean locked = roomRepo.updateById(room);
+        if (!locked) {
+            throw new BizException("房间未能解锁");
+        }
+        return room.getRoomStatus();
     }
 
     public Integer closeRoom(RoomIdDTO query) {
