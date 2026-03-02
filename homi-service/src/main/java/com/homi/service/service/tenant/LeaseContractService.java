@@ -4,7 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
@@ -221,7 +221,7 @@ public class LeaseContractService {
         leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.CANCELLED.getCode());
 
         // 房间设置为“空置”
-        roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), RoomStatusEnum.AVAILABLE.getCode());
+        roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), OccupancyStatusEnum.VACANT.getCode());
 
         return LeaseStatusEnum.CANCELLED.getCode();
     }

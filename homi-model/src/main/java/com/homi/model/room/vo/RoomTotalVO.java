@@ -19,6 +19,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RoomTotalVO {
+    /**
+     * 全部数量
+     */
+    private Integer total;
+
     @Schema(description = "房间状态统计")
     private List<RoomTotalItemVO> statusList;
 }

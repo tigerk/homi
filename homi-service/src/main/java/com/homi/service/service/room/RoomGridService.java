@@ -4,7 +4,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.EnumUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.model.dao.entity.Community;
 import com.homi.model.dao.entity.Focus;
 import com.homi.model.dao.repo.CommunityRepo;
@@ -124,13 +124,13 @@ public class RoomGridService {
 
             // 翻译房间状态
             entry.getValue().forEach(room -> {
-                RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, room.getRoomStatus());
-                room.setRoomStatusName(roomStatusEnum.getName());
-                room.setRoomStatusColor(roomStatusEnum.getColor());
+                OccupancyStatusEnum occupancyStatusEnum = EnumUtil.getBy(OccupancyStatusEnum::getCode, room.getOccupancyStatus());
+                room.setOccupancyStatusName(occupancyStatusEnum.getName());
+                room.setOccupancyStatusColor(occupancyStatusEnum.getColor());
 
                 // 如果房间是已租时，获取当前租客的租约信息
 
-                room.setLeaseInfo(roomService.getRoomLeaseInfo(room.getRoomId(), room.getRoomStatus()));
+                room.setLeaseInfo(roomService.getRoomLeaseInfo(room.getRoomId(), room.getOccupancyStatus()));
             });
 
             roomGridItemVO.setRooms(entry.getValue());

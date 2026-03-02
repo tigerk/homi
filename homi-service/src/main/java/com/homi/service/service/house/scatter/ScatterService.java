@@ -5,7 +5,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.house.RentalTypeEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.HouseLayoutDTO;
@@ -230,8 +230,6 @@ public class ScatterService {
         room.setHouseId(house.getId());
         room.setFloor(house.getFloor());
 
-        RoomStatusEnum roomStatusEnum = roomRepo.calculateRoomStatus(room);
-        room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));
 
         // 设置可出租日期
@@ -252,7 +250,7 @@ public class ScatterService {
 
             roomRepo.updateById(room);
         } else {
-            room.setRoomStatus(RoomStatusEnum.AVAILABLE.getCode());
+            room.setOccupancyStatus(OccupancyStatusEnum.VACANT.getCode());
             room.setCreateBy(house.getCreateBy());
             room.setCreateTime(house.getCreateTime());
             room.setVacancyStartTime(DateUtil.date());

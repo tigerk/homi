@@ -47,4 +47,17 @@ public interface RoomMapper extends BaseMapper<Room> {
      * @return java.util.List<com.homi.domain.vo.room.grid.RoomAggregatedVO>
      */
     List<RoomAggregatedVO> selectAggregatedRooms(@Param("query") RoomQueryDTO query);
+
+    /**
+     * 查询锁定的房间数量
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/29 14:21
+     *
+     * @param query 参数说明
+     * @return java.lang.Long
+     */
+    Integer countByLocked(@Param("query") RoomQueryDTO query);
+
+    Integer countByClosed(@Param("query") RoomQueryDTO query);
 }

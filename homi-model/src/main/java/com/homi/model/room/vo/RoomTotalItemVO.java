@@ -1,6 +1,5 @@
 package com.homi.model.room.vo;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,15 +16,26 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RoomTotalItemVO {
-    @Schema(description = "房间状态")
-    private Integer roomStatus;
-
-    @Schema(description = "房间状态，参考：RoomStatusEnum")
+    /**
+     * 展示名称
+     */
     private String roomStatusName;
-
-    @Schema(description = "房间状态颜色，参考：RoomStatusEnum")
+    /**
+     * 展示颜色
+     */
     private String roomStatusColor;
-
-    @Schema(description = "数量")
+    /**
+     * 数量
+     */
     private Integer total;
+    /**
+     * 筛选类型，前端根据此字段决定用什么条件查询
+     * 0 / 1 / 2
+     */
+    private Integer filterType;
+    /**
+     * filterType = 0 时有值（0~3）
+     * filterType = 1 / 2 时为 null
+     */
+    private Integer roomStatus;
 }

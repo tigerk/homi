@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -232,9 +232,6 @@ public class FocusService {
         if (Objects.nonNull(roomBefore)) {
             room.setId(roomBefore.getId());
 
-            RoomStatusEnum roomStatusEnum = roomRepo.calculateRoomStatus(roomBefore);
-            room.setRoomStatus(roomStatusEnum.getCode());
-
             roomRepo.getBaseMapper().updateById(room);
 
             // 如果房间已经单独配置过 priceConfig, 则修改对应的价格信息。
@@ -243,7 +240,7 @@ public class FocusService {
             room.setCreateBy(house.getCreateBy());
             room.setCreateTime(house.getCreateTime());
 
-            room.setRoomStatus(RoomStatusEnum.AVAILABLE.getCode());
+            room.setOccupancyStatus(OccupancyStatusEnum.VACANT.getCode());
 
             room.setVacancyStartTime(DateUtil.date());
             roomRepo.getBaseMapper().insert(room);

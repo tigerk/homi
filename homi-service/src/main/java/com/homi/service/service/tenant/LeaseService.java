@@ -14,7 +14,7 @@ import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
@@ -203,7 +203,7 @@ public class LeaseService {
         LeaseDetailVO leaseDetail = getLeaseDetailById(lease.getId());
         leaseContractService.addLeaseContract(leaseDTO.getContractTemplateId(), leaseDetail);
 
-        roomRepo.updateRoomStatusByRoomIds(leaseDTO.getRoomIds(), RoomStatusEnum.LEASED.getCode());
+        roomRepo.updateRoomStatusByRoomIds(leaseDTO.getRoomIds(), OccupancyStatusEnum.LEASED.getCode());
 
         Tenant tenant = tenantRepo.getById(tenantId);
         ApprovalResult approvalResult = approvalTemplate.submitIfNeed(
@@ -625,7 +625,7 @@ public class LeaseService {
         LeaseDetailVO leaseDetail = getLeaseDetailById(leaseId);
         leaseContractService.addLeaseContract(leaseDTO.getContractTemplateId(), leaseDetail);
 
-        roomRepo.updateRoomStatusByRoomIds(leaseDTO.getRoomIds(), RoomStatusEnum.LEASED.getCode());
+        roomRepo.updateRoomStatusByRoomIds(leaseDTO.getRoomIds(), OccupancyStatusEnum.LEASED.getCode());
 
         Tenant tenant = tenantRepo.getById(originalLease.getTenantId());
         ApprovalResult approvalResult = approvalTemplate.submitIfNeed(

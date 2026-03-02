@@ -104,13 +104,13 @@ public class RoomListVO {
     private String direction;
 
     @Schema(description = "房间状态")
-    private Integer roomStatus;
+    private Integer occupancyStatus;
 
-    @Schema(description = "房间状态，参考：RoomStatusEnum")
-    private String roomStatusName;
+    @Schema(description = "房间状态，参考：OccupancyStatusEnum")
+    private String occupancyStatusName;
 
-    @Schema(description = "房间状态颜色，参考：RoomStatusEnum")
-    private String roomStatusColor;
+    @Schema(description = "房间状态颜色，参考：OccupancyStatusEnum")
+    private String occupancyStatusColor;
 
     @Schema(description = "锁定状态")
     private Boolean locked;

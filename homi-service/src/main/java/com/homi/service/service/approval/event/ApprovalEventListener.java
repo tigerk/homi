@@ -4,7 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.ApprovalInstanceStatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseCheckOutStatusEnum;
 import com.homi.common.lib.exception.BizException;
@@ -128,7 +128,7 @@ public class ApprovalEventListener {
             Lease lease = leaseRepo.getById(leaseId);
             // 2. 更新房间状态为空置
             if (lease != null && lease.getRoomIds() != null) {
-                roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), RoomStatusEnum.AVAILABLE.getCode());
+                roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), OccupancyStatusEnum.VACANT.getCode());
             }
 
             // TODO: 可以发送驳回通知，发送给提交人，告诉他审批被驳回了。

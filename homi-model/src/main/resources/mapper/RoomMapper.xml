@@ -27,7 +27,7 @@
         <result property="salesmanPhone" column="phone"/>
         <result property="area" column="area"/>
         <result property="direction" column="direction"/>
-        <result property="roomStatus" column="room_status"/>
+        <result property="occupancyStatus" column="occupancy_status"/>
         <result property="locked" column="locked"/>
         <result property="closed" column="closed"/>
         <!-- 添加floor字段 -->
@@ -71,7 +71,7 @@
                r.facilities,
                r.image_list,
                r.video_list,
-               r.room_status,
+               r.occupancy_status,
                r.locked,
                r.closed,
                r.area,
@@ -99,13 +99,13 @@
     </select>
 
     <select id="getStatusTotal" resultType="com.homi.model.room.vo.RoomTotalItemVO">
-        SELECT room_status, count(room_status) AS total
+        SELECT occupancy_status, count(occupancy_status) AS total
         FROM room r
                  LEFT JOIN house h ON r.house_id = h.id
                  LEFT JOIN user u ON u.id = h.salesman_id
         where r.deleted = 0
         <include refid="roomListQuery"/>
-        group by room_status
+        group by occupancy_status
     </select>
 
     <sql id="roomListQuery">
@@ -122,6 +122,14 @@
 
         <if test="query.roomStatus != null and query.roomStatus != ''">
             and r.room_status = #{query.roomStatus,jdbcType=INTEGER}
+        </if>
+
+        <if test="query.locked != null">
+            and r.locked = #{query.locked,jdbcType=BOOLEAN}
+        </if>
+
+        <if test="query.closed != null">
+            and r.closed = #{query.closed,jdbcType=BOOLEAN}
         </if>
 
         <if test="query.leaseModeId != null">
@@ -156,8 +164,8 @@
                h.unit,
                h.floor,
                COUNT(*)                                                      AS roomCount,
-               SUM(IF(r.room_status = 1, 1, 0))                              AS leasedCount,
-               ROUND(SUM(IF(r.room_status = 1, 1, 0)) * 100.0 / COUNT(*), 2) AS occupancyRate
+               SUM(IF(r.occupancy_status = 1, 1, 0))                              AS leasedCount,
+               ROUND(SUM(IF(r.occupancy_status = 1, 1, 0)) * 100.0 / COUNT(*), 2) AS occupancyRate
         FROM room r
                  LEFT JOIN house h ON r.house_id = h.id
         WHERE 1 = 1
@@ -170,5 +178,25 @@
                  h.building ASC,
                  h.unit ASC,
                  h.floor ASC
+    </select>
+
+    <select id="countByLocked" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM room r
+        LEFT JOIN house h ON r.house_id = h.id
+        LEFT JOIN user u ON u.id = h.salesman_id
+        WHERE r.locked = 1
+          AND r.deleted = 0
+        <include refid="roomListQuery"/>
+    </select>
+
+    <select id="countByClosed" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM room r
+        LEFT JOIN house h ON r.house_id = h.id
+        LEFT JOIN user u ON u.id = h.salesman_id
+        WHERE r.closed = 1
+          AND r.deleted = 0
+        <include refid="roomListQuery"/>
     </select>
 </mapper>

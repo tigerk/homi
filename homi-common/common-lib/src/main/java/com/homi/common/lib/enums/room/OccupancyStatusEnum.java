@@ -3,9 +3,11 @@ package com.homi.common.lib.enums.room;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 @Getter
 @AllArgsConstructor
-public enum RoomStatusEnum {
+public enum OccupancyStatusEnum {
     /**
      * 0-空置：可展示、可带看、可预定、可签约
      * 1-已租：已有生效合同，不可预定，不可签约
@@ -14,7 +16,7 @@ public enum RoomStatusEnum {
      * 4-已关闭：房间下架或禁用
      * 5-锁房：通常指非业务类的锁定（如业主自住、行政查封）
      */
-    AVAILABLE(0, "空置", "#FF2800"),
+    VACANT(0, "空置", "#FF2800"),
 
     /**
      * 1-已租：已有生效合同，不可预定，不可签约
@@ -30,16 +32,16 @@ public enum RoomStatusEnum {
      * 3-配置中：新房装修或清扫中，通常不可签约
      */
     PREPARING(3, "配置中", "#4B50AD"),
-
-    /**
-     * 4-已关闭：房间下架或禁用
-     */
-    CLOSED(4, "已关闭", "#DBDBDB"),
-
-    /**
-     * 5-锁房：通常指非业务类的锁定（如业主自住、行政查封）
-     */
-    LOCKED(5, "锁房", "#8C8C8C"),
+//
+//    /**
+//     * 4-已关闭：房间下架或禁用
+//     */
+//    CLOSED(4, "已关闭", "#DBDBDB"),
+//
+//    /**
+//     * 5-锁房：通常指非业务类的锁定（如业主自住、行政查封）
+//     */
+//    LOCKED(5, "锁房", "#8C8C8C"),
     ;
 
     private final Integer code;
@@ -48,5 +50,10 @@ public enum RoomStatusEnum {
 
     private final String color;
 
-
+    public static OccupancyStatusEnum of(Integer code) {
+        return Arrays.stream(values())
+            .filter(e -> e.code.equals(code))
+            .findFirst()
+            .orElse(VACANT);
+    }
 }

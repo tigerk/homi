@@ -4,7 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.booking.BookingStatusEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -114,7 +114,7 @@ public class BookingService {
         booking.setRoomIds(JSONUtil.toJsonStr(createDTO.getRoomIds()));
 
         // 把房间修改为已出租状态，但是没有租客信息；
-        Boolean updateRoomStatusBatch = roomRepo.updateRoomStatusByRoomIds(createDTO.getRoomIds(), RoomStatusEnum.BOOKED.getCode());
+        Boolean updateRoomStatusBatch = roomRepo.updateRoomStatusByRoomIds(createDTO.getRoomIds(), OccupancyStatusEnum.BOOKED.getCode());
         if (Boolean.FALSE.equals(updateRoomStatusBatch)) {
             log.error("修改房间为预定状态失败，roomIds: {}", createDTO.getRoomIds());
         }
@@ -140,7 +140,7 @@ public class BookingService {
         List<Long> newIds = createDTO.getRoomIds();
 
         // 1. 识别变化的房间
-        // 那些原来在预定里，现在被剔除的房间（需变回 AVAILABLE）
+        // 那些原来在预定里，现在被剔除的房间（需变回 VACANT）
         List<Long> toRelease = oldIds.stream().filter(id -> !newIds.contains(id)).collect(Collectors.toList());
         // 那些新加入预定的房间（需变为 BOOKED）
         List<Long> toBook = newIds.stream().filter(id -> !oldIds.contains(id)).collect(Collectors.toList());
@@ -209,7 +209,7 @@ public class BookingService {
         booking.setCancelTime(DateUtil.date());
 
         // 把房间修改为已出租状态，但是没有租客信息；
-        Boolean updateRoomStatusBatch = roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class), RoomStatusEnum.AVAILABLE.getCode());
+        Boolean updateRoomStatusBatch = roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class), OccupancyStatusEnum.VACANT.getCode());
         if (Boolean.FALSE.equals(updateRoomStatusBatch)) {
             log.error("释放预定房间失败，roomIds: {}", JSONUtil.toList(booking.getRoomIds(), Long.class));
         }

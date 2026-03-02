@@ -18,7 +18,7 @@ import com.homi.common.lib.enums.checkout.CheckoutSettlementMethodEnum;
 import com.homi.common.lib.enums.checkout.CheckoutStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -429,7 +429,7 @@ public class LeaseCheckoutService {
         // 释放房间
         if (lease != null) {
             List<Long> roomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
-            roomRepo.updateRoomStatusByRoomIds(roomIds, RoomStatusEnum.AVAILABLE.getCode());
+            roomRepo.updateRoomStatusByRoomIds(roomIds, OccupancyStatusEnum.VACANT.getCode());
         }
 
         log.info("退租完成: checkoutId={}, leaseId={}", checkoutId, checkout.getTenantId());

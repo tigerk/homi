@@ -81,9 +81,9 @@ public class Room implements Serializable {
     @TableField("remark")
     private String remark;
 
-    @Schema(description = "房间状态")
-    @TableField("room_status")
-    private Integer roomStatus;
+    @Schema(description = "出租占用状态")
+    @TableField("occupancy_status")
+    private Integer occupancyStatus;
 
     @Schema(description = "锁定状态：是否锁定")
     @TableField("locked")

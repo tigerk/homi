@@ -13,7 +13,6 @@ import com.homi.model.room.dto.RoomTrackDTO;
 import com.homi.model.room.dto.grid.RoomGridDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.room.vo.RoomListVO;
-import com.homi.model.room.vo.RoomTotalItemVO;
 import com.homi.model.room.vo.RoomTotalVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Objects;
 
 
@@ -57,11 +55,8 @@ public class RoomController {
 
     @PostMapping("/total")
     public ResponseResult<RoomTotalVO> getRoomTotal(@RequestBody RoomQueryDTO query) {
-        List<RoomTotalItemVO> roomStatusTotal = roomService.getRoomStatusTotal(query);
-        RoomTotalVO roomTotalVO = new RoomTotalVO();
-        roomTotalVO.setStatusList(roomStatusTotal);
-
-        return ResponseResult.ok(roomTotalVO);
+        RoomTotalVO roomStatusTotal = roomService.getRoomStatusTotal(query);
+        return ResponseResult.ok(roomStatusTotal);
     }
 
     @PostMapping("/reset/keyword")
@@ -77,25 +72,25 @@ public class RoomController {
 
     @PostMapping("/lock")
     @Log(title = "锁房房间", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Integer> lockRoom(@RequestBody RoomIdDTO query) {
+    public ResponseResult<Boolean> lockRoom(@RequestBody RoomIdDTO query) {
         return ResponseResult.ok(roomService.lockRoom(query));
     }
 
     @PostMapping("/unlock")
     @Log(title = "解锁房间", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Integer> unlockRoom(@RequestBody RoomIdDTO query) {
+    public ResponseResult<Boolean> unlockRoom(@RequestBody RoomIdDTO query) {
         return ResponseResult.ok(roomService.unlockRoom(query));
     }
 
     @PostMapping("/close")
     @Log(title = "关闭房间", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Integer> closeRoom(@RequestBody RoomIdDTO query) {
+    public ResponseResult<Boolean> closeRoom(@RequestBody RoomIdDTO query) {
         return ResponseResult.ok(roomService.closeRoom(query));
     }
 
     @PostMapping("/open")
     @Log(title = "开启房间", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Integer> openRoom(@RequestBody RoomIdDTO query) {
+    public ResponseResult<Boolean> openRoom(@RequestBody RoomIdDTO query) {
         return ResponseResult.ok(roomService.openRoom(query));
     }
 

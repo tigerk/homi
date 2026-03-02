@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.entity.Room;
 import com.homi.model.dao.mapper.RoomMapper;
@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * <p>
@@ -57,35 +56,6 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         return getBaseMapper().selectList(queryWrapper);
     }
 
-    /**
-     * 计算房间状态
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/9/10 22:53
-     *
-     * @param room 参数说明
-     * @return com.homi.domain.enums.room.RoomStatusEnum
-     */
-    public RoomStatusEnum calculateRoomStatus(Room room) {
-        if (room.getRoomStatus().equals(RoomStatusEnum.LEASED.getCode())) {
-            return RoomStatusEnum.LEASED;
-        }
-
-        if (Boolean.TRUE.equals(room.getClosed())) {
-            return RoomStatusEnum.CLOSED;
-        }
-
-        if (Boolean.TRUE.equals(room.getLocked())) {
-            return RoomStatusEnum.LOCKED;
-        }
-
-        if (room.getVacancyStartTime() != null && room.getVacancyStartTime().after(DateUtil.date())) {
-            return RoomStatusEnum.PREPARING;
-        }
-
-        return RoomStatusEnum.AVAILABLE;
-    }
-
     public List<RoomAggregatedVO> selectAggregatedRooms(RoomQueryDTO query) {
         return getBaseMapper().selectAggregatedRooms(query);
     }
@@ -100,13 +70,13 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         queryWrapper.in(Room::getId, roomIds);
 
         Room room = new Room();
-        room.setRoomStatus(code);
+        room.setOccupancyStatus(code);
 
         return update(room, queryWrapper);
     }
 
     /**
-     * 批量更新房间状态，一部分房间变为 AVAILABLE，一部分房间变为 BOOKED
+     * 批量更新房间状态，一部分房间变为 VACANT，一部分房间变为 BOOKED
      * <p>
      * {@code @author} tk
      * {@code @date} 2026/1/9 11:48
@@ -120,7 +90,7 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         if (CollUtil.isNotEmpty(toRelease)) {
             boolean releaseResult = lambdaUpdate()
                 .in(Room::getId, toRelease)
-                .set(Room::getRoomStatus, RoomStatusEnum.AVAILABLE.getCode())
+                .set(Room::getOccupancyStatus, OccupancyStatusEnum.VACANT.getCode())
                 // 关键点：重置空置开始时间为当前时间
                 .set(Room::getVacancyStartTime, DateUtil.date())
                 .update();
@@ -136,8 +106,8 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
             boolean bookResult = lambdaUpdate()
                 .in(Room::getId, toBook)
                 // 只有处于“空置”状态的房间才能被预定，防止并发冲突覆盖已租或已锁房间
-                .eq(Room::getRoomStatus, RoomStatusEnum.AVAILABLE.getCode())
-                .set(Room::getRoomStatus, RoomStatusEnum.BOOKED.getCode())
+                .eq(Room::getOccupancyStatus, OccupancyStatusEnum.VACANT.getCode())
+                .set(Room::getOccupancyStatus, OccupancyStatusEnum.BOOKED.getCode())
                 // 预定后，空置开始时间可以清空，也可以保持，取决于你是否需要在预定时也计算空置时长
                 // .set(Room::getVacancyStartTime, null)
                 .update();
@@ -152,37 +122,23 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         return true;
     }
 
-    /**
-     * 重置房间状态
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2026/1/9 12:00
-     *
-     * @param room 参数说明
-     * @return java.lang.Boolean
-     */
-    public Boolean resetRoomStatus(Room room) {
-        room.setRoomStatus(calculateRoomStatus(room).getCode());
-
-        return updateById(room);
+    public Boolean lockRoomById(Long roomId) {
+        return lambdaUpdate()
+            .set(Room::getLocked, true)
+            .eq(Room::getId, roomId)
+            .update();
     }
 
     public Boolean unlockRoomById(Long roomId) {
-        Room room = getById(roomId);
-        if (Objects.isNull(room)) {
-            throw new BizException("房间不存在");
-        }
-
-        room.setLocked(Boolean.FALSE);
-        room.setRoomStatus(calculateRoomStatus(room).getCode());
-
-        return updateById(room);
+        return lambdaUpdate()
+            .set(Room::getLocked, false)
+            .eq(Room::getId, roomId)
+            .update();
     }
 
     public Boolean closeRoomById(Long roomId) {
         return lambdaUpdate()
             .set(Room::getClosed, true)
-            .set(Room::getRoomStatus, RoomStatusEnum.CLOSED.getCode())
             .eq(Room::getId, roomId)
             .update();
     }
@@ -190,13 +146,19 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
     public Boolean openRoomById(Long roomId) {
         return lambdaUpdate()
             .set(Room::getClosed, false)
-            .set(Room::getLocked, false)
-            .set(Room::getRoomStatus, RoomStatusEnum.AVAILABLE.getCode())
             .eq(Room::getId, roomId)
             .update();
     }
 
     public List<Room> getByHouseIdList(List<Long> list) {
         return lambdaQuery().in(Room::getHouseId, list).list();
+    }
+
+    public Integer countByLocked(RoomQueryDTO query) {
+        return getBaseMapper().countByLocked(query);
+    }
+
+    public Integer countByClosed(RoomQueryDTO query) {
+        return getBaseMapper().countByClosed(query);
     }
 }

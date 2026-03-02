@@ -8,8 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
-import com.homi.common.lib.enums.room.RoomStatusEnum;
-import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.utils.JsonUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
@@ -19,10 +18,7 @@ import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.RoomSaveRemarkDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
-import com.homi.model.room.vo.LeaseInfoVO;
-import com.homi.model.room.vo.RoomDetailVO;
-import com.homi.model.room.vo.RoomListVO;
-import com.homi.model.room.vo.RoomTotalItemVO;
+import com.homi.model.room.vo.*;
 import com.homi.model.tenant.vo.LeaseLiteVO;
 import com.homi.service.service.price.PriceConfigService;
 import lombok.RequiredArgsConstructor;
@@ -94,9 +90,9 @@ public class RoomService {
         }
 
 
-        RoomStatusEnum roomStatusEnum = EnumUtil.getBy(RoomStatusEnum::getCode, room.getRoomStatus());
-        room.setRoomStatusName(roomStatusEnum.getName());
-        room.setRoomStatusColor(roomStatusEnum.getColor());
+        OccupancyStatusEnum occupancyStatusEnum = EnumUtil.getBy(OccupancyStatusEnum::getCode, room.getOccupancyStatus());
+        room.setOccupancyStatusName(occupancyStatusEnum.getName());
+        room.setOccupancyStatusColor(occupancyStatusEnum.getColor());
     }
 
     /**
@@ -108,18 +104,32 @@ public class RoomService {
      * @param query 查询参数
      * @return java.util.List<com.homi.domain.vo.room.RoomTotalItemVO>
      */
-    public List<RoomTotalItemVO> getRoomStatusTotal(RoomQueryDTO query) {
-        Map<Integer, RoomTotalItemVO> result = getRoomTotalItemMap();
+    public RoomTotalVO getRoomStatusTotal(RoomQueryDTO query) {
+        // 查询时不传 occupancyStatus / locked / closed，统计全量
+        // 1. 业务状态统计（GROUP BY occupancy_status，只统计 closed=0 且 locked=0 的）
+        List<RoomTotalItemVO> statusRows = roomRepo.getBaseMapper().getStatusTotal(query);
+        Map<Integer, Integer> statusCountMap = statusRows.stream()
+            .collect(Collectors.toMap(RoomTotalItemVO::getRoomStatus, RoomTotalItemVO::getTotal));
 
-        query.setRoomStatus(null);
+        // 2. 管理状态统计
+        int lockedCount = roomRepo.countByLocked(query);
+        int closedCount = roomRepo.countByClosed(query);
 
-        List<RoomTotalItemVO> statusTotal = roomRepo.getBaseMapper().getStatusTotal(query);
-        statusTotal.forEach(roomTotalItemVO -> {
-            RoomTotalItemVO orDefault = result.getOrDefault(roomTotalItemVO.getRoomStatus(), roomTotalItemVO);
-            orDefault.setTotal(roomTotalItemVO.getTotal());
-        });
+        // 3. 按顺序组装 statusList
+        List<RoomTotalItemVO> statusList = new ArrayList<>();
+        for (OccupancyStatusEnum e : OccupancyStatusEnum.values()) {
+            statusList.add(RoomDisplayStatus.buildStatusItem(e, statusCountMap.getOrDefault(e.getCode(), 0)));
+        }
+        statusList.add(RoomDisplayStatus.buildClosedItem(closedCount));
+        statusList.add(RoomDisplayStatus.buildLockedItem(lockedCount));
 
-        return result.values().stream().toList();
+        // 4. 全部 = 所有状态数量之和
+        int total = statusRows.stream().mapToInt(RoomTotalItemVO::getTotal).sum();
+
+        RoomTotalVO result = new RoomTotalVO();
+        result.setTotal(total);
+        result.setStatusList(statusList);
+        return result;
     }
 
     /**
@@ -132,14 +142,14 @@ public class RoomService {
      */
     private @NotNull Map<Integer, RoomTotalItemVO> getRoomTotalItemMap() {
         Map<Integer, RoomTotalItemVO> result = new HashMap<>();
-        RoomStatusEnum[] values = RoomStatusEnum.values();
-        for (RoomStatusEnum roomStatusEnum : values) {
+        OccupancyStatusEnum[] values = OccupancyStatusEnum.values();
+        for (OccupancyStatusEnum occupancyStatusEnum : values) {
             RoomTotalItemVO roomTotalItemVO = new RoomTotalItemVO();
-            roomTotalItemVO.setRoomStatus(roomStatusEnum.getCode());
-            roomTotalItemVO.setRoomStatusName(roomStatusEnum.getName());
-            roomTotalItemVO.setRoomStatusColor(roomStatusEnum.getColor());
+            roomTotalItemVO.setRoomStatus(occupancyStatusEnum.getCode());
+            roomTotalItemVO.setRoomStatusName(occupancyStatusEnum.getName());
+            roomTotalItemVO.setRoomStatusColor(occupancyStatusEnum.getColor());
             roomTotalItemVO.setTotal(0);
-            result.put(roomStatusEnum.getCode(), roomTotalItemVO);
+            result.put(occupancyStatusEnum.getCode(), roomTotalItemVO);
         }
         return result;
     }
@@ -156,8 +166,8 @@ public class RoomService {
     private Pair<Long, BigDecimal> calculateLeasedRateAndCount(List<RoomListVO> roomsList) {
         // 计算出租率
         long leasedCount = roomsList.stream()
-            .map(RoomListVO::getRoomStatus)
-            .filter(status -> status != null && status.equals(RoomStatusEnum.LEASED.getCode()))
+            .map(RoomListVO::getOccupancyStatus)
+            .filter(status -> status != null && status.equals(OccupancyStatusEnum.LEASED.getCode()))
             .count();
 
         BigDecimal leasedRate = BigDecimal.ZERO;
@@ -237,7 +247,7 @@ public class RoomService {
      * @return com.homi.model.room.vo.LeaseInfoVO
      */
     public LeaseInfoVO getRoomLeaseInfo(Long roomId, Integer roomStatus) {
-        if (Objects.equals(roomStatus, RoomStatusEnum.LEASED.getCode())) {
+        if (Objects.equals(roomStatus, OccupancyStatusEnum.LEASED.getCode())) {
             // 查询
             LeaseLiteVO lease = leaseRepo.getCurrentLeasesByRoomId(roomId);
             if (lease != null) {
@@ -252,7 +262,7 @@ public class RoomService {
             }
         }
 
-        if (Objects.equals(roomStatus, RoomStatusEnum.BOOKED.getCode())) {
+        if (Objects.equals(roomStatus, OccupancyStatusEnum.BOOKED.getCode())) {
             // 查询当前租客的租约信息
             Booking booking = bookingRepo.getCurrentBookingByRoomId(roomId);
             if (booking != null) {
@@ -269,55 +279,20 @@ public class RoomService {
         return null;
     }
 
-    public Integer lockRoom(RoomIdDTO query) {
-        Room room = roomRepo.getById(query.getRoomId());
-        if (Objects.isNull(room)) {
-            throw new BizException("房间不存在");
-        }
-
-        room.setLocked(Boolean.TRUE);
-        room.setRoomStatus(roomRepo.calculateRoomStatus(room).getCode());
-
-        boolean locked = roomRepo.updateById(room);
-        if (!locked) {
-            throw new BizException("房间未能锁定");
-        }
-
-        return room.getRoomStatus();
+    public Boolean lockRoom(RoomIdDTO query) {
+        return roomRepo.lockRoomById(query.getRoomId());
     }
 
-    public Integer unlockRoom(RoomIdDTO query) {
-        Room room = roomRepo.getById(query.getRoomId());
-        if (Objects.isNull(room)) {
-            throw new BizException("房间不存在");
-        }
-
-        room.setLocked(Boolean.FALSE);
-        room.setRoomStatus(roomRepo.calculateRoomStatus(room).getCode());
-
-        boolean locked = roomRepo.updateById(room);
-        if (!locked) {
-            throw new BizException("房间未能解锁");
-        }
-        return room.getRoomStatus();
+    public Boolean unlockRoom(RoomIdDTO query) {
+        return roomRepo.unlockRoomById(query.getRoomId());
     }
 
-    public Integer closeRoom(RoomIdDTO query) {
-        Boolean closed = roomRepo.closeRoomById(query.getRoomId());
-        if (Boolean.FALSE.equals(closed)) {
-            throw new BizException("房间未能关闭");
-        }
-
-        return RoomStatusEnum.CLOSED.getCode();
+    public Boolean closeRoom(RoomIdDTO query) {
+        return roomRepo.closeRoomById(query.getRoomId());
     }
 
-    public Integer openRoom(RoomIdDTO query) {
-        Boolean opened = roomRepo.openRoomById(query.getRoomId());
-        if (Boolean.FALSE.equals(opened)) {
-            throw new BizException("房间未能开启");
-        }
-
-        return RoomStatusEnum.AVAILABLE.getCode();
+    public Boolean openRoom(RoomIdDTO query) {
+        return roomRepo.openRoomById(query.getRoomId());
     }
 
     /**

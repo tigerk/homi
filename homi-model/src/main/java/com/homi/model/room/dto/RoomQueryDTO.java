@@ -35,4 +35,10 @@ public class RoomQueryDTO extends PageDTO {
 
     @Schema(description = "房间状态")
     private Integer roomStatus;
+
+    @Schema(description = "是否锁定")
+    private Boolean locked;
+
+    @Schema(description = "是否关闭")
+    private Boolean closed;
 }
