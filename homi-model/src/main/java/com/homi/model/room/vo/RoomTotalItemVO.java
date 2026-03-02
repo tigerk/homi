@@ -1,5 +1,6 @@
 package com.homi.model.room.vo;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,6 +33,7 @@ public class RoomTotalItemVO {
      * 筛选类型，前端根据此字段决定用什么条件查询
      * 0 / 1 / 2
      */
+    @Schema(description = "0：按业务状态筛选；1：按锁定状态筛选；2：按关闭状态筛选")
     private Integer filterType;
     /**
      * filterType = 0 时有值（0~3）
