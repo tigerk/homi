@@ -124,7 +124,7 @@ public class RoomController {
     public ResponseResult<PriceConfigDTO> getRoomPriceConfig(@RequestBody RoomIdDTO dto) {
         Room roomById = roomService.getRoomById(dto.getRoomId());
 
-        PriceConfigDTO config = roomService.getPriceConfigByRoomId(dto.getRoomId());
+        PriceConfigDTO config = priceConfigService.getPriceConfigByRoomId(dto.getRoomId());
         if (Objects.isNull(config.getPrice())) {
             config.setPrice(roomById.getPrice());
         }

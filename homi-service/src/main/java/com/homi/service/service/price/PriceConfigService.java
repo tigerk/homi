@@ -10,12 +10,15 @@ import com.homi.model.dao.repo.RoomPriceConfigRepo;
 import com.homi.model.dao.repo.RoomPricePlanRepo;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
+import com.homi.model.room.dto.price.PricePlanDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,14 +51,19 @@ public class PriceConfigService {
             } else {
                 roomPriceConfig.setFloorPrice(priceConfigDTO.getFloorPriceInput().multiply(priceConfigDTO.getPrice()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP));
             }
+
+            roomPriceConfig.setFloorPriceMethod(priceConfigDTO.getFloorPriceMethod());
+            roomPriceConfig.setFloorPriceInput(priceConfigDTO.getFloorPriceInput());
         }
 
-        roomPriceConfig.setFloorPriceMethod(priceConfigDTO.getFloorPriceMethod());
-        roomPriceConfig.setFloorPriceInput(priceConfigDTO.getFloorPriceInput());
-
         // priceConfigDTO.getOtherFees() 过滤掉没有dicDataId 的数据。
-        List<OtherFeeDTO> otherFeeDTOS = priceConfigDTO.getOtherFees().stream().filter(of -> of.getDictDataId() != null).toList();
-        roomPriceConfig.setOtherFees(JSONUtil.toJsonStr(otherFeeDTOS));
+        if (CollUtil.isNotEmpty(priceConfigDTO.getOtherFees())) {
+            List<OtherFeeDTO> otherFeeDTOS = priceConfigDTO.getOtherFees().stream().filter(of -> of.getDictDataId() != null).toList();
+            roomPriceConfig.setOtherFees(JSONUtil.toJsonStr(otherFeeDTOS));
+        } else {
+            roomPriceConfig.setOtherFees(JSONUtil.toJsonStr(new ArrayList<OtherFeeDTO>()));
+        }
+
         roomPriceConfig.setUpdateBy(priceConfigDTO.getUpdateBy());
 
         LambdaQueryWrapper<RoomPriceConfig> queryWrapper = new LambdaQueryWrapper<>();
@@ -65,12 +73,10 @@ public class PriceConfigService {
         if (existingConfig != null) {
             // 如果存在，更新记录
             roomPriceConfig.setId(existingConfig.getId()); // 设置ID以确保更新正确的记录
-
             roomPriceConfigRepo.updateById(roomPriceConfig);
         } else {
             // 如果不存在，保存新记录
             roomPriceConfig.setCreateBy(priceConfigDTO.getUpdateBy());
-
             roomPriceConfigRepo.save(roomPriceConfig);
         }
 
@@ -102,5 +108,38 @@ public class PriceConfigService {
 
 
         return Boolean.TRUE;
+    }
+
+    /**
+     * 获取房间价格配置（按房间ID）
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/11/11 13:41
+     *
+     * @param roomId 房间ID
+     * @return com.homi.domain.dto.room.price.PriceConfigDTO
+     */
+    public PriceConfigDTO getPriceConfigByRoomId(Long roomId) {
+        PriceConfigDTO priceConfigDTO = new PriceConfigDTO();
+        priceConfigDTO.setRoomId(roomId);
+
+        RoomPriceConfig roomPriceConfig = roomPriceConfigRepo.getByRoomId(roomId);
+
+        if (Objects.nonNull(roomPriceConfig)) {
+            BeanUtils.copyProperties(roomPriceConfig, priceConfigDTO);
+            List<OtherFeeDTO> otherFeeDTOList = JSONUtil.toList(roomPriceConfig.getOtherFees(), OtherFeeDTO.class);
+            priceConfigDTO.setOtherFees(otherFeeDTOList);
+        }
+
+        List<RoomPricePlan> roomPricePlanList = roomPricePlanRepo.listByRoomId(roomId);
+        if (!roomPricePlanList.isEmpty()) {
+            priceConfigDTO.setPricePlans(roomPricePlanList.stream().map(roomPricePlan -> {
+                PricePlanDTO pricePlanDTO = new PricePlanDTO();
+                BeanUtils.copyProperties(roomPricePlan, pricePlanDTO);
+                return pricePlanDTO;
+            }).toList());
+        }
+
+        return priceConfigDTO;
     }
 }

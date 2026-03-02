@@ -135,7 +135,7 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         queryWrapper.eq(House::getId, houseId);
 
         House house = new House();
-        house.setApplicationStatus(bizApprovalStatus);
+        house.setApprovalStatus(bizApprovalStatus);
 
         update(house, queryWrapper);
     }

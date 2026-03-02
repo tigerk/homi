@@ -169,7 +169,7 @@ public class House implements Serializable {
 
     @Schema(description = "审批状态：1-审批中 2-已通过 3-已驳回 4-已撤回")
     @TableField("approval_status")
-    private Integer applicationStatus;
+    private Integer approvalStatus;
 
     @Schema(description = "锁定状态：是否锁定")
     @TableField("locked")

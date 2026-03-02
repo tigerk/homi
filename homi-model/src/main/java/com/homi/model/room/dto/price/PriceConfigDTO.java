@@ -2,6 +2,7 @@ package com.homi.model.room.dto.price;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -20,6 +21,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "价格配置DTO")
+@Builder
 public class PriceConfigDTO {
     @Schema(description = "房间ID")
     private Long roomId;

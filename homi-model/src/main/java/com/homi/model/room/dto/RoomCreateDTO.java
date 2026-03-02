@@ -45,11 +45,11 @@ public class RoomCreateDTO {
     private BigDecimal price;
 
     @Schema(description = "可出租日期")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date availableDate;
 
     @Schema(description = "空置开始时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date vacancyStartTime;
 
     @Schema(description = "房间状态")

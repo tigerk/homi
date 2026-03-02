@@ -12,17 +12,19 @@ import com.homi.common.lib.enums.room.RoomStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.common.vo.IdNameVO;
+import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
-import com.homi.model.community.dto.CommunityDTO;
-import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.focus.dto.FocusBuildingDTO;
 import com.homi.model.focus.dto.FocusCreateDTO;
 import com.homi.model.focus.dto.FocusHouseDTO;
 import com.homi.model.focus.dto.FocusQueryDTO;
 import com.homi.model.focus.vo.FocusListVO;
 import com.homi.model.focus.vo.FocusTotalVO;
-import com.homi.model.common.vo.IdNameVO;
+import com.homi.model.house.dto.HouseLayoutDTO;
+import com.homi.model.room.dto.price.PriceConfigDTO;
+import com.homi.service.service.price.PriceConfigService;
 import com.homi.service.service.room.RoomSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 应用于 homi
@@ -54,6 +57,7 @@ public class FocusService {
     private final DictDataRepo dictDataRepo;
 
     private final RoomSearchService roomSearchService;
+    private final PriceConfigService priceConfigService;
 
 
     /**
@@ -177,6 +181,10 @@ public class FocusService {
 
             house.setCommunityId(focusCreateDto.getCommunity().getCommunityId());
 
+            focusCreateDto.getBuildings().stream().filter(building -> building.getBuilding().equals(houseDTO.getBuilding())).findFirst().ifPresent(building -> {
+                house.setFloorTotal(building.getFloorTotal());
+            });
+
             // 集中式标记
             house.setLeaseModeId(focusCreateDto.getId());
             house.setLeaseMode(LeaseModeEnum.FOCUS.getCode());
@@ -190,7 +198,7 @@ public class FocusService {
             house.setHouseName(String.format("%s%s%s栋%s-%s室", focusCreateDto.getCommunity().getDistrict(),
                 focusCreateDto.getCommunity().getName(),
                 houseDTO.getBuilding(),
-                CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : "" + houseDTO.getUnit() + "单元",
+                CharSequenceUtil.isBlank(houseDTO.getUnit()) ? "" : houseDTO.getUnit() + "单元",
                 houseDTO.getDoorNumber()));
 
             houseRepo.saveHouse(house);
@@ -216,12 +224,6 @@ public class FocusService {
         room.setHouseId(house.getId());
         room.setPrice(price);
 
-        if (Objects.isNull(room.getRoomStatus())) {
-            room.setRoomStatus(RoomStatusEnum.AVAILABLE.getCode());
-        }
-
-        RoomStatusEnum roomStatusEnum = roomRepo.calculateRoomStatus(room);
-        room.setRoomStatus(roomStatusEnum.getCode());
         room.setKeywords(roomSearchService.generateKeywords(room));
 
         room.setRoomNumber(house.getDoorNumber());
@@ -229,13 +231,31 @@ public class FocusService {
         Room roomBefore = roomRepo.getRoomByHouseIdAndRoomNumber(house.getId(), house.getDoorNumber());
         if (Objects.nonNull(roomBefore)) {
             room.setId(roomBefore.getId());
+
+            RoomStatusEnum roomStatusEnum = roomRepo.calculateRoomStatus(roomBefore);
+            room.setRoomStatus(roomStatusEnum.getCode());
+
             roomRepo.getBaseMapper().updateById(room);
+
+            // 如果房间已经单独配置过 priceConfig, 则修改对应的价格信息。
+            updateRoomPriceConfig(room.getId(), price, house.getUpdateBy());
         } else {
             room.setCreateBy(house.getCreateBy());
             room.setCreateTime(house.getCreateTime());
 
+            room.setRoomStatus(RoomStatusEnum.AVAILABLE.getCode());
+
             room.setVacancyStartTime(DateUtil.date());
             roomRepo.getBaseMapper().insert(room);
+        }
+    }
+
+    public void updateRoomPriceConfig(Long roomId, BigDecimal price, Long updateBy) {
+        PriceConfigDTO priceConfigByRoomId = priceConfigService.getPriceConfigByRoomId(roomId);
+        if (Objects.nonNull(priceConfigByRoomId)) {
+            priceConfigByRoomId.setPrice(price);
+            priceConfigByRoomId.setUpdateBy(updateBy);
+            priceConfigService.createOrUpdatePriceConfig(priceConfigByRoomId);
         }
     }
 
@@ -313,8 +333,18 @@ public class FocusService {
         focusCreateDTO.setHouseLayoutList(layoutListByLeaseModeId);
 
         List<House> focusHouses = houseRepo.getHousesByLeaseModeId(focusId, LeaseModeEnum.FOCUS.getCode());
+        List<Room> roomList = roomRepo.getByHouseIdList(focusHouses.stream().map(House::getId).toList());
+        Map<Long, Room> roomMap = roomList.stream().collect(Collectors.toMap(Room::getHouseId, room -> room));
         List<FocusHouseDTO> houseList = focusHouses.stream()
-            .map(focusHouse -> BeanCopyUtils.copyBean(focusHouse, FocusHouseDTO.class))
+            .map(focusHouse -> {
+                FocusHouseDTO focusHouseDTO = BeanCopyUtils.copyBean(focusHouse, FocusHouseDTO.class);
+                assert focusHouseDTO != null;
+                Room room = roomMap.get(focusHouse.getId());
+                if (Objects.nonNull(room)) {
+                    focusHouseDTO.setPrice(room.getPrice());
+                }
+                return focusHouseDTO;
+            })
             .toList();
         focusCreateDTO.setHouseList(houseList);
 

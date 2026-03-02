@@ -183,4 +183,8 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
             .eq(Room::getId, roomId)
             .update();
     }
+
+    public List<Room> getByHouseIdList(List<Long> list) {
+        return lambdaQuery().in(Room::getHouseId, list).list();
+    }
 }

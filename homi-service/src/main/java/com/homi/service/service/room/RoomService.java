@@ -26,6 +26,7 @@ import com.homi.model.room.vo.RoomDetailVO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.room.vo.RoomTotalItemVO;
 import com.homi.model.tenant.vo.LeaseLiteVO;
+import com.homi.service.service.price.PriceConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -59,6 +60,7 @@ public class RoomService {
     private final TenantRepo tenantRepo;
     private final HouseRepo houseRepo;
     private final LeaseRoomRepo leaseRoomRepo;
+    private final PriceConfigService priceConfigService;
 
     /**
      * 获取房间列表
@@ -204,7 +206,7 @@ public class RoomService {
                 roomDetailVO.setFacilities(JSONUtil.toList(room.getFacilities(), FacilityItemDTO.class));
             }
 
-            PriceConfigDTO priceConfigByRoomId = getPriceConfigByRoomId(room.getId());
+            PriceConfigDTO priceConfigByRoomId = priceConfigService.getPriceConfigByRoomId(room.getId());
             if (Objects.isNull(priceConfigByRoomId.getPrice())) {
                 priceConfigByRoomId.setPrice(room.getPrice());
             }
@@ -212,39 +214,6 @@ public class RoomService {
 
             return roomDetailVO;
         }).toList();
-    }
-
-    /**
-     * 获取房间价格配置（按房间ID）
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/11/11 13:41
-     *
-     * @param roomId 房间ID
-     * @return com.homi.domain.dto.room.price.PriceConfigDTO
-     */
-    public PriceConfigDTO getPriceConfigByRoomId(Long roomId) {
-        PriceConfigDTO priceConfigDTO = new PriceConfigDTO();
-        priceConfigDTO.setRoomId(roomId);
-
-        RoomPriceConfig roomPriceConfig = roomPriceConfigRepo.getByRoomId(roomId);
-
-        if (Objects.nonNull(roomPriceConfig)) {
-            BeanUtils.copyProperties(roomPriceConfig, priceConfigDTO);
-            List<OtherFeeDTO> otherFeeDTOList = JSONUtil.toList(roomPriceConfig.getOtherFees(), OtherFeeDTO.class);
-            priceConfigDTO.setOtherFees(otherFeeDTOList);
-        }
-
-        List<RoomPricePlan> roomPricePlanList = roomPricePlanRepo.listByRoomId(roomId);
-        if (!roomPricePlanList.isEmpty()) {
-            priceConfigDTO.setPricePlans(roomPricePlanList.stream().map(roomPricePlan -> {
-                PricePlanDTO pricePlanDTO = new PricePlanDTO();
-                BeanUtils.copyProperties(roomPricePlan, pricePlanDTO);
-                return pricePlanDTO;
-            }).toList());
-        }
-
-        return priceConfigDTO;
     }
 
     public List<RoomListVO> getRoomListByRoomIds(List<Long> roomIds) {
