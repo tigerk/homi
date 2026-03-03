@@ -45,19 +45,14 @@ public class DeptVO implements Serializable {
     private Long parentId;
 
     /**
-     * 部门负责人
+     * 部门主管ID
      */
-    private String principal;
+    private Long supervisorId;
 
     /**
-     * 部门负责人手机号
+     * 部门主管名称
      */
-    private String phone;
-
-    /**
-     * 邮箱
-     */
-    private String email;
+    private String supervisorName;
 
     /**
      * 父节点id路径

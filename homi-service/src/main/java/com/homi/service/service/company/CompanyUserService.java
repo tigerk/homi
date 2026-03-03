@@ -99,6 +99,31 @@ public class CompanyUserService {
         return result;
     }
 
+    public List<UserVO> getUserListByCompanyId(Long companyId) {
+        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CompanyUser::getCompanyId, companyId);
+
+        List<CompanyUser> companyUsers = companyUserRepo.list(queryWrapper);
+        List<UserVO> result = new ArrayList<>();
+        companyUsers.forEach(companyUser -> {
+            User user = userRepo.getById(companyUser.getUserId());
+            if (Objects.isNull(user)) {
+                return;
+            }
+            UserVO userVO = new UserVO();
+            userVO.setCompanyUserId(companyUser.getId());
+            userVO.setCompanyId(companyUser.getCompanyId());
+            userVO.setUserId(user.getId());
+            userVO.setUsername(user.getUsername());
+            userVO.setNickname(user.getNickname());
+            userVO.setRealName(user.getRealName());
+            userVO.setPhone(user.getPhone());
+            result.add(userVO);
+        });
+
+        return result;
+    }
+
     /**
      * 判断用户是否属于公司
      * <p>

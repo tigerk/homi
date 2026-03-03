@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DeptQueryDTO extends PageDTO {
+    @Schema(description = "公司ID")
+    private Long companyId;
+
     @Schema(description = "部门ID")
     private Long deptId;
 

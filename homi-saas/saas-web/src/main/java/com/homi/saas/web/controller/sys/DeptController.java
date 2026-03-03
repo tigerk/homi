@@ -5,7 +5,6 @@ import cn.hutool.core.date.DateUtil;
 import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.exception.BizException;
-import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.dept.dto.DeptCreateDTO;
 import com.homi.model.dept.dto.DeptQueryDTO;
@@ -38,7 +37,9 @@ public class DeptController {
     @PostMapping("list")
     @Operation(summary = "获取部门列表")
     public ResponseResult<List<DeptVO>> list() {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
         DeptQueryDTO queryDTO = new DeptQueryDTO();
+        queryDTO.setCompanyId(currentUser.getCurCompanyId());
         return ResponseResult.ok(deptService.list(queryDTO));
     }
 
@@ -47,8 +48,13 @@ public class DeptController {
     @Operation(summary = "创建部门")
     public ResponseResult<Boolean> createDept(@RequestBody DeptCreateDTO createDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
+        createDTO.setCompanyId(currentUser.getCurCompanyId());
         createDTO.setUpdateBy(currentUser.getId());
         createDTO.setUpdateTime(DateUtil.date());
+        if (Objects.nonNull(createDTO.getSupervisorId())
+            && !companyUserService.userHasCompany(createDTO.getSupervisorId(), currentUser.getCurCompanyId())) {
+            throw new BizException("部门主管不属于当前公司");
+        }
 
         if (Objects.nonNull(createDTO.getId())) {
             return ResponseResult.ok(deptService.updateDept(createDTO));
@@ -67,13 +73,9 @@ public class DeptController {
     }
 
     @PostMapping("/user/list")
-    @Operation(summary = "获取部门的用户列表")
-    public ResponseResult<List<UserVO>> getDeptUserList(@RequestBody DeptQueryDTO query) {
-        if (Objects.isNull(query.getDeptId())) {
-            throw new BizException(ResponseCodeEnum.VALID_ERROR);
-        }
-
-        return ResponseResult.ok(companyUserService.getUserListByDeptId(query.getDeptId()));
+    @Operation(summary = "获取当前公司的用户列表")
+    public ResponseResult<List<UserVO>> getDeptUserList() {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        return ResponseResult.ok(companyUserService.getUserListByCompanyId(currentUser.getCurCompanyId()));
     }
 }
-

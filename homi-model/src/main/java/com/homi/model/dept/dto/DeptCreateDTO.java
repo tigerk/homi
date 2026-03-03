@@ -32,29 +32,17 @@ public class DeptCreateDTO {
     @Schema(description = "父节点id")
     private Long parentId;
 
-    /**
-     * 部门负责人
-     */
-    @Schema(description = "部门负责人")
-    private String principal;
-
-    /**
-     * 部门负责人手机号
-     */
-    @Schema(description = "部门负责人手机号")
-    private String phone;
-
-    /**
-     * 邮箱
-     */
-    @Schema(description = "邮箱")
-    private String email;
+    @Schema(description = "部门主管ID")
+    private Long supervisorId;
 
     /**
      * 显示顺序
      */
-    @Schema(description = "显示顺序")
+    @Schema(description = "显示顺序（兼容旧字段）")
     private Integer sort;
+
+    @Schema(description = "显示顺序")
+    private Integer sortOrder;
 
     /**
      * 状态（1，0不启用）
