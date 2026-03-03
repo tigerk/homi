@@ -85,8 +85,6 @@ public class PlatformTestController {
             list.add(initDictDTO);
         });
 
-        companyInitService.saveCompanyDictInit(list);
-
         return JSONUtil.toJsonStr(list);
     }
 }
