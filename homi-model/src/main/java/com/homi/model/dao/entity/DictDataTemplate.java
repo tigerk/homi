@@ -3,7 +3,6 @@ package com.homi.model.dao.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
@@ -16,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 字典数据表
+ * 字典数据模板表
  * </p>
  *
  * @author tk
@@ -25,9 +24,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("dict_data")
-@Schema(name = "DictData", description = "字典数据表")
-public class DictData implements Serializable {
+@TableName("dict_data_template")
+@Schema(name = "DictDataTemplate", description = "字典数据模板表")
+public class DictDataTemplate implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -35,19 +34,15 @@ public class DictData implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @Schema(description = "公司ID")
-    @TableField("company_id")
-    private Long companyId;
-
-    @Schema(description = "字典ID")
-    @TableField("dict_id")
-    private Long dictId;
+    @Schema(description = "归属字典编码")
+    @TableField("dict_code")
+    private String dictCode;
 
     @Schema(description = "数据项名称")
     @TableField("name")
     private String name;
 
-    @Schema(description = "数据项Code")
+    @Schema(description = "数据项值")
     @TableField("value")
     private String value;
 
@@ -63,48 +58,26 @@ public class DictData implements Serializable {
     @TableField("status")
     private Integer status;
 
-    @Schema(description = "是否可删除（1可删除 0不可删除）")
+    @Schema(description = "是否可删除（1可删 0不可删）")
     @TableField("deletable")
     private Boolean deletable;
 
-    @Schema(description = "是否来自模板（1是 0否）")
-    @TableField("from_template")
-    private Boolean fromTemplate;
+    @Schema(description = "模板项是否启用")
+    @TableField("enabled")
+    private Boolean enabled;
 
-    @Schema(description = "是否锁定不被模板覆盖（1是 0否）")
-    @TableField("locked")
-    private Boolean locked;
-
-    @Schema(description = "最后同步模板版本")
-    @TableField("template_ver")
-    private Integer templateVer;
-
-    @Schema(description = "最后模板同步时间")
-    @TableField("sync_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date syncTime;
+    @Schema(description = "模板版本号")
+    @TableField("ver")
+    private Integer ver;
 
     @Schema(description = "备注")
     @TableField("remark")
     private String remark;
 
-    @Schema(description = "是否删除：0 否，1 是")
-    @TableField("deleted")
-    @TableLogic
-    private Boolean deleted;
-
-    @Schema(description = "创建者")
-    @TableField("create_by")
-    private Long createBy;
-
     @Schema(description = "创建时间")
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
-
-    @Schema(description = "更新者")
-    @TableField("update_by")
-    private Long updateBy;
 
     @Schema(description = "更新时间")
     @TableField("update_time")

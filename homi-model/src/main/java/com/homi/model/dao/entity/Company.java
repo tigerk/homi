@@ -4,15 +4,14 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -20,7 +19,7 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-09-19
+ * @since 2026-03-03
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -102,6 +101,15 @@ public class Company implements Serializable {
     @Schema(description = "状态（1正常，0禁用）")
     @TableField("status")
     private Integer status;
+
+    @Schema(description = "公司字典当前版本")
+    @TableField("dict_ver")
+    private Integer dictVer;
+
+    @Schema(description = "字典最后同步时间")
+    @TableField("dict_sync_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date dictSyncTime;
 
     @Schema(description = "备注")
     @TableField("remark")

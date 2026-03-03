@@ -1,18 +1,18 @@
 package com.homi.model.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.homi.model.dao.entity.CompanyInit;
+import com.homi.model.dao.entity.DictTemplate;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
- * 公司默认数据表 Mapper 接口
+ * 字典模板表 Mapper 接口
  * </p>
  *
  * @author tk
- * @since 2025-12-01
+ * @since 2026-03-03
  */
 @Mapper
-public interface CompanyInitMapper extends BaseMapper<CompanyInit> {
+public interface DictTemplateMapper extends BaseMapper<DictTemplate> {
 
 }
