@@ -1,4 +1,4 @@
-package com.homi.platform.web.controller;
+package com.homi.platform.web.controller.company;
 
 
 import cn.hutool.core.date.DateUtil;

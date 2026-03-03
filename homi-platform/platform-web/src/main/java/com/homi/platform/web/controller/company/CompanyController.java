@@ -1,4 +1,4 @@
-package com.homi.platform.web.controller;
+package com.homi.platform.web.controller.company;
 
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
