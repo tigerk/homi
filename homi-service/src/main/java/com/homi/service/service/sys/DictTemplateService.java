@@ -4,18 +4,8 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
-import com.homi.model.dao.entity.Company;
-import com.homi.model.dao.entity.CompanyDictSyncLog;
-import com.homi.model.dao.entity.Dict;
-import com.homi.model.dao.entity.DictData;
-import com.homi.model.dao.entity.DictDataTemplate;
-import com.homi.model.dao.entity.DictTemplate;
-import com.homi.model.dao.repo.CompanyDictSyncLogRepo;
-import com.homi.model.dao.repo.CompanyRepo;
-import com.homi.model.dao.repo.DictDataRepo;
-import com.homi.model.dao.repo.DictDataTemplateRepo;
-import com.homi.model.dao.repo.DictRepo;
-import com.homi.model.dao.repo.DictTemplateRepo;
+import com.homi.model.dao.entity.*;
+import com.homi.model.dao.repo.*;
 import com.homi.model.dict.template.dto.DictDataTemplateQueryDTO;
 import com.homi.model.dict.template.dto.DictDataTemplateSaveDTO;
 import com.homi.model.dict.template.dto.DictTemplateSaveDTO;
@@ -24,19 +14,17 @@ import com.homi.model.dict.template.vo.DictTemplateSyncVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class DictTemplateService {
+
+    private static final String ROOT_PARENT_CODE = "0";
+    private static final int MAX_SYNC_ROUNDS = 10;
+
     private final DictTemplateRepo dictTemplateRepo;
     private final DictDataTemplateRepo dictDataTemplateRepo;
     private final DictRepo dictRepo;
@@ -44,21 +32,25 @@ public class DictTemplateService {
     private final CompanyRepo companyRepo;
     private final CompanyDictSyncLogRepo companyDictSyncLogRepo;
 
+    // ----------------------------------------------------------------
+    // Query
+    // ----------------------------------------------------------------
+
     public List<DictTemplateListVO> listTemplateTree() {
-        List<DictTemplate> templateList = dictTemplateRepo.list(new LambdaQueryWrapper<DictTemplate>()
-            .orderByAsc(DictTemplate::getSortOrder)
-            .orderByAsc(DictTemplate::getId));
+        List<DictTemplate> templateList = dictTemplateRepo.list(
+            new LambdaQueryWrapper<DictTemplate>()
+                .orderByAsc(DictTemplate::getSortOrder)
+                .orderByAsc(DictTemplate::getId));
+
         Map<String, DictTemplateListVO> voMap = new LinkedHashMap<>();
-        templateList.forEach(item -> {
-            DictTemplateListVO vo = BeanCopyUtils.copyBean(item, DictTemplateListVO.class);
-            if (Objects.nonNull(vo)) {
-                voMap.put(item.getDictCode(), vo);
-            }
-        });
+        templateList.stream()
+            .map(item -> BeanCopyUtils.copyBean(item, DictTemplateListVO.class))
+            .filter(Objects::nonNull)
+            .forEach(vo -> voMap.put(vo.getDictCode(), vo));
 
         List<DictTemplateListVO> roots = new ArrayList<>();
         voMap.values().forEach(vo -> {
-            if ("0".equals(vo.getParentCode()) || Objects.isNull(voMap.get(vo.getParentCode()))) {
+            if (ROOT_PARENT_CODE.equals(vo.getParentCode()) || !voMap.containsKey(vo.getParentCode())) {
                 roots.add(vo);
             } else {
                 voMap.get(vo.getParentCode()).getChildren().add(vo);
@@ -71,29 +63,43 @@ public class DictTemplateService {
         LambdaQueryWrapper<DictDataTemplate> queryWrapper = new LambdaQueryWrapper<DictDataTemplate>()
             .orderByAsc(DictDataTemplate::getSortOrder)
             .orderByAsc(DictDataTemplate::getId);
-        if (Objects.nonNull(queryDTO) && Objects.nonNull(queryDTO.getDictCode()) && !queryDTO.getDictCode().isBlank()) {
-            queryWrapper.eq(DictDataTemplate::getDictCode, queryDTO.getDictCode());
-        }
+
+        Optional.ofNullable(queryDTO)
+            .map(DictDataTemplateQueryDTO::getDictCode)
+            .filter(StringUtils::hasText)
+            .ifPresent(code -> queryWrapper.eq(DictDataTemplate::getDictCode, code));
+
         return dictDataTemplateRepo.list(queryWrapper);
     }
 
+    // ----------------------------------------------------------------
+    // Template CRUD
+    // ----------------------------------------------------------------
+
     public Boolean saveTemplate(DictTemplateSaveDTO saveDTO) {
-        if (Objects.isNull(saveDTO.getDictCode()) || saveDTO.getDictCode().isBlank()) {
+        if (!StringUtils.hasText(saveDTO.getDictCode())) {
             throw new BizException("字典编码不能为空");
         }
-        DictTemplate existsCode = dictTemplateRepo.getOne(new LambdaQueryWrapper<DictTemplate>()
-            .eq(DictTemplate::getDictCode, saveDTO.getDictCode())
-            .eq(DictTemplate::getVer, saveDTO.getVer()));
-        if (Objects.nonNull(existsCode) && !Objects.equals(existsCode.getId(), saveDTO.getId())) {
+
+        boolean codeConflict = dictTemplateRepo.exists(
+            new LambdaQueryWrapper<DictTemplate>()
+                .eq(DictTemplate::getDictCode, saveDTO.getDictCode())
+                .eq(DictTemplate::getVer, saveDTO.getVer())
+                .ne(Objects.nonNull(saveDTO.getId()), DictTemplate::getId, saveDTO.getId()));
+        if (codeConflict) {
             throw new BizException("同版本下字典编码已存在");
         }
 
-        DictTemplate template = BeanCopyUtils.copyBean(saveDTO, DictTemplate.class);
-        if (Objects.isNull(template)) {
-            throw new BizException("参数错误");
-        }
-        if (Objects.isNull(template.getParentCode()) || template.getParentCode().isBlank()) {
-            template.setParentCode("0");
+        DictTemplate template = Optional.ofNullable(BeanCopyUtils.copyBean(saveDTO, DictTemplate.class))
+            .orElseThrow(() -> new BizException("参数错误"));
+
+        applyTemplateDefaults(template);
+        return dictTemplateRepo.saveOrUpdate(template);
+    }
+
+    private void applyTemplateDefaults(DictTemplate template) {
+        if (!StringUtils.hasText(template.getParentCode())) {
+            template.setParentCode(ROOT_PARENT_CODE);
         }
         if (Objects.isNull(template.getSortOrder())) {
             template.setSortOrder(0);
@@ -110,40 +116,48 @@ public class DictTemplateService {
         if (Objects.isNull(template.getVer())) {
             template.setVer(1);
         }
-
-        return dictTemplateRepo.saveOrUpdate(template);
     }
 
     public Boolean deleteTemplate(Long id) {
-        DictTemplate template = dictTemplateRepo.getById(id);
-        if (Objects.isNull(template)) {
-            throw new BizException("模板不存在");
-        }
+        DictTemplate template = Optional.ofNullable(dictTemplateRepo.getById(id))
+            .orElseThrow(() -> new BizException("模板不存在"));
+
         dictDataTemplateRepo.remove(new LambdaQueryWrapper<DictDataTemplate>()
             .eq(DictDataTemplate::getDictCode, template.getDictCode())
             .eq(DictDataTemplate::getVer, template.getVer()));
         return dictTemplateRepo.removeById(id);
     }
 
+    // ----------------------------------------------------------------
+    // DictData Template CRUD
+    // ----------------------------------------------------------------
+
     public Boolean saveDataTemplate(DictDataTemplateSaveDTO saveDTO) {
-        if (Objects.isNull(saveDTO.getDictCode()) || saveDTO.getDictCode().isBlank()) {
+        if (!StringUtils.hasText(saveDTO.getDictCode())) {
             throw new BizException("字典编码不能为空");
         }
-        if (Objects.isNull(saveDTO.getValue()) || saveDTO.getValue().isBlank()) {
+        if (!StringUtils.hasText(saveDTO.getValue())) {
             throw new BizException("数据项值不能为空");
         }
-        DictDataTemplate exists = dictDataTemplateRepo.getOne(new LambdaQueryWrapper<DictDataTemplate>()
-            .eq(DictDataTemplate::getDictCode, saveDTO.getDictCode())
-            .eq(DictDataTemplate::getValue, saveDTO.getValue())
-            .eq(DictDataTemplate::getVer, saveDTO.getVer()));
-        if (Objects.nonNull(exists) && !Objects.equals(exists.getId(), saveDTO.getId())) {
+
+        boolean valueConflict = dictDataTemplateRepo.exists(
+            new LambdaQueryWrapper<DictDataTemplate>()
+                .eq(DictDataTemplate::getDictCode, saveDTO.getDictCode())
+                .eq(DictDataTemplate::getValue, saveDTO.getValue())
+                .eq(DictDataTemplate::getVer, saveDTO.getVer())
+                .ne(Objects.nonNull(saveDTO.getId()), DictDataTemplate::getId, saveDTO.getId()));
+        if (valueConflict) {
             throw new BizException("同版本下该数据项值已存在");
         }
 
-        DictDataTemplate template = BeanCopyUtils.copyBean(saveDTO, DictDataTemplate.class);
-        if (Objects.isNull(template)) {
-            throw new BizException("参数错误");
-        }
+        DictDataTemplate template = Optional.ofNullable(BeanCopyUtils.copyBean(saveDTO, DictDataTemplate.class))
+            .orElseThrow(() -> new BizException("参数错误"));
+
+        applyDataTemplateDefaults(template);
+        return dictDataTemplateRepo.saveOrUpdate(template);
+    }
+
+    private void applyDataTemplateDefaults(DictDataTemplate template) {
         if (Objects.isNull(template.getSortOrder())) {
             template.setSortOrder(0);
         }
@@ -159,16 +173,19 @@ public class DictTemplateService {
         if (Objects.isNull(template.getVer())) {
             template.setVer(1);
         }
-        return dictDataTemplateRepo.saveOrUpdate(template);
     }
 
     public Boolean deleteDataTemplate(Long id) {
         return dictDataTemplateRepo.removeById(id);
     }
 
+    // ----------------------------------------------------------------
+    // Sync
+    // ----------------------------------------------------------------
+
     @Transactional(rollbackFor = Exception.class)
     public DictTemplateSyncVO syncAllCompanyDict() {
-        Integer toVer = getLatestTemplateVersion();
+        int toVer = getLatestTemplateVersion();
         if (toVer <= 0) {
             throw new BizException("未配置任何模板版本，无法同步");
         }
@@ -178,27 +195,21 @@ public class DictTemplateService {
         int failCount = 0;
 
         for (Company company : companyList) {
-            Integer fromVer = Objects.nonNull(company.getDictVer()) ? company.getDictVer() : 0;
+            int fromVer = Objects.nonNull(company.getDictVer()) ? company.getDictVer() : 0;
             if (fromVer >= toVer) {
                 successCount++;
                 continue;
             }
 
-            CompanyDictSyncLog syncLog = new CompanyDictSyncLog();
-            syncLog.setCompanyId(company.getId());
-            syncLog.setFromVer(fromVer);
-            syncLog.setToVer(toVer);
-            syncLog.setStatus(0);
-            syncLog.setSuccessCount(0);
-            syncLog.setFailCount(0);
-            syncLog.setStartTime(DateUtil.date());
+            CompanyDictSyncLog syncLog = buildSyncLog(company.getId(), fromVer, toVer);
             companyDictSyncLogRepo.save(syncLog);
 
             try {
+                // 同步核心方法
                 SyncCounter counter = syncCompanyDictByTemplate(company.getId(), toVer);
                 syncLog.setStatus(1);
-                syncLog.setSuccessCount(counter.getSuccess());
-                syncLog.setFailCount(counter.getFail());
+                syncLog.setSuccessCount(counter.success());
+                syncLog.setFailCount(counter.fail());
                 successCount++;
 
                 company.setDictVer(toVer);
@@ -222,31 +233,71 @@ public class DictTemplateService {
         return syncVO;
     }
 
-    private Integer getLatestTemplateVersion() {
-        DictTemplate dictTemplate = dictTemplateRepo.getOne(new LambdaQueryWrapper<DictTemplate>()
-            .orderByDesc(DictTemplate::getVer));
-        DictDataTemplate dataTemplate = dictDataTemplateRepo.getOne(new LambdaQueryWrapper<DictDataTemplate>()
-            .orderByDesc(DictDataTemplate::getVer));
-        int dictVer = Objects.isNull(dictTemplate) ? 0 : dictTemplate.getVer();
-        int dataVer = Objects.isNull(dataTemplate) ? 0 : dataTemplate.getVer();
+    private CompanyDictSyncLog buildSyncLog(Long companyId, int fromVer, int toVer) {
+        CompanyDictSyncLog syncLog = new CompanyDictSyncLog();
+        syncLog.setCompanyId(companyId);
+        syncLog.setFromVer(fromVer);
+        syncLog.setToVer(toVer);
+        syncLog.setStatus(0);
+        syncLog.setSuccessCount(0);
+        syncLog.setFailCount(0);
+        syncLog.setStartTime(DateUtil.date());
+        return syncLog;
+    }
+
+    /**
+     * 获取最新的模板版本
+     */
+    private int getLatestTemplateVersion() {
+        int dictVer = Optional.ofNullable(dictTemplateRepo.getOne(
+                new LambdaQueryWrapper<DictTemplate>().select(DictTemplate::getVer).orderByDesc(DictTemplate::getVer).last("limit 1")))
+            .map(DictTemplate::getVer)
+            .orElse(0);
+        int dataVer = Optional.ofNullable(dictDataTemplateRepo.getOne(
+                new LambdaQueryWrapper<DictDataTemplate>().select(DictDataTemplate::getVer).orderByDesc(DictDataTemplate::getVer).last("limit 1")))
+            .map(DictDataTemplate::getVer)
+            .orElse(0);
         return Math.max(dictVer, dataVer);
     }
 
+    // ----------------------------------------------------------------
+    // Core sync — cognitive complexity ≤ 15
+    // ----------------------------------------------------------------
     private SyncCounter syncCompanyDictByTemplate(Long companyId, Integer toVer) {
         Date now = DateUtil.date();
-        int success = 0;
-        int fail = 0;
+        Map<String, Dict> dictByCode = loadCompanyDictMap(companyId);
 
-        List<Dict> companyDicts = dictRepo.list(new LambdaQueryWrapper<Dict>()
-            .eq(Dict::getCompanyId, companyId));
+        int[] counter = {0, 0}; // [success, fail]
+        syncDictTemplates(companyId, getEffectiveDictTemplateMap(toVer), dictByCode, now, counter);
+        syncDictDataTemplates(companyId, getEffectiveDictDataTemplateMap(toVer), dictByCode, now, counter);
+
+        return new SyncCounter(counter[0], counter[1]);
+    }
+
+    private Map<String, Dict> loadCompanyDictMap(Long companyId) {
         Map<String, Dict> dictByCode = new HashMap<>();
-        companyDicts.forEach(item -> dictByCode.put(item.getDictCode(), item));
+        dictRepo.list(new LambdaQueryWrapper<Dict>().eq(Dict::getCompanyId, companyId))
+            .forEach(item -> dictByCode.put(item.getDictCode(), item));
+        return dictByCode;
+    }
 
-        Map<String, DictTemplate> dictTemplateMap = getEffectiveDictTemplateMap(toVer);
+    /**
+     * 同步字典模板
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/3/3 16:43
+     *
+     * @param companyId       公司 ID
+     * @param dictTemplateMap 字典模板 Map
+     * @param dictByCode      字典 Map，key 为字典编码
+     * @param now             当前时间
+     * @param counter         同步计数器，[success, fail]
+     */
+    private void syncDictTemplates(Long companyId, Map<String, DictTemplate> dictTemplateMap, Map<String, Dict> dictByCode, Date now, int[] counter) {
         List<DictTemplate> rootTemplates = new ArrayList<>();
         List<DictTemplate> pendingTemplates = new ArrayList<>();
         dictTemplateMap.values().forEach(item -> {
-            if ("0".equals(item.getParentCode())) {
+            if (ROOT_PARENT_CODE.equals(item.getParentCode())) {
                 rootTemplates.add(item);
             } else {
                 pendingTemplates.add(item);
@@ -254,121 +305,150 @@ public class DictTemplateService {
         });
 
         for (DictTemplate template : rootTemplates) {
-            if (upsertCompanyDict(companyId, 0L, template, dictByCode, now)) {
-                success++;
-            } else {
-                fail++;
-            }
+            accumulate(counter, upsertCompanyDict(companyId, 0L, template, dictByCode, now));
         }
+        syncChildDictTemplates(companyId, pendingTemplates, dictByCode, now, counter);
+    }
 
+    /**
+     * 递归同步子字典模板
+     */
+    private void syncChildDictTemplates(Long companyId, List<DictTemplate> pendingTemplates, Map<String, Dict> dictByCode, Date now, int[] counter) {
         int rounds = 0;
-        while (!pendingTemplates.isEmpty() && rounds < 10) {
+        while (!pendingTemplates.isEmpty() && rounds < MAX_SYNC_ROUNDS) {
             rounds++;
-            boolean progressed = false;
-            Iterator<DictTemplate> iterator = pendingTemplates.iterator();
-            while (iterator.hasNext()) {
-                DictTemplate template = iterator.next();
-                Dict parent = dictByCode.get(template.getParentCode());
-                if (Objects.isNull(parent)) {
-                    continue;
-                }
-                if (upsertCompanyDict(companyId, parent.getId(), template, dictByCode, now)) {
-                    success++;
-                } else {
-                    fail++;
-                }
-                iterator.remove();
-                progressed = true;
-            }
+            boolean progressed = processOneBatchOfPending(companyId, pendingTemplates, dictByCode, now, counter);
             if (!progressed) {
                 break;
             }
         }
-        if (!pendingTemplates.isEmpty()) {
-            fail += pendingTemplates.size();
-        }
+        counter[1] += pendingTemplates.size(); // unresolved orphans → fail
+    }
 
-        Map<String, DictDataTemplate> dataTemplateMap = getEffectiveDictDataTemplateMap(toVer);
+    private boolean processOneBatchOfPending(Long companyId, List<DictTemplate> pendingTemplates,
+                                             Map<String, Dict> dictByCode, Date now, int[] counter) {
+        boolean progressed = false;
+        Iterator<DictTemplate> iterator = pendingTemplates.iterator();
+        while (iterator.hasNext()) {
+            DictTemplate template = iterator.next();
+            Dict parent = dictByCode.get(template.getParentCode());
+            if (Objects.isNull(parent)) {
+                continue;
+            }
+            accumulate(counter, upsertCompanyDict(companyId, parent.getId(), template, dictByCode, now));
+            iterator.remove();
+            progressed = true;
+        }
+        return progressed;
+    }
+
+    private void syncDictDataTemplates(Long companyId, Map<String, DictDataTemplate> dataTemplateMap,
+                                       Map<String, Dict> dictByCode, Date now, int[] counter) {
         for (DictDataTemplate dataTemplate : dataTemplateMap.values()) {
             Dict dict = dictByCode.get(dataTemplate.getDictCode());
             if (Objects.isNull(dict)) {
-                fail++;
+                counter[1]++;
                 continue;
             }
-            if (upsertCompanyDictData(companyId, dict.getId(), dataTemplate, now)) {
-                success++;
-            } else {
-                fail++;
-            }
+            accumulate(counter, upsertCompanyDictData(companyId, dict.getId(), dataTemplate, now));
         }
-
-        return new SyncCounter(success, fail);
     }
 
-    private Map<String, DictTemplate> getEffectiveDictTemplateMap(Integer toVer) {
-        List<DictTemplate> templateList = dictTemplateRepo.list(new LambdaQueryWrapper<DictTemplate>()
-            .le(DictTemplate::getVer, toVer)
-            .eq(DictTemplate::getEnabled, true)
-            .orderByAsc(DictTemplate::getVer)
-            .orderByAsc(DictTemplate::getUpdateTime));
+    private void accumulate(int[] counter, boolean success) {
+        counter[success ? 0 : 1]++;
+    }
 
+    // ----------------------------------------------------------------
+    // Template map loaders
+    // ----------------------------------------------------------------
+
+    private Map<String, DictTemplate> getEffectiveDictTemplateMap(Integer toVer) {
         Map<String, DictTemplate> templateMap = new LinkedHashMap<>();
-        templateList.forEach(item -> templateMap.put(item.getDictCode(), item));
+        dictTemplateRepo.list(new LambdaQueryWrapper<DictTemplate>()
+                .le(DictTemplate::getVer, toVer)
+                .eq(DictTemplate::getEnabled, true)
+                .orderByAsc(DictTemplate::getVer)
+                .orderByAsc(DictTemplate::getUpdateTime))
+            .forEach(item -> templateMap.put(item.getDictCode(), item));
         return templateMap;
     }
 
     private Map<String, DictDataTemplate> getEffectiveDictDataTemplateMap(Integer toVer) {
-        List<DictDataTemplate> templateList = dictDataTemplateRepo.list(new LambdaQueryWrapper<DictDataTemplate>()
-            .le(DictDataTemplate::getVer, toVer)
-            .eq(DictDataTemplate::getEnabled, true)
-            .orderByAsc(DictDataTemplate::getVer)
-            .orderByAsc(DictDataTemplate::getUpdateTime));
-
         Map<String, DictDataTemplate> templateMap = new LinkedHashMap<>();
-        templateList.forEach(item -> templateMap.put(item.getDictCode() + "#" + item.getValue(), item));
+        dictDataTemplateRepo.list(new LambdaQueryWrapper<DictDataTemplate>()
+                .le(DictDataTemplate::getVer, toVer)
+                .eq(DictDataTemplate::getEnabled, true)
+                .orderByAsc(DictDataTemplate::getVer)
+                .orderByAsc(DictDataTemplate::getUpdateTime))
+            .forEach(item -> templateMap.put(item.getDictCode() + "#" + item.getValue(), item));
         return templateMap;
     }
 
-    private boolean upsertCompanyDict(Long companyId, Long parentId, DictTemplate template, Map<String, Dict> dictByCode, Date now) {
+    // ----------------------------------------------------------------
+    // Upsert helpers
+    // ----------------------------------------------------------------
+
+    private boolean upsertCompanyDict(Long companyId, Long parentId, DictTemplate template,
+                                      Map<String, Dict> dictByCode, Date now) {
         Dict exist = dictByCode.get(template.getDictCode());
         if (Objects.isNull(exist)) {
-            Dict dict = new Dict();
-            dict.setCompanyId(companyId);
-            dict.setParentId(parentId);
-            dict.setDictCode(template.getDictCode());
-            dict.setDictName(template.getDictName());
-            dict.setSortOrder(template.getSortOrder());
-            dict.setStatus(template.getStatus());
-            dict.setHidden(template.getHidden());
-            dict.setRemark(template.getRemark());
-            dict.setFromTemplate(Boolean.TRUE);
-            dict.setLocked(Boolean.FALSE);
-            dict.setTemplateVer(template.getVer());
-            dict.setSyncTime(now);
-            boolean saved = dictRepo.save(dict);
-            if (saved) {
-                dictByCode.put(dict.getDictCode(), dict);
-            }
-            return saved;
+            return insertCompanyDict(companyId, parentId, template, dictByCode, now);
         }
-
         if (Boolean.TRUE.equals(exist.getFromTemplate()) && !Boolean.TRUE.equals(exist.getLocked())) {
-            exist.setParentId(parentId);
-            exist.setDictName(template.getDictName());
-            exist.setSortOrder(template.getSortOrder());
-            exist.setStatus(template.getStatus());
-            exist.setHidden(template.getHidden());
-            exist.setRemark(template.getRemark());
-            exist.setTemplateVer(template.getVer());
-            exist.setSyncTime(now);
-            boolean updated = dictRepo.updateById(exist);
-            if (updated) {
-                dictByCode.put(exist.getDictCode(), exist);
-            }
-            return updated;
+            return updateCompanyDict(exist, parentId, template, dictByCode, now);
         }
-
         return true;
+    }
+
+    private boolean insertCompanyDict(Long companyId, Long parentId, DictTemplate template,
+                                      Map<String, Dict> dictByCode, Date now) {
+        Dict dict = new Dict();
+        dict.setCompanyId(companyId);
+        dict.setParentId(parentId);
+        dict.setDictCode(template.getDictCode());
+        dict.setDictName(template.getDictName());
+        dict.setSortOrder(template.getSortOrder());
+        dict.setStatus(template.getStatus());
+        dict.setHidden(template.getHidden());
+        dict.setRemark(template.getRemark());
+        dict.setFromTemplate(Boolean.TRUE);
+        dict.setLocked(Boolean.FALSE);
+        dict.setTemplateVer(template.getVer());
+        dict.setSyncTime(now);
+        boolean saved = dictRepo.save(dict);
+        if (saved) {
+            dictByCode.put(dict.getDictCode(), dict);
+        }
+        return saved;
+    }
+
+    /**
+     * 更新公司字典
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/3/3 16:52
+
+     * @param exist 存在的字典
+     * @param parentId 父字典ID
+     * @param template 参数
+     * @param dictByCode 字典缓存
+     * @param now 当前时间
+     * @return boolean
+     */
+    private boolean updateCompanyDict(Dict exist, Long parentId, DictTemplate template, Map<String, Dict> dictByCode, Date now) {
+        exist.setParentId(parentId);
+        exist.setDictName(template.getDictName());
+        exist.setSortOrder(template.getSortOrder());
+        exist.setStatus(template.getStatus());
+        exist.setHidden(template.getHidden());
+        exist.setRemark(template.getRemark());
+        exist.setTemplateVer(template.getVer());
+        exist.setSyncTime(now);
+        boolean updated = dictRepo.updateById(exist);
+        if (updated) {
+            dictByCode.put(exist.getDictCode(), exist);
+        }
+        return updated;
     }
 
     private boolean upsertCompanyDictData(Long companyId, Long dictId, DictDataTemplate template, Date now) {
@@ -377,54 +457,50 @@ public class DictTemplateService {
             .eq(DictData::getDictId, dictId)
             .eq(DictData::getValue, template.getValue())
             .last("limit 1"), false);
+
         if (Objects.isNull(exist)) {
-            DictData dictData = new DictData();
-            dictData.setCompanyId(companyId);
-            dictData.setDictId(dictId);
-            dictData.setName(template.getName());
-            dictData.setValue(template.getValue());
-            dictData.setSortOrder(template.getSortOrder());
-            dictData.setColor(template.getColor());
-            dictData.setStatus(template.getStatus());
-            dictData.setDeletable(template.getDeletable());
-            dictData.setRemark(template.getRemark());
-            dictData.setFromTemplate(Boolean.TRUE);
-            dictData.setLocked(Boolean.FALSE);
-            dictData.setTemplateVer(template.getVer());
-            dictData.setSyncTime(now);
-            return dictDataRepo.save(dictData);
+            return insertCompanyDictData(companyId, dictId, template, now);
         }
-
         if (Boolean.TRUE.equals(exist.getFromTemplate()) && !Boolean.TRUE.equals(exist.getLocked())) {
-            exist.setName(template.getName());
-            exist.setSortOrder(template.getSortOrder());
-            exist.setColor(template.getColor());
-            exist.setStatus(template.getStatus());
-            exist.setDeletable(template.getDeletable());
-            exist.setRemark(template.getRemark());
-            exist.setTemplateVer(template.getVer());
-            exist.setSyncTime(now);
-            return dictDataRepo.updateById(exist);
+            return updateCompanyDictData(exist, template, now);
         }
-
         return true;
     }
 
-    private static class SyncCounter {
-        private final int success;
-        private final int fail;
+    private boolean insertCompanyDictData(Long companyId, Long dictId, DictDataTemplate template, Date now) {
+        DictData dictData = new DictData();
+        dictData.setCompanyId(companyId);
+        dictData.setDictId(dictId);
+        dictData.setName(template.getName());
+        dictData.setValue(template.getValue());
+        dictData.setSortOrder(template.getSortOrder());
+        dictData.setColor(template.getColor());
+        dictData.setStatus(template.getStatus());
+        dictData.setDeletable(template.getDeletable());
+        dictData.setRemark(template.getRemark());
+        dictData.setFromTemplate(Boolean.TRUE);
+        dictData.setLocked(Boolean.FALSE);
+        dictData.setTemplateVer(template.getVer());
+        dictData.setSyncTime(now);
+        return dictDataRepo.save(dictData);
+    }
 
-        private SyncCounter(int success, int fail) {
-            this.success = success;
-            this.fail = fail;
-        }
+    private boolean updateCompanyDictData(DictData exist, DictDataTemplate template, Date now) {
+        exist.setName(template.getName());
+        exist.setSortOrder(template.getSortOrder());
+        exist.setColor(template.getColor());
+        exist.setStatus(template.getStatus());
+        exist.setDeletable(template.getDeletable());
+        exist.setRemark(template.getRemark());
+        exist.setTemplateVer(template.getVer());
+        exist.setSyncTime(now);
+        return dictDataRepo.updateById(exist);
+    }
 
-        public int getSuccess() {
-            return success;
-        }
+    // ----------------------------------------------------------------
+    // Inner types
+    // ----------------------------------------------------------------
 
-        public int getFail() {
-            return fail;
-        }
+    private record SyncCounter(int success, int fail) {
     }
 }
