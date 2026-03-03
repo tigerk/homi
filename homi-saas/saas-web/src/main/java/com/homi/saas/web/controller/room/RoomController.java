@@ -6,10 +6,7 @@ import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Room;
-import com.homi.model.room.dto.RoomIdDTO;
-import com.homi.model.room.dto.RoomQueryDTO;
-import com.homi.model.room.dto.RoomSaveRemarkDTO;
-import com.homi.model.room.dto.RoomTrackDTO;
+import com.homi.model.room.dto.*;
 import com.homi.model.room.dto.grid.RoomGridDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.room.vo.RoomListVO;
@@ -72,8 +69,9 @@ public class RoomController {
 
     @PostMapping("/lock")
     @Log(title = "锁房房间", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Boolean> lockRoom(@RequestBody RoomIdDTO query) {
-        return ResponseResult.ok(roomService.lockRoom(query));
+    public ResponseResult<Boolean> lockRoom(@RequestBody RoomLockDTO lockDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        lockDTO.setUpdateBy(Objects.requireNonNull(loginUser).getId());
+        return ResponseResult.ok(roomService.lockRoom(lockDTO));
     }
 
     @PostMapping("/unlock")

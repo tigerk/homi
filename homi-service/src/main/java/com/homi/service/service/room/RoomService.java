@@ -1,20 +1,26 @@
 package com.homi.service.service.room;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.room.OccupancyStatusEnum;
+import com.homi.common.lib.enums.room.RoomLockReasonEnum;
+import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.utils.JsonUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.room.dto.RoomIdDTO;
+import com.homi.model.room.dto.RoomLockDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.RoomSaveRemarkDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
@@ -26,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -54,6 +61,7 @@ public class RoomService {
     private final TenantRepo tenantRepo;
     private final HouseRepo houseRepo;
     private final LeaseRoomRepo leaseRoomRepo;
+    private final RoomLockRepo roomLockRepo;
     private final PriceConfigService priceConfigService;
 
     /**
@@ -279,12 +287,39 @@ public class RoomService {
         return null;
     }
 
-    public Boolean lockRoom(RoomIdDTO query) {
-        return roomRepo.lockRoomById(query.getRoomId());
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean lockRoom(RoomLockDTO query) {
+        Room room = roomRepo.getById(query.getRoomId());
+        if (Objects.isNull(room)) {
+            throw new BizException("房间不存在");
+        }
+
+        if (Objects.equals(query.getLockReason(), RoomLockReasonEnum.SPECIFIED_TIME.getCode())) {
+            if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
+                throw new BizException("指定时间锁房必须填写开始时间和结束时间");
+            }
+            if (query.getEndTime().before(query.getStartTime())) {
+                throw new BizException("结束时间不能早于开始时间");
+            }
+        }
+
+        Boolean locked = roomRepo.lockRoomById(query.getRoomId());
+        if (Boolean.FALSE.equals(locked)) {
+            throw new BizException("锁房失败");
+        }
+
+        RoomLock roomLock = BeanCopyUtils.copyBean(query, RoomLock.class);
+        roomLockRepo.save(roomLock);
+
+        return Boolean.TRUE;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public Boolean unlockRoom(RoomIdDTO query) {
-        return roomRepo.unlockRoomById(query.getRoomId());
+        Boolean unlocked = roomRepo.unlockRoomById(query.getRoomId());
+        roomLockRepo.remove(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RoomLock>()
+            .eq(RoomLock::getRoomId, query.getRoomId()));
+        return unlocked;
     }
 
     public Boolean closeRoom(RoomIdDTO query) {
@@ -293,6 +328,22 @@ public class RoomService {
 
     public Boolean openRoom(RoomIdDTO query) {
         return roomRepo.openRoomById(query.getRoomId());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Integer unlockExpiredTimedLocks() {
+        Date now = DateUtil.date();
+        List<RoomLock> expiredLocks = roomLockRepo.list(new LambdaQueryWrapper<RoomLock>()
+            .eq(RoomLock::getLockReason, RoomLockReasonEnum.SPECIFIED_TIME.getCode())
+            .isNotNull(RoomLock::getEndTime)
+            .le(RoomLock::getEndTime, now));
+
+        int count = 0;
+        for (RoomLock lock : expiredLocks) {
+            roomRepo.unlockRoomById(lock.getRoomId());
+            count++;
+        }
+        return count;
     }
 
     /**

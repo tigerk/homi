@@ -57,12 +57,7 @@ public class MyBatisGenerator {
             .mapperPackageName("com.homi.model.dao.mapper")
             .servicePackageName("com.homi.model.dao.repo")
             .tblNameList(ListUtil.of(
-                "company",
-                "dict",
-                "dict_data",
-                "dict_template",
-                "dict_data_template",
-                "company_dict_sync_log"
+                "room_lock"
             )).build();
 
         myBatisGenerator.generate();
