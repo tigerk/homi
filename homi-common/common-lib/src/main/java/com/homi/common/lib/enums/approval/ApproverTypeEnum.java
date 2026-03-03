@@ -12,12 +12,12 @@ public enum ApproverTypeEnum {
     /*
      * 指定用户: 1,
      * 指定角色: 2,
-     * 部门主管: 3,
+     * 部门负责人: 3,
      * 发起人自选: 4
      */
     SPECIFIC_USER(1, "指定用户"),
     SPECIFIC_ROLE(2, "指定角色"),
-    DEPARTMENT_SUPERVISOR(3, "部门主管"),
+    DEPARTMENT_SUPERVISOR(3, "部门负责人"),
     SELF_OPTION(4, "发起人自选");
 
     private final Integer code;

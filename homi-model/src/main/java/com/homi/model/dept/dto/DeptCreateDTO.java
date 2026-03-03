@@ -32,7 +32,7 @@ public class DeptCreateDTO {
     @Schema(description = "父节点id")
     private Long parentId;
 
-    @Schema(description = "部门主管ID")
+    @Schema(description = "部门负责人ID")
     private Long supervisorId;
 
     /**

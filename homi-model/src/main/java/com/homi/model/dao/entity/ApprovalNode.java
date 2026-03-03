@@ -47,7 +47,7 @@ public class ApprovalNode implements Serializable {
     @TableField("node_order")
     private Integer nodeOrder;
 
-    @Schema(description = "审批人类型：1=指定用户，2=指定角色，3=部门主管，4=发起人自选")
+    @Schema(description = "审批人类型：1=指定用户，2=指定角色，3=部门负责人，4=发起人自选")
     @TableField("approver_type")
     private Integer approverType;
 

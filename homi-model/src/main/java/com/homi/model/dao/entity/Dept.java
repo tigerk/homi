@@ -47,7 +47,7 @@ public class Dept implements Serializable {
     @TableField("parent_id")
     private Long parentId;
 
-     @Schema(description = "部门主管ID")
+     @Schema(description = "部门负责人ID")
     @TableField("supervisor_id")
     private Long supervisorId;
 

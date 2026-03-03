@@ -366,7 +366,7 @@ public class ApprovalService {
     }
 
     /**
-     * 获取部门主管
+     * 获取部门负责人
      */
     private List<Long> getDepartmentSupervisor(ApprovalInstance instance) {
         CompanyUser companyUser = companyUserRepo.getCompanyUser(

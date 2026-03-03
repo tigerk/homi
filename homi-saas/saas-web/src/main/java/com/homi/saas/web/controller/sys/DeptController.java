@@ -53,7 +53,7 @@ public class DeptController {
         createDTO.setUpdateTime(DateUtil.date());
         if (Objects.nonNull(createDTO.getSupervisorId())
             && !companyUserService.userHasCompany(createDTO.getSupervisorId(), currentUser.getCurCompanyId())) {
-            throw new BizException("部门主管不属于当前公司");
+            throw new BizException("部门负责人不属于当前公司");
         }
 
         if (Objects.nonNull(createDTO.getId())) {
