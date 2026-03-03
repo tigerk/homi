@@ -47,7 +47,8 @@ public class DictDataService {
     public Long createDictData(DictData dictData) {
         if (CharSequenceUtil.isBlank(dictData.getValue())) {
             String cleaned = dictData.getName().replaceAll("[^\\u4e00-\\u9fa5a-zA-Z0-9]", "");
-            dictData.setValue(PinyinUtil.getPinyin(cleaned, CharSequenceUtil.EMPTY));
+            // user-defined 增加 ud_ 固定前缀
+            dictData.setValue("ud_" + PinyinUtil.getPinyin(cleaned, CharSequenceUtil.EMPTY));
         }
         // 转换后进行校验，value 不能为空
         if (CharSequenceUtil.isBlank(dictData.getValue())) {

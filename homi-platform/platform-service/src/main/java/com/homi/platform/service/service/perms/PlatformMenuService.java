@@ -118,7 +118,7 @@ public class PlatformMenuService {
             }
         }
 //        // 对根节点进行排序
-//        rootNodes.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
+//        rootNodes.sortOrder(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
         return rootNodes;
     }
 
@@ -151,7 +151,7 @@ public class PlatformMenuService {
                 children.add(buildMenuNode(childMenu, menuList));
             }
         }
-//        children.sort(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
+//        children.sortOrder(Comparator.comparingInt(o -> o.getMeta().getSortOrder()));
         node.setChildren(children);
         return node;
     }

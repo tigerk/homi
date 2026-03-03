@@ -3,16 +3,16 @@ package com.homi.service.service.sys;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.model.dict.dto.DictQueryDTO;
-import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.enums.StatusEnum;
-import com.homi.model.dict.vo.DictWithDataVO;
-import com.homi.model.dict.vo.DictVO;
 import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.response.ResponseCodeEnum;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.Dict;
 import com.homi.model.dao.mapper.DictMapper;
 import com.homi.model.dao.repo.DictRepo;
-import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.model.dict.dto.DictQueryDTO;
+import com.homi.model.dict.vo.DictVO;
+import com.homi.model.dict.vo.DictWithDataVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -95,23 +95,26 @@ public class DictService {
 
     public List<DictVO> list(DictQueryDTO queryDTO) {
         LambdaQueryWrapper<Dict> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.like(CharSequenceUtil.isNotEmpty(queryDTO.getDictName()), Dict::getDictName, queryDTO.getDictName())
-                .like(CharSequenceUtil.isNotEmpty(queryDTO.getDictCode()), Dict::getDictCode, queryDTO.getDictCode())
-                .eq(Dict::getHidden, Boolean.FALSE)
-                .eq(Objects.nonNull(queryDTO.getStatus()), Dict::getStatus, queryDTO.getStatus());
+        if (CharSequenceUtil.isNotEmpty(queryDTO.getDictName())) {
+            queryWrapper.like(Dict::getDictName, queryDTO.getDictName());
+        }
+        if (CharSequenceUtil.isNotEmpty(queryDTO.getDictCode())) {
+            queryWrapper.like(Dict::getDictCode, queryDTO.getDictCode());
+        }
+        queryWrapper.eq(Dict::getHidden, Boolean.FALSE).eq(Objects.nonNull(queryDTO.getStatus()), Dict::getStatus, queryDTO.getStatus());
 
         queryWrapper.orderByAsc(Dict::getSortOrder);
 
         List<Dict> list = dictRepo.list(queryWrapper);
 
         Map<Long, DictVO> dictMap = list.stream().filter(dict -> dict.getParentId() == 0)
-                .map(dict -> {
-                    DictVO dictVO = new DictVO();
-                    BeanUtils.copyProperties(dict, dictVO);
-                    dictVO.setChildren(new ArrayList<>());
-                    return dictVO;
-                })
-                .collect(Collectors.toMap(DictVO::getId, Function.identity()));
+            .map(dict -> {
+                DictVO dictVO = new DictVO();
+                BeanUtils.copyProperties(dict, dictVO);
+                dictVO.setChildren(new ArrayList<>());
+                return dictVO;
+            })
+            .collect(Collectors.toMap(DictVO::getId, Function.identity()));
         list.forEach(dict -> {
             DictVO parentDict = dictMap.get(dict.getParentId());
             if (parentDict != null) {

@@ -33,7 +33,7 @@ public class DictDataCreateDTO {
      * 排序
      */
     @NotNull(message = "排序不能为空")
-    private Integer sort;
+    private Integer sortOrder;
 
     /**
      * 颜色值
