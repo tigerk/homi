@@ -83,8 +83,7 @@ public class DictTemplateService {
         }
         DictTemplate existsCode = dictTemplateRepo.getOne(new LambdaQueryWrapper<DictTemplate>()
             .eq(DictTemplate::getDictCode, saveDTO.getDictCode())
-            .eq(DictTemplate::getVer, saveDTO.getVer())
-            .last("limit 1"), false);
+            .eq(DictTemplate::getVer, saveDTO.getVer()));
         if (Objects.nonNull(existsCode) && !Objects.equals(existsCode.getId(), saveDTO.getId())) {
             throw new BizException("同版本下字典编码已存在");
         }
@@ -136,8 +135,7 @@ public class DictTemplateService {
         DictDataTemplate exists = dictDataTemplateRepo.getOne(new LambdaQueryWrapper<DictDataTemplate>()
             .eq(DictDataTemplate::getDictCode, saveDTO.getDictCode())
             .eq(DictDataTemplate::getValue, saveDTO.getValue())
-            .eq(DictDataTemplate::getVer, saveDTO.getVer())
-            .last("limit 1"), false);
+            .eq(DictDataTemplate::getVer, saveDTO.getVer()));
         if (Objects.nonNull(exists) && !Objects.equals(exists.getId(), saveDTO.getId())) {
             throw new BizException("同版本下该数据项值已存在");
         }
@@ -171,7 +169,7 @@ public class DictTemplateService {
     @Transactional(rollbackFor = Exception.class)
     public DictTemplateSyncVO syncAllCompanyDict() {
         Integer toVer = getLatestTemplateVersion();
-        if (Objects.isNull(toVer) || toVer <= 0) {
+        if (toVer <= 0) {
             throw new BizException("未配置任何模板版本，无法同步");
         }
 
@@ -226,11 +224,9 @@ public class DictTemplateService {
 
     private Integer getLatestTemplateVersion() {
         DictTemplate dictTemplate = dictTemplateRepo.getOne(new LambdaQueryWrapper<DictTemplate>()
-            .orderByDesc(DictTemplate::getVer)
-            .last("limit 1"), false);
+            .orderByDesc(DictTemplate::getVer));
         DictDataTemplate dataTemplate = dictDataTemplateRepo.getOne(new LambdaQueryWrapper<DictDataTemplate>()
-            .orderByDesc(DictDataTemplate::getVer)
-            .last("limit 1"), false);
+            .orderByDesc(DictDataTemplate::getVer));
         int dictVer = Objects.isNull(dictTemplate) ? 0 : dictTemplate.getVer();
         int dataVer = Objects.isNull(dataTemplate) ? 0 : dataTemplate.getVer();
         return Math.max(dictVer, dataVer);
