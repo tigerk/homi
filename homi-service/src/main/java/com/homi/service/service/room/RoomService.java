@@ -288,27 +288,29 @@ public class RoomService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Boolean lockRoom(RoomLockDTO query) {
-        Room room = roomRepo.getById(query.getRoomId());
+    public Boolean lockRoom(RoomLockDTO lockDTO) {
+        Room room = roomRepo.getById(lockDTO.getRoomId());
         if (Objects.isNull(room)) {
             throw new BizException("房间不存在");
         }
 
-        if (Objects.equals(query.getLockReason(), RoomLockReasonEnum.SPECIFIED_TIME.getCode())) {
-            if (Objects.isNull(query.getStartTime()) || Objects.isNull(query.getEndTime())) {
+        if (Objects.equals(lockDTO.getLockReason(), RoomLockReasonEnum.SPECIFIED_TIME.getCode())) {
+            if (Objects.isNull(lockDTO.getStartTime()) || Objects.isNull(lockDTO.getEndTime())) {
                 throw new BizException("指定时间锁房必须填写开始时间和结束时间");
             }
-            if (query.getEndTime().before(query.getStartTime())) {
+            if (lockDTO.getEndTime().before(lockDTO.getStartTime())) {
                 throw new BizException("结束时间不能早于开始时间");
             }
         }
 
-        Boolean locked = roomRepo.lockRoomById(query.getRoomId());
+        Boolean locked = roomRepo.lockRoomById(lockDTO.getRoomId());
         if (Boolean.FALSE.equals(locked)) {
             throw new BizException("锁房失败");
         }
 
-        RoomLock roomLock = BeanCopyUtils.copyBean(query, RoomLock.class);
+        RoomLock roomLock = BeanCopyUtils.copyBean(lockDTO, RoomLock.class);
+        assert roomLock != null;
+        roomLock.setCreateBy(lockDTO.getUpdateBy());
         roomLockRepo.save(roomLock);
 
         return Boolean.TRUE;
