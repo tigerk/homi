@@ -429,7 +429,7 @@ public class LeaseCheckoutService {
         // 释放房间
         if (lease != null) {
             List<Long> roomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
-            roomRepo.updateRoomStatusByRoomIds(roomIds, OccupancyStatusEnum.VACANT.getCode());
+            roomRepo.updateOccupancyStatusByRoomIds(roomIds, OccupancyStatusEnum.AVAILABLE.getCode());
         }
 
         log.info("退租完成: checkoutId={}, leaseId={}", checkoutId, checkout.getTenantId());

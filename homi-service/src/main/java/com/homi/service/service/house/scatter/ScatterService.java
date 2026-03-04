@@ -250,7 +250,7 @@ public class ScatterService {
 
             roomRepo.updateById(room);
         } else {
-            room.setOccupancyStatus(OccupancyStatusEnum.VACANT.getCode());
+            room.setOccupancyStatus(OccupancyStatusEnum.AVAILABLE.getCode());
             room.setCreateBy(house.getCreateBy());
             room.setCreateTime(house.getCreateTime());
             room.setVacancyStartTime(DateUtil.date());

@@ -10,6 +10,7 @@ import com.homi.model.room.dto.*;
 import com.homi.model.room.dto.grid.RoomGridDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.room.vo.RoomListVO;
+import com.homi.model.room.vo.RoomLockRecordVO;
 import com.homi.model.room.vo.RoomTotalVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Objects;
+import java.util.List;
 
 
 @RestController
@@ -79,6 +81,11 @@ public class RoomController {
     public ResponseResult<Boolean> unlockRoom(@RequestBody RoomIdDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
         query.setUpdateBy(Objects.requireNonNull(loginUser).getId());
         return ResponseResult.ok(roomService.unlockRoom(query));
+    }
+
+    @PostMapping("/lock/records")
+    public ResponseResult<List<RoomLockRecordVO>> getRoomLockRecords(@RequestBody RoomIdDTO query) {
+        return ResponseResult.ok(roomService.getRoomLockRecords(query.getRoomId()));
     }
 
     @PostMapping("/close")

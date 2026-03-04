@@ -221,7 +221,7 @@ public class LeaseContractService {
         leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.CANCELLED.getCode());
 
         // 房间设置为“空置”
-        roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), OccupancyStatusEnum.VACANT.getCode());
+        roomRepo.updateOccupancyStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), OccupancyStatusEnum.AVAILABLE.getCode());
 
         return LeaseStatusEnum.CANCELLED.getCode();
     }

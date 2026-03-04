@@ -114,8 +114,8 @@ public class BookingService {
         booking.setRoomIds(JSONUtil.toJsonStr(createDTO.getRoomIds()));
 
         // 把房间修改为已出租状态，但是没有租客信息；
-        Boolean updateRoomStatusBatch = roomRepo.updateRoomStatusByRoomIds(createDTO.getRoomIds(), OccupancyStatusEnum.BOOKED.getCode());
-        if (Boolean.FALSE.equals(updateRoomStatusBatch)) {
+        Boolean updateOccupancyStatusByRoomIds = roomRepo.updateOccupancyStatusByRoomIds(createDTO.getRoomIds(), OccupancyStatusEnum.BOOKED.getCode());
+        if (Boolean.FALSE.equals(updateOccupancyStatusByRoomIds)) {
             log.error("修改房间为预定状态失败，roomIds: {}", createDTO.getRoomIds());
         }
 
@@ -140,7 +140,7 @@ public class BookingService {
         List<Long> newIds = createDTO.getRoomIds();
 
         // 1. 识别变化的房间
-        // 那些原来在预定里，现在被剔除的房间（需变回 VACANT）
+        // 那些原来在预定里，现在被剔除的房间（需变回 AVAILABLE）
         List<Long> toRelease = oldIds.stream().filter(id -> !newIds.contains(id)).collect(Collectors.toList());
         // 那些新加入预定的房间（需变为 BOOKED）
         List<Long> toBook = newIds.stream().filter(id -> !oldIds.contains(id)).collect(Collectors.toList());
@@ -148,7 +148,7 @@ public class BookingService {
         // 2. 批量合并更新（减少网络 IO）
         if (!toRelease.isEmpty() || !toBook.isEmpty()) {
             // 调用一个合并更新的方法
-            roomRepo.batchUpdateRoomStatusMixed(toRelease, toBook);
+            roomRepo.batchUpdateOccupancyStatusMixed(toRelease, toBook);
         }
 
         // 3. 更新预定单信息
@@ -209,8 +209,8 @@ public class BookingService {
         booking.setCancelTime(DateUtil.date());
 
         // 把房间修改为已出租状态，但是没有租客信息；
-        Boolean updateRoomStatusBatch = roomRepo.updateRoomStatusByRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class), OccupancyStatusEnum.VACANT.getCode());
-        if (Boolean.FALSE.equals(updateRoomStatusBatch)) {
+        Boolean updateOccupancyStatusByRoomIds = roomRepo.updateOccupancyStatusByRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class), OccupancyStatusEnum.AVAILABLE.getCode());
+        if (Boolean.FALSE.equals(updateOccupancyStatusByRoomIds)) {
             log.error("释放预定房间失败，roomIds: {}", JSONUtil.toList(booking.getRoomIds(), Long.class));
         }
 

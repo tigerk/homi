@@ -3,6 +3,7 @@ package com.homi.service.service.room;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -63,6 +64,7 @@ public class RoomService {
     private final HouseRepo houseRepo;
     private final LeaseRoomRepo leaseRoomRepo;
     private final RoomLockRepo roomLockRepo;
+    private final UserRepo userRepo;
     private final PriceConfigService priceConfigService;
 
     /**
@@ -368,6 +370,46 @@ public class RoomService {
             count++;
         }
         return count;
+    }
+
+    public List<RoomLockRecordVO> getRoomLockRecords(Long roomId) {
+        if (Objects.isNull(roomId)) {
+            throw new BizException("房间ID不能为空");
+        }
+
+        List<RoomLock> lockList = roomLockRepo.list(new LambdaQueryWrapper<RoomLock>()
+            .eq(RoomLock::getRoomId, roomId)
+            .orderByDesc(RoomLock::getCreateTime)
+            .orderByDesc(RoomLock::getId));
+
+        if (CollUtil.isEmpty(lockList)) {
+            return List.of();
+        }
+
+        Set<Long> userIds = lockList.stream()
+            .flatMap(lock -> Arrays.stream(new Long[]{lock.getCreateBy(), lock.getUpdateBy()}))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
+        Map<Long, String> userNameMap = new HashMap<>();
+        if (CollUtil.isNotEmpty(userIds)) {
+            userRepo.listByIds(userIds).forEach(user -> {
+                String displayName = CharSequenceUtil.isNotBlank(user.getNickname()) ? user.getNickname() : user.getUsername();
+                userNameMap.put(user.getId(), displayName);
+            });
+        }
+
+        return lockList.stream().map(lock -> {
+            RoomLockRecordVO vo = new RoomLockRecordVO();
+            BeanUtils.copyProperties(lock, vo);
+
+            RoomLockReasonEnum reasonEnum = EnumUtil.getBy(RoomLockReasonEnum::getCode, lock.getLockReason());
+            vo.setLockReasonName(Objects.nonNull(reasonEnum) ? reasonEnum.getName() : "-");
+            vo.setLockStatusName(Objects.equals(lock.getLockStatus(), StatusEnum.ACTIVE.getValue()) ? "生效中" : "已失效");
+            vo.setCreateByName(userNameMap.getOrDefault(lock.getCreateBy(), "-"));
+            vo.setUpdateByName(userNameMap.getOrDefault(lock.getUpdateBy(), "-"));
+            return vo;
+        }).collect(Collectors.toList());
     }
 
     /**

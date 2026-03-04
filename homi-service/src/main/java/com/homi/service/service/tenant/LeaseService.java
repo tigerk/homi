@@ -203,7 +203,7 @@ public class LeaseService {
         LeaseDetailVO leaseDetail = getLeaseDetailById(lease.getId());
         leaseContractService.addLeaseContract(leaseDTO.getContractTemplateId(), leaseDetail);
 
-        roomRepo.updateRoomStatusByRoomIds(leaseDTO.getRoomIds(), OccupancyStatusEnum.LEASED.getCode());
+        roomRepo.updateOccupancyStatusByRoomIds(leaseDTO.getRoomIds(), OccupancyStatusEnum.LEASED.getCode());
 
         Tenant tenant = tenantRepo.getById(tenantId);
         ApprovalResult approvalResult = approvalTemplate.submitIfNeed(
@@ -572,7 +572,7 @@ public class LeaseService {
          * 4. 房间状态对冲逻辑，如果签约房间和预定房间不一致，其他房间释放为空置
          */
         List<Long> toRelease = originalRoomIds.stream().filter(id -> !finalRoomIds.contains(id)).toList();
-        roomRepo.batchUpdateRoomStatusMixed(toRelease, ListUtil.of());
+        roomRepo.batchUpdateOccupancyStatusMixed(toRelease, ListUtil.of());
 
         // 5. 更新预定单状态
         booking.setBookingStatus(BookingStatusEnum.CONTRACTED.getCode()); // 已转合同
@@ -625,7 +625,7 @@ public class LeaseService {
         LeaseDetailVO leaseDetail = getLeaseDetailById(leaseId);
         leaseContractService.addLeaseContract(leaseDTO.getContractTemplateId(), leaseDetail);
 
-        roomRepo.updateRoomStatusByRoomIds(leaseDTO.getRoomIds(), OccupancyStatusEnum.LEASED.getCode());
+        roomRepo.updateOccupancyStatusByRoomIds(leaseDTO.getRoomIds(), OccupancyStatusEnum.LEASED.getCode());
 
         Tenant tenant = tenantRepo.getById(originalLease.getTenantId());
         ApprovalResult approvalResult = approvalTemplate.submitIfNeed(

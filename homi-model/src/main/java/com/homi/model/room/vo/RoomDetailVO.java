@@ -57,7 +57,13 @@ public class RoomDetailVO {
     private Date vacancyStartTime;
 
     @Schema(description = "房间状态")
-    private Integer roomStatus;
+    private Integer occupancyStatus;
+
+    @Schema(description = "锁定状态")
+    private Boolean locked;
+
+    @Schema(description = "禁用状态：是否已禁用")
+    private Boolean closed;
 
     @Schema(description = "房间备注")
     private String remark;

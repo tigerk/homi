@@ -240,7 +240,7 @@ public class FocusService {
             room.setCreateBy(house.getCreateBy());
             room.setCreateTime(house.getCreateTime());
 
-            room.setOccupancyStatus(OccupancyStatusEnum.VACANT.getCode());
+            room.setOccupancyStatus(OccupancyStatusEnum.AVAILABLE.getCode());
 
             room.setVacancyStartTime(DateUtil.date());
             roomRepo.getBaseMapper().insert(room);

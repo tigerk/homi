@@ -53,7 +53,7 @@ public class RoomCreateDTO {
     private Date vacancyStartTime;
 
     @Schema(description = "房间状态")
-    private Integer roomStatus;
+    private Integer occupancyStatus;
 
     @Schema(description = "房间备注")
     private String remark;

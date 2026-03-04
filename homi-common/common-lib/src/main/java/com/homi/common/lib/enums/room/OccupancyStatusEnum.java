@@ -16,7 +16,7 @@ public enum OccupancyStatusEnum {
      * 4-已关闭：房间下架或禁用
      * 5-锁房：通常指非业务类的锁定（如业主自住、行政查封）
      */
-    VACANT(0, "空置", "#FF2800"),
+    AVAILABLE(0, "空置", "#FF2800"),
 
     /**
      * 1-已租：已有生效合同，不可预定，不可签约
@@ -54,6 +54,6 @@ public enum OccupancyStatusEnum {
         return Arrays.stream(values())
             .filter(e -> e.code.equals(code))
             .findFirst()
-            .orElse(VACANT);
+            .orElse(AVAILABLE);
     }
 }

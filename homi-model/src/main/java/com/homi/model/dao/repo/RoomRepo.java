@@ -65,7 +65,7 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
         return getBaseMapper().pageRoomList(page, query);
     }
 
-    public Boolean updateRoomStatusByRoomIds(List<Long> roomIds, Integer code) {
+    public Boolean updateOccupancyStatusByRoomIds(List<Long> roomIds, Integer code) {
         LambdaQueryWrapper<Room> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(Room::getId, roomIds);
 
@@ -76,7 +76,7 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
     }
 
     /**
-     * 批量更新房间状态，一部分房间变为 VACANT，一部分房间变为 BOOKED
+     * 批量更新房间状态，一部分房间变为 AVAILABLE，一部分房间变为 BOOKED
      * <p>
      * {@code @author} tk
      * {@code @date} 2026/1/9 11:48
@@ -85,12 +85,12 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
      * @param toBook    要预定的房间id列表
      * @return java.lang.Boolean
      */
-    public Boolean batchUpdateRoomStatusMixed(List<Long> toRelease, List<Long> toBook) {
+    public Boolean batchUpdateOccupancyStatusMixed(List<Long> toRelease, List<Long> toBook) {
         // 1. 释放房间：从预定状态变回空置
         if (CollUtil.isNotEmpty(toRelease)) {
             boolean releaseResult = lambdaUpdate()
                 .in(Room::getId, toRelease)
-                .set(Room::getOccupancyStatus, OccupancyStatusEnum.VACANT.getCode())
+                .set(Room::getOccupancyStatus, OccupancyStatusEnum.AVAILABLE.getCode())
                 // 关键点：重置空置开始时间为当前时间
                 .set(Room::getVacancyStartTime, DateUtil.date())
                 .update();
@@ -106,7 +106,7 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
             boolean bookResult = lambdaUpdate()
                 .in(Room::getId, toBook)
                 // 只有处于“空置”状态的房间才能被预定，防止并发冲突覆盖已租或已锁房间
-                .eq(Room::getOccupancyStatus, OccupancyStatusEnum.VACANT.getCode())
+                .eq(Room::getOccupancyStatus, OccupancyStatusEnum.AVAILABLE.getCode())
                 .set(Room::getOccupancyStatus, OccupancyStatusEnum.BOOKED.getCode())
                 // 预定后，空置开始时间可以清空，也可以保持，取决于你是否需要在预定时也计算空置时长
                 // .set(Room::getVacancyStartTime, null)

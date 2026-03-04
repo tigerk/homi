@@ -42,7 +42,7 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         queryWrapper.eq(Room::getHouseId, houseId);
         long roomCount = roomRepo.count(queryWrapper);
 
-        queryWrapper.eq(Room::getOccupancyStatus, OccupancyStatusEnum.VACANT.getCode());
+        queryWrapper.eq(Room::getOccupancyStatus, OccupancyStatusEnum.AVAILABLE.getCode());
         long restCount = roomRepo.count(queryWrapper);
 
         House house = new House();
