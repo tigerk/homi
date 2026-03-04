@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.enums.room.RoomLockReasonEnum;
@@ -308,9 +309,20 @@ public class RoomService {
             throw new BizException("锁房失败");
         }
 
+        // 关闭同房间的旧有效锁房记录，避免出现多条 lock_status=1 的历史记录
+        roomLockRepo.lambdaUpdate()
+            .eq(RoomLock::getRoomId, lockDTO.getRoomId())
+            .eq(RoomLock::getLockStatus, StatusEnum.ACTIVE.getValue())
+            .set(RoomLock::getLockStatus, StatusEnum.DISABLED.getValue())
+            .set(RoomLock::getUpdateBy, lockDTO.getUpdateBy())
+            .update();
+
         RoomLock roomLock = BeanCopyUtils.copyBean(lockDTO, RoomLock.class);
         assert roomLock != null;
+        roomLock.setCompanyId(room.getCompanyId());
+        roomLock.setLockStatus(StatusEnum.ACTIVE.getValue());
         roomLock.setCreateBy(lockDTO.getUpdateBy());
+        roomLock.setUpdateBy(lockDTO.getUpdateBy());
         roomLockRepo.save(roomLock);
 
         return Boolean.TRUE;
@@ -319,8 +331,14 @@ public class RoomService {
     @Transactional(rollbackFor = Exception.class)
     public Boolean unlockRoom(RoomIdDTO query) {
         Boolean unlocked = roomRepo.unlockRoomById(query.getRoomId());
-        roomLockRepo.remove(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<RoomLock>()
-            .eq(RoomLock::getRoomId, query.getRoomId()));
+
+        roomLockRepo.lambdaUpdate()
+            .eq(RoomLock::getRoomId, query.getRoomId())
+            .eq(RoomLock::getLockStatus, StatusEnum.ACTIVE.getValue())
+            .set(RoomLock::getLockStatus, StatusEnum.DISABLED.getValue())
+            .set(RoomLock::getUpdateBy, query.getUpdateBy())
+            .update();
+
         return unlocked;
     }
 
@@ -337,12 +355,16 @@ public class RoomService {
         Date now = DateUtil.date();
         List<RoomLock> expiredLocks = roomLockRepo.list(new LambdaQueryWrapper<RoomLock>()
             .eq(RoomLock::getLockReason, RoomLockReasonEnum.SPECIFIED_TIME.getCode())
+            .eq(RoomLock::getLockStatus, StatusEnum.ACTIVE.getValue())
             .isNotNull(RoomLock::getEndTime)
             .le(RoomLock::getEndTime, now));
 
         int count = 0;
         for (RoomLock lock : expiredLocks) {
             roomRepo.unlockRoomById(lock.getRoomId());
+            lock.setLockStatus(StatusEnum.DISABLED.getValue());
+            lock.setUpdateBy(0L);
+            roomLockRepo.updateById(lock);
             count++;
         }
         return count;

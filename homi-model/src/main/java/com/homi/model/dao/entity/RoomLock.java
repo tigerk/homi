@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2026-03-03
+ * @since 2026-03-04
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -57,6 +57,9 @@ public class RoomLock implements Serializable {
     @Schema(description = "锁房备注")
     @TableField("remark")
     private String remark;
+
+    @TableField("lock_status")
+    private Integer lockStatus;
 
     @Schema(description = "是否删除：0 否，1 是")
     @TableField("deleted")

@@ -11,4 +11,6 @@ public class RoomIdDTO implements Serializable {
     @Schema(description = "房间ID")
     private Long roomId;
 
+    @Schema(description = "更新人ID", hidden = true)
+    private Long updateBy;
 }

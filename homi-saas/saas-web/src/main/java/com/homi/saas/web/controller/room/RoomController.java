@@ -76,7 +76,8 @@ public class RoomController {
 
     @PostMapping("/unlock")
     @Log(title = "解锁房间", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Boolean> unlockRoom(@RequestBody RoomIdDTO query) {
+    public ResponseResult<Boolean> unlockRoom(@RequestBody RoomIdDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
+        query.setUpdateBy(Objects.requireNonNull(loginUser).getId());
         return ResponseResult.ok(roomService.unlockRoom(query));
     }
 
