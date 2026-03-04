@@ -54,7 +54,8 @@ public class MybatisPlusConfig {
         "approval_action",
         "lease_checkout_fee",
         "sys_notice_role",
-        "sys_notice_read"
+        "sys_notice_read",
+        "company_product"
     );
 
     /**
