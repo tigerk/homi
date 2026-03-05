@@ -40,8 +40,26 @@ public class CompanyOrderRecordVO {
     @Schema(description = "状态名称")
     private String statusName;
 
+    @Schema(description = "支付方式：1线上支付，2线下转账，3后台代付")
+    private Integer payMethod;
+
+    @Schema(description = "支付方式名称")
+    private String payMethodName;
+
+    @Schema(description = "支付渠道：alipay/wechat/bank")
+    private String payChannel;
+
+    @Schema(description = "第三方交易流水号")
+    private String transactionNo;
+
     @Schema(description = "购买时间（已支付取支付时间，否则取创建时间）")
     private Date purchaseTime;
+
+    @Schema(description = "支付完成时间")
+    private Date payTime;
+
+    @Schema(description = "支付回调通知时间")
+    private Date notifyTime;
 
     @Schema(description = "备注")
     private String remark;

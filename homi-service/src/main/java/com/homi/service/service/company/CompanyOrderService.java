@@ -104,7 +104,13 @@ public class CompanyOrderService {
             vo.setTotalAmount(order.getTotalAmount());
             vo.setStatus(order.getStatus());
             vo.setStatusName(getOrderStatusName(order.getStatus()));
+            vo.setPayMethod(order.getPayMethod());
+            vo.setPayMethodName(getPayMethodName(order.getPayMethod()));
+            vo.setPayChannel(order.getPayChannel());
+            vo.setTransactionNo(order.getTransactionNo());
             vo.setPurchaseTime(Objects.nonNull(order.getPayTime()) ? order.getPayTime() : order.getCreateTime());
+            vo.setPayTime(order.getPayTime());
+            vo.setNotifyTime(order.getNotifyTime());
             vo.setRemark(order.getRemark());
             return vo;
         }).collect(Collectors.toList());
@@ -199,6 +205,15 @@ public class CompanyOrderService {
             case 2 -> "失败";
             case 3 -> "已退还";
             default -> "未知";
+        };
+    }
+
+    private String getPayMethodName(Integer payMethod) {
+        return switch (Objects.requireNonNullElse(payMethod, 0)) {
+            case 1 -> "线上支付";
+            case 2 -> "线下转账";
+            case 3 -> "后台代付";
+            default -> "未设置";
         };
     }
 }
