@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2026-03-03
+ * @since 2026-03-05
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -85,10 +85,6 @@ public class Company implements Serializable {
     @Schema(description = "公司管理员ID")
     @TableField("admin_user_id")
     private Long adminUserId;
-
-    @Schema(description = "账号数量")
-    @TableField("account_count")
-    private Integer accountCount;
 
     @Schema(description = "公司性质 1：企业 2：个人")
     @TableField("nature")

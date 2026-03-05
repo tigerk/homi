@@ -4,15 +4,15 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-
 import java.io.Serial;
-import java.io.Serializable;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
@@ -20,7 +20,7 @@ import java.util.Date;
  * </p>
  *
  * @author tk
- * @since 2025-07-30
+ * @since 2026-03-05
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -43,6 +43,18 @@ public class CompanyPackage implements Serializable {
     @TableField("package_menus")
     private String packageMenus;
 
+    @Schema(description = "月付单价")
+    @TableField("month_price")
+    private BigDecimal monthPrice;
+
+    @Schema(description = "年付总价（NULL表示无年付优惠）")
+    @TableField("year_price")
+    private BigDecimal yearPrice;
+
+    @Schema(description = "房源数量")
+    @TableField("house_count")
+    private Integer houseCount;
+
     @Schema(description = "状态（0正常，-1禁用）")
     @TableField("status")
     private Integer status;
@@ -50,6 +62,11 @@ public class CompanyPackage implements Serializable {
     @Schema(description = "备注")
     @TableField("remark")
     private String remark;
+
+    @Schema(description = "是否删除：0 否，1 是")
+    @TableField("deleted")
+    @TableLogic
+    private Boolean deleted;
 
     @Schema(description = "创建时间")
     @TableField("create_time")
@@ -68,9 +85,4 @@ public class CompanyPackage implements Serializable {
     @Schema(description = "更新人")
     @TableField("update_by")
     private Long updateBy;
-
-    @Schema(description = "是否删除：0 否，1 是")
-    @TableField("deleted")
-    @TableLogic
-    private Boolean deleted;
 }

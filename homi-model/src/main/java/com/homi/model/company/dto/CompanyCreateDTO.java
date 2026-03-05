@@ -64,7 +64,7 @@ public class CompanyCreateDTO {
     /**
      * 账号数量
      */
-    private Integer accountCount;
+    private Integer houseCount;
 
     /**
      * 法人姓名

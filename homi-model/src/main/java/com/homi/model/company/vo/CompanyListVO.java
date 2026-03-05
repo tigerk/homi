@@ -78,7 +78,7 @@ public class CompanyListVO {
     private String adminPhone;
 
     @Schema(description = "账号数量")
-    private Integer accountCount;
+    private Integer houseCount;
 
     @Schema(description = "公司性质 1：企业 2：个人")
     private Integer nature;
