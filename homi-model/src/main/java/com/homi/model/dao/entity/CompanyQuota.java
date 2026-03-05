@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2026-03-04
+ * @since 2026-03-05
  */
 @EqualsAndHashCode(callSuper = false)
 @Data

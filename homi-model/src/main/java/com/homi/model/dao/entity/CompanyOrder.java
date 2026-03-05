@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2026-03-04
+ * @since 2026-03-05
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -68,27 +68,14 @@ public class CompanyOrder implements Serializable {
     @TableField("total_amount")
     private BigDecimal totalAmount;
 
-    @Schema(description = "扣款前余额（元）")
-    @TableField("before_balance")
-    private BigDecimal beforeBalance;
-
-    @Schema(description = "扣款后余额（元）")
-    @TableField("after_balance")
-    private BigDecimal afterBalance;
-
     @Schema(description = "配额有效期（NULL表示永不过期）")
     @TableField("expire_date")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date expireDate;
 
-    @Schema(description = "状态：1待支付，2已支付，3已取消，4已退款")
+    @Schema(description = "订单状态：1待支付，2已支付，3已取消，4已退款")
     @TableField("status")
     private Integer status;
-
-    @Schema(description = "支付时间")
-    @TableField("pay_time")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date payTime;
 
     @Schema(description = "取消时间")
     @TableField("cancel_time")
@@ -103,6 +90,28 @@ public class CompanyOrder implements Serializable {
     @TableField("refund_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date refundTime;
+
+    @Schema(description = "支付方式：1线上支付，2线下转账，3后台代付")
+    @TableField("pay_method")
+    private Integer payMethod;
+
+    @Schema(description = "支付渠道：alipay/wechat/bank")
+    @TableField("pay_channel")
+    private String payChannel;
+
+    @Schema(description = "第三方交易流水号")
+    @TableField("transaction_no")
+    private String transactionNo;
+
+    @Schema(description = "支付完成时间")
+    @TableField("pay_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date payTime;
+
+    @Schema(description = "支付回调通知时间")
+    @TableField("notify_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date notifyTime;
 
     @Schema(description = "操作人ID（后台代购时填写）")
     @TableField("operator_id")
