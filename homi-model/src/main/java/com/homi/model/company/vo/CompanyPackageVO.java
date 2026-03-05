@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -29,6 +30,15 @@ public class CompanyPackageVO {
      * 套餐名称
      */
     private String name;
+
+    @Schema(description = "月付单价")
+    private BigDecimal monthPrice;
+
+    @Schema(description = "年付总价")
+    private BigDecimal yearPrice;
+
+    @Schema(description = "套餐可配置的房屋数量")
+    private Integer houseCount;
 
     /**
      * 关联菜单id

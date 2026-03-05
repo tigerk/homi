@@ -2,8 +2,10 @@ package com.homi.model.company.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -17,6 +19,17 @@ public class CompanyPackageCreateDTO {
     @Schema(description = "套餐名称")
     @NotBlank(message = "套餐名称不能为空")
     private String name;
+
+    @Schema(description = "月付单价")
+    @NotNull(message = "月付单价不能为空")
+    private BigDecimal monthPrice;
+
+    @Schema(description = "年付总价")
+    private BigDecimal yearPrice;
+
+    @Schema(description = "房源数量")
+    @NotNull(message = "房源数量不能为空")
+    private Integer houseCount;
 
     @Schema(description = "状态")
     private Integer status;

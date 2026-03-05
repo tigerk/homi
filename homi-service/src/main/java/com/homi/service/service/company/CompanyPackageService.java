@@ -60,6 +60,7 @@ public class CompanyPackageService {
         // 格式化数据
         pageVO.setList(companyPackagePage.getRecords().stream().map(companyPackage -> {
             CompanyPackageVO companyPackageVO = BeanCopyUtils.copyBean(companyPackage, CompanyPackageVO.class);
+            assert companyPackageVO != null;
             companyPackageVO.setPackageMenus(JSONUtil.toList(companyPackage.getPackageMenus(), Long.class));
             return companyPackageVO;
         }).toList());
@@ -96,6 +97,9 @@ public class CompanyPackageService {
 
         CompanyPackage companyPackage = companyPackageRepo.getBaseMapper().selectById(createDTO.getId());
         companyPackage.setName(createDTO.getName());
+        companyPackage.setMonthPrice(createDTO.getMonthPrice());
+        companyPackage.setYearPrice(createDTO.getYearPrice());
+        companyPackage.setHouseCount(createDTO.getHouseCount());
         companyPackage.setRemark(createDTO.getRemark());
         companyPackage.setUpdateBy(createDTO.getUpdateBy());
         companyPackage.setUpdateTime(createDTO.getUpdateTime());
