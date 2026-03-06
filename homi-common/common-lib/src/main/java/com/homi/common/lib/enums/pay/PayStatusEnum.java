@@ -1,4 +1,4 @@
-package com.homi.common.lib.enums.payment;
+package com.homi.common.lib.enums.pay;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

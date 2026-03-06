@@ -3,7 +3,7 @@ package com.homi.service.service.tenant;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.EnumUtil;
-import com.homi.common.lib.enums.payment.PayStatusEnum;
+import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;

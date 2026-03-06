@@ -38,6 +38,7 @@
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <lombok.version>1.18.42</lombok.version>
         <jjwt.version>0.13.0</jjwt.version>
+        <yeepay.version>4.4.15</yeepay.version>
     </properties>
 
     <dependencies>
@@ -234,6 +235,13 @@
                 <artifactId>wx-java-pay-spring-boot-starter</artifactId>
                 <version>4.8.1</version>
             </dependency>
+            <!--易宝支付 start-->
+            <dependency>
+                <groupId>com.yeepay.yop.sdk</groupId>
+                <artifactId>yop-java-sdk-biz</artifactId>
+                <version>${yeepay.version}</version>
+            </dependency>
+            <!--易宝支付 end-->
         </dependencies>
     </dependencyManagement>
     <build>

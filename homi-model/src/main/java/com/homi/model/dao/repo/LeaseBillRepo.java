@@ -2,7 +2,7 @@ package com.homi.model.dao.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.homi.common.lib.enums.payment.PayStatusEnum;
+import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.mapper.LeaseBillMapper;
 import org.springframework.stereotype.Service;

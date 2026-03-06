@@ -43,6 +43,8 @@ public class SaTokenConfig implements WebMvcConfigurer {
                 "/swagger-ui/**",
                 "/swagger-ui.html",
                 "/v3/api-docs/**",
+                "/saas/company/order/pay/notify/yeepay",
+                "/saas/company/order/qrcode/mock",
                 ADMIN_PREFIX.concat("/login"),
                 ADMIN_PREFIX.concat("/wechat/login"),
                 ADMIN_PREFIX.concat("/wechat/bind"),

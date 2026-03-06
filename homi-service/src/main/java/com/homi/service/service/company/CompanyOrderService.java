@@ -22,6 +22,7 @@ import com.homi.model.dao.repo.CompanyConsumeRepo;
 import com.homi.model.dao.repo.CompanyOrderRepo;
 import com.homi.model.dao.repo.CompanyProductRepo;
 import com.homi.model.dao.repo.CompanyQuotaRepo;
+import com.homi.service.external.pay.PayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +39,7 @@ public class CompanyOrderService {
     private final CompanyQuotaRepo companyQuotaRepo;
     private final CompanyOrderRepo companyOrderRepo;
     private final CompanyConsumeRepo companyConsumeRepo;
+    private final PayService payService;
 
     public List<CompanyProductOrderVO> getProductList(Long companyId) {
         List<CompanyProduct> products = companyProductRepo.list(new LambdaQueryWrapper<CompanyProduct>()

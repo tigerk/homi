@@ -65,6 +65,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
+        <!--易宝支付 start-->
+        <dependency>
+            <groupId>com.yeepay.yop.sdk</groupId>
+            <artifactId>yop-java-sdk-biz</artifactId>
+        </dependency>
+        <!--易宝支付 end-->
     </dependencies>
 
 </project>
