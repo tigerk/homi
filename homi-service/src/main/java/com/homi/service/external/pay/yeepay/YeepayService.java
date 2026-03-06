@@ -47,9 +47,10 @@ public class YeepayService implements PayProvider {
         request.setMerchantNo(payQrCodeDTO.getMerchantNo());
         request.setOrderId(payQrCodeDTO.getOrderNo());
         request.setOrderAmount(payQrCodeDTO.getAmount());
-        DateTime dateTime = DateUtil.offsetMinute(DateUtil.date(), 60);
         // 设置过期时间
-        request.setExpiredTime(new org.joda.time.DateTime(dateTime));
+        cn.hutool.core.date.DateTime dateTime = DateUtil.offsetMinute(DateUtil.date(), 60);
+        org.joda.time.DateTime expiredTime = new org.joda.time.DateTime(dateTime.getTime());
+        request.setExpiredTime(expiredTime);
         request.setGoodsName(payQrCodeDTO.getTitle());
         request.setFundProcessType("DELAY_SETTLE");
         request.setScene("OFFLINE");
