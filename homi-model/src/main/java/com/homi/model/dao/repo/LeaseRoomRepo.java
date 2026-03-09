@@ -28,7 +28,6 @@ public class LeaseRoomRepo extends ServiceImpl<LeaseRoomMapper, LeaseRoom> {
             leaseRoom.setRoomId(roomId);
 
             save(leaseRoom);
-            getBaseMapper().insert(leaseRoom);
         }
     }
 
