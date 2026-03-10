@@ -25,9 +25,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("company_seal_provider")
-@Schema(name = "CompanySealProvider", description = "第三方签章供应商信息")
-public class CompanySealProvider implements Serializable {
+@TableName("contract_seal_provider")
+@Schema(name = "ContractSealProvider", description = "第三方签章供应商信息")
+public class ContractSealProvider implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 

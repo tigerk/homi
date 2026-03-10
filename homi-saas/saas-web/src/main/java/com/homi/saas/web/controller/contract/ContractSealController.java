@@ -4,12 +4,12 @@ import cn.hutool.core.util.ObjectUtil;
 import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseResult;
-import com.homi.model.company.dto.seal.CompanySealCreateDTO;
-import com.homi.model.company.dto.seal.CompanySealQueryDTO;
-import com.homi.model.company.vo.seal.CompanySealVO;
+import com.homi.model.contract.dto.seal.ContractSealCreateDTO;
+import com.homi.model.contract.dto.seal.ContractSealQueryDTO;
+import com.homi.model.contract.vo.seal.ContractSealVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
-import com.homi.service.service.company.CompanySealService;
+import com.homi.service.service.contract.ContractSealService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,24 +22,24 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/saas/contract/seal")
-public class CompanySealController {
-    private final CompanySealService companySealService;
+public class ContractSealController {
+    private final ContractSealService contractSealService;
 
     @PostMapping("/list")
-    public ResponseResult<List<CompanySealVO>> list(@RequestBody(required = false) CompanySealQueryDTO queryDTO) {
+    public ResponseResult<List<ContractSealVO>> list(@RequestBody(required = false) ContractSealQueryDTO queryDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
-        CompanySealQueryDTO query = ObjectUtil.defaultIfNull(queryDTO, new CompanySealQueryDTO());
+        ContractSealQueryDTO query = ObjectUtil.defaultIfNull(queryDTO, new ContractSealQueryDTO());
         query.setCompanyId(currentUser.getCurCompanyId());
 
-        return ResponseResult.ok(companySealService.list(query));
+        return ResponseResult.ok(contractSealService.list(query));
     }
 
     @PostMapping("/create")
-    @Log(title = "创建电子印章", operationType = OperationTypeEnum.INSERT)
-    public ResponseResult<Long> create(@Valid @RequestBody CompanySealCreateDTO createDTO) {
+    @Log(title = "创建合同电子印章", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<Long> create(@Valid @RequestBody ContractSealCreateDTO createDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         createDTO.setCompanyId(currentUser.getCurCompanyId());
 
-        return ResponseResult.ok(companySealService.createOrUpdate(createDTO, currentUser.getCurCompanyId(), currentUser.getId()));
+        return ResponseResult.ok(contractSealService.createOrUpdate(createDTO, currentUser.getCurCompanyId(), currentUser.getId()));
     }
 }

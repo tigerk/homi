@@ -1,4 +1,4 @@
-package com.homi.service.service.company;
+package com.homi.service.service.contract;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -6,15 +6,15 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
-import com.homi.model.company.dto.seal.CompanySealCreateDTO;
-import com.homi.model.company.dto.seal.CompanySealQueryDTO;
-import com.homi.model.company.vo.seal.CompanySealVO;
-import com.homi.model.dao.entity.CompanySeal;
-import com.homi.model.dao.entity.CompanySealProvider;
+import com.homi.model.contract.dto.seal.ContractSealCreateDTO;
+import com.homi.model.contract.dto.seal.ContractSealQueryDTO;
+import com.homi.model.contract.vo.seal.ContractSealVO;
+import com.homi.model.dao.entity.ContractSeal;
+import com.homi.model.dao.entity.ContractSealProvider;
 import com.homi.model.dao.entity.FileAttach;
 import com.homi.model.dao.entity.User;
-import com.homi.model.dao.repo.CompanySealProviderRepo;
-import com.homi.model.dao.repo.CompanySealRepo;
+import com.homi.model.dao.repo.ContractSealProviderRepo;
+import com.homi.model.dao.repo.ContractSealRepo;
 import com.homi.model.dao.repo.FileAttachRepo;
 import com.homi.model.dao.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
@@ -29,37 +29,37 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CompanySealService {
-    private final CompanySealRepo companySealRepo;
-    private final CompanySealProviderRepo companySealProviderRepo;
+public class ContractSealService {
+    private final ContractSealRepo contractSealRepo;
+    private final ContractSealProviderRepo contractSealProviderRepo;
     private final FileAttachRepo fileAttachRepo;
     private final UserRepo userRepo;
 
-    public List<CompanySealVO> list(CompanySealQueryDTO queryDTO) {
-        LambdaQueryWrapper<CompanySeal> wrapper = new LambdaQueryWrapper<CompanySeal>()
-            .eq(CompanySeal::getCompanyId, queryDTO.getCompanyId());
+    public List<ContractSealVO> list(ContractSealQueryDTO queryDTO) {
+        LambdaQueryWrapper<ContractSeal> wrapper = new LambdaQueryWrapper<ContractSeal>()
+            .eq(ContractSeal::getCompanyId, queryDTO.getCompanyId());
 
         if (queryDTO.getSealType() != null) {
-            wrapper.eq(CompanySeal::getSealType, queryDTO.getSealType());
+            wrapper.eq(ContractSeal::getSealType, queryDTO.getSealType());
         }
 
         if (queryDTO.getSource() != null) {
-            wrapper.eq(CompanySeal::getSource, queryDTO.getSource());
+            wrapper.eq(ContractSeal::getSource, queryDTO.getSource());
         }
 
         if (queryDTO.getStatus() != null) {
-            wrapper.eq(CompanySeal::getStatus, queryDTO.getStatus());
+            wrapper.eq(ContractSeal::getStatus, queryDTO.getStatus());
         }
 
-        wrapper.orderByDesc(CompanySeal::getUpdateTime, CompanySeal::getCreateTime, CompanySeal::getId);
+        wrapper.orderByDesc(ContractSeal::getUpdateTime, ContractSeal::getCreateTime, ContractSeal::getId);
 
-        List<CompanySeal> list = companySealRepo.list(wrapper);
+        List<ContractSeal> list = contractSealRepo.list(wrapper);
         if (list.isEmpty()) {
             return Collections.emptyList();
         }
 
         return list.stream().map(item -> {
-            CompanySealVO vo = BeanCopyUtils.copyBean(item, CompanySealVO.class);
+            ContractSealVO vo = BeanCopyUtils.copyBean(item, ContractSealVO.class);
             if (vo == null) {
                 return null;
             }
@@ -74,8 +74,8 @@ public class CompanySealService {
                 }
             }
 
-            CompanySealProvider provider = companySealProviderRepo.lambdaQuery()
-                .eq(CompanySealProvider::getSealId, item.getId())
+            ContractSealProvider provider = contractSealProviderRepo.lambdaQuery()
+                .eq(ContractSealProvider::getSealId, item.getId())
                 .last("limit 1")
                 .one();
             if (provider != null) {
@@ -88,19 +88,19 @@ public class CompanySealService {
             }
 
             List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(
-                item.getId(), List.of(FileAttachBizTypeEnum.COMPANY_SEAL_IMAGE.getBizType()));
+                item.getId(), List.of(FileAttachBizTypeEnum.CONTRACT_SEAL_IMAGE.getBizType()));
             vo.setSealUrls(fileAttachList.stream().map(FileAttach::getFileUrl).toList());
 
             return vo;
         }).filter(Objects::nonNull).toList();
     }
 
-    public Long createOrUpdate(CompanySealCreateDTO dto, Long companyId, Long userId) {
+    public Long createOrUpdate(ContractSealCreateDTO dto, Long companyId, Long userId) {
         validateCreate(dto);
 
-        CompanySeal entity = ObjectUtil.defaultIfNull(dto.getId(), 0L) > 0
-            ? companySealRepo.getById(dto.getId())
-            : new CompanySeal();
+        ContractSeal entity = ObjectUtil.defaultIfNull(dto.getId(), 0L) > 0
+            ? contractSealRepo.getById(dto.getId())
+            : new ContractSeal();
 
         if (entity == null) {
             throw new BizException("电子印章不存在");
@@ -123,13 +123,13 @@ public class CompanySealService {
         if (ObjectUtil.defaultIfNull(dto.getId(), 0L) <= 0) {
             entity.setCreateBy(userId);
             entity.setCreateTime(DateUtil.date());
-            companySealRepo.save(entity);
+            contractSealRepo.save(entity);
         } else {
-            companySealRepo.updateById(entity);
+            contractSealRepo.updateById(entity);
         }
 
         if (dto.getSealUrls() != null) {
-            fileAttachRepo.recreateFileAttachList(entity.getId(), FileAttachBizTypeEnum.COMPANY_SEAL_IMAGE.getBizType(), dto.getSealUrls());
+            fileAttachRepo.recreateFileAttachList(entity.getId(), FileAttachBizTypeEnum.CONTRACT_SEAL_IMAGE.getBizType(), dto.getSealUrls());
         }
 
         handleProviderInfo(dto, entity.getId(), userId);
@@ -137,7 +137,7 @@ public class CompanySealService {
         return entity.getId();
     }
 
-    private void validateCreate(CompanySealCreateDTO dto) {
+    private void validateCreate(ContractSealCreateDTO dto) {
         if (dto.getSealType() == null) {
             throw new BizException("印章类型不能为空");
         }
@@ -162,19 +162,19 @@ public class CompanySealService {
         }
     }
 
-    private void handleProviderInfo(CompanySealCreateDTO dto, Long sealId, Long userId) {
+    private void handleProviderInfo(ContractSealCreateDTO dto, Long sealId, Long userId) {
         if (StringUtils.isAllBlank(dto.getProviderAccountId(), dto.getProviderSealId(), dto.getProviderExtra())
             && dto.getAuthStatus() == null && dto.getAuthTime() == null && dto.getExpireTime() == null) {
             return;
         }
 
-        CompanySealProvider provider = companySealProviderRepo.lambdaQuery()
-            .eq(CompanySealProvider::getSealId, sealId)
+        ContractSealProvider provider = contractSealProviderRepo.lambdaQuery()
+            .eq(ContractSealProvider::getSealId, sealId)
             .last("limit 1")
             .one();
 
         if (provider == null) {
-            provider = new CompanySealProvider();
+            provider = new ContractSealProvider();
             provider.setSealId(sealId);
             provider.setCreateBy(userId);
             provider.setCreateTime(DateUtil.date());
@@ -190,9 +190,9 @@ public class CompanySealService {
         provider.setUpdateTime(DateUtil.date());
 
         if (provider.getId() == null) {
-            companySealProviderRepo.save(provider);
+            contractSealProviderRepo.save(provider);
         } else {
-            companySealProviderRepo.updateById(provider);
+            contractSealProviderRepo.updateById(provider);
         }
     }
 }

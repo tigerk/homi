@@ -1,7 +1,7 @@
 package com.homi.model.dao.repo;
 
-import com.homi.model.dao.entity.CompanySealProvider;
-import com.homi.model.dao.mapper.CompanySealProviderMapper;
+import com.homi.model.dao.entity.ContractSealProvider;
+import com.homi.model.dao.mapper.ContractSealProviderMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +14,6 @@ import org.springframework.stereotype.Service;
  * @since 2026-03-10
  */
 @Service
-public class CompanySealProviderRepo extends ServiceImpl<CompanySealProviderMapper, CompanySealProvider> {
+public class ContractSealProviderRepo extends ServiceImpl<ContractSealProviderMapper, ContractSealProvider> {
 
 }

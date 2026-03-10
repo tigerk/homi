@@ -1,11 +1,11 @@
-package com.homi.model.company.dto.seal;
+package com.homi.model.contract.dto.seal;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@Schema(description = "企业电子印章查询DTO")
-public class CompanySealQueryDTO {
+@Schema(description = "合同电子印章查询DTO")
+public class ContractSealQueryDTO {
     @Schema(description = "公司ID")
     private Long companyId;
 

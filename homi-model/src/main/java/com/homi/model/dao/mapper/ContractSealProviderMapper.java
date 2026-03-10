@@ -1,7 +1,7 @@
 package com.homi.model.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.homi.model.dao.entity.CompanySealProvider;
+import com.homi.model.dao.entity.ContractSealProvider;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -13,6 +13,6 @@ import org.apache.ibatis.annotations.Mapper;
  * @since 2026-03-10
  */
 @Mapper
-public interface CompanySealProviderMapper extends BaseMapper<CompanySealProvider> {
+public interface ContractSealProviderMapper extends BaseMapper<ContractSealProvider> {
 
 }

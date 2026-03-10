@@ -1,15 +1,20 @@
-package com.homi.model.company.vo.seal;
+package com.homi.model.contract.dto.seal;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
 
 @Data
-@Schema(description = "企业电子印章VO")
-public class CompanySealVO {
+@AllArgsConstructor
+@NoArgsConstructor
+@Schema(description = "合同电子印章创建/更新DTO")
+public class ContractSealCreateDTO {
     @Schema(description = "主键ID")
     private Long id;
 
@@ -17,6 +22,7 @@ public class CompanySealVO {
     private Long companyId;
 
     @Schema(description = "印章类型:1=企业,2=个人")
+    @NotNull(message = "印章类型不能为空")
     private Integer sealType;
 
     @Schema(description = "来源:1=自有图片,2=法大大,3=E签宝,4=其他第三方")
@@ -39,18 +45,6 @@ public class CompanySealVO {
 
     @Schema(description = "操作人ID")
     private Long operatorId;
-
-    @Schema(description = "操作人姓名")
-    private String operatorName;
-
-    @Schema(description = "操作人联系电话")
-    private String operatorPhone;
-
-    @Schema(description = "操作人证件类型")
-    private Integer operatorIdType;
-
-    @Schema(description = "操作人证件号")
-    private String operatorIdNo;
 
     @Schema(description = "状态:0=待审核,1=正常,2=已禁用,3=审核失败")
     private Integer status;
@@ -81,11 +75,17 @@ public class CompanySealVO {
     @Schema(description = "各服务商差异化字段,JSON存储")
     private String providerExtra;
 
+    @Schema(description = "创建人ID")
+    private Long createBy;
+
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
-    @Schema(description = "更新时间")
+    @Schema(description = "修改人ID")
+    private Long updateBy;
+
+    @Schema(description = "修改时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;
 }
