@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 /**
  * <p>
- * 企业电子签章
+ * 第三方签章供应商信息
  * </p>
  *
  * @author tk
@@ -25,51 +25,44 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("company_digital_sign")
-@Schema(name = "CompanyDigitalSign", description = "企业电子签章")
-public class CompanyDigitalSign implements Serializable {
+@TableName("company_seal_provider")
+@Schema(name = "CompanySealProvider", description = "第三方签章供应商信息")
+public class CompanySealProvider implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Schema(description = "主键ID")
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @Schema(description = "公司ID")
-    @TableField("company_id")
-    private Long companyId;
+    @Schema(description = "关联主表ID")
+    @TableField("seal_id")
+    private Long sealId;
 
-    @Schema(description = "签章类型：1=企业，2=个人")
-    @TableField("sign_type")
-    private Integer signType;
+    @Schema(description = "服务商平台的账号/企业ID")
+    @TableField("account_id")
+    private String accountId;
 
-    @Schema(description = "公司名称")
-    @TableField("name")
-    private String name;
+    @Schema(description = "服务商平台的印章ID")
+    @TableField("provider_seal_id")
+    private String providerSealId;
 
-    @Schema(description = "公司社会统一信用代码")
-    @TableField("uscc")
-    private String uscc;
+    @Schema(description = "认证状态:0=未认证,1=认证中,2=已认证,3=失败")
+    @TableField("auth_status")
+    private Integer authStatus;
 
-    @Schema(description = "法人姓名")
-    @TableField("legal_person")
-    private String legalPerson;
+    @Schema(description = "认证完成时间")
+    @TableField("auth_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date authTime;
 
-    @Schema(description = "法人证件类型")
-    @TableField("legal_person_id_type")
-    private String legalPersonIdType;
+    @Schema(description = "授权到期时间")
+    @TableField("expire_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date expireTime;
 
-    @Schema(description = "法人证件号")
-    @TableField("legal_person_id_no")
-    private String legalPersonIdNo;
-
-    @Schema(description = "操作人ID")
-    @TableField("operator_id")
-    private Long operatorId;
-
-    @Schema(description = "备注")
-    @TableField("remark")
-    private String remark;
+    @Schema(description = "各服务商差异化字段,JSON存储")
+    @TableField("extra")
+    private String extra;
 
     @TableField("deleted")
     @TableLogic

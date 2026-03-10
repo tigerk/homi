@@ -65,9 +65,9 @@ public enum FileAttachBizTypeEnum {
 
     DELIVERY_IMAGE("delivery_image"),
     /**
-     * 电子签章印章文件
+     * 电子印章图片
      */
-    COMPANY_DIGITAL_SIGN_SEAL("company_digital_sign_seal"),
+    COMPANY_SEAL_IMAGE("company_seal_image"),
     ;
 
     private final String bizType;
