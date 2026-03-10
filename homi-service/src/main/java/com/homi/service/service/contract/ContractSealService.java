@@ -137,6 +137,13 @@ public class ContractSealService {
         return entity.getId();
     }
 
+    public Long update(ContractSealCreateDTO dto, Long companyId, Long userId) {
+        if (dto.getId() == null || dto.getId() <= 0) {
+            throw new BizException("电子印章ID不能为空");
+        }
+        return createOrUpdate(dto, companyId, userId);
+    }
+
     private void validateCreate(ContractSealCreateDTO dto) {
         if (dto.getSealType() == null) {
             throw new BizException("印章类型不能为空");

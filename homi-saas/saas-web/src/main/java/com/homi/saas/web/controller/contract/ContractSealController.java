@@ -42,4 +42,13 @@ public class ContractSealController {
 
         return ResponseResult.ok(contractSealService.createOrUpdate(createDTO, currentUser.getCurCompanyId(), currentUser.getId()));
     }
+
+    @PostMapping("/update")
+    @Log(title = "更新合同电子印章", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> update(@Valid @RequestBody ContractSealCreateDTO updateDTO) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        updateDTO.setCompanyId(currentUser.getCurCompanyId());
+
+        return ResponseResult.ok(contractSealService.update(updateDTO, currentUser.getCurCompanyId(), currentUser.getId()));
+    }
 }
