@@ -1,5 +1,6 @@
 package com.homi.service.service.contract;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -9,16 +10,8 @@ import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.contract.dto.seal.ContractSealCreateDTO;
 import com.homi.model.contract.dto.seal.ContractSealQueryDTO;
 import com.homi.model.contract.vo.seal.ContractSealVO;
-import com.homi.model.dao.entity.ContractSeal;
-import com.homi.model.dao.entity.ContractSealProvider;
-import com.homi.model.dao.entity.ContractTemplate;
-import com.homi.model.dao.entity.FileAttach;
-import com.homi.model.dao.entity.User;
-import com.homi.model.dao.repo.ContractTemplateRepo;
-import com.homi.model.dao.repo.ContractSealProviderRepo;
-import com.homi.model.dao.repo.ContractSealRepo;
-import com.homi.model.dao.repo.FileAttachRepo;
-import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.dao.entity.*;
+import com.homi.model.dao.repo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -228,5 +221,23 @@ public class ContractSealService {
         } else {
             contractSealProviderRepo.updateById(provider);
         }
+    }
+
+    /**
+     * 根据印章 ID 获取印章图片 URL
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/3/11 22:42
+     *
+     * @param sealId 参数说明
+     * @return java.lang.String
+     */
+    public String getSealImageBySealId(Long sealId) {
+        List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(sealId, List.of(FileAttachBizTypeEnum.CONTRACT_SEAL_IMAGE.getBizType()));
+        if (CollUtil.isEmpty(fileAttachList)) {
+            return "";
+        }
+
+        return fileAttachList.getFirst().getFileUrl();
     }
 }

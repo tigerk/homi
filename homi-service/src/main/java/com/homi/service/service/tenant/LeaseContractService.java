@@ -4,8 +4,8 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
-import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
+import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.contract.vo.LeaseContractVO;
@@ -13,13 +13,15 @@ import com.homi.model.dao.entity.ContractTemplate;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.entity.LeaseContract;
 import com.homi.model.dao.repo.ContractTemplateRepo;
-import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.dao.repo.LeaseContractRepo;
 import com.homi.model.dao.repo.LeaseRepo;
+import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.tenant.dto.LeaseContractGenerateDTO;
 import com.homi.model.tenant.vo.LeaseContractSignStatusUpdateDTO;
 import com.homi.model.tenant.vo.LeaseDetailVO;
+import com.homi.service.service.contract.ContractSealService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +44,7 @@ public class LeaseContractService {
     private final RoomRepo roomRepo;
     private final LeaseContractRepo leaseContractRepo;
     private final ContractTemplateRepo contractTemplateRepo;
+    private final ContractSealService contractSealService;
 
     /**
      * 根据租约ID查询租约合同
@@ -85,7 +88,7 @@ public class LeaseContractService {
 
         LeaseContractVO leaseContractVO = BeanCopyUtils.copyBean(leaseContract, LeaseContractVO.class);
         leaseDetail.setLeaseContract(leaseContractVO);
-        leaseContract.setContractContent(replaceContractVariables(contractTemplate.getTemplateContent(), leaseDetail));
+        leaseContract.setContractContent(replaceContractVariables(contractTemplate.getTemplateContent(), leaseDetail, contractTemplate.getSealId()));
 
         // 如果租客合同已存在，更新合同内容
 
@@ -98,7 +101,7 @@ public class LeaseContractService {
         return leaseContract;
     }
 
-    public String replaceContractVariables(String contractContent, LeaseDetailVO tenant) {
+    public String replaceContractVariables(String contractContent, LeaseDetailVO tenant, Long sealId) {
         // 替换 ${tenantName} 为租客姓名
         contractContent = contractContent.replace(TenantParamsEnum.TENANT_NAME.getKey(), tenant.getTenantName());
         // 替换 ${tenantPhone} 为租客手机号
@@ -144,6 +147,22 @@ public class LeaseContractService {
 
         // 替换 ${contractDate} 为合同时间
         contractContent = contractContent.replace(TenantParamsEnum.CONTRACT_DATE.getKey(), DateUtil.formatDate(DateUtil.date()));
+
+        // ${公司盖章} 替换为公司盖章图片
+        if (Objects.nonNull(sealId)) {
+            String sealImage = contractSealService.getSealImageBySealId(sealId);
+            if (StringUtils.isNotBlank(sealImage)) {
+                String sealImgTag = String.format(
+                    "<span style=\"position:relative;display:inline-block;width:0;height:0;line-height:0;font-size:0;\">"
+                        + "<img src=\"%s\" style=\"position:absolute;left:0;top:0;width:300px;transform:translate(-50%%,-50%%);\" />"
+                        + "</span>",
+                    sealImage
+                );
+                contractContent = contractContent.replace(TenantParamsEnum.COMPANY_SEAL.getKey(), sealImgTag);
+            } else {
+                contractContent = contractContent.replace(TenantParamsEnum.COMPANY_SEAL.getKey(), "");
+            }
+        }
 
         return contractContent;
     }
