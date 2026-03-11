@@ -40,6 +40,15 @@ public class ContractTemplateListVO {
     @Schema(description = "生效部门json，格式：[1,2,3]")
     private List<String> deptIds;
 
+    @Schema(description = "电子签章ID")
+    private Long sealId;
+
+    @Schema(description = "电子签章名称")
+    private String sealName;
+
+    @Schema(description = "电子签章来源")
+    private Integer sealSource;
+
     @Schema(description = "合同状态：0=未生效，1=生效中，-1=已作废")
     private Integer status;
 

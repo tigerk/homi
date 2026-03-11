@@ -13,7 +13,7 @@ import com.homi.model.company.vo.order.CompanyOrderRecordVO;
 import com.homi.model.company.vo.order.CompanyProductOrderVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
-import com.homi.service.external.PayQrCodeDTO;
+import com.homi.service.external.pay.dto.PayQrCodeDTO;
 import com.homi.service.external.pay.PayService;
 import com.homi.service.service.company.CompanyOrderService;
 import lombok.RequiredArgsConstructor;

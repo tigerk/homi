@@ -11,8 +11,10 @@ import com.homi.model.contract.dto.seal.ContractSealQueryDTO;
 import com.homi.model.contract.vo.seal.ContractSealVO;
 import com.homi.model.dao.entity.ContractSeal;
 import com.homi.model.dao.entity.ContractSealProvider;
+import com.homi.model.dao.entity.ContractTemplate;
 import com.homi.model.dao.entity.FileAttach;
 import com.homi.model.dao.entity.User;
+import com.homi.model.dao.repo.ContractTemplateRepo;
 import com.homi.model.dao.repo.ContractSealProviderRepo;
 import com.homi.model.dao.repo.ContractSealRepo;
 import com.homi.model.dao.repo.FileAttachRepo;
@@ -32,6 +34,7 @@ import java.util.Objects;
 public class ContractSealService {
     private final ContractSealRepo contractSealRepo;
     private final ContractSealProviderRepo contractSealProviderRepo;
+    private final ContractTemplateRepo contractTemplateRepo;
     private final FileAttachRepo fileAttachRepo;
     private final UserRepo userRepo;
 
@@ -152,6 +155,14 @@ public class ContractSealService {
         ContractSeal entity = contractSealRepo.getById(id);
         if (entity == null || !Objects.equals(entity.getCompanyId(), companyId)) {
             throw new BizException("电子印章不存在");
+        }
+
+        long usedCount = contractTemplateRepo.lambdaQuery()
+            .eq(ContractTemplate::getCompanyId, companyId)
+            .eq(ContractTemplate::getSealId, id)
+            .count();
+        if (usedCount > 0) {
+            throw new BizException("已有合同模板关联，无法删除");
         }
 
         contractSealProviderRepo.remove(new LambdaQueryWrapper<ContractSealProvider>().eq(ContractSealProvider::getSealId, id));

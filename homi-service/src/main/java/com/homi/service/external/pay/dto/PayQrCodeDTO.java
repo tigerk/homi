@@ -1,4 +1,4 @@
-package com.homi.service.external;
+package com.homi.service.external.pay.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

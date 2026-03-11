@@ -18,9 +18,13 @@ import com.homi.model.contract.dto.ContractTemplateStatusDTO;
 import com.homi.model.contract.vo.ContractTemplateListVO;
 import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.dao.entity.CompanyUser;
+import com.homi.model.dao.entity.ContractSeal;
 import com.homi.model.dao.entity.ContractTemplate;
+import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.CompanyUserRepo;
+import com.homi.model.dao.repo.ContractSealRepo;
 import com.homi.model.dao.repo.ContractTemplateRepo;
+import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.house.dto.HouseLayoutDTO;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.vo.RoomListVO;
@@ -31,6 +35,7 @@ import com.homi.model.tenant.vo.bill.LeaseBillListVO;
 import com.homi.service.service.tenant.LeaseContractService;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -49,6 +54,8 @@ import java.util.*;
 public class ContractTemplateService {
     private final CompanyUserRepo companyUserRepo;
     private final ContractTemplateRepo contractTemplateRepo;
+    private final ContractSealRepo contractSealRepo;
+    private final UserRepo userRepo;
     private final LeaseContractService leaseContractService;
 
     public PageVO<ContractTemplateListVO> getContractTemplateList(ContractTemplateQueryDTO query) {
@@ -72,13 +79,51 @@ public class ContractTemplateService {
 
         Page<ContractTemplate> dictDataPage = contractTemplateRepo.page(page, wrapper);
 
+        List<ContractTemplate> records = dictDataPage.getRecords();
+        Map<Long, ContractSeal> sealMap = new HashMap<>();
+        Map<Long, User> operatorMap = new HashMap<>();
+
+        List<Long> sealIds = records.stream()
+            .map(ContractTemplate::getSealId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        if (!sealIds.isEmpty()) {
+            contractSealRepo.listByIds(sealIds).forEach(seal -> sealMap.put(seal.getId(), seal));
+            sealMap.values().stream()
+                .map(ContractSeal::getOperatorId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .forEach(id -> {
+                    User user = userRepo.getById(id);
+                    if (user != null) {
+                        operatorMap.put(id, user);
+                    }
+                });
+        }
+
         PageVO<ContractTemplateListVO> pageVO = new PageVO<>();
         pageVO.setTotal(dictDataPage.getTotal());
-        pageVO.setList(dictDataPage.getRecords().stream().map(c -> {
+        pageVO.setList(records.stream().map(c -> {
             ContractTemplateListVO contractTemplateListVO = BeanCopyUtils.copyBean(c, ContractTemplateListVO.class);
             if (Objects.nonNull(c.getDeptIds())) {
                 assert contractTemplateListVO != null;
                 contractTemplateListVO.setDeptIds(JSONUtil.toList(c.getDeptIds(), String.class));
+            }
+            if (contractTemplateListVO != null && c.getSealId() != null) {
+                ContractSeal seal = sealMap.get(c.getSealId());
+                if (seal != null) {
+                    contractTemplateListVO.setSealSource(seal.getSource());
+                    String sealName = seal.getCompanyName();
+                    if (seal.getSealType() != null && seal.getSealType().equals(2)) {
+                        // 个人签章，使用经办人姓名
+                        User operator = operatorMap.get(seal.getOperatorId());
+                        sealName = operator != null
+                            ? StringUtils.defaultIfBlank(operator.getRealName(), operator.getNickname())
+                            : "个人签章";
+                    }
+                    contractTemplateListVO.setSealName(StringUtils.defaultIfBlank(sealName, "企业签章"));
+                }
             }
             return contractTemplateListVO;
         }).toList());

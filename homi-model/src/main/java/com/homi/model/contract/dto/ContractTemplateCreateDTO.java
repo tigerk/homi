@@ -45,6 +45,9 @@ public class ContractTemplateCreateDTO {
     @NotNull(message = "生效部门不能为空")
     private List<String> deptIds;
 
+    @Schema(description = "电子签章ID")
+    private Long sealId;
+
     @Schema(description = "合同状态：0=未生效，1=生效中")
     private Integer status;
 

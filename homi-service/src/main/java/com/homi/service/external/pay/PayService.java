@@ -2,7 +2,7 @@ package com.homi.service.external.pay;
 
 import cn.hutool.core.lang.Pair;
 import com.homi.common.lib.exception.BizException;
-import com.homi.service.external.PayQrCodeDTO;
+import com.homi.service.external.pay.dto.PayQrCodeDTO;
 import com.homi.service.external.pay.config.PayProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

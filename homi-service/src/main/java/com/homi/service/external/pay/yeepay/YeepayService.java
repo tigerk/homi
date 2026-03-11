@@ -1,12 +1,11 @@
 package com.homi.service.external.pay.yeepay;
 
-import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.exception.BizException;
-import com.homi.service.external.PayQrCodeDTO;
+import com.homi.service.external.pay.dto.PayQrCodeDTO;
 import com.homi.service.external.pay.PayProvider;
 import com.homi.service.external.pay.config.PayProperties;
 import com.yeepay.yop.sdk.service.aggpay.AggpayClient;

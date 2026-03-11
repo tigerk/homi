@@ -1,7 +1,7 @@
 package com.homi.service.external.pay.wechat;
 
 import cn.hutool.core.lang.Pair;
-import com.homi.service.external.PayQrCodeDTO;
+import com.homi.service.external.pay.dto.PayQrCodeDTO;
 import com.homi.service.external.pay.PayProvider;
 import com.homi.service.external.pay.config.PayProperties;
 import lombok.RequiredArgsConstructor;
