@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * </p>
  *
  * @author tk
- * @since 2025-11-18
+ * @since 2026-03-11
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -54,6 +54,10 @@ public class ContractTemplate implements Serializable {
     @Schema(description = "生效部门json")
     @TableField("dept_ids")
     private String deptIds;
+
+    @Schema(description = "电子签章ID")
+    @TableField("seal_id")
+    private Long sealId;
 
     @Schema(description = "合同状态：0=未生效，1=生效中，-1=已作废")
     @TableField("status")

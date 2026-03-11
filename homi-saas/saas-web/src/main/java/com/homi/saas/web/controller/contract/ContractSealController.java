@@ -5,6 +5,7 @@ import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.model.contract.dto.seal.ContractSealCreateDTO;
+import com.homi.model.contract.dto.seal.ContractSealDeleteDTO;
 import com.homi.model.contract.dto.seal.ContractSealQueryDTO;
 import com.homi.model.contract.vo.seal.ContractSealVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -50,5 +51,12 @@ public class ContractSealController {
         updateDTO.setCompanyId(currentUser.getCurCompanyId());
 
         return ResponseResult.ok(contractSealService.update(updateDTO, currentUser.getCurCompanyId(), currentUser.getId()));
+    }
+
+    @PostMapping("/delete")
+    @Log(title = "删除合同电子印章", operationType = OperationTypeEnum.DELETE)
+    public ResponseResult<Boolean> delete(@Valid @RequestBody ContractSealDeleteDTO deleteDTO) {
+        UserLoginVO currentUser = LoginManager.getCurrentUser();
+        return ResponseResult.ok(contractSealService.delete(deleteDTO.getId(), currentUser.getCurCompanyId()));
     }
 }

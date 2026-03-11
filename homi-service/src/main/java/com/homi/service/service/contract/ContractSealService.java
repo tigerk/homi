@@ -144,6 +144,22 @@ public class ContractSealService {
         return createOrUpdate(dto, companyId, userId);
     }
 
+    public Boolean delete(Long id, Long companyId) {
+        if (id == null || id <= 0) {
+            throw new BizException("电子印章ID不能为空");
+        }
+
+        ContractSeal entity = contractSealRepo.getById(id);
+        if (entity == null || !Objects.equals(entity.getCompanyId(), companyId)) {
+            throw new BizException("电子印章不存在");
+        }
+
+        contractSealProviderRepo.remove(new LambdaQueryWrapper<ContractSealProvider>().eq(ContractSealProvider::getSealId, id));
+        fileAttachRepo.deleteByBizIdAndBizTypes(id, List.of(FileAttachBizTypeEnum.CONTRACT_SEAL_IMAGE.getBizType()));
+
+        return contractSealRepo.removeById(id);
+    }
+
     private void validateCreate(ContractSealCreateDTO dto) {
         if (dto.getSealType() == null) {
             throw new BizException("印章类型不能为空");
