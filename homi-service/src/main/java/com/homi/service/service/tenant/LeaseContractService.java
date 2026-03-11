@@ -149,12 +149,20 @@ public class LeaseContractService {
         contractContent = contractContent.replace(TenantParamsEnum.CONTRACT_DATE.getKey(), DateUtil.formatDate(DateUtil.date()));
 
         // ${公司盖章} 替换为公司盖章图片
+        // 效果：印章图片不占文档流，以占位符所在位置为中心点叠加显示（类似水印/印章覆盖）
+        //   外层 span：position:relative + display:inline-block，宽高均为 0，不撑开文档流，
+        //              overflow:visible 保证图片超出部分可见
+        //   内层 img ：position:absolute，left/top:0 以外层左上角为锚点，
+        //              transform:translate(-50%,-50%) 将图片中心对准占位符位置，
+        //              pointer-events:none 防止印章遮挡下层文字的鼠标交互
         if (Objects.nonNull(sealId)) {
             String sealImage = contractSealService.getSealImageBySealId(sealId);
             if (StringUtils.isNotBlank(sealImage)) {
                 String sealImgTag = String.format(
-                    "<span style=\"position:relative;display:inline-block;width:0;height:0;line-height:0;font-size:0;\">"
-                        + "<img src=\"%s\" style=\"position:absolute;left:0;top:0;width:300px;transform:translate(-50%%,-50%%);\" />"
+                    "<span style=\"position:relative;display:inline-block;width:0;height:0;"
+                        + "overflow:visible;line-height:0;font-size:0;\">"
+                        + "<img src=\"%s\" style=\"position:absolute;left:0;top:0;width:150px;height:auto;"
+                        + "transform:translate(-50%%,-50%%);pointer-events:none;\" />"
                         + "</span>",
                     sealImage
                 );
@@ -239,7 +247,7 @@ public class LeaseContractService {
 
         leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.CANCELLED.getCode());
 
-        // 房间设置为“空置”
+        // 房间设置为"空置"
         roomRepo.updateOccupancyStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), OccupancyStatusEnum.AVAILABLE.getCode());
 
         return LeaseStatusEnum.CANCELLED.getCode();

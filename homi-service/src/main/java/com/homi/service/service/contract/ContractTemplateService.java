@@ -34,8 +34,8 @@ import com.homi.model.tenant.vo.TenantPersonalVO;
 import com.homi.model.tenant.vo.bill.LeaseBillListVO;
 import com.homi.service.service.tenant.LeaseContractService;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -347,7 +347,7 @@ public class ContractTemplateService {
         tenantDetailVO.setCreateTime(new Date());
         tenantDetailVO.setUpdateTime(new Date());
 
-        String renderedContent = leaseContractService.replaceContractVariables(contractTemplate.getTemplateContent(), tenantDetailVO);
+        String renderedContent = leaseContractService.replaceContractVariables(contractTemplate.getTemplateContent(), tenantDetailVO, contractTemplate.getSealId());
 
         return ConvertHtml2PdfUtils.generatePdf(renderedContent);
     }
