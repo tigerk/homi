@@ -12,6 +12,7 @@ import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
+import com.homi.model.company.dto.CompanySwitchDTO;
 import com.homi.model.menu.vo.AsyncRoutesVO;
 import com.homi.saas.web.auth.dto.account.UserProfileUpdateDTO;
 import com.homi.saas.web.auth.dto.login.*;
@@ -151,18 +152,18 @@ public class LoginController {
      * {@code @author} tk
      * {@code @date} 2025/9/12 11:14
      *
-     * @param companyId 参数说明
+     * @param companySwitchDTO 参数说明
      * @return com.homi.common.model.response.ResponseResult<com.homi.saas.web.admin.auth.vo.login.UserLoginVO>
      */
     @PostMapping("/saas/switchCompany")
-    public ResponseResult<UserLoginVO> switchCompany(@RequestParam("companyId") Long companyId) {
+    public ResponseResult<UserLoginVO> switchCompany(@Valid @RequestBody CompanySwitchDTO companySwitchDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         // 校验用户是否有这个公司权限
-        if (!companyUserService.userHasCompany(currentUser.getId(), companyId)) {
+        if (!companyUserService.userHasCompany(currentUser.getId(), companySwitchDTO.getCompanyId())) {
             throw new BizException("无效的公司ID");
         }
 
-        return ResponseResult.ok(authService.loginWithCompanyId(currentUser.getId(), companyId));
+        return ResponseResult.ok(authService.loginWithCompanyId(currentUser.getId(), companySwitchDTO.getCompanyId()));
     }
 
     @PostMapping("/saas/login/sms")
