@@ -1,4 +1,4 @@
-package com.homi.service.external.aliyun;
+package com.homi.external.sms;
 
 import cn.hutool.json.JSONUtil;
 import com.aliyun.auth.credentials.Credential;

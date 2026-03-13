@@ -1,7 +1,7 @@
-package com.homi.service.external.pay;
+package com.homi.external.pay;
 
 import cn.hutool.core.lang.Pair;
-import com.homi.service.external.pay.dto.PayQrCodeDTO;
+import com.homi.external.pay.dto.PayQrCodeDTO;
 
 public interface PayProvider {
 

@@ -1,9 +1,9 @@
-package com.homi.service.external.pay.alipay;
+package com.homi.external.pay.alipay;
 
 import cn.hutool.core.lang.Pair;
-import com.homi.service.external.pay.dto.PayQrCodeDTO;
-import com.homi.service.external.pay.PayProvider;
-import com.homi.service.external.pay.config.PayProperties;
+import com.homi.external.pay.dto.PayQrCodeDTO;
+import com.homi.external.pay.PayProvider;
+import com.homi.external.pay.config.PayProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

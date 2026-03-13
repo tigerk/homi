@@ -1,4 +1,4 @@
-package com.homi.service.external.pay;
+package com.homi.external.pay;
 
 import com.homi.common.lib.exception.BizException;
 import org.springframework.stereotype.Component;

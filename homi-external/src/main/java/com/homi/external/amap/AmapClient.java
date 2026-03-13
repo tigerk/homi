@@ -1,4 +1,4 @@
-package com.homi.service.external.amap;
+package com.homi.external.amap;
 
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;

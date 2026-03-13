@@ -1,4 +1,4 @@
-package com.homi.service.external.qiniu;
+package com.homi.external.qiniu;
 
 import cn.hutool.json.JSONUtil;
 import com.qiniu.common.QiniuException;

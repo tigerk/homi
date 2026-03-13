@@ -22,7 +22,7 @@ import com.homi.model.dao.repo.CompanyConsumeRepo;
 import com.homi.model.dao.repo.CompanyOrderRepo;
 import com.homi.model.dao.repo.CompanyProductRepo;
 import com.homi.model.dao.repo.CompanyQuotaRepo;
-import com.homi.service.external.pay.PayService;
+import com.homi.external.pay.PayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

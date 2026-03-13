@@ -1,4 +1,4 @@
-package com.homi.service.external.mail;
+package com.homi.external.mail;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

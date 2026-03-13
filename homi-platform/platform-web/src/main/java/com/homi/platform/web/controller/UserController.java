@@ -20,7 +20,7 @@ import com.homi.platform.service.service.perms.PlatformUserService;
 import com.homi.platform.web.config.PlatformLoginManager;
 import com.homi.platform.web.service.PlatformAuthService;
 import com.homi.platform.web.vo.login.PlatformUserLoginVO;
-import com.homi.service.external.qiniu.QiniuClient;
+import com.homi.external.qiniu.QiniuClient;
 import com.qiniu.common.QiniuException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

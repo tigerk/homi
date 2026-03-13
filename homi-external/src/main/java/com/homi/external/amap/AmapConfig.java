@@ -1,4 +1,4 @@
-package com.homi.service.external.amap;
+package com.homi.external.amap;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
