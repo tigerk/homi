@@ -139,7 +139,7 @@ public class LoginController {
         return ResponseResult.ok(LoginManager.getCurrentUser());
     }
 
-    @GetMapping("/saas/get-async-routes")
+    @PostMapping("/saas/get-async-routes")
     public ResponseResult<List<AsyncRoutesVO>> getUserRoutes() {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
 
