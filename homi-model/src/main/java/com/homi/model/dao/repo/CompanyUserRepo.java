@@ -103,41 +103,6 @@ public class CompanyUserRepo extends ServiceImpl<CompanyUserMapper, CompanyUser>
         return getOne(queryWrapper);
     }
 
-    /**
-     * 获取用户的公司列表
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2025/9/10 23:48
-     *
-     * @param userId 参数说明
-     * @return java.util.List<com.homi.model.entity.CompanyUser>
-     */
-    public List<UserCompanyListDTO> getCompanyListByUserId(Long userId) {
-        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(CompanyUser::getUserId, userId);
-
-        List<CompanyUser> list = list(queryWrapper);
-        if (list.isEmpty()) {
-            return List.of();
-        }
-
-        // 获取公司名称
-        List<Long> companyIdList = list.stream().map(CompanyUser::getCompanyId).toList();
-        List<Company> companies = companyRepo.getValidCompanyList(companyIdList);
-        Map<Long, Company> companyMap = companies.stream().collect(Collectors.toMap(Company::getId, company -> company));
-
-        return list.stream().filter(item -> companyMap.containsKey(item.getCompanyId()))
-            .map(item -> {
-                UserCompanyListDTO userCompanyListDTO = new UserCompanyListDTO();
-                userCompanyListDTO.setCompanyId(item.getCompanyId());
-                userCompanyListDTO.setUserId(userId);
-                userCompanyListDTO.setUserType(item.getUserType());
-                Company company = companyMap.get(item.getCompanyId());
-                userCompanyListDTO.setCompanyName(company.getName());
-                return userCompanyListDTO;
-            }).toList();
-    }
-
     public CompanyUser getCompanyUser(Long companyId, Long userId) {
         LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(CompanyUser::getUserId, userId);

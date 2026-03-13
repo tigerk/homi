@@ -5,6 +5,7 @@ import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.Dept;
 import com.homi.model.dao.entity.User;
 import com.homi.model.dao.mapper.DeptMapper;
+import com.homi.model.dao.repo.DeptRepo;
 import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.dept.dto.DeptCreateDTO;
 import com.homi.model.dept.dto.DeptQueryDTO;
@@ -28,6 +29,7 @@ import java.util.Objects;
 public class DeptService {
     private final DeptMapper deptMapper;
     private final UserRepo userRepo;
+    private final DeptRepo deptRepo;
 
     public List<DeptVO> list(DeptQueryDTO queryDTO) {
         LambdaQueryWrapper<Dept> queryWrapper = new LambdaQueryWrapper<>();
@@ -85,5 +87,9 @@ public class DeptService {
 
     public Boolean deleteDept(Long id) {
         return deptMapper.deleteById(id) > 0;
+    }
+
+    public List<Dept> listByIds(List<Long> deptIdList) {
+        return deptRepo.listByIds(deptIdList);
     }
 }

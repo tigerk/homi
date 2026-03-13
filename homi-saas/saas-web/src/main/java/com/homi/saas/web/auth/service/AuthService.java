@@ -28,6 +28,7 @@ import com.homi.saas.web.auth.dto.login.LoginDTO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.company.CompanyPackageService;
+import com.homi.service.service.company.CompanyUserService;
 import com.homi.service.service.sys.MenuService;
 import com.homi.service.service.sys.RoleService;
 import com.homi.service.service.sys.UserService;
@@ -59,8 +60,9 @@ public class AuthService {
 
     private final MenuService menuService;
     private final RoleService roleService;
-    private final CompanyPackageService companyPackageService;
     private final UserService userService;
+    private final CompanyPackageService companyPackageService;
+    private final CompanyUserService companyUserService;
 
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -84,7 +86,7 @@ public class AuthService {
         user.setRefreshToken(token);
         user.setExpires(DateUtil.date().offset(DateField.SECOND, (int) StpUtil.getTokenActiveTimeout()).getTime());
 
-        List<UserCompanyListDTO> companyListByUserId = companyUserRepo.getCompanyListByUserId(user.getId());
+        List<UserCompanyListDTO> companyListByUserId = companyUserService.getCompanyListByUserId(user.getId());
         if (companyListByUserId.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }
@@ -283,7 +285,7 @@ public class AuthService {
      */
     private UserLoginVO getUserLoginVO(User user) {
         // 获取绑定该用户的公司列表
-        List<UserCompanyListDTO> companyUserList = companyUserRepo.getCompanyListByUserId(user.getId());
+        List<UserCompanyListDTO> companyUserList = companyUserService.getCompanyListByUserId(user.getId());
         if (companyUserList.isEmpty()) {
             throw new BizException(ResponseCodeEnum.USER_NOT_BIND_COMPANY);
         }

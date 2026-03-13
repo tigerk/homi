@@ -9,8 +9,11 @@ import com.homi.common.lib.enums.SaasUserTypeEnum;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
-import com.homi.common.lib.utils.JsonUtils;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.company.dto.UserCompanyListDTO;
+import com.homi.model.company.dto.user.CompanyUserRoleAssignDTO;
+import com.homi.model.company.vo.user.UserCreateVO;
+import com.homi.model.company.vo.user.UserVO;
 import com.homi.model.dao.entity.Company;
 import com.homi.model.dao.entity.CompanyUser;
 import com.homi.model.dao.entity.Dept;
@@ -18,14 +21,11 @@ import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.CompanyRepo;
 import com.homi.model.dao.repo.CompanyUserRepo;
 import com.homi.model.dao.repo.UserRepo;
-import com.homi.model.company.dto.user.CompanyUserRoleAssignDTO;
+import com.homi.model.dept.vo.DeptSimpleVO;
 import com.homi.model.role.dto.RoleUserUnbindDTO;
 import com.homi.model.user.UserCreateDTO;
 import com.homi.model.user.UserQueryDTO;
 import com.homi.model.user.UserUpdateStatusDTO;
-import com.homi.model.company.vo.user.UserCreateVO;
-import com.homi.model.company.vo.user.UserVO;
-import com.homi.model.dept.vo.DeptSimpleVO;
 import com.homi.service.service.sys.DeptService;
 import com.homi.service.service.sys.UserService;
 import jakarta.validation.Valid;
@@ -33,10 +33,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 应用于 homi-boot
@@ -57,6 +55,51 @@ public class CompanyUserService {
 
     private final UserService userService;
     private final CompanyRepo companyRepo;
+
+    /**
+     * 获取用户的公司列表
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2025/9/10 23:48
+     *
+     * @param userId 参数说明
+     * @return java.util.List<com.homi.model.entity.CompanyUser>
+     */
+    public List<UserCompanyListDTO> getCompanyListByUserId(Long userId) {
+        LambdaQueryWrapper<CompanyUser> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CompanyUser::getUserId, userId);
+
+        List<CompanyUser> list = companyUserRepo.list(queryWrapper);
+        if (list.isEmpty()) {
+            return List.of();
+        }
+
+        // 获取公司名称
+        List<Long> companyIdList = list.stream().map(CompanyUser::getCompanyId).toList();
+        List<Company> companies = companyRepo.getValidCompanyList(companyIdList);
+        Map<Long, Company> companyMap = companies.stream().collect(Collectors.toMap(Company::getId, company -> company));
+
+        List<Long> deptIdList = list.stream().map(CompanyUser::getDeptId).toList();
+        // 获取部门名称
+        List<Dept> deptList = deptService.listByIds(deptIdList);
+        Map<Long, Dept> deptMap = deptList.stream().collect(Collectors.toMap(Dept::getId, dept -> dept));
+
+        return list.stream().filter(item -> companyMap.containsKey(item.getCompanyId()))
+            .map(item -> {
+                UserCompanyListDTO userCompanyListDTO = new UserCompanyListDTO();
+                userCompanyListDTO.setCompanyId(item.getCompanyId());
+                userCompanyListDTO.setUserId(userId);
+                userCompanyListDTO.setUserType(item.getUserType());
+                Company company = companyMap.get(item.getCompanyId());
+                userCompanyListDTO.setCompanyName(company.getName());
+                userCompanyListDTO.setDeptId(item.getDeptId());
+                if (Objects.nonNull(item.getDeptId()) && deptMap.containsKey(item.getDeptId())) {
+                    Dept dept = deptMap.get(item.getDeptId());
+                    userCompanyListDTO.setDeptName(dept.getName());
+                }
+                return userCompanyListDTO;
+            }).toList();
+    }
 
     /**
      * 获取公司的人员

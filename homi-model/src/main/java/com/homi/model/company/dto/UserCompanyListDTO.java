@@ -16,6 +16,12 @@ public class UserCompanyListDTO {
     @Schema(description = "公司名称")
     private String companyName;
 
+    @Schema(description = "部门ID")
+    private Long deptId;
+
+    @Schema(description = "部门名称")
+    private String deptName;
+
     @Schema(description = "公司用户类型：20=管理员、21=员工")
     private Integer userType;
 }
