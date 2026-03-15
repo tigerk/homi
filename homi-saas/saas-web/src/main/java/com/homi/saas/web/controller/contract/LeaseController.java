@@ -11,6 +11,7 @@ import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.tenant.dto.LeaseContractGenerateDTO;
+import com.homi.model.tenant.dto.LeaseBillDetailDTO;
 import com.homi.model.tenant.dto.LeaseQueryDTO;
 import com.homi.model.tenant.dto.TenantCreateDTO;
 import com.homi.model.tenant.vo.*;
@@ -122,6 +123,12 @@ public class LeaseController {
     @Operation(summary = "根据租客ID查询租客无效账单列表")
     public ResponseResult<List<LeaseBillListVO>> getBillInvalidList(@RequestBody LeaseQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.FALSE));
+    }
+
+    @PostMapping("/bill/detail")
+    @Operation(summary = "根据账单ID查询账单详情")
+    public ResponseResult<LeaseBillListVO> getBillDetail(@RequestBody LeaseBillDetailDTO queryDTO) {
+        return ResponseResult.ok(leaseBillService.getBillDetailById(queryDTO.getBillId()));
     }
 
     @PostMapping(value = "/contract/download")

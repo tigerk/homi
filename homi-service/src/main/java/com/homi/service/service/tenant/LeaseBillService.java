@@ -1,12 +1,20 @@
 package com.homi.service.service.tenant;
 
+import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
+import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.model.dao.entity.FinanceFlow;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.entity.LeaseBillOtherFee;
+import com.homi.model.dao.entity.PaymentFlow;
+import com.homi.model.dao.repo.FinanceFlowRepo;
 import com.homi.model.dao.repo.LeaseBillOtherFeeRepo;
 import com.homi.model.dao.repo.LeaseBillRepo;
+import com.homi.model.dao.repo.PaymentFlowRepo;
+import com.homi.model.tenant.vo.bill.FinanceFlowVO;
 import com.homi.model.tenant.vo.bill.LeaseBillListVO;
 import com.homi.model.tenant.vo.bill.LeaseBillOtherFeeVO;
+import com.homi.model.tenant.vo.bill.PaymentFlowVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +27,8 @@ import java.util.stream.Collectors;
 public class LeaseBillService {
     private final LeaseBillRepo leaseBillRepo;
     private final LeaseBillOtherFeeRepo leaseBillOtherFeeRepo;
+    private final FinanceFlowRepo financeFlowRepo;
+    private final PaymentFlowRepo paymentFlowRepo;
 
     /**
      * 根据租约ID查询账单列表
@@ -54,5 +64,58 @@ public class LeaseBillService {
             vo.setOtherFees(otherFeesMap.getOrDefault(tb.getId(), List.of()));
             return vo;
         }).toList();
+    }
+
+    /**
+     * 根据账单ID查询账单详情（包含其他费用）
+     */
+    public LeaseBillListVO getBillDetailById(Long billId) {
+        if (billId == null) {
+            return null;
+        }
+        LeaseBill bill = leaseBillRepo.getById(billId);
+        if (bill == null) {
+            return null;
+        }
+        LeaseBillListVO vo = BeanCopyUtils.copyBean(bill, LeaseBillListVO.class);
+        if (vo == null) {
+            return null;
+        }
+
+        List<LeaseBillOtherFee> otherFees = leaseBillOtherFeeRepo.getOtherFeesByBillId(billId);
+        List<LeaseBillOtherFeeVO> otherFeeVos = otherFees.stream()
+            .map(of -> BeanCopyUtils.copyBean(of, LeaseBillOtherFeeVO.class))
+            .toList();
+        vo.setOtherFees(otherFeeVos);
+        attachFinanceFlow(vo, bill);
+        return vo;
+    }
+
+    /**
+     * 关联账单的财务流（包括支付流）
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/3/15 16:55
+     *
+     * @param vo   参数说明
+     * @param bill 参数说明
+     */
+    private void attachFinanceFlow(LeaseBillListVO vo, LeaseBill bill) {
+        if (vo == null || bill == null || bill.getCompanyId() == null) {
+            return;
+        }
+
+        List<FinanceFlow> financeFlows = financeFlowRepo.getListByBiz(FinanceBizTypeEnum.LEASE_BILL.getCode(), bill.getId());
+        List<FinanceFlowVO> flowVos = financeFlows.stream()
+            .map(flow -> BeanCopyUtils.copyBean(flow, FinanceFlowVO.class))
+            .toList();
+        vo.setFinanceFlowList(flowVos);
+
+        PaymentFlow paymentFlow = paymentFlowRepo.getByBiz(PaymentFlowBizTypeEnum.LEASE_BILL.getCode(), bill.getId());
+        if (paymentFlow == null) {
+            return;
+        }
+        PaymentFlowVO paymentFlowVO = BeanCopyUtils.copyBean(paymentFlow, PaymentFlowVO.class);
+        vo.setPaymentFlow(paymentFlowVO);
     }
 }

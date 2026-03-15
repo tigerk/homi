@@ -82,6 +82,12 @@ public class LeaseBillListVO implements Serializable {
     @Schema(description = "备注信息")
     private String remark;
 
+    @Schema(description = "财务流水信息")
+    private List<FinanceFlowVO> financeFlowList;
+
+    @Schema(description = "支付流水信息")
+    private PaymentFlowVO paymentFlow;
+
     @Schema(description = "其他费用明细列表")
     private List<LeaseBillOtherFeeVO> otherFees;
 
