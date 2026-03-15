@@ -26,8 +26,8 @@ public class PaymentFlowVO implements Serializable {
     @Schema(description = "支付渠道")
     private String channel;
 
-    @Schema(description = "支付状态")
-    private String status;
+    @Schema(description = "状态：0=支付中、1=支付成功、2=支付失败、3=已关闭、4=退款中、5=已退款")
+    private Integer status;
 
     @Schema(description = "第三方单号")
     private String thirdTradeNo;

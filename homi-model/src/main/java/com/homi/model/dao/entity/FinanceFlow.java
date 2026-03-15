@@ -67,9 +67,9 @@ public class FinanceFlow implements Serializable {
     @TableField("currency")
     private String currency;
 
-    @Schema(description = "状态")
+    @Schema(description = "状态：0=入账中、1=已入账、2=失败、3=已作废")
     @TableField("status")
-    private String status;
+    private Integer status;
 
     @Schema(description = "退款关联原始流水ID")
     @TableField("refund_flow_id")
@@ -80,8 +80,8 @@ public class FinanceFlow implements Serializable {
     private Long parentId;
 
     @Schema(description = "是否已拆分：0 否，1 是（仅主记录有效）")
-    @TableField("is_split")
-    private Integer isSplit;
+    @TableField("split")
+    private Boolean split;
 
     @Schema(description = "费用类型")
     @TableField("fee_type")

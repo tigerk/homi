@@ -38,8 +38,8 @@ public class FinanceFlowVO implements Serializable {
     @Schema(description = "币种")
     private String currency;
 
-    @Schema(description = "状态")
-    private String status;
+    @Schema(description = "状态：0=入账中、1=已入账、2=失败、3=已作废")
+    private Integer status;
 
     @Schema(description = "退款关联原始流水ID")
     private Long refundFlowId;
@@ -48,7 +48,7 @@ public class FinanceFlowVO implements Serializable {
     private Long parentId;
 
     @Schema(description = "是否已拆分：0 否，1 是")
-    private Integer isSplit;
+    private Boolean split;
 
     @Schema(description = "费用类型")
     private String feeType;
