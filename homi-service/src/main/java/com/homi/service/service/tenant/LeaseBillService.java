@@ -1,5 +1,9 @@
 package com.homi.service.service.tenant;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
@@ -11,13 +15,18 @@ import com.homi.model.dao.repo.FinanceFlowRepo;
 import com.homi.model.dao.repo.LeaseBillOtherFeeRepo;
 import com.homi.model.dao.repo.LeaseBillRepo;
 import com.homi.model.dao.repo.PaymentFlowRepo;
+import com.homi.model.tenant.dto.LeaseBillOtherFeeDTO;
+import com.homi.model.tenant.dto.LeaseBillUpdateDTO;
 import com.homi.model.tenant.vo.bill.FinanceFlowVO;
 import com.homi.model.tenant.vo.bill.LeaseBillListVO;
 import com.homi.model.tenant.vo.bill.LeaseBillOtherFeeVO;
 import com.homi.model.tenant.vo.bill.PaymentFlowVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -91,6 +100,47 @@ public class LeaseBillService {
         return vo;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateBill(LeaseBillUpdateDTO dto, Long operatorId) {
+        if (dto == null || dto.getId() == null) {
+            return false;
+        }
+        LeaseBill bill = leaseBillRepo.getById(dto.getId());
+        if (bill == null) {
+            return false;
+        }
+
+        DateTime now = DateUtil.date();
+
+        // 忽略 null，不覆盖已有字段
+        BeanUtil.copyProperties(dto, bill, CopyOptions.create().setIgnoreNullValue(true));
+        if (dto.getValid() != null) {
+            bill.setValid(dto.getValid());
+        }
+        bill.setUpdateBy(operatorId);
+        bill.setUpdateTime(now);
+        leaseBillRepo.updateById(bill);
+
+        if (dto.getOtherFees() != null) {
+            leaseBillOtherFeeRepo.removeByBillId(bill.getId());
+            List<LeaseBillOtherFee> toSave = new ArrayList<>();
+            for (LeaseBillOtherFeeDTO fee : dto.getOtherFees()) {
+                LeaseBillOtherFee entity = BeanCopyUtils.copyBean(fee, LeaseBillOtherFee.class);
+                assert entity != null;
+                entity.setBillId(bill.getId());
+                entity.setCreateBy(operatorId);
+                entity.setUpdateBy(operatorId);
+                entity.setCreateTime(now);
+                entity.setUpdateTime(now);
+                toSave.add(entity);
+            }
+            if (!toSave.isEmpty()) {
+                leaseBillOtherFeeRepo.saveBatch(toSave);
+            }
+        }
+        return true;
+    }
+
     /**
      * 关联账单的财务流（包括支付流）
      * <p>
@@ -105,9 +155,16 @@ public class LeaseBillService {
             return;
         }
 
-        List<FinanceFlow> financeFlows = financeFlowRepo.getListByBiz(FinanceBizTypeEnum.LEASE_BILL.getCode(), bill.getId());
+        List<FinanceFlow> financeFlows = financeFlowRepo.getListByBiz(
+            FinanceBizTypeEnum.LEASE_BILL.getCode(),
+            bill.getId()
+        );
         List<FinanceFlowVO> flowVos = financeFlows.stream()
-            .map(flow -> BeanCopyUtils.copyBean(flow, FinanceFlowVO.class))
+            .map(flow -> {
+                FinanceFlowVO flowVo = new FinanceFlowVO();
+                BeanUtils.copyProperties(flow, flowVo);
+                return flowVo;
+            })
             .toList();
         vo.setFinanceFlowList(flowVos);
 
@@ -115,7 +172,8 @@ public class LeaseBillService {
         if (paymentFlow == null) {
             return;
         }
-        PaymentFlowVO paymentFlowVO = BeanCopyUtils.copyBean(paymentFlow, PaymentFlowVO.class);
+        PaymentFlowVO paymentFlowVO = new PaymentFlowVO();
+        BeanUtils.copyProperties(paymentFlow, paymentFlowVO);
         vo.setPaymentFlow(paymentFlowVO);
     }
 }

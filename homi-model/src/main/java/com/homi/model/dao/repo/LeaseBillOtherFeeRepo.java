@@ -41,4 +41,11 @@ public class LeaseBillOtherFeeRepo extends ServiceImpl<LeaseBillOtherFeeMapper, 
         }
         return list(new LambdaQueryWrapper<LeaseBillOtherFee>().in(LeaseBillOtherFee::getBillId, billIds));
     }
+
+    public boolean removeByBillId(Long billId) {
+        if (billId == null) {
+            return false;
+        }
+        return remove(new LambdaQueryWrapper<LeaseBillOtherFee>().eq(LeaseBillOtherFee::getBillId, billId));
+    }
 }
