@@ -221,7 +221,10 @@ public class LeaseBillGenService {
      * @return 备注信息
      */
     private String buildFeeRemark(OtherFeeDTO fee, int actualMonths) {
-        PriceMethodEnum method = PriceMethodEnum.values()[fee.getPriceMethod()];
+        PriceMethodEnum method = EnumUtil.getBy(PriceMethodEnum::getCode, fee.getPriceMethod());
+        if (method == null) {
+            return "";
+        }
         return switch (method) {
             case FIXED -> String.format("%s元 × %d月", fee.getPriceInput(), actualMonths);
             case RATIO -> String.format("租金 × %f%%", fee.getPriceInput());
