@@ -5,30 +5,28 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
 import java.io.Serial;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * <p>
- * 租客账单其他费用明细表
+ * 租客账单费用明细表
  * </p>
- *
- * @author tk
- * @since 2025-12-26
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("lease_bill_other_fee")
-@Schema(name = "LeaseBillOtherFee", description = "租客账单其他费用明细表")
-public class LeaseBillOtherFee implements Serializable {
+@TableName("lease_bill_fee")
+@Schema(name = "LeaseBillFee", description = "租客账单费用明细表")
+public class LeaseBillFee implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -40,17 +38,31 @@ public class LeaseBillOtherFee implements Serializable {
     @TableField("bill_id")
     private Long billId;
 
+    @Schema(description = "费用类型：RENTAL/DEPOSIT/OTHER_FEE")
+    @TableField("fee_type")
+    private String feeType;
+
     @Schema(description = "费用字典 ID")
     @TableField("dict_data_id")
     private Long dictDataId;
 
-    @Schema(description = "费用项目名称（如 租金、水费、电费）")
+    @Schema(description = "费用名称")
     @TableField("name")
     private String name;
 
-    @Schema(description = "费用金额（计算结果）")
+    @Schema(description = "费用金额")
     @TableField("amount")
     private BigDecimal amount;
+
+    @Schema(description = "费用周期开始日期")
+    @TableField("fee_start")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date feeStart;
+
+    @Schema(description = "费用周期结束日期")
+    @TableField("fee_end")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date feeEnd;
 
     @Schema(description = "备注信息")
     @TableField("remark")

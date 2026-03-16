@@ -64,27 +64,15 @@ public class LeaseBill implements Serializable {
     @TableField("carry_over_to_bill_id")
     private Long carryOverToBillId;
 
-    @Schema(description = "账单租期开始日期")
-    @TableField("rent_period_start")
+    @Schema(description = "账单周期开始日期")
+    @TableField("bill_start")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date rentPeriodStart;
+    private Date billStart;
 
-    @Schema(description = "账单租期结束日期")
-    @TableField("rent_period_end")
+    @Schema(description = "账单周期结束日期")
+    @TableField("bill_end")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date rentPeriodEnd;
-
-    @Schema(description = "租金金额")
-    @TableField("rental_amount")
-    private BigDecimal rentalAmount;
-
-    @Schema(description = "押金金额")
-    @TableField("deposit_amount")
-    private BigDecimal depositAmount;
-
-    @Schema(description = "其他费用（如水电、物业）")
-    @TableField("other_fee_amount")
-    private BigDecimal otherFeeAmount;
+    private Date billEnd;
 
     @Schema(description = "账单合计金额")
     @TableField("total_amount")

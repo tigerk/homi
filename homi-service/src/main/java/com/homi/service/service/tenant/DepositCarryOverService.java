@@ -1,8 +1,11 @@
 package com.homi.service.service.tenant;
 
 import com.homi.common.lib.enums.pay.PayStatusEnum;
+import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
 import com.homi.model.dao.entity.LeaseBill;
+import com.homi.model.dao.entity.LeaseBillFee;
+import com.homi.model.dao.repo.LeaseBillFeeRepo;
 import com.homi.model.dao.repo.LeaseBillRepo;
 import com.homi.model.tenant.dto.LeaseDTO;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DepositCarryOverService {
     private final LeaseBillRepo tenantBillRepo;
+    private final LeaseBillFeeRepo leaseBillFeeRepo;
 
     /**
      * 押金结转：从旧租约结转押金到新租约
@@ -39,7 +43,7 @@ public class DepositCarryOverService {
         }
 
         BigDecimal oldDepositTotal = oldDepositBills.stream()
-            .map(LeaseBill::getDepositAmount)
+            .map(LeaseBill::getTotalAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal newDepositTotal = newLease.getRentPrice()
@@ -52,11 +56,8 @@ public class DepositCarryOverService {
         carryOutBill.setCompanyId(newLease.getCompanyId());
         carryOutBill.setSortOrder(999);
         carryOutBill.setBillType(LeaseBillTypeEnum.DEPOSIT_CARRY_OUT.getCode());
-        carryOutBill.setRentPeriodStart(newLease.getLeaseStart());
-        carryOutBill.setRentPeriodEnd(newLease.getLeaseEnd());
-        carryOutBill.setDepositAmount(oldDepositTotal.negate());
-        carryOutBill.setRentalAmount(BigDecimal.ZERO);
-        carryOutBill.setOtherFeeAmount(BigDecimal.ZERO);
+        carryOutBill.setBillStart(newLease.getLeaseStart());
+        carryOutBill.setBillEnd(newLease.getLeaseEnd());
         carryOutBill.setTotalAmount(oldDepositTotal.negate());
         carryOutBill.setDueDate(new Date());
         carryOutBill.setPayStatus(PayStatusEnum.PAID.getCode());
@@ -68,6 +69,7 @@ public class DepositCarryOverService {
         carryOutBill.setCreateBy(newLease.getCreateBy());
         carryOutBill.setCreateTime(new Date());
         tenantBillRepo.save(carryOutBill);
+        saveDepositFee(carryOutBill, oldDepositTotal.negate(), newLease.getCreateBy());
 
         LeaseBill carryInBill = new LeaseBill();
         carryInBill.setTenantId(tenantId);
@@ -75,11 +77,8 @@ public class DepositCarryOverService {
         carryInBill.setCompanyId(newLease.getCompanyId());
         carryInBill.setSortOrder(0);
         carryInBill.setBillType(LeaseBillTypeEnum.DEPOSIT_CARRY_IN.getCode());
-        carryInBill.setRentPeriodStart(newLease.getLeaseStart());
-        carryInBill.setRentPeriodEnd(newLease.getLeaseEnd());
-        carryInBill.setDepositAmount(oldDepositTotal);
-        carryInBill.setRentalAmount(BigDecimal.ZERO);
-        carryInBill.setOtherFeeAmount(BigDecimal.ZERO);
+        carryInBill.setBillStart(newLease.getLeaseStart());
+        carryInBill.setBillEnd(newLease.getLeaseEnd());
         carryInBill.setTotalAmount(oldDepositTotal);
         carryInBill.setDueDate(new Date());
         carryInBill.setPayStatus(PayStatusEnum.PAID.getCode());
@@ -92,6 +91,7 @@ public class DepositCarryOverService {
         carryInBill.setCreateBy(newLease.getCreateBy());
         carryInBill.setCreateTime(new Date());
         tenantBillRepo.save(carryInBill);
+        saveDepositFee(carryInBill, oldDepositTotal, newLease.getCreateBy());
 
         carryOutBill.setCarryOverToBillId(carryInBill.getId());
         tenantBillRepo.updateById(carryOutBill);
@@ -106,11 +106,8 @@ public class DepositCarryOverService {
             supplementBill.setCompanyId(newLease.getCompanyId());
             supplementBill.setSortOrder(0);
             supplementBill.setBillType(LeaseBillTypeEnum.DEPOSIT.getCode());
-            supplementBill.setRentPeriodStart(newLease.getLeaseStart());
-            supplementBill.setRentPeriodEnd(newLease.getLeaseEnd());
-            supplementBill.setDepositAmount(diff);
-            supplementBill.setRentalAmount(BigDecimal.ZERO);
-            supplementBill.setOtherFeeAmount(BigDecimal.ZERO);
+            supplementBill.setBillStart(newLease.getLeaseStart());
+            supplementBill.setBillEnd(newLease.getLeaseEnd());
             supplementBill.setTotalAmount(diff);
             supplementBill.setDueDate(new Date());
             supplementBill.setPayStatus(PayStatusEnum.UNPAID.getCode());
@@ -120,6 +117,7 @@ public class DepositCarryOverService {
             supplementBill.setCreateBy(newLease.getCreateBy());
             supplementBill.setCreateTime(new Date());
             tenantBillRepo.save(supplementBill);
+            saveDepositFee(supplementBill, diff, newLease.getCreateBy());
 
             log.info("新租约 {} 需补缴押金差额：{}", newLeaseId, diff);
         } else if (diff.compareTo(BigDecimal.ZERO) < 0) {
@@ -128,5 +126,25 @@ public class DepositCarryOverService {
 
         log.info("押金结转完成：旧租约={}, 新租约={}, 结转金额={}",
             oldLeaseId, newLeaseId, oldDepositTotal);
+    }
+
+    private void saveDepositFee(LeaseBill bill, BigDecimal amount, Long operatorId) {
+        if (bill == null) {
+            return;
+        }
+        LeaseBillFee fee = new LeaseBillFee();
+        fee.setBillId(bill.getId());
+        fee.setFeeType(LeaseBillFeeTypeEnum.DEPOSIT.getCode());
+        fee.setName("押金");
+        fee.setAmount(amount);
+        fee.setFeeStart(bill.getBillStart());
+        fee.setFeeEnd(bill.getBillEnd());
+        fee.setRemark(bill.getRemark());
+        fee.setDeleted(false);
+        fee.setCreateBy(operatorId);
+        fee.setCreateTime(new Date());
+        fee.setUpdateBy(operatorId);
+        fee.setUpdateTime(new Date());
+        leaseBillFeeRepo.save(fee);
     }
 }

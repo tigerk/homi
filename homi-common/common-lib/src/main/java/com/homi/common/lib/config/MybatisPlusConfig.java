@@ -45,7 +45,7 @@ public class MybatisPlusConfig {
         "lease_room",
         "lease_contract",
         "lease_other_fee",
-        "lease_bill_other_fee",
+        "lease_bill_fee",
         "tenant_mate",
         "delivery_item",
         // 审批节点表

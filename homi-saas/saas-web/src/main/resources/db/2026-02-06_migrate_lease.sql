@@ -151,7 +151,6 @@ SET l.parent_lease_id = lp.id;
 RENAME TABLE tenant_bill TO lease_bill;
 RENAME TABLE tenant_contract TO lease_contract;
 RENAME TABLE tenant_other_fee TO lease_other_fee;
-RENAME TABLE tenant_bill_other_fee TO lease_bill_other_fee;
 
 -- 7.1) 重命名退租相关表（租约语义）
 RENAME TABLE tenant_checkout TO lease_checkout;

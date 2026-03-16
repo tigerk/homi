@@ -99,9 +99,9 @@ public class LeaseCheckoutService {
                 .billId(bill.getId())
                 .billType(bill.getBillType())
                 .billTypeName(getBillTypeName(bill.getBillType()))
-                .periodStart(bill.getRentPeriodStart())
-                .periodEnd(bill.getRentPeriodEnd())
-                .billPeriod(bill.getRentPeriodStart() + " ~ " + bill.getRentPeriodEnd())
+                .periodStart(bill.getBillStart())
+                .periodEnd(bill.getBillEnd())
+                .billPeriod(bill.getBillStart() + " ~ " + bill.getBillEnd())
                 .totalAmount(billTotal)
                 .payAmount(payAmount)
                 .unpaidAmount(unpaidMoney)
@@ -163,8 +163,8 @@ public class LeaseCheckoutService {
                 .feeType(CheckoutFeeTypeEnum.DEPOSIT_REFUND.getCode())
                 .feeSubName("房屋押金")
                 .feeAmount(depositAmount)
-                .feePeriodStart(lease.getLeaseStart())
-                .feePeriodEnd(lease.getLeaseEnd())
+                .feeStart(lease.getLeaseStart())
+                .feeEnd(lease.getLeaseEnd())
                 .remark(DateUtil.formatDate(today) + "退租清算\"预退押金" + depositAmount + "元\"")
                 .build());
         }
@@ -180,8 +180,8 @@ public class LeaseCheckoutService {
                     .feeType(mapBillTypeToFeeType(bill.getBillType()))
                     .feeSubName(typeName)
                     .feeAmount(unpaid)
-                    .feePeriodStart(bill.getRentPeriodStart())
-                    .feePeriodEnd(bill.getRentPeriodEnd())
+                    .feeStart(bill.getBillStart())
+                    .feeEnd(bill.getBillEnd())
                     .remark(DateUtil.formatDate(today) + "退租清算\"应退" + unpaid + "元\"")
                     .billId(bill.getId())
                     .build());
@@ -350,8 +350,8 @@ public class LeaseCheckoutService {
                 fee.setFeeType(feeDTO.getFeeType());
                 fee.setFeeSubName(feeDTO.getFeeSubName());
                 fee.setFeeAmount(feeDTO.getFeeAmount());
-                fee.setFeePeriodStart(feeDTO.getFeePeriodStart());
-                fee.setFeePeriodEnd(feeDTO.getFeePeriodEnd());
+                fee.setFeeStart(feeDTO.getFeeStart());
+                fee.setFeeEnd(feeDTO.getFeeEnd());
                 fee.setRemark(feeDTO.getRemark());
                 fee.setBillId(feeDTO.getBillId());
                 fee.setCreateBy(operatorId);

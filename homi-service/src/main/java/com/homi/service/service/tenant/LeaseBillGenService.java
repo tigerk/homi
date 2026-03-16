@@ -6,12 +6,13 @@ import cn.hutool.core.util.EnumUtil;
 import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
+import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseFirstBillDayEnum;
 import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
 import com.homi.model.dao.entity.LeaseBill;
-import com.homi.model.dao.entity.LeaseBillOtherFee;
-import com.homi.model.dao.repo.LeaseBillOtherFeeRepo;
+import com.homi.model.dao.entity.LeaseBillFee;
+import com.homi.model.dao.repo.LeaseBillFeeRepo;
 import com.homi.model.dao.repo.LeaseBillRepo;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.tenant.dto.LeaseDTO;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LeaseBillGenService {
     private final LeaseBillRepo leaseBillRepo;
-    private final LeaseBillOtherFeeRepo leaseBillOtherFeeRepo;
+    private final LeaseBillFeeRepo leaseBillFeeRepo;
 
     /**
      * 生成租客账单（押金、租金及其他费用）
@@ -86,10 +87,10 @@ public class LeaseBillGenService {
             int actualMonths = calculateMonths(currentStart, currentEnd);
 
             // 计算租金金额
-            BigDecimal rentalAmount = calculateRentalAmount(lease.getRentPrice(), paymentMonths, actualMonths);
+            BigDecimal periodRentAmount = calculateRentAmount(lease.getRentPrice(), paymentMonths, actualMonths);
 
             // 计算其他费用金额
-            BigDecimal otherFeeAmount = calculateOtherFeeAmount(rentRelatedFees, rentalAmount, actualMonths);
+            BigDecimal periodOtherFeeAmount = calculateOtherFeeAmount(rentRelatedFees, periodRentAmount, actualMonths);
 
             // 创建账单配置参数对象
             BillConfig config = BillConfig.builder()
@@ -111,8 +112,8 @@ public class LeaseBillGenService {
                 .actualMonths(actualMonths)
                 .currentStart(currentStart)
                 .currentEnd(currentEnd)
-                .rentalAmount(rentalAmount)
-                .otherFeeAmount(otherFeeAmount)
+                .periodRentAmount(periodRentAmount)
+                .periodOtherFeeAmount(periodOtherFeeAmount)
                 .dueDate(dueDate)
                 .build();
 
@@ -131,25 +132,38 @@ public class LeaseBillGenService {
         // 批量保存账单
         leaseBillRepo.saveBatch(billList);
 
-        if (rentRelatedFees.isEmpty()) {
-            return;
-        }
-
-        // 保存账单的其他费用明细
-        List<LeaseBillOtherFee> otherFeeDetails = new ArrayList<>();
+        // 保存账单费用明细（租金 + 随房租付费用）
+        List<LeaseBillFee> feeDetails = new ArrayList<>();
 
         for (LeaseBill bill : billList) {
-            if (bill.getOtherFeeAmount() != null &&
-                bill.getOtherFeeAmount().compareTo(BigDecimal.ZERO) > 0) {
-                // 为每个费用项创建明细记录
-                otherFeeDetails.addAll(
-                    createOtherFeeDetails(bill, rentRelatedFees, lease)
-                );
+            LocalDate feeStartDate = LocalDateTimeUtil.of(bill.getBillStart()).toLocalDate();
+            LocalDate feeEndDate = LocalDateTimeUtil.of(bill.getBillEnd()).toLocalDate();
+            int actualMonths = calculateMonths(feeStartDate, feeEndDate);
+
+            BigDecimal periodRentAmount = lease.getRentPrice()
+                .multiply(BigDecimal.valueOf(actualMonths))
+                .setScale(2, RoundingMode.HALF_UP);
+
+            LeaseBillFee rentFee = new LeaseBillFee();
+            rentFee.setBillId(bill.getId());
+            rentFee.setFeeType(LeaseBillFeeTypeEnum.RENTAL.getCode());
+            rentFee.setName("租金");
+            rentFee.setAmount(periodRentAmount);
+            rentFee.setFeeStart(bill.getBillStart());
+            rentFee.setFeeEnd(bill.getBillEnd());
+            rentFee.setRemark(bill.getRemark());
+            rentFee.setDeleted(false);
+            rentFee.setCreateBy(lease.getCreateBy());
+            rentFee.setCreateTime(new Date());
+            feeDetails.add(rentFee);
+
+            if (!rentRelatedFees.isEmpty()) {
+                feeDetails.addAll(createOtherFeeDetails(bill, rentRelatedFees, lease));
             }
         }
 
-        if (!otherFeeDetails.isEmpty()) {
-            leaseBillOtherFeeRepo.saveBatch(otherFeeDetails);
+        if (!feeDetails.isEmpty()) {
+            leaseBillFeeRepo.saveBatch(feeDetails);
         }
     }
 
@@ -161,16 +175,16 @@ public class LeaseBillGenService {
      * @param lease           租约信息
      * @return 费用明细列表
      */
-    private List<LeaseBillOtherFee> createOtherFeeDetails(LeaseBill bill, List<OtherFeeDTO> rentRelatedFees, LeaseDTO lease) {
+    private List<LeaseBillFee> createOtherFeeDetails(LeaseBill bill, List<OtherFeeDTO> rentRelatedFees, LeaseDTO lease) {
 
-        List<LeaseBillOtherFee> details = new ArrayList<>();
+        List<LeaseBillFee> details = new ArrayList<>();
 
-        LocalDate startDate = LocalDateTimeUtil.of(bill.getRentPeriodStart()).toLocalDate();
-        LocalDate endDate = LocalDateTimeUtil.of(bill.getRentPeriodEnd()).toLocalDate();
+        LocalDate startDate = LocalDateTimeUtil.of(bill.getBillStart()).toLocalDate();
+        LocalDate endDate = LocalDateTimeUtil.of(bill.getBillEnd()).toLocalDate();
         int actualMonths = calculateMonths(startDate, endDate);
 
         // 计算本期租金（用于比例计算）
-        BigDecimal periodRentalAmount = bill.getRentalAmount();
+        BigDecimal periodRentalAmount = lease.getRentPrice().multiply(BigDecimal.valueOf(actualMonths));
 
         for (OtherFeeDTO fee : rentRelatedFees) {
             // 计算单个费用的金额
@@ -179,11 +193,14 @@ public class LeaseBillGenService {
             ).setScale(2, RoundingMode.HALF_UP);
 
             if (feeAmount.compareTo(BigDecimal.ZERO) > 0) {
-                LeaseBillOtherFee detail = new LeaseBillOtherFee();
+                LeaseBillFee detail = new LeaseBillFee();
                 detail.setBillId(bill.getId());
+                detail.setFeeType(LeaseBillFeeTypeEnum.OTHER_FEE.getCode());
                 detail.setDictDataId(fee.getDictDataId());
                 detail.setName(fee.getName());
                 detail.setAmount(feeAmount);
+                detail.setFeeStart(bill.getBillStart());
+                detail.setFeeEnd(bill.getBillEnd());
                 detail.setRemark(buildFeeRemark(fee, actualMonths));
                 detail.setDeleted(false);
                 detail.setCreateBy(lease.getCreateBy());
@@ -234,9 +251,9 @@ public class LeaseBillGenService {
      * @param actualMonths  实际月数
      * @return 租金金额
      */
-    private BigDecimal calculateRentalAmount(BigDecimal rentPrice,
-                                             int paymentMonths,
-                                             int actualMonths) {
+    private BigDecimal calculateRentAmount(BigDecimal rentPrice,
+                                           int paymentMonths,
+                                           int actualMonths) {
         return (actualMonths >= paymentMonths)
             ? rentPrice.multiply(BigDecimal.valueOf(paymentMonths))
             : rentPrice.multiply(BigDecimal.valueOf(actualMonths));
@@ -246,15 +263,15 @@ public class LeaseBillGenService {
      * 计算随房租付的其他费用总额
      *
      * @param rentRelatedFees 随房租付的费用列表
-     * @param rentalAmount    本期租金金额
+     * @param periodRentAmount 本期租金金额
      * @param actualMonths    实际月数
      * @return 其他费用总额
      */
     private BigDecimal calculateOtherFeeAmount(List<OtherFeeDTO> rentRelatedFees,
-                                               BigDecimal rentalAmount,
+                                               BigDecimal periodRentAmount,
                                                int actualMonths) {
         return rentRelatedFees.stream()
-            .map(fee -> calculateSingleFeeAmount(fee, rentalAmount, actualMonths))
+            .map(fee -> calculateSingleFeeAmount(fee, periodRentAmount, actualMonths))
             .reduce(BigDecimal.ZERO, BigDecimal::add)
             .setScale(2, RoundingMode.HALF_UP);
     }
@@ -263,15 +280,15 @@ public class LeaseBillGenService {
      * 计算单个费用金额（核心计算逻辑）
      *
      * @param fee          费用配置
-     * @param rentalAmount 租金金额（用于比例计算）
+     * @param periodRentAmount 租金金额（用于比例计算）
      * @param actualMonths 实际月数
      * @return 费用金额
      */
-    private BigDecimal calculateSingleFeeAmount(OtherFeeDTO fee, BigDecimal rentalAmount, int actualMonths) {
+    private BigDecimal calculateSingleFeeAmount(OtherFeeDTO fee, BigDecimal periodRentAmount, int actualMonths) {
         PriceMethodEnum priceMethodEnum = EnumUtil.getBy(PriceMethodEnum::getCode, fee.getPriceMethod());
         return switch (priceMethodEnum) {
             case FIXED -> calculateFixedFee(fee.getPriceInput(), actualMonths);
-            case RATIO -> calculateRatioFee(rentalAmount, fee.getPriceInput());
+            case RATIO -> calculateRatioFee(periodRentAmount, fee.getPriceInput());
         };
     }
 
@@ -305,12 +322,12 @@ public class LeaseBillGenService {
     /**
      * 计算比例费用：租金 × 比例
      *
-     * @param rentalAmount 租金金额
+     * @param periodRentAmount 租金金额
      * @param priceInput   比例（百分比）
      * @return 费用金额
      */
-    private BigDecimal calculateRatioFee(BigDecimal rentalAmount, BigDecimal priceInput) {
-        return rentalAmount
+    private BigDecimal calculateRatioFee(BigDecimal periodRentAmount, BigDecimal priceInput) {
+        return periodRentAmount
             .multiply(priceInput)
             .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
@@ -329,12 +346,9 @@ public class LeaseBillGenService {
         bill.setRemark("第" + context.sortOrder + "期，共 " + context.actualMonths + " 月");
         bill.setSortOrder(context.sortOrder);
         bill.setBillType(LeaseBillTypeEnum.RENT.getCode());
-        bill.setRentPeriodStart(DateUtil.date(context.currentStart));
-        bill.setRentPeriodEnd(DateUtil.date(context.currentEnd));
-        bill.setRentalAmount(context.rentalAmount);
-        bill.setDepositAmount(BigDecimal.ZERO);
-        bill.setOtherFeeAmount(context.otherFeeAmount);
-        bill.setTotalAmount(context.rentalAmount.add(context.otherFeeAmount));
+        bill.setBillStart(DateUtil.date(context.currentStart));
+        bill.setBillEnd(DateUtil.date(context.currentEnd));
+        bill.setTotalAmount(context.periodRentAmount.add(context.periodOtherFeeAmount));
         bill.setDueDate(context.dueDate);
         bill.setPayStatus(PayStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
@@ -404,29 +418,33 @@ public class LeaseBillGenService {
             leaseBillRepo.saveBatch(billList);
 
             // 保存独立费用的明细
-            List<LeaseBillOtherFee> otherFeeDetails = new ArrayList<>();
+            List<LeaseBillFee> feeDetails = new ArrayList<>();
 
             for (FeeWithBills feeWithBills : feeWithBillsList) {
                 OtherFeeDTO fee = feeWithBills.fee;
                 List<LeaseBill> bills = feeWithBills.bills;
 
                 for (LeaseBill bill : bills) {
-                    LeaseBillOtherFee detail = new LeaseBillOtherFee();
+                    BigDecimal feeAmount = calculateBillFeeAmount(fee, lease, bill);
+                    LeaseBillFee detail = new LeaseBillFee();
                     detail.setBillId(bill.getId());
+                    detail.setFeeType(LeaseBillFeeTypeEnum.OTHER_FEE.getCode());
                     detail.setDictDataId(fee.getDictDataId());
                     detail.setName(fee.getName());
-                    detail.setAmount(bill.getOtherFeeAmount());
+                    detail.setAmount(feeAmount);
+                    detail.setFeeStart(bill.getBillStart());
+                    detail.setFeeEnd(bill.getBillEnd());
                     detail.setRemark(bill.getRemark());
                     detail.setDeleted(false);
                     detail.setCreateBy(lease.getCreateBy());
                     detail.setCreateTime(new Date());
 
-                    otherFeeDetails.add(detail);
+                    feeDetails.add(detail);
                 }
             }
 
-            if (!otherFeeDetails.isEmpty()) {
-                leaseBillOtherFeeRepo.saveBatch(otherFeeDetails);
+            if (!feeDetails.isEmpty()) {
+                leaseBillFeeRepo.saveBatch(feeDetails);
             }
         }
     }
@@ -501,9 +519,9 @@ public class LeaseBillGenService {
             feeAmount = calculateSingleFeeAmountForOneTime(context.fee, context.lease.getRentPrice()).setScale(2, RoundingMode.HALF_UP);
         } else {
             // 周期性支付: 按月数计算
-            BigDecimal rentalAmount = context.lease.getRentPrice()
+            BigDecimal periodRentAmount = context.lease.getRentPrice()
                 .multiply(BigDecimal.valueOf(actualMonths));
-            feeAmount = calculateSingleFeeAmount(context.fee, rentalAmount, actualMonths)
+            feeAmount = calculateSingleFeeAmount(context.fee, periodRentAmount, actualMonths)
                 .setScale(2, RoundingMode.HALF_UP);
         }
 
@@ -524,11 +542,8 @@ public class LeaseBillGenService {
         bill.setRemark(context.fee.getName() + " - 第" + context.periodNumber + "期，共 " + actualMonths + " 月");
         bill.setSortOrder(context.sortOrder);
         bill.setBillType(LeaseBillTypeEnum.OTHER_FEE.getCode());
-        bill.setRentPeriodStart(context.periodStart);
-        bill.setRentPeriodEnd(context.periodEnd);
-        bill.setRentalAmount(BigDecimal.ZERO);
-        bill.setDepositAmount(BigDecimal.ZERO);
-        bill.setOtherFeeAmount(feeAmount);
+        bill.setBillStart(context.periodStart);
+        bill.setBillEnd(context.periodEnd);
         bill.setTotalAmount(feeAmount);
         bill.setDueDate(calculateDueDate(config));
         bill.setPayStatus(PayStatusEnum.UNPAID.getCode());
@@ -537,6 +552,20 @@ public class LeaseBillGenService {
         bill.setCreateTime(new Date());
 
         return bill;
+    }
+
+    private BigDecimal calculateBillFeeAmount(OtherFeeDTO fee, LeaseDTO lease, LeaseBill bill) {
+        LocalDate startDate = LocalDateTimeUtil.of(bill.getBillStart()).toLocalDate();
+        LocalDate endDate = LocalDateTimeUtil.of(bill.getBillEnd()).toLocalDate();
+        int actualMonths = calculateMonths(startDate, endDate);
+
+        boolean isOneTimePayment = PaymentMethodEnum.ALL.getCode().equals(fee.getPaymentMethod());
+        if (isOneTimePayment) {
+            return calculateSingleFeeAmountForOneTime(fee, lease.getRentPrice()).setScale(2, RoundingMode.HALF_UP);
+        }
+        BigDecimal periodRentAmount = lease.getRentPrice()
+            .multiply(BigDecimal.valueOf(actualMonths));
+        return calculateSingleFeeAmount(fee, periodRentAmount, actualMonths).setScale(2, RoundingMode.HALF_UP);
     }
 
     /**
@@ -655,17 +684,14 @@ public class LeaseBillGenService {
         depositBill.setCompanyId(lease.getCompanyId());
         depositBill.setSortOrder(0);
         depositBill.setBillType(LeaseBillTypeEnum.DEPOSIT.getCode());
-        depositBill.setRentPeriodStart(lease.getLeaseStart());
-        depositBill.setRentPeriodEnd(lease.getLeaseEnd());
+        depositBill.setBillStart(lease.getLeaseStart());
+        depositBill.setBillEnd(lease.getLeaseEnd());
 
         // 计算押金金额 = 月租金 × 押金月数
         BigDecimal depositAmount = lease.getRentPrice()
             .multiply(BigDecimal.valueOf(lease.getDepositMonths()))
             .setScale(2, RoundingMode.HALF_UP);
 
-        depositBill.setDepositAmount(depositAmount);
-        depositBill.setRentalAmount(BigDecimal.ZERO);
-        depositBill.setOtherFeeAmount(BigDecimal.ZERO);
         depositBill.setTotalAmount(depositAmount);
 
         // 根据收租规则计算押金应收日期
@@ -679,6 +705,19 @@ public class LeaseBillGenService {
         depositBill.setCreateTime(new Date());
 
         leaseBillRepo.save(depositBill);
+
+        LeaseBillFee fee = new LeaseBillFee();
+        fee.setBillId(depositBill.getId());
+        fee.setFeeType(LeaseBillFeeTypeEnum.DEPOSIT.getCode());
+        fee.setName("押金");
+        fee.setAmount(depositAmount);
+        fee.setFeeStart(depositBill.getBillStart());
+        fee.setFeeEnd(depositBill.getBillEnd());
+        fee.setRemark(depositBill.getRemark());
+        fee.setDeleted(false);
+        fee.setCreateBy(lease.getCreateBy());
+        fee.setCreateTime(new Date());
+        leaseBillFeeRepo.save(fee);
     }
 
     /**
@@ -740,8 +779,8 @@ public class LeaseBillGenService {
         int actualMonths,
         LocalDate currentStart,
         LocalDate currentEnd,
-        BigDecimal rentalAmount,
-        BigDecimal otherFeeAmount,
+        BigDecimal periodRentAmount,
+        BigDecimal periodOtherFeeAmount,
         Date dueDate
     ) {
     }

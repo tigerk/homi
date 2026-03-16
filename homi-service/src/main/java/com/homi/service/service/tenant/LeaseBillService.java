@@ -9,17 +9,17 @@ import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.FinanceFlow;
 import com.homi.model.dao.entity.LeaseBill;
-import com.homi.model.dao.entity.LeaseBillOtherFee;
+import com.homi.model.dao.entity.LeaseBillFee;
 import com.homi.model.dao.entity.PaymentFlow;
 import com.homi.model.dao.repo.FinanceFlowRepo;
-import com.homi.model.dao.repo.LeaseBillOtherFeeRepo;
+import com.homi.model.dao.repo.LeaseBillFeeRepo;
 import com.homi.model.dao.repo.LeaseBillRepo;
 import com.homi.model.dao.repo.PaymentFlowRepo;
-import com.homi.model.tenant.dto.LeaseBillOtherFeeDTO;
+import com.homi.model.tenant.dto.LeaseBillFeeDTO;
 import com.homi.model.tenant.dto.LeaseBillUpdateDTO;
 import com.homi.model.tenant.vo.bill.FinanceFlowVO;
 import com.homi.model.tenant.vo.bill.LeaseBillListVO;
-import com.homi.model.tenant.vo.bill.LeaseBillOtherFeeVO;
+import com.homi.model.tenant.vo.bill.LeaseBillFeeVO;
 import com.homi.model.tenant.vo.bill.PaymentFlowVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LeaseBillService {
     private final LeaseBillRepo leaseBillRepo;
-    private final LeaseBillOtherFeeRepo leaseBillOtherFeeRepo;
+    private final LeaseBillFeeRepo leaseBillFeeRepo;
     private final FinanceFlowRepo financeFlowRepo;
     private final PaymentFlowRepo paymentFlowRepo;
 
@@ -56,21 +56,21 @@ public class LeaseBillService {
         // 1. 收集所有 billId
         List<Long> billIds = leaseBillList.stream().map(LeaseBill::getId).toList();
 
-        // 2. 一次性查询所有 otherFees
-        List<LeaseBillOtherFee> allOtherFees = leaseBillOtherFeeRepo.getOtherFeesByBillIds(billIds);
+        // 2. 一次性查询所有费用明细
+        List<LeaseBillFee> allFees = leaseBillFeeRepo.getFeesByBillIds(billIds);
 
         // 3. 按 billId 分组
-        Map<Long, List<LeaseBillOtherFeeVO>> otherFeesMap = allOtherFees.stream()
+        Map<Long, List<LeaseBillFeeVO>> feeMap = allFees.stream()
             .collect(Collectors.groupingBy(
-                LeaseBillOtherFee::getBillId,
-                Collectors.mapping(of -> BeanCopyUtils.copyBean(of, LeaseBillOtherFeeVO.class), Collectors.toList())
+                LeaseBillFee::getBillId,
+                Collectors.mapping(of -> BeanCopyUtils.copyBean(of, LeaseBillFeeVO.class), Collectors.toList())
             ));
 
         // 4. 组装结果
         return leaseBillList.stream().map(tb -> {
             LeaseBillListVO vo = BeanCopyUtils.copyBean(tb, LeaseBillListVO.class);
             assert vo != null;
-            vo.setOtherFees(otherFeesMap.getOrDefault(tb.getId(), List.of()));
+            vo.setFeeList(feeMap.getOrDefault(tb.getId(), List.of()));
             return vo;
         }).toList();
     }
@@ -91,11 +91,11 @@ public class LeaseBillService {
             return null;
         }
 
-        List<LeaseBillOtherFee> otherFees = leaseBillOtherFeeRepo.getOtherFeesByBillId(billId);
-        List<LeaseBillOtherFeeVO> otherFeeVos = otherFees.stream()
-            .map(of -> BeanCopyUtils.copyBean(of, LeaseBillOtherFeeVO.class))
+        List<LeaseBillFee> fees = leaseBillFeeRepo.getFeesByBillId(billId);
+        List<LeaseBillFeeVO> feeVos = fees.stream()
+            .map(of -> BeanCopyUtils.copyBean(of, LeaseBillFeeVO.class))
             .toList();
-        vo.setOtherFees(otherFeeVos);
+        vo.setFeeList(feeVos);
         attachFinanceFlow(vo, bill);
         return vo;
     }
@@ -121,11 +121,12 @@ public class LeaseBillService {
         bill.setUpdateTime(now);
         leaseBillRepo.updateById(bill);
 
-        if (dto.getOtherFees() != null) {
-            leaseBillOtherFeeRepo.removeByBillId(bill.getId());
-            List<LeaseBillOtherFee> toSave = new ArrayList<>();
-            for (LeaseBillOtherFeeDTO fee : dto.getOtherFees()) {
-                LeaseBillOtherFee entity = BeanCopyUtils.copyBean(fee, LeaseBillOtherFee.class);
+        if (dto.getFeeList() != null) {
+            leaseBillFeeRepo.removeByBillId(bill.getId());
+            List<LeaseBillFee> toSave = new ArrayList<>();
+            java.math.BigDecimal total = java.math.BigDecimal.ZERO;
+            for (LeaseBillFeeDTO fee : dto.getFeeList()) {
+                LeaseBillFee entity = BeanCopyUtils.copyBean(fee, LeaseBillFee.class);
                 assert entity != null;
                 entity.setBillId(bill.getId());
                 entity.setCreateBy(operatorId);
@@ -133,10 +134,15 @@ public class LeaseBillService {
                 entity.setCreateTime(now);
                 entity.setUpdateTime(now);
                 toSave.add(entity);
+                if (fee.getAmount() != null) {
+                    total = total.add(fee.getAmount());
+                }
             }
             if (!toSave.isEmpty()) {
-                leaseBillOtherFeeRepo.saveBatch(toSave);
+                leaseBillFeeRepo.saveBatch(toSave);
             }
+            bill.setTotalAmount(total);
+            leaseBillRepo.updateById(bill);
         }
         return true;
     }

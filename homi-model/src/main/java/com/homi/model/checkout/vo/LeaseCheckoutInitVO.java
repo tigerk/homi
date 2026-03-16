@@ -151,12 +151,12 @@ public class LeaseCheckoutInitVO {
          * 费用周期开始
          */
         @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-        private Date feePeriodStart;
+        private Date feeStart;
         /**
          * 费用周期结束
          */
         @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-        private Date feePeriodEnd;
+        private Date feeEnd;
         /**
          * 备注
          */

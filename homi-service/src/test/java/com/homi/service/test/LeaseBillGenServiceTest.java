@@ -108,8 +108,6 @@ class LeaseBillGenServiceTest {
 
         // 验证押金金额 = 月租金 × 押金月数 = 3000 × 1 = 3000
         BigDecimal expectedDeposit = new BigDecimal("3000.00");
-        assertEquals(0, expectedDeposit.compareTo(depositBill.getDepositAmount()),
-            "押金金额应为3000.00");
         assertEquals(0, expectedDeposit.compareTo(depositBill.getTotalAmount()),
             "总金额应等于押金金额");
 
@@ -145,10 +143,6 @@ class LeaseBillGenServiceTest {
 
         // 第1期租金 = 月租金 × 3个月 = 3000 × 3 = 9000
         BigDecimal expectedRent = new BigDecimal("9000.00");
-        assertEquals(0, expectedRent.compareTo(firstBill.getRentalAmount()),
-            "第1期租金应为9000.00");
-        assertEquals(0, BigDecimal.ZERO.compareTo(firstBill.getOtherFeeAmount()),
-            "其他费用应为0");
         assertEquals(0, expectedRent.compareTo(firstBill.getTotalAmount()),
             "总金额应等于租金");
 
@@ -182,13 +176,8 @@ class LeaseBillGenServiceTest {
 
         // 租金: 3000 × 3 = 9000
         BigDecimal expectedRent = new BigDecimal("9000.00");
-        assertEquals(0, expectedRent.compareTo(firstBill.getRentalAmount()),
-            "租金应为9000.00");
-
         // 其他费用: 物业费(200固定×3月=600) + 服务费(9000×5%=450) = 1050
         BigDecimal expectedOtherFee = new BigDecimal("1050.00");
-        assertEquals(0, expectedOtherFee.compareTo(firstBill.getOtherFeeAmount()),
-            "其他费用应为1050.00");
 
         // 总金额: 9000 + 1050 = 10050
         BigDecimal expectedTotal = new BigDecimal("10050.00");
@@ -230,7 +219,7 @@ class LeaseBillGenServiceTest {
         LeaseBill bill = otherFeeBills.get(0);
         // 网络费: 100 × 12个月 = 1200
         BigDecimal expectedAmount = new BigDecimal("1200.00");
-        assertEquals(0, expectedAmount.compareTo(bill.getOtherFeeAmount()),
+        assertEquals(0, expectedAmount.compareTo(bill.getTotalAmount()),
             "网络费应为1200.00");
 
         System.out.println("✅ 一次性支付其他费用验证通过");
@@ -265,7 +254,7 @@ class LeaseBillGenServiceTest {
         // 验证每期金额
         otherFeeBills.forEach(bill -> {
             BigDecimal expectedAmount = new BigDecimal("300.00");
-            assertEquals(0, expectedAmount.compareTo(bill.getOtherFeeAmount()),
+            assertEquals(0, expectedAmount.compareTo(bill.getTotalAmount()),
                 "每期停车费应为300.00");
         });
 
@@ -396,10 +385,7 @@ class LeaseBillGenServiceTest {
         System.out.println("\n【" + title + "】");
         System.out.println("  排序号: " + bill.getSortOrder());
         System.out.println("  账单类型: " + getBillTypeName(bill.getBillType()));
-        System.out.println("  账期: " + bill.getRentPeriodStart() + " ~ " + bill.getRentPeriodEnd());
-        System.out.println("  租金: " + bill.getRentalAmount());
-        System.out.println("  押金: " + bill.getDepositAmount());
-        System.out.println("  其他费用: " + bill.getOtherFeeAmount());
+        System.out.println("  账期: " + bill.getBillStart() + " ~ " + bill.getBillEnd());
         System.out.println("  总金额: " + bill.getTotalAmount());
         System.out.println("  应收日期: " + bill.getDueDate());
         System.out.println("  备注: " + bill.getRemark());
@@ -411,9 +397,12 @@ class LeaseBillGenServiceTest {
     private String getBillTypeName(Integer billType) {
         if (billType == null) return "未知";
         return switch (billType) {
-            case 0 -> "押金";
             case 1 -> "租金";
-            case 2 -> "其他费用";
+            case 2 -> "押金";
+            case 3 -> "其他费用";
+            case 4 -> "退租结算";
+            case 5 -> "押金结转入";
+            case 6 -> "押金结转出";
             default -> "未知(" + billType + ")";
         };
     }

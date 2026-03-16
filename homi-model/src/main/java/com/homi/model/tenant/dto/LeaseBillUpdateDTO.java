@@ -26,22 +26,13 @@ public class LeaseBillUpdateDTO {
     @Schema(description = "结转目标账单ID")
     private Long carryOverToBillId;
 
-    @Schema(description = "账单租期开始日期")
+    @Schema(description = "账单周期开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date rentPeriodStart;
+    private Date billStart;
 
-    @Schema(description = "账单租期结束日期")
+    @Schema(description = "账单周期结束日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date rentPeriodEnd;
-
-    @Schema(description = "租金金额")
-    private BigDecimal rentalAmount;
-
-    @Schema(description = "押金金额")
-    private BigDecimal depositAmount;
-
-    @Schema(description = "其他费用金额")
-    private BigDecimal otherFeeAmount;
+    private Date billEnd;
 
     @Schema(description = "账单合计金额")
     private BigDecimal totalAmount;
@@ -69,6 +60,6 @@ public class LeaseBillUpdateDTO {
     @Schema(description = "是否有效")
     private Boolean valid;
 
-    @Schema(description = "其他费用明细")
-    private List<LeaseBillOtherFeeDTO> otherFees;
+    @Schema(description = "账单费用明细")
+    private List<LeaseBillFeeDTO> feeList;
 }

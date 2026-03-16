@@ -42,22 +42,13 @@ public class LeaseBillListVO implements Serializable {
     @Schema(description = "结转目标账单ID")
     private Long carryOverToBillId;
 
-    @Schema(description = "账单租期开始日期")
+    @Schema(description = "账单周期开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date rentPeriodStart;
+    private Date billStart;
 
-    @Schema(description = "账单租期结束日期")
+    @Schema(description = "账单周期结束日期")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date rentPeriodEnd;
-
-    @Schema(description = "租金金额")
-    private BigDecimal rentalAmount;
-
-    @Schema(description = "押金金额")
-    private BigDecimal depositAmount;
-
-    @Schema(description = "其他费用（如水电、物业）")
-    private BigDecimal otherFeeAmount;
+    private Date billEnd;
 
     @Schema(description = "账单合计金额")
     private BigDecimal totalAmount;
@@ -88,8 +79,8 @@ public class LeaseBillListVO implements Serializable {
     @Schema(description = "支付流水信息")
     private PaymentFlowVO paymentFlow;
 
-    @Schema(description = "其他费用明细列表")
-    private List<LeaseBillOtherFeeVO> otherFees;
+    @Schema(description = "账单费用明细列表")
+    private List<LeaseBillFeeVO> feeList;
 
     @Schema(description = "创建人ID")
     private Long createBy;
