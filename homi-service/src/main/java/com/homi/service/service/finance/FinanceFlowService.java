@@ -28,6 +28,15 @@ public class FinanceFlowService {
         return financeFlowRepo.getListByBiz(bizType, bizId);
     }
 
+    /**
+     * 生成财务流水
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/3/17 18:22
+
+      * @param command 参数说明
+
+     */
     public void createLeaseBillReceiveFlows(CreateCommand command) {
         FinanceFlow parentFlow = buildParentFinanceFlow(command);
         financeFlowRepo.save(parentFlow);
