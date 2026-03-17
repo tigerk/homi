@@ -1,10 +1,12 @@
 package com.homi.saas.web.controller.company.order;
 
 import cn.hutool.core.lang.Pair;
-import com.homi.common.lib.enums.pay.PayChannelEnum;
+import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.utils.SeqUtils;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.external.pay.PayService;
+import com.homi.external.pay.dto.PayQrCodeDTO;
 import com.homi.model.company.dto.order.CompanyConsumePageDTO;
 import com.homi.model.company.dto.order.CompanyOrderCreateDTO;
 import com.homi.model.company.dto.order.CompanyOrderPageDTO;
@@ -13,8 +15,6 @@ import com.homi.model.company.vo.order.CompanyOrderRecordVO;
 import com.homi.model.company.vo.order.CompanyProductOrderVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
-import com.homi.external.pay.dto.PayQrCodeDTO;
-import com.homi.external.pay.PayService;
 import com.homi.service.service.company.CompanyOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -64,7 +64,7 @@ public class CompanyOrderController {
         payQrCodeDTO.setMerchantNo("10090914935");
         payQrCodeDTO.setTitle("成客成家：房租支付");
         payQrCodeDTO.setNotifyUrl("http://localhost:8887/saas/company/order/pay/notify/yeepay");
-        Pair<String, String> qrcode = payService.genQrcode(payQrCodeDTO, PayChannelEnum.YEEPAY.getCode());
+        Pair<String, String> qrcode = payService.genQrcode(payQrCodeDTO, PaymentFlowChannelEnum.YEEPAY.getCode());
 
         return ResponseResult.ok(qrcode.getValue());
     }

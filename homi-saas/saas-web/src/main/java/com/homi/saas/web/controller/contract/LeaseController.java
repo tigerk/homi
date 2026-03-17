@@ -12,6 +12,7 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.tenant.dto.LeaseContractGenerateDTO;
 import com.homi.model.tenant.dto.LeaseBillDetailDTO;
+import com.homi.model.tenant.dto.LeaseBillCollectDTO;
 import com.homi.model.tenant.dto.LeaseBillUpdateDTO;
 import com.homi.model.tenant.dto.LeaseQueryDTO;
 import com.homi.model.tenant.dto.TenantCreateDTO;
@@ -136,6 +137,13 @@ public class LeaseController {
     @Operation(summary = "更新租客账单")
     public ResponseResult<Boolean> updateBill(@RequestBody LeaseBillUpdateDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(leaseBillService.updateBill(updateDTO, loginUser.getId()));
+    }
+
+    @PostMapping("/bill/collect")
+    @Operation(summary = "租客账单收款")
+    public ResponseResult<Boolean> collectBill(@RequestBody LeaseBillCollectDTO collectDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        collectDTO.setUpdateBy(loginUser.getId());
+        return ResponseResult.ok(leaseBillService.collectBill(collectDTO));
     }
 
     @PostMapping(value = "/contract/download")

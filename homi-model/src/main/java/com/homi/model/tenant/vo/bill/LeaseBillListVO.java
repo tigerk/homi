@@ -64,7 +64,7 @@ public class LeaseBillListVO implements Serializable {
     @Schema(description = "实际支付金额")
     private BigDecimal payAmount;
 
-    @Schema(description = "支付状态：0=未支付，1=部分支付，2=已支付，3=逾期")
+    @Schema(description = "支付状态：0=未支付，1=部分支付，2=已支付")
     private Integer payStatus;
 
     @Schema(description = "支付方式：1=现金，2=转账，3=支付宝，4=微信，5=其他")
@@ -72,6 +72,24 @@ public class LeaseBillListVO implements Serializable {
 
     @Schema(description = "备注信息")
     private String remark;
+
+    @Schema(description = "房源地址")
+    private String roomAddress;
+
+    @Schema(description = "付款人姓名")
+    private String payerName;
+
+    @Schema(description = "付款人手机号")
+    private String payerPhone;
+
+    @Schema(description = "付款人证件类型")
+    private Integer payerIdType;
+
+    @Schema(description = "付款人证件类型名称")
+    private String payerIdTypeName;
+
+    @Schema(description = "付款人证件号")
+    private String payerIdNo;
 
     @Schema(description = "财务流水信息")
     private List<FinanceFlowVO> financeFlowList;

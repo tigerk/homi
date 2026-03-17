@@ -92,7 +92,7 @@ public class LeaseBill implements Serializable {
     @TableField("pay_amount")
     private BigDecimal payAmount;
 
-    @Schema(description = "支付状态：0=未支付，1=部分支付，2=已支付，3=逾期")
+    @Schema(description = "支付状态：0=未支付，1=部分支付，2=已支付")
     @TableField("pay_status")
     private Integer payStatus;
 

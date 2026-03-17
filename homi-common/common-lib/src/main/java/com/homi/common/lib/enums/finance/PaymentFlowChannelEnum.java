@@ -10,6 +10,7 @@ public enum PaymentFlowChannelEnum {
     TRANSFER("TRANSFER", "转账"),
     ALIPAY("ALIPAY", "支付宝"),
     WECHAT("WECHAT", "微信"),
+    YEEPAY("YEEPAY", "易宝"),
     POS("POS", "POS"),
     OTHER("OTHER", "其他");
 
