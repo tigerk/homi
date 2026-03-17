@@ -29,18 +29,43 @@ public class FinanceFlowService {
     }
 
     public void createLeaseBillReceiveFlows(CreateCommand command) {
+        FinanceFlow parentFlow = buildParentFinanceFlow(command);
+        financeFlowRepo.save(parentFlow);
+
         if (command.feeList() == null || command.feeList().isEmpty()) {
-            financeFlowRepo.save(buildFinanceFlow(command, null, command.amount()));
             return;
         }
 
         List<FinanceFlow> financeFlows = command.feeList().stream()
-            .map(fee -> buildFinanceFlow(command, fee, fee.getAmount()))
+            .map(fee -> buildChildFinanceFlow(command, parentFlow.getId(), fee, fee.getAmount()))
             .toList();
         financeFlowRepo.saveBatch(financeFlows);
     }
 
-    private FinanceFlow buildFinanceFlow(CreateCommand command, LeaseBillFee fee, BigDecimal amount) {
+    private FinanceFlow buildParentFinanceFlow(CreateCommand command) {
+        LeaseBill bill = command.bill();
+        FinanceFlow financeFlow = buildBaseFinanceFlow(command, command.amount());
+        financeFlow.setBizType(FinanceBizTypeEnum.LEASE_BILL.getCode());
+        financeFlow.setBizId(bill.getId());
+        financeFlow.setBizNo(String.valueOf(bill.getId()));
+        financeFlow.setFeeName(command.remark());
+        financeFlow.setRemark(bill.getRemark());
+        financeFlow.setSplit(command.feeList() != null && !command.feeList().isEmpty());
+        return financeFlow;
+    }
+
+    private FinanceFlow buildChildFinanceFlow(CreateCommand command, Long parentId, LeaseBillFee fee, BigDecimal amount) {
+        FinanceFlow financeFlow = buildBaseFinanceFlow(command, amount);
+        financeFlow.setParentId(parentId);
+        financeFlow.setFeeType(fee.getFeeType());
+        financeFlow.setFeeRefId(fee.getId());
+        financeFlow.setFeeName(fee.getName());
+        financeFlow.setRemark(fee.getRemark());
+        financeFlow.setSplit(null);
+        return financeFlow;
+    }
+
+    private FinanceFlow buildBaseFinanceFlow(CreateCommand command, BigDecimal amount) {
         LeaseBill bill = command.bill();
         FinanceFlow financeFlow = new FinanceFlow();
         financeFlow.setFlowNo(generateFinanceFlowNo());
@@ -59,10 +84,6 @@ public class FinanceFlowService {
         financeFlow.setPayerPhone(command.payerPhone());
         financeFlow.setOperatorId(command.operatorId());
         financeFlow.setOperatorName(command.operatorName());
-        financeFlow.setFeeType(fee != null ? fee.getFeeType() : null);
-        financeFlow.setFeeRefId(fee != null ? fee.getId() : null);
-        financeFlow.setFeeName(fee != null ? fee.getName() : command.remark());
-        financeFlow.setRemark(fee != null ? fee.getRemark() : bill.getRemark());
         financeFlow.setCreateBy(command.operatorId());
         financeFlow.setCreateTime(command.now());
         financeFlow.setUpdateBy(command.operatorId());

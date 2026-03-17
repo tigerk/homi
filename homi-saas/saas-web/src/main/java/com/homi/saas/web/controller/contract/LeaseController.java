@@ -10,12 +10,7 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.contract.vo.LeaseContractVO;
-import com.homi.model.tenant.dto.LeaseContractGenerateDTO;
-import com.homi.model.tenant.dto.LeaseBillDetailDTO;
-import com.homi.model.tenant.dto.LeaseBillCollectDTO;
-import com.homi.model.tenant.dto.LeaseBillUpdateDTO;
-import com.homi.model.tenant.dto.LeaseQueryDTO;
-import com.homi.model.tenant.dto.TenantCreateDTO;
+import com.homi.model.tenant.dto.*;
 import com.homi.model.tenant.vo.*;
 import com.homi.model.tenant.vo.bill.LeaseBillListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -36,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -142,6 +138,15 @@ public class LeaseController {
     @PostMapping("/bill/collect")
     @Operation(summary = "租客账单收款")
     public ResponseResult<Boolean> collectBill(@RequestBody LeaseBillCollectDTO collectDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        if (collectDTO == null || collectDTO.getId() == null) {
+            throw new BizException(ResponseCodeEnum.PARAM_ERROR);
+        }
+
+        // 支付金额不允许 小于等于 0
+        if (collectDTO.getPayAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BizException(ResponseCodeEnum.PARAM_ERROR);
+        }
+
         collectDTO.setUpdateBy(loginUser.getId());
         return ResponseResult.ok(leaseBillService.collectBill(collectDTO));
     }

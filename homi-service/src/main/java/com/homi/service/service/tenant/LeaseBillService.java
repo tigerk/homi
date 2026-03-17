@@ -10,29 +10,17 @@ import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
+import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
-import com.homi.model.dao.entity.FinanceFlow;
-import com.homi.model.dao.entity.Lease;
-import com.homi.model.dao.entity.LeaseBill;
-import com.homi.model.dao.entity.LeaseBillFee;
-import com.homi.model.dao.entity.LeaseRoom;
-import com.homi.model.dao.entity.Tenant;
-import com.homi.model.dao.entity.TenantCompany;
-import com.homi.model.dao.entity.TenantPersonal;
-import com.homi.model.dao.repo.LeaseBillFeeRepo;
-import com.homi.model.dao.repo.LeaseBillRepo;
-import com.homi.model.dao.repo.LeaseRepo;
-import com.homi.model.dao.repo.LeaseRoomRepo;
-import com.homi.model.dao.repo.TenantCompanyRepo;
-import com.homi.model.dao.repo.TenantPersonalRepo;
-import com.homi.model.dao.repo.TenantRepo;
-import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.dao.entity.*;
+import com.homi.model.dao.repo.*;
 import com.homi.model.tenant.dto.LeaseBillCollectDTO;
 import com.homi.model.tenant.dto.LeaseBillFeeDTO;
 import com.homi.model.tenant.dto.LeaseBillUpdateDTO;
 import com.homi.model.tenant.vo.bill.FinanceFlowVO;
-import com.homi.model.tenant.vo.bill.LeaseBillListVO;
 import com.homi.model.tenant.vo.bill.LeaseBillFeeVO;
+import com.homi.model.tenant.vo.bill.LeaseBillListVO;
 import com.homi.model.tenant.vo.bill.PaymentFlowVO;
 import com.homi.service.service.finance.FinanceFlowService;
 import com.homi.service.service.finance.PaymentFlowService;
@@ -173,26 +161,34 @@ public class LeaseBillService {
         return true;
     }
 
+    /**
+     * 租客账单收款，更新账单支付状态
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/3/17 17:41
+     *
+     * @param dto 参数说明
+     * @return boolean
+     */
     @Transactional(rollbackFor = Exception.class)
     public boolean collectBill(LeaseBillCollectDTO dto) {
-        if (dto == null || dto.getId() == null || dto.getUpdateBy() == null) {
+        LeaseBill bill = leaseBillRepo.getById(dto.getId());
+        if (Objects.isNull(bill)) {
             return false;
         }
-        LeaseBill bill = leaseBillRepo.getById(dto.getId());
-        if (bill == null) {
+
+        // 未支付、部分支付状态才允许修改支付状态
+        if (!isAllowedPayStatus(bill.getPayStatus())) {
             return false;
+        }
+
+        // 判断是否已存在支付记录
+        if (Objects.nonNull(paymentFlowService.getLatestByBiz(PaymentFlowBizTypeEnum.LEASE_BILL.getCode(), bill.getId()))) {
+            throw new BizException(ResponseCodeEnum.PAYMENT_FLOW_ALREADY_EXISTS);
         }
 
         DateTime now = DateUtil.date();
-        Integer targetPayStatus = dto.getPayStatus();
         BigDecimal payAmount = dto.getPayAmount();
-
-        if (targetPayStatus == null) {
-            targetPayStatus = bill.getPayStatus();
-        }
-        if (!isAllowedPayStatus(targetPayStatus)) {
-            return false;
-        }
 
         Integer finalPayStatus = resolveFinalPayStatus(payAmount, bill.getTotalAmount());
 
@@ -204,20 +200,13 @@ public class LeaseBillService {
         bill.setUpdateTime(now);
         leaseBillRepo.updateById(bill);
 
-        if (!Objects.equals(finalPayStatus, PayStatusEnum.PAID.getCode()) || payAmount == null || payAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            return true;
-        }
-
-        if (paymentFlowService.getLatestByBiz(PaymentFlowBizTypeEnum.LEASE_BILL.getCode(), bill.getId()) != null) {
-            return true;
-        }
-
-        Tenant tenant = bill.getTenantId() == null ? null : tenantRepo.getById(bill.getTenantId());
-        String payerName = resolvePayerName(tenant);
-        String payerPhone = resolvePayerPhone(tenant);
+        Tenant tenant = tenantRepo.getById(bill.getTenantId());
+        String payerName = tenant.getTenantName();
+        String payerPhone = tenant.getTenantPhone();
         String operatorName = userRepo.getUserNicknameById(dto.getUpdateBy());
         Date payTime = dto.getPayTime() != null ? dto.getPayTime() : now;
 
+        // 生成支付流水
         String billSummary = buildBillSummary(bill);
         var paymentFlow = paymentFlowService.createLeaseBillPaymentFlow(
             PaymentFlowService.CreateCommand.builder()
@@ -234,6 +223,7 @@ public class LeaseBillService {
                 .build()
         );
 
+        // 只有支付完成时，才生成财务流水。
         List<LeaseBillFee> feeList = leaseBillFeeRepo.getFeesByBillId(bill.getId());
         financeFlowService.createLeaseBillReceiveFlows(
             FinanceFlowService.CreateCommand.builder()
@@ -250,6 +240,7 @@ public class LeaseBillService {
                 .now(now)
                 .build()
         );
+
         return true;
     }
 

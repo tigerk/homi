@@ -55,85 +55,41 @@ public enum ResponseCodeEnum {
     CREATE_MKR_FAIL(540, "创建目录失败"),
 
     /**
-     * 密码不能为空
+     * 账号、登录错误码
      */
     PASSWORD_CANNOT_BE_EMPTY(600, "密码不能为空"),
-
+    USER_EXIST(601, "用户已存在"),
+    USER_NO_MENU_ACCESS(602, "此账号无任何菜单权限，无法进入后台"),
+    USER_NOT_EXIST(603, "用户不存在"),
+    USER_FREEZE(604, "账号已被冻结"),
+    USER_NO_ACCESS(605, "此账号无权限进入后台"),
+    ROLE_FREEZE(606, "角色已被禁用"),
+    USER_NOT_BIND_COMPANY(607, "当前账号未绑定公司"),
+    LOGIN_ERROR(608, "用户名或密码错误"),
+    ADMIN_EXIST(609, "账号已存在，请使用该账号登录即可。"),
+    QQ_LOGIN_ERROR(610, "qq登录错误"),
+    WEIBO_LOGIN_ERROR(611, "微博登录错误"),
+    WECHAT_NOT_BIND(612, "微信账号未绑定，请先绑定"),
+    WECHAT_BIND_CONFLICT(613, "该微信已绑定其他账号"),
+    WECHAT_LOGIN_ERROR(614, "微信登录错误"),
     /**
-     * 用户已存在
+     * 合同错误码
      */
-    USER_EXIST(610, "用户已存在"),
-
-    /**
-     * 账号无权限进入后台
-     */
-    USER_NO_MENU_ACCESS(614, "此账号无任何菜单权限，无法进入后台"),
-
-    /**
-     * 用户不存在
-     */
-    USER_NOT_EXIST(620, "用户不存在"),
-
-    /**
-     * 账号已被冻结
-     */
-    USER_FREEZE(630, "账号已被冻结"),
-
-    /**
-     * 账号无权限进入后台
-     */
-    USER_NO_ACCESS(640, "此账号无权限进入后台"),
-
-    /**
-     * 角色已被冻结
-     */
-    ROLE_FREEZE(650, "角色已被禁用"),
-
-    USER_NOT_BIND_COMPANY(650, "当前账号未绑定公司"),
-
-    /**
-     * 常规登录错误
-     */
-    LOGIN_ERROR(700, "用户名或密码错误"),
-
-    /**
-     * 账号已存在，请使用账号登录即可。
-     */
-    ADMIN_EXIST(701, "账号已存在，请使用该账号登录即可。"),
-
-    /**
-     * qq登录错误
-     */
-    QQ_LOGIN_ERROR(710, "qq登录错误"),
-    /**
-     * 微博登录错误
-     */
-    WEIBO_LOGIN_ERROR(720, "微博登录错误"),
-
-    /**
-     * 微信小程序登录
-     */
-    WECHAT_NOT_BIND(730, "微信账号未绑定，请先绑定"),
-    WECHAT_BIND_CONFLICT(731, "该微信已绑定其他账号"),
-    WECHAT_LOGIN_ERROR(732, "微信登录错误"),
-
-    /**
-     * 合同 生成PDF失败
-     */
-    PDF_GENERATE_ERROR(800, "生成PDF失败"),
-
-    /**
-     * 合同 合同模板错误
-     */
-    CONTRACT_TEMPLATE_ERROR(800, "合同模板错误"),
+    PDF_GENERATE_ERROR(701, "生成PDF失败"),
+    CONTRACT_TEMPLATE_ERROR(702, "合同模板错误"),
 
     /**
      * 系统错统一使用 900 开头
      */
-    DICT_NOT_FOUND(900, "字典不存在"),
-    PARAM_ERROR(901, "参数错误"),
-    DATA_NOT_FOUND(902, "数据不存在"),
-    OPERATION_FAILED(903, "操作失败"),
+    DICT_NOT_FOUND(801, "字典不存在"),
+    PARAM_ERROR(802, "参数错误"),
+    DATA_NOT_FOUND(803, "数据不存在"),
+    OPERATION_FAILED(804, "操作失败"),
+
+    /**
+     * 支付记录错误吗
+     */
+    PAYMENT_FLOW_ALREADY_EXISTS(901, "支付记录已存在"),
 
     /**
      * token异常
