@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -35,8 +36,8 @@ public class PaymentFlowVO implements Serializable {
     @Schema(description = "支付凭证图片")
     private String paymentVoucherUrl;
 
-    @Schema(description = "支付金额（分）")
-    private Long amount;
+    @Schema(description = "支付金额")
+    private BigDecimal amount;
 
     @Schema(description = "支付备注")
     private String remark;
