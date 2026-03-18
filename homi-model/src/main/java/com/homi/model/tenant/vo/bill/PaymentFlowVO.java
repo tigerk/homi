@@ -32,8 +32,14 @@ public class PaymentFlowVO implements Serializable {
     @Schema(description = "第三方单号")
     private String thirdTradeNo;
 
+    @Schema(description = "支付凭证图片")
+    private String paymentVoucherUrl;
+
     @Schema(description = "支付金额（分）")
     private Long amount;
+
+    @Schema(description = "支付备注")
+    private String remark;
 
     @Schema(description = "支付完成时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

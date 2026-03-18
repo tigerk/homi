@@ -39,9 +39,11 @@ public class PaymentFlowService {
         paymentFlow.setBizType(PaymentFlowBizTypeEnum.LEASE_BILL.getCode());
         paymentFlow.setBizId(bill.getId());
         paymentFlow.setChannel(resolvePaymentChannel(command.payChannel()));
-        paymentFlow.setAmount(toCent(command.totalAmount()));
+        paymentFlow.setThirdTradeNo(command.thirdTradeNo());
+        paymentFlow.setPaymentVoucherUrl(command.paymentVoucherUrl());
+        paymentFlow.setAmount(command.totalAmount());
         paymentFlow.setCurrency("CNY");
-        paymentFlow.setRefundedAmount(0L);
+        paymentFlow.setRefundedAmount(BigDecimal.ZERO);
         paymentFlow.setFlowDirection(PaymentFlowDirectionEnum.IN.getCode());
         paymentFlow.setStatus(PaymentFlowStatusEnum.SUCCESS.getCode());
         paymentFlow.setPayTime(command.payTime());
@@ -62,15 +64,6 @@ public class PaymentFlowService {
         return "PAY" + IdUtil.getSnowflakeNextIdStr();
     }
 
-    private Long toCent(BigDecimal amount) {
-        if (amount == null) {
-            return 0L;
-        }
-        return amount.multiply(BigDecimal.valueOf(100))
-            .setScale(0, RoundingMode.HALF_UP)
-            .longValue();
-    }
-
     private String resolvePaymentChannel(Integer payChannel) {
         if (payChannel == null) {
             return PaymentFlowChannelEnum.OTHER.getCode();
@@ -89,6 +82,8 @@ public class PaymentFlowService {
         LeaseBill bill,
         BigDecimal totalAmount,
         Integer payChannel,
+        String thirdTradeNo,
+        String paymentVoucherUrl,
         Date payTime,
         Long operatorId,
         String operatorName,

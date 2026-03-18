@@ -4,13 +4,16 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.IdTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.enums.pay.PayStatusEnum;
-import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
+import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
@@ -75,6 +78,7 @@ public class LeaseBillService {
         if (billId == null) {
             return null;
         }
+
         LeaseBill bill = leaseBillRepo.getById(billId);
         if (bill == null) {
             return null;
@@ -135,8 +139,8 @@ public class LeaseBillService {
                     return false;
                 }
                 boolean isNew = entity.getId() == null;
-                BigDecimal amount = defaultAmount(fee.getAmount());
-                BigDecimal currentPaidAmount = isNew ? BigDecimal.ZERO : defaultAmount(entity.getPaidAmount());
+                BigDecimal amount = ObjectUtil.defaultIfNull(fee.getAmount(), BigDecimal.ZERO);
+                BigDecimal currentPaidAmount = isNew ? BigDecimal.ZERO : ObjectUtil.defaultIfNull(entity.getPaidAmount(), BigDecimal.ZERO);
                 if (currentPaidAmount.compareTo(amount) > 0) {
                     return false;
                 }
@@ -218,12 +222,14 @@ public class LeaseBillService {
                 .bill(bill)
                 .totalAmount(dto.getTotalAmount())
                 .payChannel(dto.getPayChannel())
+                .thirdTradeNo(dto.getThirdTradeNo())
+                .paymentVoucherUrl(dto.getPaymentVoucherUrl())
                 .payTime(payTime)
                 .operatorId(dto.getUpdateBy())
                 .operatorName(operatorName)
                 .payerName(payerContext.payerName())
                 .payerPhone(payerContext.payerPhone())
-                .remark(billSummary)
+                .remark(CharSequenceUtil.blankToDefault(dto.getPayRemark(), billSummary))
                 .now(now)
                 .build()
         );
@@ -322,7 +328,7 @@ public class LeaseBillService {
     }
 
     private boolean validateCollectItems(LeaseBillCollectDTO dto, LeaseBill bill, Map<Long, LeaseBillFee> feeMap) {
-        BigDecimal totalAmount = defaultAmount(dto.getTotalAmount());
+        BigDecimal totalAmount = ObjectUtil.defaultIfNull(dto.getTotalAmount(), BigDecimal.ZERO);
         BigDecimal allocatedAmount = BigDecimal.ZERO;
         Set<Long> duplicateGuard = new HashSet<>();
         for (LeaseBillCollectDTO.Item item : dto.getItems()) {
@@ -336,8 +342,8 @@ public class LeaseBillService {
             if (fee == null || !Objects.equals(fee.getBillId(), bill.getId())) {
                 return false;
             }
-            BigDecimal amount = defaultAmount(item.getAmount());
-            if (amount.compareTo(BigDecimal.ZERO) <= 0 || amount.compareTo(defaultAmount(fee.getUnpaidAmount())) > 0) {
+            BigDecimal amount = ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO);
+            if (amount.compareTo(BigDecimal.ZERO) <= 0 || amount.compareTo(ObjectUtil.defaultIfNull(fee.getUnpaidAmount(), BigDecimal.ZERO)) > 0) {
                 return false;
             }
             allocatedAmount = allocatedAmount.add(amount);
@@ -348,8 +354,8 @@ public class LeaseBillService {
     private void applyCollectToFees(Map<Long, LeaseBillFee> feeMap, List<LeaseBillCollectDTO.Item> items, Long operatorId, DateTime now) {
         for (LeaseBillCollectDTO.Item item : items) {
             LeaseBillFee fee = feeMap.get(item.getLeaseBillFeeId());
-            BigDecimal nextPaidAmount = defaultAmount(fee.getPaidAmount()).add(defaultAmount(item.getAmount()));
-            BigDecimal totalAmount = defaultAmount(fee.getAmount());
+            BigDecimal nextPaidAmount = ObjectUtil.defaultIfNull(fee.getPaidAmount(), BigDecimal.ZERO).add(ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO));
+            BigDecimal totalAmount = ObjectUtil.defaultIfNull(fee.getAmount(), BigDecimal.ZERO);
             if (nextPaidAmount.compareTo(totalAmount) > 0) {
                 nextPaidAmount = totalAmount;
             }
@@ -365,10 +371,10 @@ public class LeaseBillService {
     private void recalculateBillAmounts(LeaseBill bill, Long operatorId, DateTime now) {
         List<LeaseBillFee> allFees = leaseBillFeeRepo.getFeesByBillIdForUpdate(bill.getId());
         BigDecimal billTotalAmount = allFees.stream()
-            .map(item -> defaultAmount(item.getAmount()))
+            .map(item -> ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO))
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal billPaidAmount = allFees.stream()
-            .map(item -> defaultAmount(item.getPaidAmount()))
+            .map(item -> ObjectUtil.defaultIfNull(item.getPaidAmount(), BigDecimal.ZERO))
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         bill.setTotalAmount(billTotalAmount);
         bill.setPaidAmount(billPaidAmount);
@@ -386,7 +392,7 @@ public class LeaseBillService {
         boolean hasPaidFee = removedIds.stream()
             .map(existFeeMap::get)
             .filter(Objects::nonNull)
-            .anyMatch(item -> defaultAmount(item.getPaidAmount()).compareTo(BigDecimal.ZERO) > 0);
+            .anyMatch(item -> ObjectUtil.defaultIfNull(item.getPaidAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0);
         if (hasPaidFee) {
             throw new BizException("已收款的费用项不允许删除");
         }
@@ -403,10 +409,6 @@ public class LeaseBillService {
             return PayStatusEnum.PAID.getCode();
         }
         return PayStatusEnum.PARTIALLY_PAID.getCode();
-    }
-
-    private BigDecimal defaultAmount(BigDecimal amount) {
-        return amount == null ? BigDecimal.ZERO : amount;
     }
 
     private String getIdTypeName(Integer idType) {

@@ -12,6 +12,7 @@ import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @EqualsAndHashCode(callSuper = false)
@@ -55,13 +56,17 @@ public class PaymentFlow implements Serializable {
     @TableField("third_trade_no")
     private String thirdTradeNo;
 
+    @Schema(description = "支付凭证图片")
+    @TableField("payment_voucher_url")
+    private String paymentVoucherUrl;
+
     @Schema(description = "第三方平台原始状态")
     @TableField("third_status")
     private String thirdStatus;
 
     @Schema(description = "金额（分）")
     @TableField("amount")
-    private Long amount;
+    private BigDecimal amount;
 
     @Schema(description = "币种")
     @TableField("currency")
@@ -69,7 +74,7 @@ public class PaymentFlow implements Serializable {
 
     @Schema(description = "已退款金额（分）")
     @TableField("refunded_amount")
-    private Long refundedAmount;
+    private BigDecimal refundedAmount;
 
     @Schema(description = "资金方向")
     @TableField("flow_direction")

@@ -20,6 +20,15 @@ public class LeaseBillCollectDTO {
     @Schema(description = "支付方式：1=现金，2=转账，3=支付宝，4=微信，5=其他")
     private Integer payChannel;
 
+    @Schema(description = "交易流水号")
+    private String thirdTradeNo;
+
+    @Schema(description = "支付凭证图片")
+    private String paymentVoucherUrl;
+
+    @Schema(description = "支付备注")
+    private String payRemark;
+
     @Schema(description = "实际支付日期")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date payTime;
