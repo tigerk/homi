@@ -147,8 +147,11 @@ public class LeaseBillGenService {
             LeaseBillFee rentFee = new LeaseBillFee();
             rentFee.setBillId(bill.getId());
             rentFee.setFeeType(LeaseBillFeeTypeEnum.RENTAL.getCode());
-            rentFee.setName("租金");
+            rentFee.setFeeName("租金");
             rentFee.setAmount(periodRentAmount);
+            rentFee.setPaidAmount(BigDecimal.ZERO);
+            rentFee.setUnpaidAmount(periodRentAmount);
+            rentFee.setPayStatus(PayStatusEnum.UNPAID.getCode());
             rentFee.setFeeStart(bill.getBillStart());
             rentFee.setFeeEnd(bill.getBillEnd());
             rentFee.setRemark(bill.getRemark());
@@ -197,8 +200,11 @@ public class LeaseBillGenService {
                 detail.setBillId(bill.getId());
                 detail.setFeeType(LeaseBillFeeTypeEnum.OTHER_FEE.getCode());
                 detail.setDictDataId(fee.getDictDataId());
-                detail.setName(fee.getName());
+                detail.setFeeName(fee.getName());
                 detail.setAmount(feeAmount);
+                detail.setPaidAmount(BigDecimal.ZERO);
+                detail.setUnpaidAmount(feeAmount);
+                detail.setPayStatus(PayStatusEnum.UNPAID.getCode());
                 detail.setFeeStart(bill.getBillStart());
                 detail.setFeeEnd(bill.getBillEnd());
                 detail.setRemark(buildFeeRemark(fee, actualMonths));
@@ -352,6 +358,8 @@ public class LeaseBillGenService {
         bill.setBillStart(DateUtil.date(context.currentStart));
         bill.setBillEnd(DateUtil.date(context.currentEnd));
         bill.setTotalAmount(context.periodRentAmount.add(context.periodOtherFeeAmount));
+        bill.setPaidAmount(BigDecimal.ZERO);
+        bill.setUnpaidAmount(bill.getTotalAmount());
         bill.setDueDate(context.dueDate);
         bill.setPayStatus(PayStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
@@ -433,7 +441,7 @@ public class LeaseBillGenService {
                     detail.setBillId(bill.getId());
                     detail.setFeeType(LeaseBillFeeTypeEnum.OTHER_FEE.getCode());
                     detail.setDictDataId(fee.getDictDataId());
-                    detail.setName(fee.getName());
+                    detail.setFeeName(fee.getName());
                     detail.setAmount(feeAmount);
                     detail.setFeeStart(bill.getBillStart());
                     detail.setFeeEnd(bill.getBillEnd());
@@ -548,6 +556,8 @@ public class LeaseBillGenService {
         bill.setBillStart(context.periodStart);
         bill.setBillEnd(context.periodEnd);
         bill.setTotalAmount(feeAmount);
+        bill.setPaidAmount(BigDecimal.ZERO);
+        bill.setUnpaidAmount(feeAmount);
         bill.setDueDate(calculateDueDate(config));
         bill.setPayStatus(PayStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
@@ -696,6 +706,8 @@ public class LeaseBillGenService {
             .setScale(2, RoundingMode.HALF_UP);
 
         depositBill.setTotalAmount(depositAmount);
+        depositBill.setPaidAmount(BigDecimal.ZERO);
+        depositBill.setUnpaidAmount(depositAmount);
 
         // 根据收租规则计算押金应收日期
         Date dueDate = calculateDepositDueDate(lease);
@@ -712,8 +724,11 @@ public class LeaseBillGenService {
         LeaseBillFee fee = new LeaseBillFee();
         fee.setBillId(depositBill.getId());
         fee.setFeeType(LeaseBillFeeTypeEnum.DEPOSIT.getCode());
-        fee.setName("押金");
+        fee.setFeeName("押金");
         fee.setAmount(depositAmount);
+        fee.setPaidAmount(BigDecimal.ZERO);
+        fee.setUnpaidAmount(depositAmount);
+        fee.setPayStatus(PayStatusEnum.UNPAID.getCode());
         fee.setFeeStart(depositBill.getBillStart());
         fee.setFeeEnd(depositBill.getBillEnd());
         fee.setRemark(depositBill.getRemark());

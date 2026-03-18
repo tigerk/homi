@@ -37,22 +37,18 @@ public class LeaseBillUpdateDTO {
     @Schema(description = "账单合计金额")
     private BigDecimal totalAmount;
 
+    @Schema(description = "已收金额")
+    private BigDecimal paidAmount;
+
+    @Schema(description = "待收金额")
+    private BigDecimal unpaidAmount;
+
     @Schema(description = "应收日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date dueDate;
 
-    @Schema(description = "实际支付日期")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date payTime;
-
-    @Schema(description = "实际支付金额")
-    private BigDecimal payAmount;
-
     @Schema(description = "支付状态")
     private Integer payStatus;
-
-    @Schema(description = "支付方式")
-    private Integer payChannel;
 
     @Schema(description = "备注信息")
     private String remark;

@@ -10,6 +10,9 @@ import java.util.Date;
 @Data
 @Schema(description = "租客账单费用DTO")
 public class LeaseBillFeeDTO {
+    @Schema(description = "费用项ID")
+    private Long id;
+
     @Schema(description = "费用类型：RENTAL/DEPOSIT/OTHER_FEE")
     private String feeType;
 
@@ -17,10 +20,19 @@ public class LeaseBillFeeDTO {
     private Long dictDataId;
 
     @Schema(description = "费用名称")
-    private String name;
+    private String feeName;
 
     @Schema(description = "费用金额")
     private BigDecimal amount;
+
+    @Schema(description = "已收金额")
+    private BigDecimal paidAmount;
+
+    @Schema(description = "待收金额")
+    private BigDecimal unpaidAmount;
+
+    @Schema(description = "支付状态：0=未支付，1=部分支付，2=已支付")
+    private Integer payStatus;
 
     @Schema(description = "费用周期开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

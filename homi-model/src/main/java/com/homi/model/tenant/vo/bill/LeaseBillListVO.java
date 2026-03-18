@@ -43,32 +43,28 @@ public class LeaseBillListVO implements Serializable {
     private Long carryOverToBillId;
 
     @Schema(description = "账单周期开始日期")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date billStart;
 
     @Schema(description = "账单周期结束日期")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date billEnd;
 
     @Schema(description = "账单合计金额")
     private BigDecimal totalAmount;
 
+    @Schema(description = "已收金额")
+    private BigDecimal paidAmount;
+
+    @Schema(description = "待收金额")
+    private BigDecimal unpaidAmount;
+
     @Schema(description = "应收日期（根据 rent_due_xxx 计算）")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date dueDate;
-
-    @Schema(description = "实际支付日期")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date payTime;
-
-    @Schema(description = "实际支付金额")
-    private BigDecimal payAmount;
 
     @Schema(description = "支付状态：0=未支付，1=部分支付，2=已支付")
     private Integer payStatus;
-
-    @Schema(description = "支付方式：1=现金，2=转账，3=支付宝，4=微信，5=其他")
-    private Integer payChannel;
 
     @Schema(description = "备注信息")
     private String remark;
@@ -95,7 +91,7 @@ public class LeaseBillListVO implements Serializable {
     private List<FinanceFlowVO> financeFlowList;
 
     @Schema(description = "支付流水信息")
-    private PaymentFlowVO paymentFlow;
+    private List<PaymentFlowVO> paymentFlowList;
 
     @Schema(description = "账单费用明细列表")
     private List<LeaseBillFeeVO> feeList;

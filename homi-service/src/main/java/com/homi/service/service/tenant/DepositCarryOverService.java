@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -59,10 +60,10 @@ public class DepositCarryOverService {
         carryOutBill.setBillStart(newLease.getLeaseStart());
         carryOutBill.setBillEnd(newLease.getLeaseEnd());
         carryOutBill.setTotalAmount(oldDepositTotal.negate());
+        carryOutBill.setPaidAmount(oldDepositTotal.negate());
+        carryOutBill.setUnpaidAmount(BigDecimal.ZERO);
         carryOutBill.setDueDate(new Date());
         carryOutBill.setPayStatus(PayStatusEnum.PAID.getCode());
-        carryOutBill.setPayTime(new Date());
-        carryOutBill.setPayAmount(oldDepositTotal.negate());
         carryOutBill.setRemark("押金结转至新租约");
         carryOutBill.setValid(true);
         carryOutBill.setDeleted(false);
@@ -80,10 +81,10 @@ public class DepositCarryOverService {
         carryInBill.setBillStart(newLease.getLeaseStart());
         carryInBill.setBillEnd(newLease.getLeaseEnd());
         carryInBill.setTotalAmount(oldDepositTotal);
+        carryInBill.setPaidAmount(oldDepositTotal);
+        carryInBill.setUnpaidAmount(BigDecimal.ZERO);
         carryInBill.setDueDate(new Date());
         carryInBill.setPayStatus(PayStatusEnum.PAID.getCode());
-        carryInBill.setPayTime(new Date());
-        carryInBill.setPayAmount(oldDepositTotal);
         carryInBill.setCarryOverFromBillId(oldDepositBills.get(0).getId());
         carryInBill.setRemark("从旧租约结转押金");
         carryInBill.setValid(true);
@@ -109,6 +110,8 @@ public class DepositCarryOverService {
             supplementBill.setBillStart(newLease.getLeaseStart());
             supplementBill.setBillEnd(newLease.getLeaseEnd());
             supplementBill.setTotalAmount(diff);
+            supplementBill.setPaidAmount(BigDecimal.ZERO);
+            supplementBill.setUnpaidAmount(diff);
             supplementBill.setDueDate(new Date());
             supplementBill.setPayStatus(PayStatusEnum.UNPAID.getCode());
             supplementBill.setRemark("续签押金补缴（差额）");
@@ -135,8 +138,11 @@ public class DepositCarryOverService {
         LeaseBillFee fee = new LeaseBillFee();
         fee.setBillId(bill.getId());
         fee.setFeeType(LeaseBillFeeTypeEnum.DEPOSIT.getCode());
-        fee.setName("押金");
+        fee.setFeeName("押金");
         fee.setAmount(amount);
+        fee.setPaidAmount(Objects.equals(bill.getPayStatus(), PayStatusEnum.PAID.getCode()) ? amount : BigDecimal.ZERO);
+        fee.setUnpaidAmount(Objects.equals(bill.getPayStatus(), PayStatusEnum.PAID.getCode()) ? BigDecimal.ZERO : amount);
+        fee.setPayStatus(bill.getPayStatus());
         fee.setFeeStart(bill.getBillStart());
         fee.setFeeEnd(bill.getBillEnd());
         fee.setRemark(bill.getRemark());
@@ -147,4 +153,5 @@ public class DepositCarryOverService {
         fee.setUpdateTime(new Date());
         leaseBillFeeRepo.save(fee);
     }
+
 }

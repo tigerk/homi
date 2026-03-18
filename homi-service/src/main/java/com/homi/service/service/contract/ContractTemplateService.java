@@ -321,23 +321,25 @@ public class ContractTemplateService {
         bill1.setSortOrder(1);
         bill1.setBillType(1); // 1=租金
         bill1.setTotalAmount(new BigDecimal(25850));
+        bill1.setPaidAmount(BigDecimal.ZERO);
+        bill1.setUnpaidAmount(new BigDecimal(25850));
         bill1.setDueDate(new Date());
         bill1.setPayStatus(0); // 0=未支付
         List<com.homi.model.tenant.vo.bill.LeaseBillFeeVO> feeList = new ArrayList<>();
         feeList.add(new com.homi.model.tenant.vo.bill.LeaseBillFeeVO(
-            bill1.getId(), "RENTAL", null, "租金", new BigDecimal(15000),
+            1L, bill1.getId(), "RENTAL", null, "租金", new BigDecimal(15000), BigDecimal.ZERO, new BigDecimal(15000), 0,
             new Date(), new Date(), "租金"
         ));
         feeList.add(new com.homi.model.tenant.vo.bill.LeaseBillFeeVO(
-            bill1.getId(), "DEPOSIT", null, "押金", new BigDecimal(10000),
+            2L, bill1.getId(), "DEPOSIT", null, "押金", new BigDecimal(10000), BigDecimal.ZERO, new BigDecimal(10000), 0,
             new Date(), new Date(), "押金"
         ));
         feeList.add(new com.homi.model.tenant.vo.bill.LeaseBillFeeVO(
-            bill1.getId(), "OTHER_FEE", 1L, "物业费", new BigDecimal(200),
+            3L, bill1.getId(), "OTHER_FEE", 1L, "物业费", new BigDecimal(200), BigDecimal.ZERO, new BigDecimal(200), 0,
             new Date(), new Date(), "物业费"
         ));
         feeList.add(new com.homi.model.tenant.vo.bill.LeaseBillFeeVO(
-            bill1.getId(), "OTHER_FEE", 2L, "服务费", new BigDecimal(650),
+            4L, bill1.getId(), "OTHER_FEE", 2L, "服务费", new BigDecimal(650), BigDecimal.ZERO, new BigDecimal(650), 0,
             new Date(), new Date(), "服务费"
         ));
         bill1.setFeeList(feeList);

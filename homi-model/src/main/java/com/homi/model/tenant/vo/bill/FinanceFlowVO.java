@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -32,8 +33,8 @@ public class FinanceFlowVO implements Serializable {
     @Schema(description = "资金方向")
     private String flowDirection;
 
-    @Schema(description = "金额（分）")
-    private Long amount;
+    @Schema(description = "金额")
+    private BigDecimal amount;
 
     @Schema(description = "币种")
     private String currency;
@@ -43,21 +44,6 @@ public class FinanceFlowVO implements Serializable {
 
     @Schema(description = "退款关联原始流水ID")
     private Long refundFlowId;
-
-    @Schema(description = "父流水ID")
-    private Long parentId;
-
-    @Schema(description = "是否已拆分：0 否，1 是")
-    private Boolean split;
-
-    @Schema(description = "费用类型")
-    private String feeType;
-
-    @Schema(description = "关联费用ID")
-    private Long feeRefId;
-
-    @Schema(description = "费用名称")
-    private String feeName;
 
     @Schema(description = "流水发生时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

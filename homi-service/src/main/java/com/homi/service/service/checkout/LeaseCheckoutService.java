@@ -90,7 +90,7 @@ public class LeaseCheckoutService {
         BigDecimal unpaidAmount = BigDecimal.ZERO;
 
         for (LeaseBill bill : unpaidBills) {
-            BigDecimal payAmount = ObjectUtil.defaultIfNull(bill.getPayAmount(), BigDecimal.ZERO);
+            BigDecimal payAmount = ObjectUtil.defaultIfNull(bill.getPaidAmount(), BigDecimal.ZERO);
             BigDecimal billTotal = ObjectUtil.defaultIfNull(bill.getTotalAmount(), BigDecimal.ZERO);
             BigDecimal unpaidMoney = billTotal.subtract(payAmount);
             unpaidAmount = unpaidAmount.add(unpaidMoney);
@@ -172,7 +172,7 @@ public class LeaseCheckoutService {
         // 2. 未付账单（收入方向）
         for (LeaseBill bill : unpaidBills) {
             BigDecimal unpaid = ObjectUtil.defaultIfNull(bill.getTotalAmount(), BigDecimal.ZERO)
-                .subtract(ObjectUtil.defaultIfNull(bill.getPayAmount(), BigDecimal.ZERO));
+                .subtract(ObjectUtil.defaultIfNull(bill.getPaidAmount(), BigDecimal.ZERO));
             if (unpaid.compareTo(BigDecimal.ZERO) > 0) {
                 String typeName = getBillTypeName(bill.getBillType());
                 presetFees.add(LeaseCheckoutInitVO.PresetFeeVO.builder()

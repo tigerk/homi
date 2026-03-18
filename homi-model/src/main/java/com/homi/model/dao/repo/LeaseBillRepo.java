@@ -52,6 +52,16 @@ public class LeaseBillRepo extends ServiceImpl<LeaseBillMapper, LeaseBill> {
         return list(queryWrapper);
     }
 
+    public LeaseBill getByIdForUpdate(Long id) {
+        if (id == null) {
+            return null;
+        }
+        LambdaQueryWrapper<LeaseBill> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(LeaseBill::getId, id);
+        queryWrapper.last("for update");
+        return getOne(queryWrapper);
+    }
+
     /**
      * 按租客维度查询全部押金相关账单
      */

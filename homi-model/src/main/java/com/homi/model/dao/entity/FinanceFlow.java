@@ -12,6 +12,7 @@ import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 @EqualsAndHashCode(callSuper = false)
@@ -59,9 +60,9 @@ public class FinanceFlow implements Serializable {
     @TableField("flow_direction")
     private String flowDirection;
 
-    @Schema(description = "金额（分）")
+    @Schema(description = "金额")
     @TableField("amount")
-    private Long amount;
+    private BigDecimal amount;
 
     @Schema(description = "币种")
     @TableField("currency")
@@ -74,26 +75,6 @@ public class FinanceFlow implements Serializable {
     @Schema(description = "退款关联原始流水ID")
     @TableField("refund_flow_id")
     private Long refundFlowId;
-
-    @Schema(description = "父流水ID")
-    @TableField("parent_id")
-    private Long parentId;
-
-    @Schema(description = "是否已拆分：0 否，1 是（仅主记录有效）")
-    @TableField("split")
-    private Boolean split;
-
-    @Schema(description = "费用类型")
-    @TableField("fee_type")
-    private String feeType;
-
-    @Schema(description = "关联费用ID")
-    @TableField("fee_ref_id")
-    private Long feeRefId;
-
-    @Schema(description = "费用名称")
-    @TableField("fee_name")
-    private String feeName;
 
     @Schema(description = "流水发生时间")
     @TableField("flow_time")

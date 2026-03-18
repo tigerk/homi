@@ -142,8 +142,10 @@ public class LeaseController {
             throw new BizException(ResponseCodeEnum.PARAM_ERROR);
         }
 
-        // 支付金额不允许 小于等于 0
-        if (collectDTO.getPayAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (collectDTO.getTotalAmount() == null || collectDTO.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BizException(ResponseCodeEnum.PARAM_ERROR);
+        }
+        if (collectDTO.getItems() == null || collectDTO.getItems().isEmpty()) {
             throw new BizException(ResponseCodeEnum.PARAM_ERROR);
         }
 

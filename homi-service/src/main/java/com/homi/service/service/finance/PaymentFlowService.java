@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,10 @@ public class PaymentFlowService {
         return paymentFlowRepo.getByBiz(bizType, bizId);
     }
 
+    public List<PaymentFlow> listByBiz(String bizType, Long bizId) {
+        return paymentFlowRepo.listByBiz(bizType, bizId);
+    }
+
     public PaymentFlow createLeaseBillPaymentFlow(CreateCommand command) {
         LeaseBill bill = command.bill();
         PaymentFlow paymentFlow = new PaymentFlow();
@@ -34,7 +39,7 @@ public class PaymentFlowService {
         paymentFlow.setBizType(PaymentFlowBizTypeEnum.LEASE_BILL.getCode());
         paymentFlow.setBizId(bill.getId());
         paymentFlow.setChannel(resolvePaymentChannel(command.payChannel()));
-        paymentFlow.setAmount(toCent(command.amount()));
+        paymentFlow.setAmount(toCent(command.totalAmount()));
         paymentFlow.setCurrency("CNY");
         paymentFlow.setRefundedAmount(0L);
         paymentFlow.setFlowDirection(PaymentFlowDirectionEnum.IN.getCode());
@@ -82,7 +87,7 @@ public class PaymentFlowService {
     @Builder
     public record CreateCommand(
         LeaseBill bill,
-        BigDecimal amount,
+        BigDecimal totalAmount,
         Integer payChannel,
         Date payTime,
         Long operatorId,
