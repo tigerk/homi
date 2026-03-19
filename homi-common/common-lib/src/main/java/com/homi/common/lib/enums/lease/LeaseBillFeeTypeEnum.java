@@ -12,4 +12,13 @@ public enum LeaseBillFeeTypeEnum {
 
     private final String code;
     private final String label;
+
+    public static String getLabelByCode(String code) {
+        for (LeaseBillFeeTypeEnum item : values()) {
+            if (item.code.equals(code)) {
+                return item.label;
+            }
+        }
+        return OTHER_FEE.label;
+    }
 }

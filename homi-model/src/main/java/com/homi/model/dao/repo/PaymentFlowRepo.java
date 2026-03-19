@@ -28,4 +28,16 @@ public class PaymentFlowRepo extends ServiceImpl<PaymentFlowMapper, PaymentFlow>
         wrapper.orderByDesc(PaymentFlow::getCreateTime);
         return list(wrapper);
     }
+
+    public List<PaymentFlow> listByBizIds(String bizType, List<Long> bizIds) {
+        if (bizIds == null || bizIds.isEmpty()) {
+            return List.of();
+        }
+        LambdaQueryWrapper<PaymentFlow> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(PaymentFlow::getBizType, bizType);
+        wrapper.in(PaymentFlow::getBizId, bizIds);
+        wrapper.orderByDesc(PaymentFlow::getPayTime);
+        wrapper.orderByDesc(PaymentFlow::getCreateTime);
+        return list(wrapper);
+    }
 }

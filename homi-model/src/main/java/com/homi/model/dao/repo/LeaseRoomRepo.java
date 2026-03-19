@@ -40,4 +40,18 @@ public class LeaseRoomRepo extends ServiceImpl<LeaseRoomMapper, LeaseRoom> {
     public List<LeaseRoom> getListByLeaseId(Long leaseId) {
         return list(new LambdaQueryWrapper<LeaseRoom>().eq(LeaseRoom::getLeaseId, leaseId));
     }
+
+    public List<LeaseRoom> getListByLeaseIds(List<Long> leaseIds) {
+        if (leaseIds == null || leaseIds.isEmpty()) {
+            return List.of();
+        }
+        return list(new LambdaQueryWrapper<LeaseRoom>().in(LeaseRoom::getLeaseId, leaseIds));
+    }
+
+    public List<LeaseRoom> getListByRoomIds(List<Long> roomIds) {
+        if (roomIds == null || roomIds.isEmpty()) {
+            return List.of();
+        }
+        return list(new LambdaQueryWrapper<LeaseRoom>().in(LeaseRoom::getRoomId, roomIds));
+    }
 }
