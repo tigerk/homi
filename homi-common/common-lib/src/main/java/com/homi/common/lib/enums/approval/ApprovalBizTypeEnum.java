@@ -13,9 +13,7 @@ public enum ApprovalBizTypeEnum {
     TENANT_CHECKIN("TENANT_CHECKIN", "租客入住", "tenant", "id"),
     TENANT_CHECKOUT("TENANT_CHECKOUT", "租客退租", "lease_checkout", "id"),
     HOUSE_CREATE("HOUSE_CREATE", "房源录入", "house", "id"),
-//    ROOM_CREATE("ROOM_CREATE", "房间录入", "room", "id"),
-//    CONTRACT_SIGN("CONTRACT_SIGN", "合同签署", "lease_contract", "id"),
-//    BOOKING_CONVERT("BOOKING_CONVERT", "预定转签约", "booking", "id"),
+    PAYMENT_FLOW("PAYMENT_FLOW", "支付流水", "payment_flow", "id"),
     ;
 
     /**
