@@ -29,6 +29,7 @@ import com.homi.service.service.approval.ApprovalTemplate;
 import com.homi.service.service.finance.FinanceFlowService;
 import com.homi.service.service.finance.PaymentFlowService;
 import com.homi.service.service.room.RoomService;
+import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,7 @@ public class LeaseBillService {
     private final LeaseRepo leaseRepo;
     private final LeaseRoomRepo leaseRoomRepo;
     private final TenantRepo tenantRepo;
+    private final TenantService tenantService;
     private final UserRepo userRepo;
     private final FinanceFlowService financeFlowService;
     private final PaymentFlowService paymentFlowService;
@@ -175,7 +177,7 @@ public class LeaseBillService {
         }
 
         DateTime now = DateUtil.date();
-        Tenant tenant = getTenant(bill.getTenantId());
+        Tenant tenant = tenantService.getTenant(bill.getTenantId());
         LeaseBillPayerResolver.BillPayerInfo payerInfo = leaseBillPayerResolver.resolve(tenant);
         String operatorName = userRepo.getUserNicknameById(dto.getUpdateBy());
         Date payTime = ObjectUtil.defaultIfNull(dto.getPayTime(), now);
@@ -249,7 +251,7 @@ public class LeaseBillService {
         }
         vo.setRoomAddress(resolveRoomAddress(bill.getLeaseId()));
 
-        Tenant tenant = getTenant(bill.getTenantId());
+        Tenant tenant = tenantService.getTenant(bill.getTenantId());
         if (tenant == null) {
             return;
         }
@@ -287,10 +289,7 @@ public class LeaseBillService {
      *
      * @return 同步命令，若存在不可修改的费用项则返回 {@code null}
      */
-    private FeeSyncCommand buildFeeSyncCommand(LeaseBill bill,
-                                               List<LeaseBillFeeDTO> feeList,
-                                               Long operatorId,
-                                               DateTime now) {
+    private FeeSyncCommand buildFeeSyncCommand(LeaseBill bill, List<LeaseBillFeeDTO> feeList, Long operatorId, DateTime now) {
         List<LeaseBillFee> existFees = leaseBillFeeRepo.getFeesByBillIdForUpdate(bill.getId());
         Map<Long, LeaseBillFee> existFeeMap = existFees.stream()
             .filter(f -> f.getId() != null)
@@ -535,10 +534,6 @@ public class LeaseBillService {
         }
         List<Long> leaseRoomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
         return leaseRoomIds.isEmpty() ? null : roomService.getRoomAddressByIds(leaseRoomIds);
-    }
-
-    private Tenant getTenant(Long tenantId) {
-        return tenantId == null ? null : tenantRepo.getById(tenantId);
     }
 
     private String buildPaymentApprovalTitle(String payerName, BigDecimal totalAmount) {
