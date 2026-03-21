@@ -13,7 +13,7 @@ import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.dao.repo.LeaseCheckoutRepo;
 import com.homi.model.dao.repo.LeaseRepo;
-import com.homi.service.service.tenant.PaymentApprovalService;
+import com.homi.service.service.lease.bill.PaymentApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.modulith.events.ApplicationModuleListener;

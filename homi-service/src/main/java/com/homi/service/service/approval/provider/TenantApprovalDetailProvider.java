@@ -4,7 +4,7 @@ import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.model.approval.vo.ApprovalInstanceVO;
 import com.homi.model.approval.vo.ApprovalTodoVO;
 import com.homi.model.tenant.vo.LeaseDetailVO;
-import com.homi.service.service.tenant.LeaseService;
+import com.homi.service.service.lease.LeaseService;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;

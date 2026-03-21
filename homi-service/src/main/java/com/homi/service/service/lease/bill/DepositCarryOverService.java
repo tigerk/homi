@@ -1,4 +1,4 @@
-package com.homi.service.service.tenant;
+package com.homi.service.service.lease.bill;
 
 import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;

@@ -1,4 +1,4 @@
-package com.homi.service.service.tenant;
+package com.homi.service.service.lease;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;

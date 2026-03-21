@@ -32,7 +32,7 @@ import com.homi.model.tenant.vo.LeaseDetailVO;
 import com.homi.model.tenant.vo.TenantMateVO;
 import com.homi.model.tenant.vo.TenantPersonalVO;
 import com.homi.model.tenant.vo.bill.LeaseBillListVO;
-import com.homi.service.service.tenant.LeaseContractService;
+import com.homi.service.service.lease.LeaseContractService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;

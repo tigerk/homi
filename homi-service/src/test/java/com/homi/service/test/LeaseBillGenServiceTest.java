@@ -7,7 +7,7 @@ import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.repo.LeaseBillRepo;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.tenant.dto.LeaseDTO;
-import com.homi.service.service.tenant.LeaseBillGenService;
+import com.homi.service.service.lease.bill.LeaseBillGenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

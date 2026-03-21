@@ -1,4 +1,4 @@
-package com.homi.service.service.tenant;
+package com.homi.service.service.lease.bill;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
@@ -39,13 +39,22 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 租客账单服务。
- * <p>
- * 负责账单查询、账单编辑、发起收款以及账单上下文信息组装。
+ * 租客账单核心服务。
+ *
+ * <p>职责：
+ * <ul>
+ *   <li>账单及费用明细的查询与组装</li>
+ *   <li>账单编辑（金额重算、费用增删改）</li>
+ *   <li>发起收款（创建 PaymentFlow 并提交审批）</li>
+ * </ul>
+ *
+ * <p>纯计算逻辑（支付状态推导、分摊校验等）由 {@link LeaseBillCalculator} 承担，
+ * 使本类与 {@link PaymentApprovalService} 之间保持单向依赖，无需 {@code @Lazy}。
  */
 @Service
 @RequiredArgsConstructor
 public class LeaseBillService {
+
     private final LeaseBillRepo leaseBillRepo;
     private final LeaseBillFeeRepo leaseBillFeeRepo;
     private final LeaseRepo leaseRepo;
@@ -56,8 +65,19 @@ public class LeaseBillService {
     private final PaymentFlowService paymentFlowService;
     private final ApprovalTemplate approvalTemplate;
     private final RoomService roomService;
+    /**
+     * 单向依赖：本类调用审批回调，PaymentApprovalService 不反向注入本类。
+     */
     private final PaymentApprovalService paymentApprovalService;
     private final LeaseBillPayerResolver leaseBillPayerResolver;
+    /**
+     * 纯计算组件，两个 Service 共同依赖，不产生循环。
+     */
+    private final LeaseBillCalculator billCalculator;
+
+    // -------------------------------------------------------------------------
+    // 查询
+    // -------------------------------------------------------------------------
 
     /**
      * 根据租约查询账单列表，并挂载账单费用明细。
@@ -67,7 +87,6 @@ public class LeaseBillService {
         if (bills.isEmpty()) {
             return List.of();
         }
-
         List<Long> billIds = bills.stream().map(LeaseBill::getId).toList();
         Map<Long, List<LeaseBillFeeVO>> feeMap = buildBillFeeVoMap(leaseBillFeeRepo.getFeesByBillIds(billIds));
         return bills.stream().map(bill -> toBillVo(bill, feeMap)).toList();
@@ -80,27 +99,32 @@ public class LeaseBillService {
         if (billId == null) {
             return null;
         }
-
         LeaseBill bill = leaseBillRepo.getById(billId);
         if (bill == null) {
             return null;
         }
-
         LeaseBillListVO vo = BeanCopyUtils.copyBean(bill, LeaseBillListVO.class);
         if (vo == null) {
             return null;
         }
-
         vo.setFeeList(toLeaseBillFeeVos(leaseBillFeeRepo.getFeesByBillId(billId)));
         attachBillContext(vo, bill);
         attachFinanceFlow(vo);
         return vo;
     }
 
+    // -------------------------------------------------------------------------
+    // 编辑
+    // -------------------------------------------------------------------------
+
     /**
      * 编辑账单及费用项。
-     * <p>
-     * 已支付账单不允许编辑；已收款或已有财务流水的费用项不允许删除。
+     *
+     * <p>规则：
+     * <ul>
+     *   <li>已支付账单不允许编辑。</li>
+     *   <li>已收款或已有财务流水的费用项不允许删除。</li>
+     * </ul>
      */
     @Transactional(rollbackFor = Exception.class)
     public boolean updateBill(LeaseBillUpdateDTO dto, Long operatorId) {
@@ -115,6 +139,7 @@ public class LeaseBillService {
             bill.setValid(dto.getValid());
         }
 
+        // 未传费用列表时，仅更新账单基础信息
         if (dto.getFeeList() == null) {
             updateBillBaseInfo(bill, operatorId, now);
             return true;
@@ -124,26 +149,28 @@ public class LeaseBillService {
         if (syncCommand == null) {
             return false;
         }
-
         applyFeeChanges(syncCommand);
         recalculateBillAmounts(bill, operatorId, now);
         return true;
     }
 
+    // -------------------------------------------------------------------------
+    // 收款
+    // -------------------------------------------------------------------------
+
     /**
      * 发起账单收款。
-     * <p>
-     * 先创建 payment_flow，再根据是否存在审批配置决定立即入账或进入审批。
+     *
+     * <p>流程：创建待审批状态的 PaymentFlow → 根据审批配置决定立即入账或进入审批流。
      */
     @Transactional(rollbackFor = Exception.class)
     public boolean collectBill(LeaseBillCollectDTO dto) {
         if (isInvalidCollectRequest(dto)) {
             return false;
         }
-
         LeaseBill bill = leaseBillRepo.getByIdForUpdate(dto.getId());
         Map<Long, LeaseBillFee> feeMap = getCollectFeeMap(dto);
-        if (bill == null || feeMap.isEmpty() || !validateCollectItems(dto, bill, feeMap)) {
+        if (bill == null || feeMap.isEmpty() || billCalculator.validateCollectItems(dto, bill, feeMap)) {
             return false;
         }
 
@@ -152,12 +179,44 @@ public class LeaseBillService {
         LeaseBillPayerResolver.BillPayerInfo payerInfo = leaseBillPayerResolver.resolve(tenant);
         String operatorName = userRepo.getUserNicknameById(dto.getUpdateBy());
         Date payTime = ObjectUtil.defaultIfNull(dto.getPayTime(), now);
-        String billSummary = buildBillSummary(bill);
+        String billSummary = billCalculator.buildBillSummary(bill);
 
-        PaymentFlow paymentFlow = createPendingApprovalPaymentFlow(dto, bill, payerInfo, operatorName, payTime, billSummary, now);
+        PaymentFlow paymentFlow = createPendingApprovalPaymentFlow(
+            dto, bill, payerInfo, operatorName, payTime, billSummary, now);
         submitPaymentApproval(dto, bill, payerInfo, paymentFlow, billSummary, now);
         return true;
     }
+
+    // -------------------------------------------------------------------------
+    // 包级共享：供 PaymentApprovalService 调用
+    // -------------------------------------------------------------------------
+
+    /**
+     * 基于账单下全部费用项重算账单汇总金额与支付状态，并持久化。
+     *
+     * <p>由 {@link PaymentApprovalService} 在审批通过入账后调用。
+     *
+     * @param bill       账单实体（会被直接修改后 update）
+     * @param operatorId 操作人 ID
+     * @param now        操作时间
+     */
+    void recalculateBillAmounts(LeaseBill bill, Long operatorId, DateTime now) {
+        List<LeaseBillFee> allFees = leaseBillFeeRepo.getFeesByBillIdForUpdate(bill.getId());
+        BigDecimal totalAmount = billCalculator.sumAmount(allFees);
+        BigDecimal paidAmount = billCalculator.sumPaidAmount(allFees);
+
+        bill.setTotalAmount(totalAmount);
+        bill.setPaidAmount(paidAmount);
+        bill.setUnpaidAmount(totalAmount.subtract(paidAmount));
+        bill.setPayStatus(billCalculator.resolvePayStatus(paidAmount, totalAmount));
+        bill.setUpdateBy(operatorId);
+        bill.setUpdateTime(now);
+        leaseBillRepo.updateById(bill);
+    }
+
+    // -------------------------------------------------------------------------
+    // 私有：账单上下文组装
+    // -------------------------------------------------------------------------
 
     /**
      * 组装账单详情中的财务流水与支付流水。
@@ -171,14 +230,14 @@ public class LeaseBillService {
             vo.setPaymentFlowList(List.of());
             return;
         }
-
         List<Long> feeIds = vo.getFeeList().stream()
             .map(LeaseBillFeeVO::getId)
             .filter(Objects::nonNull)
             .toList();
-
-        vo.setFinanceFlowList(toFinanceFlowVos(financeFlowService.getListByBizIds(FinanceBizTypeEnum.LEASE_BILL_FEE.getCode(), feeIds)));
-        vo.setPaymentFlowList(toPaymentFlowVos(paymentFlowService.listByBiz(PaymentFlowBizTypeEnum.LEASE_BILL.getCode(), vo.getId())));
+        vo.setFinanceFlowList(toFinanceFlowVos(
+            financeFlowService.getListByBizIds(FinanceBizTypeEnum.LEASE_BILL_FEE.getCode(), feeIds)));
+        vo.setPaymentFlowList(toPaymentFlowVos(
+            paymentFlowService.listByBiz(PaymentFlowBizTypeEnum.LEASE_BILL.getCode(), vo.getId())));
     }
 
     /**
@@ -188,13 +247,12 @@ public class LeaseBillService {
         if (vo == null || bill == null) {
             return;
         }
-
         vo.setRoomAddress(resolveRoomAddress(bill.getLeaseId()));
+
         Tenant tenant = getTenant(bill.getTenantId());
         if (tenant == null) {
             return;
         }
-
         LeaseBillPayerResolver.BillPayerInfo payerInfo = leaseBillPayerResolver.resolve(tenant);
         vo.setPayerName(payerInfo.payerName());
         vo.setPayerPhone(payerInfo.payerPhone());
@@ -203,72 +261,14 @@ public class LeaseBillService {
         vo.setPayerIdNo(payerInfo.payerIdNo());
     }
 
-    /**
-     * 校验即将删除的费用项是否允许删除。
-     */
-    private void validateRemovableFees(List<Long> removedIds, Map<Long, LeaseBillFee> existFeeMap) {
-        if (removedIds.isEmpty()) {
-            return;
-        }
-
-        boolean hasPaidFee = removedIds.stream()
-            .map(existFeeMap::get)
-            .filter(Objects::nonNull)
-            .anyMatch(item -> ObjectUtil.defaultIfNull(item.getPaidAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0);
-        if (hasPaidFee) {
-            throw new BizException("已收款的费用项不允许删除");
-        }
-        if (financeFlowService.existsByBizIds(FinanceBizTypeEnum.LEASE_BILL_FEE.getCode(), removedIds)) {
-            throw new BizException("已有财务流水的费用项不允许删除");
-        }
-    }
-
-    /**
-     * 校验本次收款分摊是否与账单及费用项匹配，且不能超收。
-     */
-    private boolean validateCollectItems(LeaseBillCollectDTO dto, LeaseBill bill, Map<Long, LeaseBillFee> feeMap) {
-        BigDecimal totalAmount = ObjectUtil.defaultIfNull(dto.getTotalAmount(), BigDecimal.ZERO);
-        BigDecimal allocatedAmount = BigDecimal.ZERO;
-        Set<Long> duplicateGuard = new HashSet<>();
-
-        for (LeaseBillCollectDTO.Item item : dto.getItems()) {
-            if (item == null || item.getLeaseBillFeeId() == null || !duplicateGuard.add(item.getLeaseBillFeeId())) {
-                return false;
-            }
-
-            LeaseBillFee fee = feeMap.get(item.getLeaseBillFeeId());
-            BigDecimal amount = ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO);
-            if (!isCollectableItem(bill, fee, amount)) {
-                return false;
-            }
-            allocatedAmount = allocatedAmount.add(amount);
-        }
-
-        return allocatedAmount.compareTo(totalAmount) == 0;
-    }
-
-    /**
-     * 基于账单下全部费用项重算账单汇总金额与支付状态。
-     */
-    private void recalculateBillAmounts(LeaseBill bill, Long operatorId, DateTime now) {
-        List<LeaseBillFee> allFees = leaseBillFeeRepo.getFeesByBillIdForUpdate(bill.getId());
-        BigDecimal totalAmount = sumFeeAmount(allFees);
-        BigDecimal paidAmount = sumFeePaidAmount(allFees);
-
-        bill.setTotalAmount(totalAmount);
-        bill.setPaidAmount(paidAmount);
-        bill.setUnpaidAmount(totalAmount.subtract(paidAmount));
-        bill.setPayStatus(resolvePayStatus(paidAmount, totalAmount));
-        bill.setUpdateBy(operatorId);
-        bill.setUpdateTime(now);
-        leaseBillRepo.updateById(bill);
-    }
+    // -------------------------------------------------------------------------
+    // 私有：账单编辑辅助
+    // -------------------------------------------------------------------------
 
     private LeaseBill getEditableBill(LeaseBillUpdateDTO dto) {
         if (dto == null || dto.getId() == null) {
             return null;
         }
-
         LeaseBill bill = leaseBillRepo.getByIdForUpdate(dto.getId());
         if (bill == null || Objects.equals(bill.getPayStatus(), PayStatusEnum.PAID.getCode())) {
             return null;
@@ -282,15 +282,24 @@ public class LeaseBillService {
         leaseBillRepo.updateById(bill);
     }
 
-    private FeeSyncCommand buildFeeSyncCommand(LeaseBill bill, List<LeaseBillFeeDTO> feeList, Long operatorId, DateTime now) {
+    /**
+     * 构建费用同步命令：区分新增、更新、删除三类操作。
+     *
+     * @return 同步命令，若存在不可修改的费用项则返回 {@code null}
+     */
+    private FeeSyncCommand buildFeeSyncCommand(LeaseBill bill,
+                                               List<LeaseBillFeeDTO> feeList,
+                                               Long operatorId,
+                                               DateTime now) {
         List<LeaseBillFee> existFees = leaseBillFeeRepo.getFeesByBillIdForUpdate(bill.getId());
         Map<Long, LeaseBillFee> existFeeMap = existFees.stream()
-            .filter(item -> item.getId() != null)
-            .collect(Collectors.toMap(LeaseBillFee::getId, item -> item));
+            .filter(f -> f.getId() != null)
+            .collect(Collectors.toMap(LeaseBillFee::getId, f -> f));
         Map<Long, LeaseBillFeeDTO> incomingFeeMap = feeList.stream()
-            .filter(item -> item.getId() != null)
-            .collect(Collectors.toMap(LeaseBillFeeDTO::getId, item -> item, (left, right) -> right));
+            .filter(f -> f.getId() != null)
+            .collect(Collectors.toMap(LeaseBillFeeDTO::getId, f -> f, (l, r) -> r));
 
+        // 计算需要删除的费用项（存在于旧列表但不在新列表中）
         List<Long> removedIds = existFees.stream()
             .map(LeaseBillFee::getId)
             .filter(Objects::nonNull)
@@ -314,18 +323,44 @@ public class LeaseBillService {
         return new FeeSyncCommand(removedIds, toCreate, toUpdate);
     }
 
-    private LeaseBillFee buildFeeEntity(Long billId, LeaseBillFeeDTO fee, LeaseBillFee existing, Long operatorId, DateTime now) {
-        LeaseBillFee entity = fee.getId() == null ? new LeaseBillFee() : existing;
+    /**
+     * 校验即将删除的费用项是否允许删除（已收款或已有财务流水则拒绝）。
+     */
+    private void validateRemovableFees(List<Long> removedIds, Map<Long, LeaseBillFee> existFeeMap) {
+        if (removedIds.isEmpty()) {
+            return;
+        }
+        boolean hasPaidFee = removedIds.stream()
+            .map(existFeeMap::get)
+            .filter(Objects::nonNull)
+            .anyMatch(f -> ObjectUtil.defaultIfNull(f.getPaidAmount(), BigDecimal.ZERO)
+                .compareTo(BigDecimal.ZERO) > 0);
+        if (hasPaidFee) {
+            throw new BizException("已收款的费用项不允许删除");
+        }
+        if (financeFlowService.existsByBizIds(FinanceBizTypeEnum.LEASE_BILL_FEE.getCode(), removedIds)) {
+            throw new BizException("已有财务流水的费用项不允许删除");
+        }
+    }
+
+    private LeaseBillFee buildFeeEntity(Long billId,
+                                        LeaseBillFeeDTO fee,
+                                        LeaseBillFee existing,
+                                        Long operatorId,
+                                        DateTime now) {
+        // 新记录使用空实体，更新记录复用已有实体
+        LeaseBillFee entity = (fee.getId() == null) ? new LeaseBillFee() : existing;
         if (entity == null) {
             return null;
         }
-
         BigDecimal amount = ObjectUtil.defaultIfNull(fee.getAmount(), BigDecimal.ZERO);
-        BigDecimal currentPaidAmount = entity.getId() == null ? BigDecimal.ZERO : ObjectUtil.defaultIfNull(entity.getPaidAmount(), BigDecimal.ZERO);
+        BigDecimal currentPaidAmount = (entity.getId() == null)
+            ? BigDecimal.ZERO
+            : ObjectUtil.defaultIfNull(entity.getPaidAmount(), BigDecimal.ZERO);
+        // 修改后的金额不能低于已收款金额
         if (currentPaidAmount.compareTo(amount) > 0) {
             return null;
         }
-
         entity.setBillId(billId);
         entity.setFeeType(fee.getFeeType());
         entity.setDictDataId(fee.getDictDataId());
@@ -333,7 +368,7 @@ public class LeaseBillService {
         entity.setAmount(amount);
         entity.setPaidAmount(currentPaidAmount);
         entity.setUnpaidAmount(amount.subtract(currentPaidAmount));
-        entity.setPayStatus(resolvePayStatus(currentPaidAmount, amount));
+        entity.setPayStatus(billCalculator.resolvePayStatus(currentPaidAmount, amount));
         entity.setFeeStart(fee.getFeeStart());
         entity.setFeeEnd(fee.getFeeEnd());
         entity.setRemark(fee.getRemark());
@@ -358,8 +393,13 @@ public class LeaseBillService {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // 私有：收款辅助
+    // -------------------------------------------------------------------------
+
     private boolean isInvalidCollectRequest(LeaseBillCollectDTO dto) {
-        return dto == null || dto.getId() == null || dto.getItems() == null || dto.getItems().isEmpty();
+        return dto == null || dto.getId() == null
+            || dto.getItems() == null || dto.getItems().isEmpty();
     }
 
     private Map<Long, LeaseBillFee> getCollectFeeMap(LeaseBillCollectDTO dto) {
@@ -371,18 +411,19 @@ public class LeaseBillService {
             return Map.of();
         }
         return leaseBillFeeRepo.getByIdsForUpdate(feeIds).stream()
-            .collect(Collectors.toMap(LeaseBillFee::getId, item -> item));
+            .collect(Collectors.toMap(LeaseBillFee::getId, f -> f));
     }
 
-    private PaymentFlow createPendingApprovalPaymentFlow(
-        LeaseBillCollectDTO dto,
-        LeaseBill bill,
-        LeaseBillPayerResolver.BillPayerInfo payerInfo,
-        String operatorName,
-        java.util.Date payTime,
-        String billSummary,
-        DateTime now
-    ) {
+    /**
+     * 创建待审批状态的支付流水。
+     */
+    private PaymentFlow createPendingApprovalPaymentFlow(LeaseBillCollectDTO dto,
+                                                         LeaseBill bill,
+                                                         LeaseBillPayerResolver.BillPayerInfo payerInfo,
+                                                         String operatorName,
+                                                         Date payTime,
+                                                         String billSummary,
+                                                         DateTime now) {
         return paymentFlowService.createLeaseBillPaymentFlow(
             PaymentFlowService.CreateCommand.builder()
                 .bill(bill)
@@ -400,18 +441,18 @@ public class LeaseBillService {
                 .approvalStatus(BizApprovalStatusEnum.PENDING.getCode())
                 .extJson(JSONUtil.toJsonStr(dto))
                 .now(now)
-                .build()
-        );
+                .build());
     }
 
-    private void submitPaymentApproval(
-        LeaseBillCollectDTO dto,
-        LeaseBill bill,
-        LeaseBillPayerResolver.BillPayerInfo payerInfo,
-        PaymentFlow paymentFlow,
-        String billSummary,
-        DateTime now
-    ) {
+    /**
+     * 提交收款审批，无审批配置时直接回调入账逻辑。
+     */
+    private void submitPaymentApproval(LeaseBillCollectDTO dto,
+                                       LeaseBill bill,
+                                       LeaseBillPayerResolver.BillPayerInfo payerInfo,
+                                       PaymentFlow paymentFlow,
+                                       String billSummary,
+                                       DateTime now) {
         approvalTemplate.submitIfNeed(
             ApprovalSubmitDTO.builder()
                 .companyId(bill.getCompanyId())
@@ -421,25 +462,30 @@ public class LeaseBillService {
                 .applicantId(dto.getUpdateBy())
                 .remark(CharSequenceUtil.blankToDefault(dto.getPayRemark(), billSummary))
                 .build(),
-            bizId -> paymentFlowService.updateApprovalStatus(bizId, BizApprovalStatusEnum.PENDING.getCode(), dto.getUpdateBy(), now),
+            bizId -> paymentFlowService.updateApprovalStatus(
+                bizId, BizApprovalStatusEnum.PENDING.getCode(), dto.getUpdateBy(), now),
             bizId -> {
-                paymentFlowService.updateApprovalStatus(bizId, BizApprovalStatusEnum.APPROVED.getCode(), dto.getUpdateBy(), now);
+                paymentFlowService.updateApprovalStatus(
+                    bizId, BizApprovalStatusEnum.APPROVED.getCode(), dto.getUpdateBy(), now);
+                // 审批通过：触发入账回调
                 paymentApprovalService.completePaymentFlowCollection(bizId);
-            }
-        );
+            });
     }
+
+    // -------------------------------------------------------------------------
+    // 私有：VO 转换
+    // -------------------------------------------------------------------------
 
     private List<LeaseBillFeeVO> toLeaseBillFeeVos(List<LeaseBillFee> fees) {
         return fees.stream()
-            .map(item -> BeanCopyUtils.copyBean(item, LeaseBillFeeVO.class))
+            .map(f -> BeanCopyUtils.copyBean(f, LeaseBillFeeVO.class))
             .toList();
     }
 
     private Map<Long, List<LeaseBillFeeVO>> buildBillFeeVoMap(List<LeaseBillFee> fees) {
         return fees.stream().collect(Collectors.groupingBy(
             LeaseBillFee::getBillId,
-            Collectors.mapping(item -> BeanCopyUtils.copyBean(item, LeaseBillFeeVO.class), Collectors.toList())
-        ));
+            Collectors.mapping(f -> BeanCopyUtils.copyBean(f, LeaseBillFeeVO.class), Collectors.toList())));
     }
 
     private LeaseBillListVO toBillVo(LeaseBill bill, Map<Long, List<LeaseBillFeeVO>> feeMap) {
@@ -465,16 +511,18 @@ public class LeaseBillService {
         }).toList();
     }
 
+    // -------------------------------------------------------------------------
+    // 私有：其他辅助
+    // -------------------------------------------------------------------------
+
     private String resolveRoomAddress(Long leaseId) {
         if (leaseId == null) {
             return null;
         }
-
         Lease lease = leaseRepo.getById(leaseId);
         if (lease == null) {
             return null;
         }
-
         List<Long> roomIds = leaseRoomRepo.getListByLeaseId(lease.getId()).stream()
             .map(LeaseRoom::getRoomId)
             .filter(Objects::nonNull)
@@ -482,56 +530,15 @@ public class LeaseBillService {
         if (!roomIds.isEmpty()) {
             return roomService.getRoomAddressByIds(roomIds);
         }
-
         if (lease.getRoomIds() == null) {
             return null;
         }
-
         List<Long> leaseRoomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
-        if (leaseRoomIds.isEmpty()) {
-            return null;
-        }
-        return roomService.getRoomAddressByIds(leaseRoomIds);
+        return leaseRoomIds.isEmpty() ? null : roomService.getRoomAddressByIds(leaseRoomIds);
     }
 
     private Tenant getTenant(Long tenantId) {
         return tenantId == null ? null : tenantRepo.getById(tenantId);
-    }
-
-    private BigDecimal sumFeeAmount(List<LeaseBillFee> fees) {
-        return fees.stream()
-            .map(item -> ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO))
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private BigDecimal sumFeePaidAmount(List<LeaseBillFee> fees) {
-        return fees.stream()
-            .map(item -> ObjectUtil.defaultIfNull(item.getPaidAmount(), BigDecimal.ZERO))
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private boolean isCollectableItem(LeaseBill bill, LeaseBillFee fee, BigDecimal amount) {
-        return fee != null
-            && Objects.equals(fee.getBillId(), bill.getId())
-            && amount.compareTo(BigDecimal.ZERO) > 0
-            && amount.compareTo(ObjectUtil.defaultIfNull(fee.getUnpaidAmount(), BigDecimal.ZERO)) <= 0;
-    }
-
-    private Integer resolvePayStatus(BigDecimal paidAmount, BigDecimal totalAmount) {
-        if (paidAmount == null || paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            return PayStatusEnum.UNPAID.getCode();
-        }
-        if (totalAmount != null && paidAmount.compareTo(totalAmount) >= 0) {
-            return PayStatusEnum.PAID.getCode();
-        }
-        return PayStatusEnum.PARTIALLY_PAID.getCode();
-    }
-
-    private String buildBillSummary(LeaseBill bill) {
-        if (bill == null) {
-            return "租客账单收款";
-        }
-        return "租客账单#" + bill.getId();
     }
 
     private String buildPaymentApprovalTitle(String payerName, BigDecimal totalAmount) {
@@ -540,6 +547,15 @@ public class LeaseBillService {
             ObjectUtil.defaultIfNull(totalAmount, BigDecimal.ZERO).stripTrailingZeros().toPlainString());
     }
 
-    private record FeeSyncCommand(List<Long> removedIds, List<LeaseBillFee> toCreate, List<LeaseBillFee> toUpdate) {
+    // -------------------------------------------------------------------------
+    // 内部记录类
+    // -------------------------------------------------------------------------
+
+    /**
+     * 费用项同步命令（新增 / 更新 / 删除三类操作的容器）。
+     */
+    private record FeeSyncCommand(List<Long> removedIds,
+                                  List<LeaseBillFee> toCreate,
+                                  List<LeaseBillFee> toUpdate) {
     }
 }
