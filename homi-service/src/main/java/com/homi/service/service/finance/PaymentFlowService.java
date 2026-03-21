@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 
@@ -31,6 +30,10 @@ public class PaymentFlowService {
         return paymentFlowRepo.listByBiz(bizType, bizId);
     }
 
+    public PaymentFlow getById(Long id) {
+        return id == null ? null : paymentFlowRepo.getById(id);
+    }
+
     public PaymentFlow createLeaseBillPaymentFlow(CreateCommand command) {
         LeaseBill bill = command.bill();
         PaymentFlow paymentFlow = new PaymentFlow();
@@ -45,19 +48,55 @@ public class PaymentFlowService {
         paymentFlow.setCurrency("CNY");
         paymentFlow.setRefundedAmount(BigDecimal.ZERO);
         paymentFlow.setFlowDirection(PaymentFlowDirectionEnum.IN.getCode());
-        paymentFlow.setStatus(PaymentFlowStatusEnum.SUCCESS.getCode());
+        paymentFlow.setStatus(command.status());
+        paymentFlow.setApprovalStatus(command.approvalStatus());
         paymentFlow.setPayTime(command.payTime());
         paymentFlow.setPayerName(command.payerName());
         paymentFlow.setPayerPhone(command.payerPhone());
         paymentFlow.setOperatorId(command.operatorId());
         paymentFlow.setOperatorName(command.operatorName());
         paymentFlow.setRemark(command.remark());
+        paymentFlow.setExtJson(command.extJson());
         paymentFlow.setCreateBy(command.operatorId());
         paymentFlow.setCreateTime(command.now());
         paymentFlow.setUpdateBy(command.operatorId());
         paymentFlow.setUpdateTime(command.now());
         paymentFlowRepo.save(paymentFlow);
         return paymentFlow;
+    }
+
+    public void updateStatus(Long paymentFlowId, Integer status, Long operatorId, DateTime now) {
+        PaymentFlow paymentFlow = paymentFlowRepo.getById(paymentFlowId);
+        if (paymentFlow == null) {
+            return;
+        }
+        paymentFlow.setStatus(status);
+        paymentFlow.setUpdateBy(operatorId);
+        paymentFlow.setUpdateTime(now);
+        paymentFlowRepo.updateById(paymentFlow);
+    }
+
+    public void updateApprovalStatus(Long paymentFlowId, Integer approvalStatus, Long operatorId, DateTime now) {
+        PaymentFlow paymentFlow = paymentFlowRepo.getById(paymentFlowId);
+        if (paymentFlow == null) {
+            return;
+        }
+        paymentFlow.setApprovalStatus(approvalStatus);
+        paymentFlow.setUpdateBy(operatorId);
+        paymentFlow.setUpdateTime(now);
+        paymentFlowRepo.updateById(paymentFlow);
+    }
+
+    public void updateApprovalAndStatus(Long paymentFlowId, Integer approvalStatus, Integer status, Long operatorId, DateTime now) {
+        PaymentFlow paymentFlow = paymentFlowRepo.getById(paymentFlowId);
+        if (paymentFlow == null) {
+            return;
+        }
+        paymentFlow.setApprovalStatus(approvalStatus);
+        paymentFlow.setStatus(status);
+        paymentFlow.setUpdateBy(operatorId);
+        paymentFlow.setUpdateTime(now);
+        paymentFlowRepo.updateById(paymentFlow);
     }
 
     private String generatePaymentNo() {
@@ -90,6 +129,9 @@ public class PaymentFlowService {
         String payerName,
         String payerPhone,
         String remark,
+        Integer status,
+        Integer approvalStatus,
+        String extJson,
         DateTime now
     ) {
     }

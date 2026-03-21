@@ -80,9 +80,13 @@ public class PaymentFlow implements Serializable {
     @TableField("flow_direction")
     private String flowDirection;
 
-    @Schema(description = "状态：0=支付中、1=支付成功、2=支付失败、3=已关闭、4=退款中、5=已退款")
+    @Schema(description = "状态：0=待支付、1=待审批、2=支付成功、3=支付失败、4=已关闭、5=退款中、6=已退款")
     @TableField("status")
     private Integer status;
+
+    @Schema(description = "审批状态：1-审批中 2-已通过 3-已驳回 4-已撤回")
+    @TableField("approval_status")
+    private Integer approvalStatus;
 
     @Schema(description = "实际支付完成时间")
     @TableField("pay_time")

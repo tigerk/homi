@@ -13,6 +13,7 @@ import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.dao.repo.LeaseCheckoutRepo;
 import com.homi.model.dao.repo.LeaseRepo;
+import com.homi.service.service.tenant.PaymentApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.modulith.events.ApplicationModuleListener;
@@ -39,6 +40,7 @@ public class ApprovalEventListener {
     private final RoomRepo roomRepo;
     private final LeaseCheckoutRepo leaseCheckoutRepo;
     private final HouseRepo houseRepo;
+    private final PaymentApprovalService paymentApprovalService;
 
     /**
      * 监听审批状态变更事件
@@ -73,6 +75,7 @@ public class ApprovalEventListener {
                 case TENANT_CHECKIN -> handleTenantCheckin(bizId, approvalStatus, bizApprovalStatus);
                 case TENANT_CHECKOUT -> handleLeaseCheckout(bizId, approvalStatus, bizApprovalStatus);
                 case HOUSE_CREATE -> handleHouseCreate(bizId, approvalStatus, bizApprovalStatus);
+                case PAYMENT_FLOW -> handlePaymentFlow(bizId, approvalStatus, bizApprovalStatus);
                 default -> handleDefaultBiz(bizType, bizId, approvalStatus, bizApprovalStatus);
             }
 
@@ -181,6 +184,20 @@ public class ApprovalEventListener {
         }
 
         houseRepo.updateApprovalStatus(houseId, bizApprovalStatus);
+    }
+
+    private void handlePaymentFlow(Long paymentFlowId, Integer approvalStatus, Integer bizApprovalStatus) {
+        if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
+            paymentApprovalService.completePaymentFlowCollection(paymentFlowId);
+            log.info("账单收款审批通过: paymentFlowId={}", paymentFlowId);
+            return;
+        }
+
+        if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)
+            || ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
+            paymentApprovalService.closePaymentFlowCollection(paymentFlowId, bizApprovalStatus);
+            log.info("账单收款审批结束并关闭支付流水: paymentFlowId={}, approvalStatus={}", paymentFlowId, approvalStatus);
+        }
     }
 
     /**
