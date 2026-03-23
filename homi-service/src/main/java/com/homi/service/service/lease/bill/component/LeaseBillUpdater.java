@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 账单汇总金额回写组件。
+ * 账单更新组件。
  * <p>
  * 职责单一：基于费用项重算账单的 totalAmount / paidAmount /
  * unpaidAmount / payStatus 并持久化。
