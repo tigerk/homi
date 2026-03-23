@@ -1,5 +1,6 @@
 package com.homi.common.lib.enums;
 
+import cn.hutool.core.util.EnumUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -24,4 +25,17 @@ public enum IdTypeEnum {
 
     private final Integer code;
     private final String name;
+
+    public static String getIdTypeName(Integer idType) {
+        if (idType == null) {
+            return null;
+        }
+
+        IdTypeEnum by = EnumUtil.getBy(IdTypeEnum::getCode, idType);
+        if (by == null) {
+            return null;
+        }
+
+        return by.getName();
+    }
 }

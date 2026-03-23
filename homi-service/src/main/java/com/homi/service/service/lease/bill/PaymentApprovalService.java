@@ -17,11 +17,13 @@ import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.tenant.dto.LeaseBillCollectDTO;
 import com.homi.service.service.finance.FinanceFlowService;
 import com.homi.service.service.finance.PaymentFlowService;
+import com.homi.service.service.lease.bill.component.LeaseBillCalculator;
+import com.homi.service.service.lease.bill.component.LeaseBillPayerResolver;
+import com.homi.service.service.lease.bill.component.LeaseBillUpdater;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -40,14 +42,13 @@ import java.util.stream.Collectors;
  * <p>依赖关系：
  * <ul>
  *   <li>纯计算逻辑（校验、状态推导）委托给 {@link LeaseBillCalculator}。</li>
- *   <li>账单金额重算（需要写库）委托给 {@link LeaseBillService#recalculateBillAmounts}。</li>
+ *   <li>账单金额重算（需要写库）委托给 {@link LeaseBillUpdater#recalculate(LeaseBill, Long, DateTime)}。</li>
  *   <li>本类不被 {@link LeaseBillService} 反向依赖，依赖关系为单向，无需 {@code @Lazy}。</li>
  * </ul>
  */
 @Service
 @RequiredArgsConstructor
 public class PaymentApprovalService {
-
     private final LeaseBillRepo leaseBillRepo;
     private final LeaseBillFeeRepo leaseBillFeeRepo;
     private final TenantRepo tenantRepo;
@@ -62,7 +63,7 @@ public class PaymentApprovalService {
     /**
      * 单向依赖：仅用于回写账单汇总金额，不会被 LeaseBillService 反向注入。
      */
-    private final LeaseBillService leaseBillService;
+    private final LeaseBillUpdater leaseBillUpdater;
 
     // -------------------------------------------------------------------------
     // 审批回调
@@ -133,10 +134,10 @@ public class PaymentApprovalService {
                 .build());
 
         // 回写费用项收款金额
-        applyCollectToFees(feeMap, dto.getItems(), dto.getUpdateBy(), now);
+        leaseBillUpdater.applyCollectToFees(feeMap, dto.getItems(), dto.getUpdateBy(), now);
 
         // 重算账单汇总（含写库，委托给 LeaseBillService）
-        leaseBillService.recalculateBillAmounts(bill, dto.getUpdateBy(), now);
+        leaseBillUpdater.recalculate(bill, dto.getUpdateBy(), now);
 
         // 支付流水标记为成功
         paymentFlowService.updateApprovalAndStatus(
@@ -170,31 +171,6 @@ public class PaymentApprovalService {
     // -------------------------------------------------------------------------
     // 私有：入账辅助
     // -------------------------------------------------------------------------
-
-    /**
-     * 将本次收款金额写入各费用项，更新已收 / 未收 / 支付状态。
-     */
-    private void applyCollectToFees(Map<Long, LeaseBillFee> feeMap,
-                                    List<LeaseBillCollectDTO.Item> items,
-                                    Long operatorId,
-                                    DateTime now) {
-        for (LeaseBillCollectDTO.Item item : items) {
-            LeaseBillFee fee = feeMap.get(item.getLeaseBillFeeId());
-            BigDecimal totalAmount = ObjectUtil.defaultIfNull(fee.getAmount(), BigDecimal.ZERO);
-            BigDecimal nextPaidAmount = ObjectUtil.defaultIfNull(fee.getPaidAmount(), BigDecimal.ZERO)
-                .add(ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO));
-            // 防止浮点误差导致超收
-            if (nextPaidAmount.compareTo(totalAmount) > 0) {
-                nextPaidAmount = totalAmount;
-            }
-            fee.setPaidAmount(nextPaidAmount);
-            fee.setUnpaidAmount(totalAmount.subtract(nextPaidAmount));
-            fee.setPayStatus(billCalculator.resolvePayStatus(nextPaidAmount, totalAmount));
-            fee.setUpdateBy(operatorId);
-            fee.setUpdateTime(now);
-        }
-        leaseBillFeeRepo.updateBatchById(feeMap.values().stream().toList());
-    }
 
     /**
      * 根据 DTO 中的费用项 ID 加行锁查询，并转为 Map。

@@ -28,6 +28,9 @@ import com.homi.model.tenant.vo.bill.PaymentFlowVO;
 import com.homi.service.service.approval.ApprovalTemplate;
 import com.homi.service.service.finance.FinanceFlowService;
 import com.homi.service.service.finance.PaymentFlowService;
+import com.homi.service.service.lease.bill.component.LeaseBillCalculator;
+import com.homi.service.service.lease.bill.component.LeaseBillPayerResolver;
+import com.homi.service.service.lease.bill.component.LeaseBillUpdater;
 import com.homi.service.service.room.RoomService;
 import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +63,6 @@ public class LeaseBillService {
     private final LeaseBillFeeRepo leaseBillFeeRepo;
     private final LeaseRepo leaseRepo;
     private final LeaseRoomRepo leaseRoomRepo;
-    private final TenantRepo tenantRepo;
     private final TenantService tenantService;
     private final UserRepo userRepo;
     private final FinanceFlowService financeFlowService;
@@ -76,6 +78,7 @@ public class LeaseBillService {
      * 纯计算组件，两个 Service 共同依赖，不产生循环。
      */
     private final LeaseBillCalculator billCalculator;
+    private final LeaseBillUpdater leaseBillUpdater;
 
     // -------------------------------------------------------------------------
     // 查询
@@ -147,12 +150,16 @@ public class LeaseBillService {
             return true;
         }
 
-        FeeSyncCommand syncCommand = buildFeeSyncCommand(bill, dto.getFeeList(), operatorId, now);
+        LeaseBillUpdater.FeeSyncCommand syncCommand = buildFeeSyncCommand(bill, dto.getFeeList(), operatorId, now);
         if (syncCommand == null) {
             return false;
         }
-        applyFeeChanges(syncCommand);
-        recalculateBillAmounts(bill, operatorId, now);
+
+        // 应用费用项变更, 包括删除、更新、创建费用项。
+        leaseBillUpdater.applyFeeChanges(syncCommand);
+        // 重新计算账单金额
+        leaseBillUpdater.recalculate(bill, operatorId, now);
+
         return true;
     }
 
@@ -190,33 +197,6 @@ public class LeaseBillService {
     }
 
     // -------------------------------------------------------------------------
-    // 包级共享：供 PaymentApprovalService 调用
-    // -------------------------------------------------------------------------
-
-    /**
-     * 基于账单下全部费用项重算账单汇总金额与支付状态，并持久化。
-     *
-     * <p>由 {@link PaymentApprovalService} 在审批通过入账后调用。
-     *
-     * @param bill       账单实体（会被直接修改后 update）
-     * @param operatorId 操作人 ID
-     * @param now        操作时间
-     */
-    void recalculateBillAmounts(LeaseBill bill, Long operatorId, DateTime now) {
-        List<LeaseBillFee> allFees = leaseBillFeeRepo.getFeesByBillIdForUpdate(bill.getId());
-        BigDecimal totalAmount = billCalculator.sumAmount(allFees);
-        BigDecimal paidAmount = billCalculator.sumPaidAmount(allFees);
-
-        bill.setTotalAmount(totalAmount);
-        bill.setPaidAmount(paidAmount);
-        bill.setUnpaidAmount(totalAmount.subtract(paidAmount));
-        bill.setPayStatus(billCalculator.resolvePayStatus(paidAmount, totalAmount));
-        bill.setUpdateBy(operatorId);
-        bill.setUpdateTime(now);
-        leaseBillRepo.updateById(bill);
-    }
-
-    // -------------------------------------------------------------------------
     // 私有：账单上下文组装
     // -------------------------------------------------------------------------
 
@@ -236,10 +216,8 @@ public class LeaseBillService {
             .map(LeaseBillFeeVO::getId)
             .filter(Objects::nonNull)
             .toList();
-        vo.setFinanceFlowList(toFinanceFlowVos(
-            financeFlowService.getListByBizIds(FinanceBizTypeEnum.LEASE_BILL_FEE.getCode(), feeIds)));
-        vo.setPaymentFlowList(toPaymentFlowVos(
-            paymentFlowService.listByBiz(PaymentFlowBizTypeEnum.LEASE_BILL.getCode(), vo.getId())));
+        vo.setFinanceFlowList(toFinanceFlowVos(financeFlowService.getListByBizIds(FinanceBizTypeEnum.LEASE_BILL_FEE.getCode(), feeIds)));
+        vo.setPaymentFlowList(toPaymentFlowVos(paymentFlowService.listByBiz(PaymentFlowBizTypeEnum.LEASE_BILL.getCode(), vo.getId())));
     }
 
     /**
@@ -289,7 +267,7 @@ public class LeaseBillService {
      *
      * @return 同步命令，若存在不可修改的费用项则返回 {@code null}
      */
-    private FeeSyncCommand buildFeeSyncCommand(LeaseBill bill, List<LeaseBillFeeDTO> feeList, Long operatorId, DateTime now) {
+    private LeaseBillUpdater.FeeSyncCommand buildFeeSyncCommand(LeaseBill bill, List<LeaseBillFeeDTO> feeList, Long operatorId, DateTime now) {
         List<LeaseBillFee> existFees = leaseBillFeeRepo.getFeesByBillIdForUpdate(bill.getId());
         Map<Long, LeaseBillFee> existFeeMap = existFees.stream()
             .filter(f -> f.getId() != null)
@@ -319,7 +297,7 @@ public class LeaseBillService {
                 toUpdate.add(entity);
             }
         }
-        return new FeeSyncCommand(removedIds, toCreate, toUpdate);
+        return new LeaseBillUpdater.FeeSyncCommand(removedIds, toCreate, toUpdate);
     }
 
     /**
@@ -378,18 +356,6 @@ public class LeaseBillService {
             entity.setCreateTime(now);
         }
         return entity;
-    }
-
-    private void applyFeeChanges(FeeSyncCommand command) {
-        if (!command.removedIds().isEmpty()) {
-            leaseBillFeeRepo.removeByIds(command.removedIds());
-        }
-        if (!command.toUpdate().isEmpty()) {
-            leaseBillFeeRepo.updateBatchById(command.toUpdate());
-        }
-        if (!command.toCreate().isEmpty()) {
-            leaseBillFeeRepo.saveBatch(command.toCreate());
-        }
     }
 
     // -------------------------------------------------------------------------
@@ -540,17 +506,5 @@ public class LeaseBillService {
         return String.format("【账单收款审批】-付款人：%s 金额：%s",
             CharSequenceUtil.blankToDefault(payerName, "未知"),
             ObjectUtil.defaultIfNull(totalAmount, BigDecimal.ZERO).stripTrailingZeros().toPlainString());
-    }
-
-    // -------------------------------------------------------------------------
-    // 内部记录类
-    // -------------------------------------------------------------------------
-
-    /**
-     * 费用项同步命令（新增 / 更新 / 删除三类操作的容器）。
-     */
-    private record FeeSyncCommand(List<Long> removedIds,
-                                  List<LeaseBillFee> toCreate,
-                                  List<LeaseBillFee> toUpdate) {
     }
 }

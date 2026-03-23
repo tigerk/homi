@@ -1,4 +1,4 @@
-package com.homi.service.service.lease.bill;
+package com.homi.service.service.lease.bill.component;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.homi.common.lib.enums.IdTypeEnum;
@@ -6,12 +6,11 @@ import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.TenantCompany;
 import com.homi.model.dao.entity.TenantPersonal;
-import com.homi.model.dao.repo.TenantCompanyRepo;
-import com.homi.model.dao.repo.TenantPersonalRepo;
+import com.homi.service.service.lease.bill.LeaseBillService;
+import com.homi.service.service.lease.bill.PaymentApprovalService;
+import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
 
 /**
  * 账单付款人信息解析器。
@@ -30,9 +29,7 @@ import java.util.Arrays;
 @Component
 @RequiredArgsConstructor
 public class LeaseBillPayerResolver {
-
-    private final TenantPersonalRepo tenantPersonalRepo;
-    private final TenantCompanyRepo tenantCompanyRepo;
+    private final TenantService tenantService;
 
     /**
      * 解析付款人展示信息与证件信息。
@@ -57,9 +54,8 @@ public class LeaseBillPayerResolver {
     // -------------------------------------------------------------------------
     // 私有：按类型解析
     // -------------------------------------------------------------------------
-
     private BillPayerInfo resolvePersonal(Tenant tenant) {
-        TenantPersonal personal = getPersonalDetail(tenant);
+        TenantPersonal personal = tenantService.getPersonalDetail(tenant);
         if (personal == null) {
             return BillPayerInfo.basic(tenant.getTenantName(), tenant.getTenantPhone());
         }
@@ -67,12 +63,12 @@ public class LeaseBillPayerResolver {
             personal.getName(),
             personal.getPhone(),
             personal.getIdType(),
-            getIdTypeName(personal.getIdType()),
+            IdTypeEnum.getIdTypeName(personal.getIdType()),
             personal.getIdNo());
     }
 
     private BillPayerInfo resolveEnterprise(Tenant tenant) {
-        TenantCompany company = getCompanyDetail(tenant);
+        TenantCompany company = tenantService.getCompanyDetail(tenant);
         if (company == null) {
             return BillPayerInfo.basic(tenant.getTenantName(), tenant.getTenantPhone());
         }
@@ -82,40 +78,9 @@ public class LeaseBillPayerResolver {
             // 联系人电话优先，缺省用 tenant 表冗余字段
             ObjectUtil.defaultIfNull(company.getContactPhone(), tenant.getTenantPhone()),
             company.getLegalPersonIdType(),
-            getIdTypeName(company.getLegalPersonIdType()),
+            IdTypeEnum.getIdTypeName(company.getLegalPersonIdType()),
             company.getLegalPersonIdNo());
     }
-
-    // -------------------------------------------------------------------------
-    // 私有：数据查询
-    // -------------------------------------------------------------------------
-
-    private TenantPersonal getPersonalDetail(Tenant tenant) {
-        return tenant.getTenantTypeId() == null
-            ? null
-            : tenantPersonalRepo.getById(tenant.getTenantTypeId());
-    }
-
-    private TenantCompany getCompanyDetail(Tenant tenant) {
-        return tenant.getTenantTypeId() == null
-            ? null
-            : tenantCompanyRepo.getById(tenant.getTenantTypeId());
-    }
-
-    private String getIdTypeName(Integer idType) {
-        if (idType == null) {
-            return null;
-        }
-        return Arrays.stream(IdTypeEnum.values())
-            .filter(item -> item.getCode().equals(idType))
-            .map(IdTypeEnum::getName)
-            .findFirst()
-            .orElse(null);
-    }
-
-    // -------------------------------------------------------------------------
-    // 结果记录
-    // -------------------------------------------------------------------------
 
     /**
      * 付款人信息（不可变值对象）。

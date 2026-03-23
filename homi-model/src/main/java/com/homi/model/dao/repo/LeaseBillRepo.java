@@ -52,6 +52,15 @@ public class LeaseBillRepo extends ServiceImpl<LeaseBillMapper, LeaseBill> {
         return list(queryWrapper);
     }
 
+    /**
+     * 根据ID查询账单，加锁
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/3/23 10:18
+     *
+     * @param id 参数说明
+     * @return com.homi.model.dao.entity.LeaseBill
+     */
     public LeaseBill getByIdForUpdate(Long id) {
         if (id == null) {
             return null;

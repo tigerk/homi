@@ -1,10 +1,12 @@
-package com.homi.service.service.lease.bill;
+package com.homi.service.service.lease.bill.component;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.entity.LeaseBillFee;
 import com.homi.model.tenant.dto.LeaseBillCollectDTO;
+import com.homi.service.service.lease.bill.LeaseBillService;
+import com.homi.service.service.lease.bill.PaymentApprovalService;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
