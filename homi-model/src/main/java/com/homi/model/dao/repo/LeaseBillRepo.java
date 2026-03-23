@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.mapper.LeaseBillMapper;
+import com.homi.model.dashboard.vo.WelcomeOverdueBucketVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -84,5 +85,9 @@ public class LeaseBillRepo extends ServiceImpl<LeaseBillMapper, LeaseBill> {
             .eq(LeaseBill::getValid, true)
             .orderByAsc(LeaseBill::getCreateTime)
             .list();
+    }
+
+    public List<WelcomeOverdueBucketVO> getWelcomeOverdueBuckets() {
+        return getBaseMapper().selectWelcomeOverdueBuckets();
     }
 }

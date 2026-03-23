@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.homi.model.dao.mapper.LeaseBillMapper">
-
+    <select id="selectWelcomeOverdueBuckets" resultType="com.homi.model.dashboard.vo.WelcomeOverdueBucketVO">
+        SELECT CASE
+                   WHEN DATEDIFF(CURDATE(), due_date) = 0 THEN 'today_due'
+                   WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 1 AND 3 THEN 'overdue_1_3'
+                   WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 4 AND 7 THEN 'overdue_4_7'
+                   WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 8 AND 14 THEN 'overdue_8_14'
+                   ELSE 'overdue_gt_14'
+                   END AS `key`,
+               SUM(unpaid_amount) AS amount
+        FROM lease_bill
+        WHERE valid = 1
+          AND deleted = 0
+          AND unpaid_amount <![CDATA[ > ]]> 0
+          AND pay_status IN (0, 1)
+          AND due_date IS NOT NULL
+          AND due_date <![CDATA[ <= ]]> CURDATE()
+        GROUP BY CASE
+                     WHEN DATEDIFF(CURDATE(), due_date) = 0 THEN 'today_due'
+                     WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 1 AND 3 THEN 'overdue_1_3'
+                     WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 4 AND 7 THEN 'overdue_4_7'
+                     WHEN DATEDIFF(CURDATE(), due_date) BETWEEN 8 AND 14 THEN 'overdue_8_14'
+                     ELSE 'overdue_gt_14'
+            END
+    </select>
 </mapper>

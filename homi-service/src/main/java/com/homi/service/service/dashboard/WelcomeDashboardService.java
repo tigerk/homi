@@ -8,15 +8,12 @@ import com.homi.common.lib.enums.booking.BookingStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
-import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.model.dao.entity.Booking;
 import com.homi.model.dao.entity.FinanceFlow;
 import com.homi.model.dao.entity.Lease;
-import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.entity.LeaseRoom;
 import com.homi.model.dao.entity.PaymentFlow;
-import com.homi.model.dao.entity.Room;
 import com.homi.model.dao.entity.SysNotice;
 import com.homi.model.dao.repo.BookingRepo;
 import com.homi.model.dao.repo.FinanceFlowRepo;
@@ -222,17 +219,8 @@ public class WelcomeDashboardService {
     }
 
     private List<WelcomeOverdueBucketVO> buildOverdueBuckets() {
-        Date today = DateUtil.beginOfDay(new Date());
-        List<LeaseBill> bills = leaseBillRepo.list(new LambdaQueryWrapper<LeaseBill>()
-            .eq(LeaseBill::getValid, true)
-            .gt(LeaseBill::getUnpaidAmount, BigDecimal.ZERO)
-            .in(LeaseBill::getPayStatus, PayStatusEnum.UNPAID.getCode(), PayStatusEnum.PARTIALLY_PAID.getCode()));
-
-        Map<String, BigDecimal> bucketAmountMap = bills.stream()
-            .filter(item -> item.getDueDate() != null && !item.getDueDate().after(today))
-            .collect(Collectors.groupingBy(item -> resolveOverdueBucketKey(item.getDueDate(), today),
-                Collectors.mapping(item -> ObjectUtil.defaultIfNull(item.getUnpaidAmount(), BigDecimal.ZERO),
-                    Collectors.reducing(BigDecimal.ZERO, BigDecimal::add))));
+        Map<String, BigDecimal> bucketAmountMap = leaseBillRepo.getWelcomeOverdueBuckets().stream()
+            .collect(Collectors.toMap(WelcomeOverdueBucketVO::getKey, item -> ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO), BigDecimal::add));
 
         return List.of(
             buildOverdueBucket("today_due", "今天到期", bucketAmountMap),
@@ -249,23 +237,6 @@ public class WelcomeDashboardService {
         bucket.setLabel(label);
         bucket.setAmount(bucketAmountMap.getOrDefault(key, BigDecimal.ZERO));
         return bucket;
-    }
-
-    private String resolveOverdueBucketKey(Date dueDate, Date today) {
-        long overdueDays = DateUtil.betweenDay(DateUtil.beginOfDay(dueDate), today, true);
-        if (overdueDays <= 0) {
-            return "today_due";
-        }
-        if (overdueDays <= 3) {
-            return "overdue_1_3";
-        }
-        if (overdueDays <= 7) {
-            return "overdue_4_7";
-        }
-        if (overdueDays <= 14) {
-            return "overdue_8_14";
-        }
-        return "overdue_gt_14";
     }
 
     private WelcomeTenantStatsVO buildTenantStats() {
