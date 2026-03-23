@@ -6,6 +6,9 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+
+import com.homi.model.tenant.vo.bill.FinanceFlowVO;
 
 @Data
 @Schema(description = "租客支付流水列表项")
@@ -86,4 +89,7 @@ public class PaymentFlowFinanceItemVO {
     @Schema(description = "账单结束日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date billEnd;
+
+    @Schema(description = "关联财务流水")
+    private List<FinanceFlowVO> financeFlowList;
 }

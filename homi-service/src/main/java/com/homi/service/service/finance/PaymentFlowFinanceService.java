@@ -2,6 +2,8 @@ package com.homi.service.service.finance;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -9,6 +11,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowStatusEnum;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.entity.LeaseBill;
@@ -24,6 +27,7 @@ import com.homi.model.dao.repo.TenantRepo;
 import com.homi.model.finance.dto.PaymentFlowFinanceQueryDTO;
 import com.homi.model.finance.vo.PaymentFlowFinanceItemVO;
 import com.homi.model.finance.vo.PaymentFlowFinanceSummaryVO;
+import com.homi.model.tenant.vo.bill.FinanceFlowVO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.service.service.room.RoomService;
@@ -48,6 +52,7 @@ public class PaymentFlowFinanceService {
     private final TenantRepo tenantRepo;
     private final RoomRepo roomRepo;
     private final RoomService roomService;
+    private final FinanceFlowService financeFlowService;
 
     public PageVO<PaymentFlowFinanceItemVO> page(PaymentFlowFinanceQueryDTO query) {
         FilterContext filterContext = resolveFilterContext(query);
@@ -68,14 +73,16 @@ public class PaymentFlowFinanceService {
     }
 
     public PaymentFlowFinanceItemVO detail(Long id) {
-        if (id == null) {
-            return null;
-        }
         PaymentFlow paymentFlow = paymentFlowRepo.getById(id);
         if (paymentFlow == null || !Objects.equals(paymentFlow.getBizType(), PaymentFlowBizTypeEnum.LEASE_BILL.getCode())) {
             return null;
         }
-        return toItems(List.of(paymentFlow)).stream().findFirst().orElse(null);
+        PaymentFlowFinanceItemVO detail = toItems(List.of(paymentFlow)).stream().findFirst().orElse(null);
+        if (detail == null) {
+            return null;
+        }
+        detail.setFinanceFlowList(financeFlowService.getListByPaymentFlowId(id).stream().map(item -> BeanCopyUtils.copyBean(item, FinanceFlowVO.class)).toList());
+        return detail;
     }
 
     public PaymentFlowFinanceSummaryVO summary(PaymentFlowFinanceQueryDTO query) {
@@ -117,7 +124,7 @@ public class PaymentFlowFinanceService {
 
     private FilterContext resolveFilterContext(PaymentFlowFinanceQueryDTO query) {
         List<Long> tenantIds = null;
-        if (StrUtil.isNotBlank(query.getTenantName()) || StrUtil.isNotBlank(query.getTenantPhone())) {
+        if (CharSequenceUtil.isNotBlank(query.getTenantName()) || CharSequenceUtil.isNotBlank(query.getTenantPhone())) {
             tenantIds = tenantRepo.getTenantList(query.getTenantName(), query.getTenantPhone(), null).stream()
                 .map(Tenant::getId)
                 .distinct()
@@ -125,7 +132,7 @@ public class PaymentFlowFinanceService {
         }
 
         List<Long> leaseIds = null;
-        if (StrUtil.isNotBlank(query.getRoomKeyword())) {
+        if (CharSequenceUtil.isNotBlank(query.getRoomKeyword())) {
             RoomQueryDTO roomQueryDTO = new RoomQueryDTO();
             roomQueryDTO.setKeywords(query.getRoomKeyword());
             List<Long> roomIds = roomRepo.pageRoomGridList(roomQueryDTO).getRecords().stream()

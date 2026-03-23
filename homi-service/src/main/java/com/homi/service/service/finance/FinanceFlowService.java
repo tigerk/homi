@@ -32,6 +32,10 @@ public class FinanceFlowService {
         return financeFlowRepo.getListByBizIds(bizType, bizIds);
     }
 
+    public List<FinanceFlow> getListByPaymentFlowId(Long paymentFlowId) {
+        return financeFlowRepo.getListByPaymentFlowId(paymentFlowId);
+    }
+
     public boolean existsByBizIds(String bizType, List<Long> bizIds) {
         return financeFlowRepo.existsByBizIds(bizType, bizIds);
     }
