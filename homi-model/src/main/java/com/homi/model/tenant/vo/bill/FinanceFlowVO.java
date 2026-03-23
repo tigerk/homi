@@ -27,6 +27,12 @@ public class FinanceFlowVO implements Serializable {
     @Schema(description = "业务单据编号")
     private String bizNo;
 
+    @Schema(description = "费用类型")
+    private String feeType;
+
+    @Schema(description = "费用名称")
+    private String feeName;
+
     @Schema(description = "流水类型")
     private String flowType;
 

@@ -15,9 +15,11 @@ import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.entity.LeaseBill;
+import com.homi.model.dao.entity.LeaseBillFee;
 import com.homi.model.dao.entity.LeaseRoom;
 import com.homi.model.dao.entity.PaymentFlow;
 import com.homi.model.dao.entity.Tenant;
+import com.homi.model.dao.repo.LeaseBillFeeRepo;
 import com.homi.model.dao.repo.LeaseBillRepo;
 import com.homi.model.dao.repo.LeaseRepo;
 import com.homi.model.dao.repo.LeaseRoomRepo;
@@ -46,6 +48,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PaymentFlowFinanceService {
     private final PaymentFlowRepo paymentFlowRepo;
+    private final LeaseBillFeeRepo leaseBillFeeRepo;
     private final LeaseBillRepo leaseBillRepo;
     private final LeaseRepo leaseRepo;
     private final LeaseRoomRepo leaseRoomRepo;
@@ -81,7 +84,22 @@ public class PaymentFlowFinanceService {
         if (detail == null) {
             return null;
         }
-        detail.setFinanceFlowList(financeFlowService.getListByPaymentFlowId(id).stream().map(item -> BeanCopyUtils.copyBean(item, FinanceFlowVO.class)).toList());
+        List<com.homi.model.dao.entity.FinanceFlow> financeFlows = financeFlowService.getListByPaymentFlowId(id);
+        Map<Long, LeaseBillFee> feeMap = leaseBillFeeRepo.getByIds(financeFlows.stream()
+                .map(com.homi.model.dao.entity.FinanceFlow::getBizId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList()).stream()
+            .collect(Collectors.toMap(LeaseBillFee::getId, item -> item));
+        detail.setFinanceFlowList(financeFlows.stream().map(item -> {
+            FinanceFlowVO vo = BeanCopyUtils.copyBean(item, FinanceFlowVO.class);
+            LeaseBillFee fee = feeMap.get(item.getBizId());
+            if (fee != null) {
+                vo.setFeeType(fee.getFeeType());
+                vo.setFeeName(fee.getFeeName());
+            }
+            return vo;
+        }).toList());
         return detail;
     }
 
