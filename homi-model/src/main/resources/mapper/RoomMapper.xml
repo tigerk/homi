@@ -144,6 +144,16 @@
             and h.lease_mode = #{query.leaseMode,jdbcType=INTEGER}
         </if>
 
+        <if test="query.vacancyDaysMin != null">
+            and r.vacancy_start_time is not null
+            and DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) <![CDATA[ >= ]]> #{query.vacancyDaysMin,jdbcType=INTEGER}
+        </if>
+
+        <if test="query.vacancyDaysMax != null">
+            and r.vacancy_start_time is not null
+            and DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) <![CDATA[ <= ]]> #{query.vacancyDaysMax,jdbcType=INTEGER}
+        </if>
+
         <if test="query.spatialQuery != null and query.spatialQuery.size > 0">
             AND (
             <foreach collection="query.spatialQuery" item="item" separator="OR">

@@ -43,4 +43,10 @@ public class RoomQueryDTO extends PageDTO {
 
     @Schema(description = "关闭状态：true=只查已关闭房间。优先级高于 locked 和 occupancyStatus")
     private Boolean closed;
+
+    @Schema(description = "空置天数最小值")
+    private Integer vacancyDaysMin;
+
+    @Schema(description = "空置天数最大值")
+    private Integer vacancyDaysMax;
 }

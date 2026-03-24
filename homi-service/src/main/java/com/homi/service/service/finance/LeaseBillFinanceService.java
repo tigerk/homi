@@ -197,6 +197,9 @@ public class LeaseBillFinanceService {
 
     private FilterContext resolveFilterContext(LeaseBillFinanceQueryDTO query) {
         List<Long> tenantIds = null;
+        if (query.getTenantId() != null) {
+            tenantIds = List.of(query.getTenantId());
+        }
         if (StrUtil.isNotBlank(query.getTenantName()) || StrUtil.isNotBlank(query.getTenantPhone())) {
             tenantIds = tenantRepo.getTenantList(query.getTenantName(), query.getTenantPhone(), null).stream()
                 .map(Tenant::getId)
@@ -233,6 +236,13 @@ public class LeaseBillFinanceService {
         if (Boolean.TRUE.equals(query.getOverdueOnly())) {
             wrapper.ne(LeaseBill::getPayStatus, PayStatusEnum.PAID.getCode());
             wrapper.lt(LeaseBill::getDueDate, DateUtil.beginOfDay(new Date()));
+        }
+        if (query.getDueWithinDays() != null && query.getDueWithinDays() > 0) {
+            Date today = DateUtil.beginOfDay(new Date());
+            Date endDate = DateUtil.endOfDay(DateUtil.offsetDay(today, query.getDueWithinDays()));
+            wrapper.ne(LeaseBill::getPayStatus, PayStatusEnum.PAID.getCode());
+            wrapper.ge(LeaseBill::getDueDate, today);
+            wrapper.le(LeaseBill::getDueDate, endDate);
         }
         if (CollUtil.isNotEmpty(filterContext.tenantIds())) {
             wrapper.in(LeaseBill::getTenantId, filterContext.tenantIds());

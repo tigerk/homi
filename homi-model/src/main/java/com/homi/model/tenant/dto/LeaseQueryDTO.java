@@ -35,4 +35,7 @@ public class LeaseQueryDTO extends PageDTO {
 
     @Schema(description = "房间ID", example = "1")
     private Long roomId;
+
+    @Schema(description = "N天内到期合同", example = "7")
+    private Integer expiringDaysWithin;
 }

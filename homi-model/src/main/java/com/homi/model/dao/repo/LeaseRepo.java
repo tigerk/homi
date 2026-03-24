@@ -1,6 +1,7 @@
 package com.homi.model.dao.repo;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -26,6 +27,11 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
         LambdaQueryWrapper<Lease> wrapper = new LambdaQueryWrapper<>();
         if (query.getStatus() != null) {
             wrapper.eq(Lease::getStatus, query.getStatus());
+        }
+
+        if (query.getExpiringDaysWithin() != null && query.getExpiringDaysWithin() > 0) {
+            wrapper.ge(Lease::getLeaseEnd, DateUtil.beginOfDay(new Date()));
+            wrapper.le(Lease::getLeaseEnd, DateUtil.endOfDay(DateUtil.offsetDay(new Date(), query.getExpiringDaysWithin())));
         }
 
         if (CollUtil.isNotEmpty(tenantIds)) {
