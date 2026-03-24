@@ -12,12 +12,9 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.tenant.dto.*;
 import com.homi.model.tenant.vo.*;
-import com.homi.model.tenant.vo.bill.LeaseBillListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
-import com.homi.service.service.lease.bill.LeaseBillService;
 import com.homi.service.service.lease.LeaseContractService;
 import com.homi.service.service.lease.LeaseService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -49,7 +45,6 @@ import java.util.List;
 @RequestMapping("/saas/contract/lease")
 public class LeaseController {
     private final LeaseService leaseService;
-    private final LeaseBillService leaseBillService;
     private final LeaseContractService leaseContractService;
 
     @PostMapping("/create")
@@ -102,65 +97,6 @@ public class LeaseController {
     @Schema(description = "根据租约ID查询租约详情，不包含租客账单其他费用")
     public ResponseResult<LeaseDetailVO> getTenantDetail(@RequestBody LeaseQueryDTO query) {
         return ResponseResult.ok(leaseService.getLeaseDetailById(query.getLeaseId()));
-    }
-
-    @PostMapping("/bill/list")
-    @Operation(summary = "根据租客ID查询租客账单列表")
-    public ResponseResult<List<LeaseBillListVO>> getBillList(@RequestBody LeaseQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.FALSE));
-    }
-
-    /**
-     * 根据租客ID查询租客无效账单列表
-     *
-     * @param queryDTO  查询参数
-     * @param loginUser 登录用户
-     * @return 历史账单列表VO
-     */
-    @PostMapping("/bill/invalid/list")
-    @Operation(summary = "根据租客ID查询租客历史账单列表")
-    public ResponseResult<List<LeaseBillListVO>> getBillInvalidList(@RequestBody LeaseQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.TRUE));
-    }
-
-    @PostMapping("/bill/detail")
-    @Operation(summary = "根据账单ID查询账单详情")
-    public ResponseResult<LeaseBillListVO> getBillDetail(@RequestBody LeaseBillDetailDTO queryDTO) {
-        return ResponseResult.ok(leaseBillService.getBillDetailById(queryDTO.getBillId()));
-    }
-
-    @PostMapping("/bill/update")
-    @Operation(summary = "更新租客账单")
-    public ResponseResult<Boolean> updateBill(@RequestBody LeaseBillUpdateDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(leaseBillService.updateBill(updateDTO, loginUser.getId()));
-    }
-
-    @PostMapping("/bill/collect")
-    @Operation(summary = "租客账单收款")
-    public ResponseResult<Boolean> collectBill(@RequestBody LeaseBillCollectDTO collectDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        if (collectDTO == null || collectDTO.getId() == null) {
-            throw new BizException(ResponseCodeEnum.PARAM_ERROR);
-        }
-
-        if (collectDTO.getTotalAmount() == null || collectDTO.getTotalAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BizException(ResponseCodeEnum.PARAM_ERROR);
-        }
-        if (collectDTO.getItems() == null || collectDTO.getItems().isEmpty()) {
-            throw new BizException(ResponseCodeEnum.PARAM_ERROR);
-        }
-
-        collectDTO.setUpdateBy(loginUser.getId());
-        return ResponseResult.ok(leaseBillService.collectBill(collectDTO));
-    }
-
-    @PostMapping("/bill/void")
-    @Operation(summary = "作废租客账单")
-    public ResponseResult<Boolean> voidBill(@RequestBody LeaseBillVoidDTO voidDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        if (voidDTO == null || voidDTO.getBillId() == null) {
-            throw new BizException(ResponseCodeEnum.PARAM_ERROR);
-        }
-        voidDTO.setUpdateBy(loginUser.getId());
-        return ResponseResult.ok(leaseBillService.voidBill(voidDTO));
     }
 
     @PostMapping(value = "/contract/download")
