@@ -3,8 +3,10 @@ package com.homi.model.dao.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dashboard.vo.WelcomeOverdueBucketVO;
+import com.homi.model.dashboard.vo.WelcomeOverdueTenantVO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -18,4 +20,8 @@ import java.util.List;
 @Mapper
 public interface LeaseBillMapper extends BaseMapper<LeaseBill> {
     List<WelcomeOverdueBucketVO> selectWelcomeOverdueBuckets();
+
+    BigDecimal selectNext7DaysReceivableAmount();
+
+    List<WelcomeOverdueTenantVO> selectWelcomeOverdueTenantTopList();
 }

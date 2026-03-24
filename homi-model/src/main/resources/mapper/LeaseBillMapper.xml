@@ -25,4 +25,34 @@
                      ELSE 'overdue_gt_14'
             END
     </select>
+
+    <select id="selectNext7DaysReceivableAmount" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(unpaid_amount), 0)
+        FROM lease_bill
+        WHERE valid = 1
+          AND deleted = 0
+          AND unpaid_amount <![CDATA[ > ]]> 0
+          AND pay_status IN (0, 1)
+          AND due_date IS NOT NULL
+          AND due_date <![CDATA[ >= ]]> CURDATE()
+          AND due_date <![CDATA[ <= ]]> DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+    </select>
+
+    <select id="selectWelcomeOverdueTenantTopList" resultType="com.homi.model.dashboard.vo.WelcomeOverdueTenantVO">
+        SELECT lb.tenant_id    AS tenantId,
+               t.tenant_name   AS tenantName,
+               t.tenant_phone  AS tenantPhone,
+               SUM(lb.unpaid_amount) AS unpaidAmount
+        FROM lease_bill lb
+                 LEFT JOIN tenant t ON t.id = lb.tenant_id
+        WHERE lb.valid = 1
+          AND lb.deleted = 0
+          AND lb.unpaid_amount <![CDATA[ > ]]> 0
+          AND lb.pay_status IN (0, 1)
+          AND lb.due_date IS NOT NULL
+          AND lb.due_date <![CDATA[ < ]]> CURDATE()
+        GROUP BY lb.tenant_id, t.tenant_name, t.tenant_phone
+        ORDER BY unpaidAmount DESC
+        LIMIT 5
+    </select>
 </mapper>

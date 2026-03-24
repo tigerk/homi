@@ -10,6 +10,7 @@ import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.entity.Room;
 import com.homi.model.dao.mapper.RoomMapper;
+import com.homi.model.dashboard.vo.WelcomeCountBucketVO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.room.vo.grid.RoomAggregatedVO;
@@ -160,5 +161,9 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
 
     public Integer countByClosed(RoomQueryDTO query) {
         return getBaseMapper().countByClosed(query);
+    }
+
+    public List<WelcomeCountBucketVO> getWelcomeVacancyBuckets(Integer leaseMode) {
+        return getBaseMapper().selectWelcomeVacancyBuckets(leaseMode);
     }
 }

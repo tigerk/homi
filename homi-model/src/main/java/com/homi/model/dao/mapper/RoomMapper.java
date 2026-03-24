@@ -7,6 +7,7 @@ import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.room.vo.RoomOccupancyStatusTotalVO;
 import com.homi.model.room.vo.grid.RoomAggregatedVO;
+import com.homi.model.dashboard.vo.WelcomeCountBucketVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -60,4 +61,6 @@ public interface RoomMapper extends BaseMapper<Room> {
     Integer countByLocked(@Param("query") RoomQueryDTO query);
 
     Integer countByClosed(@Param("query") RoomQueryDTO query);
+
+    List<WelcomeCountBucketVO> selectWelcomeVacancyBuckets(@Param("leaseMode") Integer leaseMode);
 }

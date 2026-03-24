@@ -199,4 +199,28 @@
           AND r.deleted = 0
         <include refid="roomListQuery"/>
     </select>
+
+    <select id="selectWelcomeVacancyBuckets" resultType="com.homi.model.dashboard.vo.WelcomeCountBucketVO">
+        SELECT CASE
+                   WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) BETWEEN 0 AND 7 THEN 'vacancy_1_7'
+                   WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) BETWEEN 8 AND 15 THEN 'vacancy_8_15'
+                   ELSE 'vacancy_gt_15'
+                   END                                                 AS `key`,
+               COUNT(*)                                                 AS `count`
+        FROM room r
+                 LEFT JOIN house h ON r.house_id = h.id
+        WHERE r.deleted = 0
+          AND r.occupancy_status = 0
+          AND IFNULL(r.closed, 0) = 0
+          AND IFNULL(r.locked, 0) = 0
+          AND r.vacancy_start_time IS NOT NULL
+          <if test="leaseMode != null">
+              AND h.lease_mode = #{leaseMode}
+          </if>
+        GROUP BY CASE
+                     WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) BETWEEN 0 AND 7 THEN 'vacancy_1_7'
+                     WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) BETWEEN 8 AND 15 THEN 'vacancy_8_15'
+                     ELSE 'vacancy_gt_15'
+            END
+    </select>
 </mapper>

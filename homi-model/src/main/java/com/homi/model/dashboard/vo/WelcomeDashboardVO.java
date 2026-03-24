@@ -23,6 +23,15 @@ public class WelcomeDashboardVO {
     @Schema(description = "租客逾期欠款分桶")
     private List<WelcomeOverdueBucketVO> overdueBuckets;
 
+    @Schema(description = "空置时长分布")
+    private List<WelcomeCountBucketVO> vacancyBuckets;
+
+    @Schema(description = "合同与应收预警")
+    private WelcomeContractWarningVO contractWarning;
+
+    @Schema(description = "逾期租客Top5")
+    private List<WelcomeOverdueTenantVO> overdueTenantTopList;
+
     @Schema(description = "租客统计")
     private WelcomeTenantStatsVO tenantStats;
 }

@@ -6,8 +6,10 @@ import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.mapper.LeaseBillMapper;
 import com.homi.model.dashboard.vo.WelcomeOverdueBucketVO;
+import com.homi.model.dashboard.vo.WelcomeOverdueTenantVO;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -89,5 +91,13 @@ public class LeaseBillRepo extends ServiceImpl<LeaseBillMapper, LeaseBill> {
 
     public List<WelcomeOverdueBucketVO> getWelcomeOverdueBuckets() {
         return getBaseMapper().selectWelcomeOverdueBuckets();
+    }
+
+    public BigDecimal getNext7DaysReceivableAmount() {
+        return getBaseMapper().selectNext7DaysReceivableAmount();
+    }
+
+    public List<WelcomeOverdueTenantVO> getWelcomeOverdueTenantTopList() {
+        return getBaseMapper().selectWelcomeOverdueTenantTopList();
     }
 }

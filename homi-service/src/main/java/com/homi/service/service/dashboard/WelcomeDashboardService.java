@@ -24,8 +24,11 @@ import com.homi.model.dao.repo.PaymentFlowRepo;
 import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.dao.repo.SysNoticeRepo;
 import com.homi.model.dashboard.vo.WelcomeDashboardVO;
+import com.homi.model.dashboard.vo.WelcomeCountBucketVO;
+import com.homi.model.dashboard.vo.WelcomeContractWarningVO;
 import com.homi.model.dashboard.vo.WelcomeNoticeVO;
 import com.homi.model.dashboard.vo.WelcomeOverdueBucketVO;
+import com.homi.model.dashboard.vo.WelcomeOverdueTenantVO;
 import com.homi.model.dashboard.vo.WelcomePeriodAmountVO;
 import com.homi.model.dashboard.vo.WelcomeRoomOverviewVO;
 import com.homi.model.dashboard.vo.WelcomeTenantStatsVO;
@@ -75,6 +78,9 @@ public class WelcomeDashboardService {
             buildRoomOverview(ROOM_MODE_FOCUS, "集中式")
         ));
         summary.setOverdueBuckets(buildOverdueBuckets());
+        summary.setVacancyBuckets(buildVacancyBuckets(null));
+        summary.setContractWarning(buildContractWarning());
+        summary.setOverdueTenantTopList(buildOverdueTenantTopList());
         summary.setTenantStats(buildTenantStats());
         return summary;
     }
@@ -237,6 +243,49 @@ public class WelcomeDashboardService {
         bucket.setLabel(label);
         bucket.setAmount(bucketAmountMap.getOrDefault(key, BigDecimal.ZERO));
         return bucket;
+    }
+
+    private List<WelcomeCountBucketVO> buildVacancyBuckets(Integer leaseMode) {
+        Map<String, Integer> bucketCountMap = roomRepo.getWelcomeVacancyBuckets(leaseMode).stream()
+            .collect(Collectors.toMap(WelcomeCountBucketVO::getKey, item -> ObjectUtil.defaultIfNull(item.getCount(), 0), Integer::sum));
+        return List.of(
+            buildVacancyBucket("vacancy_1_7", "1-7 天", bucketCountMap),
+            buildVacancyBucket("vacancy_8_15", "8-15 天", bucketCountMap),
+            buildVacancyBucket("vacancy_gt_15", "15 天以上", bucketCountMap)
+        );
+    }
+
+    private WelcomeCountBucketVO buildVacancyBucket(String key, String label, Map<String, Integer> bucketCountMap) {
+        WelcomeCountBucketVO bucket = new WelcomeCountBucketVO();
+        bucket.setKey(key);
+        bucket.setLabel(label);
+        bucket.setCount(bucketCountMap.getOrDefault(key, 0));
+        return bucket;
+    }
+
+    private WelcomeContractWarningVO buildContractWarning() {
+        Date today = DateUtil.beginOfDay(new Date());
+        Date day7 = DateUtil.endOfDay(DateUtil.offsetDay(today, 7));
+        Date day30 = DateUtil.endOfDay(DateUtil.offsetDay(today, 30));
+        List<Lease> effectiveLeases = leaseRepo.list(new LambdaQueryWrapper<Lease>()
+            .eq(Lease::getStatus, LeaseStatusEnum.EFFECTIVE.getCode())
+            .isNotNull(Lease::getLeaseEnd));
+
+        WelcomeContractWarningVO warning = new WelcomeContractWarningVO();
+        warning.setNext7DaysReceivableAmount(ObjectUtil.defaultIfNull(leaseBillRepo.getNext7DaysReceivableAmount(), BigDecimal.ZERO));
+        warning.setExpiring7DaysCount((int) effectiveLeases.stream()
+            .filter(item -> isInRange(item.getLeaseEnd(), today, day7))
+            .count());
+        warning.setExpiring30DaysCount((int) effectiveLeases.stream()
+            .filter(item -> isInRange(item.getLeaseEnd(), today, day30))
+            .count());
+        return warning;
+    }
+
+    private List<WelcomeOverdueTenantVO> buildOverdueTenantTopList() {
+        return leaseBillRepo.getWelcomeOverdueTenantTopList().stream()
+            .peek(item -> item.setUnpaidAmount(ObjectUtil.defaultIfNull(item.getUnpaidAmount(), BigDecimal.ZERO)))
+            .toList();
     }
 
     private WelcomeTenantStatsVO buildTenantStats() {
