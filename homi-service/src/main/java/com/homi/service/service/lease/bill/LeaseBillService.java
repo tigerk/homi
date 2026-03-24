@@ -208,9 +208,6 @@ public class LeaseBillService {
      */
     @Transactional(rollbackFor = Exception.class)
     public boolean voidBill(LeaseBillVoidDTO dto) {
-        if (dto == null || dto.getBillId() == null || CharSequenceUtil.isBlank(dto.getVoidReason())) {
-            throw new BizException("作废原因不能为空");
-        }
         LeaseBill bill = leaseBillRepo.getByIdForUpdate(dto.getBillId());
         if (bill == null) {
             return false;

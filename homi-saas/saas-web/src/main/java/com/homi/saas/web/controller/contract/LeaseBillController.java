@@ -1,5 +1,6 @@
 package com.homi.saas.web.controller.contract;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
@@ -82,6 +83,11 @@ public class LeaseBillController {
         if (voidDTO == null || voidDTO.getBillId() == null) {
             throw new BizException(ResponseCodeEnum.PARAM_ERROR);
         }
+
+        if (CharSequenceUtil.isBlank(voidDTO.getVoidReason())) {
+            throw new BizException("作废原因不能为空");
+        }
+
         voidDTO.setUpdateBy(loginUser.getId());
         return ResponseResult.ok(leaseBillService.voidBill(voidDTO));
     }
