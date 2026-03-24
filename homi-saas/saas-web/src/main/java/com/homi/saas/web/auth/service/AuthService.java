@@ -16,6 +16,7 @@ import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
+import com.homi.model.company.dto.CompanyCreateDTO;
 import com.homi.model.company.dto.UserCompanyListDTO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.mapper.RoleMapper;
@@ -25,9 +26,11 @@ import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.menu.vo.AsyncRoutesVO;
 import com.homi.saas.web.auth.dto.account.UserProfileUpdateDTO;
 import com.homi.saas.web.auth.dto.login.LoginDTO;
+import com.homi.saas.web.auth.dto.login.UserRegisterDTO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.company.CompanyPackageService;
+import com.homi.service.service.company.CompanyService;
 import com.homi.service.service.company.CompanyUserService;
 import com.homi.service.service.sys.MenuService;
 import com.homi.service.service.sys.RoleService;
@@ -62,6 +65,7 @@ public class AuthService {
     private final RoleService roleService;
     private final UserService userService;
     private final CompanyPackageService companyPackageService;
+    private final CompanyService companyService;
     private final CompanyUserService companyUserService;
 
     private final StringRedisTemplate stringRedisTemplate;
@@ -346,6 +350,33 @@ public class AuthService {
         user.setPassword(password);
         userService.resetPassword(user);
 
+        return true;
+    }
+
+    public Boolean register(UserRegisterDTO registerDTO) {
+        User existUser = userRepo.getUserByUserNameOrPhone(registerDTO.getPhone(), registerDTO.getPhone());
+        if (existUser != null) {
+            throw new BizException("该手机号已注册，请直接登录");
+        }
+
+        CompanyPackage defaultRegisterPackage = companyPackageService.getDefaultRegisterPackage();
+
+        CompanyCreateDTO createDTO = new CompanyCreateDTO();
+        createDTO.setName(registerDTO.getCompanyName());
+        createDTO.setAbbr(registerDTO.getCompanyAbbr());
+        createDTO.setLegalPerson(registerDTO.getLegalPerson());
+        createDTO.setContactName(registerDTO.getContactName());
+        createDTO.setContactPhone(registerDTO.getPhone());
+        createDTO.setAdminPhone(registerDTO.getPhone());
+        createDTO.setAdminPassword(registerDTO.getPassword());
+        createDTO.setNature(registerDTO.getNature());
+        createDTO.setPackageId(defaultRegisterPackage.getId());
+        createDTO.setHouseCount(defaultRegisterPackage.getHouseCount());
+        createDTO.setStatus(StatusEnum.ACTIVE.getValue());
+        createDTO.setCreateTime(DateUtil.date());
+        createDTO.setUpdateTime(DateUtil.date());
+
+        companyService.createCompany(createDTO);
         return true;
     }
 

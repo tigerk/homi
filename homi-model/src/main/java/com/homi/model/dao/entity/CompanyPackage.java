@@ -55,6 +55,10 @@ public class CompanyPackage implements Serializable {
     @TableField("house_count")
     private Integer houseCount;
 
+    @Schema(description = "是否为注册默认套餐")
+    @TableField("register_default")
+    private Integer registerDefault;
+
     @Schema(description = "状态（0正常，-1禁用）")
     @TableField("status")
     private Integer status;

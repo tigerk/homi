@@ -3,6 +3,7 @@ package com.homi.service.service.company;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.StatusEnum;
@@ -80,8 +81,13 @@ public class CompanyPackageService {
         CompanyPackage companyPackage = BeanCopyUtils.copyBean(createDTO, CompanyPackage.class);
 
         companyPackage.setPackageMenus(JSONUtil.toJsonStr(createDTO.getPackageMenus()));
+        companyPackage.setRegisterDefault(Objects.equals(createDTO.getRegisterDefault(), 1) ? 1 : 0);
 
         companyPackageRepo.save(companyPackage);
+
+        if (Objects.equals(createDTO.getRegisterDefault(), 1)) {
+            setRegisterDefault(companyPackage.getId());
+        }
 
         return true;
     }
@@ -100,11 +106,16 @@ public class CompanyPackageService {
         companyPackage.setMonthPrice(createDTO.getMonthPrice());
         companyPackage.setYearPrice(createDTO.getYearPrice());
         companyPackage.setHouseCount(createDTO.getHouseCount());
+        companyPackage.setRegisterDefault(Objects.equals(createDTO.getRegisterDefault(), 1) ? 1 : 0);
         companyPackage.setRemark(createDTO.getRemark());
         companyPackage.setUpdateBy(createDTO.getUpdateBy());
         companyPackage.setUpdateTime(createDTO.getUpdateTime());
 
         companyPackageRepo.updateById(companyPackage);
+
+        if (Objects.equals(createDTO.getRegisterDefault(), 1)) {
+            setRegisterDefault(companyPackage.getId());
+        }
 
         return true;
     }
@@ -156,5 +167,31 @@ public class CompanyPackageService {
         return companyPackageRepo.list(queryWrapper).stream()
             .map(companyPackage -> new IdNameVO(companyPackage.getId(), companyPackage.getName()))
             .toList();
+    }
+
+    public CompanyPackage getDefaultRegisterPackage() {
+        CompanyPackage companyPackage = companyPackageRepo.getOne(new LambdaQueryWrapper<CompanyPackage>()
+            .eq(CompanyPackage::getStatus, StatusEnum.ACTIVE.getValue())
+            .eq(CompanyPackage::getRegisterDefault, 1)
+            .last("limit 1"));
+        if (companyPackage != null) {
+            return companyPackage;
+        }
+
+        companyPackage = companyPackageRepo.getById(1L);
+        if (companyPackage == null || !Objects.equals(companyPackage.getStatus(), StatusEnum.ACTIVE.getValue())) {
+            throw new BizException("未配置可用的注册默认套餐");
+        }
+        return companyPackage;
+    }
+
+    private void setRegisterDefault(Long packageId) {
+        companyPackageRepo.update(new LambdaUpdateWrapper<CompanyPackage>()
+            .set(CompanyPackage::getRegisterDefault, 0)
+            .ne(CompanyPackage::getId, packageId));
+
+        companyPackageRepo.update(new LambdaUpdateWrapper<CompanyPackage>()
+            .set(CompanyPackage::getRegisterDefault, 1)
+            .eq(CompanyPackage::getId, packageId));
     }
 }

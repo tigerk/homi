@@ -43,7 +43,8 @@ public class UserRepo extends ServiceImpl<UserMapper, User> {
 
         user = new User();
         user.setUsername(phone);
-        user.setNickname(DesensitizedUtil.mobilePhone(phone));
+        user.setNickname(CharSequenceUtil.blankToDefault(createDTO.getName(), DesensitizedUtil.mobilePhone(phone)));
+        user.setRealName(CharSequenceUtil.blankToDefault(createDTO.getContactName(), createDTO.getLegalPerson()));
         user.setPhone(phone);
         user.setAvatar(defaultAvatar);
         user.setStatus(StatusEnum.ACTIVE.getValue());

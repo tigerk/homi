@@ -230,6 +230,21 @@ public class LoginController {
         return ResponseResult.ok(authService.updateUserPassword(loginUpdate.getPhone(), loginUpdate.getPassword()));
     }
 
+    @PostMapping("/saas/register")
+    @Log(title = "注册账号", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<Boolean> register(@Valid @RequestBody UserRegisterDTO registerDTO) {
+        String verifyCode = redisTemplate.opsForValue().get(RedisKey.SMS_CODE.format(registerDTO.getPhone()));
+        if (verifyCode == null) {
+            throw new BizException("请先发送验证码");
+        }
+
+        if (!registerDTO.getVerificationCode().equals(verifyCode)) {
+            throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
+        }
+
+        return ResponseResult.ok(authService.register(registerDTO));
+    }
+
     /**
      * 获取当前账户的个人信息
      * <p>

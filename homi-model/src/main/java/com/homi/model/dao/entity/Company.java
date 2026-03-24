@@ -94,6 +94,10 @@ public class Company implements Serializable {
     @TableField("package_id")
     private Long packageId;
 
+    @Schema(description = "房源数量")
+    @TableField("house_count")
+    private Integer houseCount;
+
     @Schema(description = "状态（1正常，0禁用）")
     @TableField("status")
     private Integer status;

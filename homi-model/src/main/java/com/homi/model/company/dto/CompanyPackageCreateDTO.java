@@ -31,6 +31,9 @@ public class CompanyPackageCreateDTO {
     @NotNull(message = "房源数量不能为空")
     private Integer houseCount;
 
+    @Schema(description = "是否为注册默认套餐：1是 0否")
+    private Integer registerDefault;
+
     @Schema(description = "状态")
     private Integer status;
 

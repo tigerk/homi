@@ -40,6 +40,9 @@ public class CompanyPackageVO {
     @Schema(description = "套餐可配置的房屋数量")
     private Integer houseCount;
 
+    @Schema(description = "是否为注册默认套餐：1是 0否")
+    private Integer registerDefault;
+
     /**
      * 关联菜单id
      */
