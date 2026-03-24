@@ -107,7 +107,7 @@ public class LeaseController {
     @PostMapping("/bill/list")
     @Operation(summary = "根据租客ID查询租客账单列表")
     public ResponseResult<List<LeaseBillListVO>> getBillList(@RequestBody LeaseQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.TRUE));
+        return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.FALSE));
     }
 
     /**
@@ -118,9 +118,9 @@ public class LeaseController {
      * @return 历史账单列表VO
      */
     @PostMapping("/bill/invalid/list")
-    @Operation(summary = "根据租客ID查询租客无效账单列表")
+    @Operation(summary = "根据租客ID查询租客历史账单列表")
     public ResponseResult<List<LeaseBillListVO>> getBillInvalidList(@RequestBody LeaseQueryDTO queryDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.FALSE));
+        return ResponseResult.ok(leaseBillService.getBillListByLeaseId(queryDTO.getLeaseId(), Boolean.TRUE));
     }
 
     @PostMapping("/bill/detail")
@@ -151,6 +151,16 @@ public class LeaseController {
 
         collectDTO.setUpdateBy(loginUser.getId());
         return ResponseResult.ok(leaseBillService.collectBill(collectDTO));
+    }
+
+    @PostMapping("/bill/void")
+    @Operation(summary = "作废租客账单")
+    public ResponseResult<Boolean> voidBill(@RequestBody LeaseBillVoidDTO voidDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        if (voidDTO == null || voidDTO.getBillId() == null) {
+            throw new BizException(ResponseCodeEnum.PARAM_ERROR);
+        }
+        voidDTO.setUpdateBy(loginUser.getId());
+        return ResponseResult.ok(leaseBillService.voidBill(voidDTO));
     }
 
     @PostMapping(value = "/contract/download")

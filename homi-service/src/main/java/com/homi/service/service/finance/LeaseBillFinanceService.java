@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
+import com.homi.common.lib.enums.lease.LeaseBillStatusEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.common.lib.utils.TimeUtils;
@@ -229,7 +230,8 @@ public class LeaseBillFinanceService {
 
     private LambdaQueryWrapper<LeaseBill> buildBillWrapper(LeaseBillFinanceQueryDTO query, FilterContext filterContext) {
         LambdaQueryWrapper<LeaseBill> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(LeaseBill::getValid, true);
+        wrapper.eq(LeaseBill::getHistorical, false);
+        wrapper.eq(LeaseBill::getStatus, LeaseBillStatusEnum.NORMAL.getCode());
         if (query.getPayStatus() != null) {
             wrapper.eq(LeaseBill::getPayStatus, query.getPayStatus());
         }

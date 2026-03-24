@@ -439,8 +439,8 @@ public class LeaseService {
         List<TenantMateVO> tenantMateListByTenantId = tenantMateService.getTenantMateListByTenantId(tenant.getId());
         leaseDetailVO.setTenantMateList(tenantMateListByTenantId);
 
-        leaseDetailVO.setLeaseBillList(leaseBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.TRUE));
-        leaseDetailVO.setLeaseInvalidBillList(leaseBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.FALSE));
+        leaseDetailVO.setLeaseBillList(leaseBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.FALSE));
+        leaseDetailVO.setLeaseHistoricalBillList(leaseBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.TRUE));
 
         return leaseDetailVO;
     }
@@ -925,7 +925,7 @@ public class LeaseService {
      */
     private void regenerateLeaseBill(Long leaseId, TenantCreateDTO createDTO) {
         // 1. 无效化租客未支付的账单
-        leaseBillGenService.invalidUnpaidLeaseBill(leaseId);
+        leaseBillGenService.historicalUnpaidLeaseBill(leaseId);
 
         // 2. 重新生成账单
         LeaseDTO leaseDTO = resolveLeaseDTO(createDTO);

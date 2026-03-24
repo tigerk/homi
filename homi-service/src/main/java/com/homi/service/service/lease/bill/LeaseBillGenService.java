@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.EnumUtil;
 import com.homi.common.lib.enums.pay.PayStatusEnum;
+import com.homi.common.lib.enums.lease.LeaseBillStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
@@ -355,6 +356,8 @@ public class LeaseBillGenService {
         bill.setRemark("第" + context.sortOrder + "期，共 " + context.actualMonths + " 月");
         bill.setSortOrder(context.sortOrder);
         bill.setBillType(LeaseBillTypeEnum.RENT.getCode());
+        bill.setStatus(LeaseBillStatusEnum.NORMAL.getCode());
+        bill.setHistorical(false);
         bill.setBillStart(DateUtil.date(context.currentStart));
         bill.setBillEnd(DateUtil.date(context.currentEnd));
         bill.setTotalAmount(context.periodRentAmount.add(context.periodOtherFeeAmount));
@@ -553,6 +556,8 @@ public class LeaseBillGenService {
         bill.setRemark(context.fee.getName() + " - 第" + context.periodNumber + "期，共 " + actualMonths + " 月");
         bill.setSortOrder(context.sortOrder);
         bill.setBillType(LeaseBillTypeEnum.OTHER_FEE.getCode());
+        bill.setStatus(LeaseBillStatusEnum.NORMAL.getCode());
+        bill.setHistorical(false);
         bill.setBillStart(context.periodStart);
         bill.setBillEnd(context.periodEnd);
         bill.setTotalAmount(feeAmount);
@@ -697,6 +702,8 @@ public class LeaseBillGenService {
         depositBill.setCompanyId(lease.getCompanyId());
         depositBill.setSortOrder(0);
         depositBill.setBillType(LeaseBillTypeEnum.DEPOSIT.getCode());
+        depositBill.setStatus(LeaseBillStatusEnum.NORMAL.getCode());
+        depositBill.setHistorical(false);
         depositBill.setBillStart(lease.getLeaseStart());
         depositBill.setBillEnd(lease.getLeaseEnd());
 
@@ -825,11 +832,11 @@ public class LeaseBillGenService {
      * @param leaseId 租约ID
      * @return 是否成功
      */
-    public boolean invalidUnpaidLeaseBill(Long leaseId) {
+    public boolean historicalUnpaidLeaseBill(Long leaseId) {
         return leaseBillRepo.lambdaUpdate()
             .eq(LeaseBill::getLeaseId, leaseId)
             .eq(LeaseBill::getPayStatus, PayStatusEnum.UNPAID.getCode())
-            .set(LeaseBill::getValid, false)
+            .set(LeaseBill::getHistorical, true)
             .update();
     }
 }

@@ -2,6 +2,7 @@ package com.homi.service.service.lease.bill;
 
 import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
+import com.homi.common.lib.enums.lease.LeaseBillStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.entity.LeaseBillFee;
@@ -35,7 +36,8 @@ public class DepositCarryOverService {
             .eq(LeaseBill::getLeaseId, oldLeaseId)
             .eq(LeaseBill::getBillType, LeaseBillTypeEnum.DEPOSIT.getCode())
             .eq(LeaseBill::getPayStatus, PayStatusEnum.PAID.getCode())
-            .eq(LeaseBill::getValid, true)
+            .eq(LeaseBill::getHistorical, false)
+            .eq(LeaseBill::getStatus, LeaseBillStatusEnum.NORMAL.getCode())
             .list();
 
         if (oldDepositBills.isEmpty()) {
@@ -65,7 +67,8 @@ public class DepositCarryOverService {
         carryOutBill.setDueDate(new Date());
         carryOutBill.setPayStatus(PayStatusEnum.PAID.getCode());
         carryOutBill.setRemark("押金结转至新租约");
-        carryOutBill.setValid(true);
+        carryOutBill.setStatus(LeaseBillStatusEnum.NORMAL.getCode());
+        carryOutBill.setHistorical(false);
         carryOutBill.setDeleted(false);
         carryOutBill.setCreateBy(newLease.getCreateBy());
         carryOutBill.setCreateTime(new Date());
@@ -87,7 +90,8 @@ public class DepositCarryOverService {
         carryInBill.setPayStatus(PayStatusEnum.PAID.getCode());
         carryInBill.setCarryOverFromBillId(oldDepositBills.get(0).getId());
         carryInBill.setRemark("从旧租约结转押金");
-        carryInBill.setValid(true);
+        carryInBill.setStatus(LeaseBillStatusEnum.NORMAL.getCode());
+        carryInBill.setHistorical(false);
         carryInBill.setDeleted(false);
         carryInBill.setCreateBy(newLease.getCreateBy());
         carryInBill.setCreateTime(new Date());
@@ -115,7 +119,8 @@ public class DepositCarryOverService {
             supplementBill.setDueDate(new Date());
             supplementBill.setPayStatus(PayStatusEnum.UNPAID.getCode());
             supplementBill.setRemark("续签押金补缴（差额）");
-            supplementBill.setValid(true);
+            supplementBill.setStatus(LeaseBillStatusEnum.NORMAL.getCode());
+            supplementBill.setHistorical(false);
             supplementBill.setDeleted(false);
             supplementBill.setCreateBy(newLease.getCreateBy());
             supplementBill.setCreateTime(new Date());

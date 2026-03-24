@@ -53,8 +53,8 @@ public class LeaseBillUpdateDTO {
     @Schema(description = "备注信息")
     private String remark;
 
-    @Schema(description = "是否有效")
-    private Boolean valid;
+    @Schema(description = "是否历史账单")
+    private Boolean historical;
 
     @Schema(description = "账单费用明细")
     private List<LeaseBillFeeDTO> feeList;

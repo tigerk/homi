@@ -156,8 +156,8 @@ public class LeaseDetailVO {
     @Schema(description = "租客账单列表")
     private List<LeaseBillListVO> leaseBillList;
 
-    @Schema(description = "租客无效账单列表")
-    private List<LeaseBillListVO> leaseInvalidBillList;
+    @Schema(description = "租客历史账单列表")
+    private List<LeaseBillListVO> leaseHistoricalBillList;
 
     @Schema(description = "租客同住人列表")
     private List<TenantMateVO> tenantMateList;

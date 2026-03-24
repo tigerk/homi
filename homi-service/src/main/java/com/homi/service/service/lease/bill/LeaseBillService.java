@@ -12,6 +12,7 @@ import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowStatusEnum;
+import com.homi.common.lib.enums.lease.LeaseBillStatusEnum;
 import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
@@ -20,6 +21,7 @@ import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.tenant.dto.LeaseBillCollectDTO;
 import com.homi.model.tenant.dto.LeaseBillFeeDTO;
+import com.homi.model.tenant.dto.LeaseBillVoidDTO;
 import com.homi.model.tenant.dto.LeaseBillUpdateDTO;
 import com.homi.model.tenant.vo.bill.FinanceFlowVO;
 import com.homi.model.tenant.vo.bill.LeaseBillFeeVO;
@@ -87,8 +89,8 @@ public class LeaseBillService {
     /**
      * 根据租约查询账单列表，并挂载账单费用明细。
      */
-    public List<LeaseBillListVO> getBillListByLeaseId(Long leaseId, Boolean valid) {
-        List<LeaseBill> bills = leaseBillRepo.getBillListByLeaseId(leaseId, valid);
+    public List<LeaseBillListVO> getBillListByLeaseId(Long leaseId, Boolean historical) {
+        List<LeaseBill> bills = leaseBillRepo.getBillListByLeaseId(leaseId, historical);
         if (bills.isEmpty()) {
             return List.of();
         }
@@ -140,8 +142,8 @@ public class LeaseBillService {
 
         DateTime now = DateUtil.date();
         BeanUtil.copyProperties(dto, bill, CopyOptions.create().setIgnoreNullValue(true));
-        if (dto.getValid() != null) {
-            bill.setValid(dto.getValid());
+        if (dto.getHistorical() != null) {
+            bill.setHistorical(dto.getHistorical());
         }
 
         // 未传费用列表时，仅更新账单基础信息
@@ -179,7 +181,10 @@ public class LeaseBillService {
         }
         LeaseBill bill = leaseBillRepo.getByIdForUpdate(dto.getId());
         Map<Long, LeaseBillFee> feeMap = getCollectFeeMap(dto);
-        if (bill == null || feeMap.isEmpty() || billCalculator.validateCollectItems(dto, bill, feeMap)) {
+        if (bill == null
+            || !Objects.equals(bill.getStatus(), LeaseBillStatusEnum.NORMAL.getCode())
+            || feeMap.isEmpty()
+            || billCalculator.validateCollectItems(dto, bill, feeMap)) {
             return false;
         }
 
@@ -193,6 +198,38 @@ public class LeaseBillService {
         PaymentFlow paymentFlow = createPendingApprovalPaymentFlow(
             dto, bill, payerInfo, operatorName, payTime, billSummary, now);
         submitPaymentApproval(dto, bill, payerInfo, paymentFlow, billSummary, now);
+        return true;
+    }
+
+    /**
+     * 作废账单。
+     *
+     * <p>仅允许未支付且处于正常状态的账单作废。作废后账单不再允许编辑、收款或参与正常账单列表。
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean voidBill(LeaseBillVoidDTO dto) {
+        if (dto == null || dto.getBillId() == null || CharSequenceUtil.isBlank(dto.getVoidReason())) {
+            throw new BizException("作废原因不能为空");
+        }
+        LeaseBill bill = leaseBillRepo.getByIdForUpdate(dto.getBillId());
+        if (bill == null) {
+            return false;
+        }
+        if (!Objects.equals(bill.getStatus(), LeaseBillStatusEnum.NORMAL.getCode())) {
+            throw new BizException("账单已作废");
+        }
+        if (!Objects.equals(bill.getPayStatus(), PayStatusEnum.UNPAID.getCode())) {
+            throw new BizException("仅未支付账单允许作废");
+        }
+
+        DateTime now = DateUtil.date();
+        bill.setStatus(LeaseBillStatusEnum.VOIDED.getCode());
+        bill.setVoidReason(dto.getVoidReason().trim());
+        bill.setVoidTime(now);
+        bill.setVoidBy(dto.getUpdateBy());
+        bill.setUpdateBy(dto.getUpdateBy());
+        bill.setUpdateTime(now);
+        leaseBillRepo.updateById(bill);
         return true;
     }
 
@@ -250,7 +287,9 @@ public class LeaseBillService {
             return null;
         }
         LeaseBill bill = leaseBillRepo.getByIdForUpdate(dto.getId());
-        if (bill == null || Objects.equals(bill.getPayStatus(), PayStatusEnum.PAID.getCode())) {
+        if (bill == null
+            || Objects.equals(bill.getStatus(), LeaseBillStatusEnum.VOIDED.getCode())
+            || Objects.equals(bill.getPayStatus(), PayStatusEnum.PAID.getCode())) {
             return null;
         }
         return bill;

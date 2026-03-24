@@ -56,6 +56,10 @@ public class LeaseBill implements Serializable {
     @TableField("bill_type")
     private Integer billType;
 
+    @Schema(description = "账单状态：1=正常，2=已作废")
+    @TableField("status")
+    private Integer status;
+
     @Schema(description = "结转来源账单ID")
     @TableField("carry_over_from_bill_id")
     private Long carryOverFromBillId;
@@ -99,9 +103,22 @@ public class LeaseBill implements Serializable {
     @TableField("remark")
     private String remark;
 
-    @Schema(description = "是否有效：1=有效，0=无效")
-    @TableField("valid")
-    private Boolean valid;
+    @Schema(description = "是否历史账单：0=否，1=是")
+    @TableField("historical")
+    private Boolean historical;
+
+    @Schema(description = "作废原因")
+    @TableField("void_reason")
+    private String voidReason;
+
+    @Schema(description = "作废时间")
+    @TableField("void_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date voidTime;
+
+    @Schema(description = "作废人")
+    @TableField("void_by")
+    private Long voidBy;
 
     @Schema(description = "是否删除：0=否，1=是")
     @TableField("deleted")

@@ -11,7 +11,8 @@
                    END AS `key`,
                SUM(unpaid_amount) AS amount
         FROM lease_bill
-        WHERE valid = 1
+        WHERE historical = 0
+          AND status = 1
           AND deleted = 0
           AND unpaid_amount <![CDATA[ > ]]> 0
           AND pay_status IN (0, 1)
@@ -29,7 +30,8 @@
     <select id="selectNext7DaysReceivableAmount" resultType="java.math.BigDecimal">
         SELECT COALESCE(SUM(unpaid_amount), 0)
         FROM lease_bill
-        WHERE valid = 1
+        WHERE historical = 0
+          AND status = 1
           AND deleted = 0
           AND unpaid_amount <![CDATA[ > ]]> 0
           AND pay_status IN (0, 1)
@@ -45,7 +47,8 @@
                SUM(lb.unpaid_amount) AS unpaidAmount
         FROM lease_bill lb
                  LEFT JOIN tenant t ON t.id = lb.tenant_id
-        WHERE lb.valid = 1
+        WHERE lb.historical = 0
+          AND lb.status = 1
           AND lb.deleted = 0
           AND lb.unpaid_amount <![CDATA[ > ]]> 0
           AND lb.pay_status IN (0, 1)

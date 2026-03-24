@@ -36,6 +36,9 @@ public class LeaseBillListVO implements Serializable {
     @Schema(description = "账单类型：1=租金，2=押金，3=杂费，4=退租结算，5=押金结转入，6=押金结转出")
     private Integer billType;
 
+    @Schema(description = "账单状态：1=正常，2=已作废")
+    private Integer status;
+
     @Schema(description = "结转来源账单ID")
     private Long carryOverFromBillId;
 
@@ -68,6 +71,19 @@ public class LeaseBillListVO implements Serializable {
 
     @Schema(description = "备注信息")
     private String remark;
+
+    @Schema(description = "是否历史账单：0=否，1=是")
+    private Boolean historical;
+
+    @Schema(description = "作废原因")
+    private String voidReason;
+
+    @Schema(description = "作废时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date voidTime;
+
+    @Schema(description = "作废人")
+    private Long voidBy;
 
     @Schema(description = "房源地址")
     private String roomAddress;

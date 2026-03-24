@@ -85,7 +85,7 @@ public class LeaseCheckoutService {
         String roomAddress = roomService.getRoomAddressByIds(roomIds);
 
         // 获取未付账单
-        List<LeaseBill> unpaidBills = leaseBillRepo.getBillListByLeaseId(lease.getId(), Boolean.TRUE);
+        List<LeaseBill> unpaidBills = leaseBillRepo.getBillListByLeaseId(lease.getId(), Boolean.FALSE);
         List<LeaseCheckoutInitVO.UnpaidBillVO> unpaidBillVOs = new ArrayList<>();
         BigDecimal unpaidAmount = BigDecimal.ZERO;
 
