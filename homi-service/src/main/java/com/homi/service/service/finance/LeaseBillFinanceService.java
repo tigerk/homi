@@ -2,28 +2,19 @@ package com.homi.service.service.finance;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseBillStatusEnum;
-import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.enums.pay.PayStatusEnum;
 import com.homi.common.lib.utils.TimeUtils;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dao.entity.LeaseBill;
-import com.homi.model.dao.entity.LeaseBillFee;
-import com.homi.model.dao.entity.LeaseRoom;
-import com.homi.model.dao.entity.PaymentFlow;
-import com.homi.model.dao.entity.Tenant;
-import com.homi.model.dao.repo.LeaseBillFeeRepo;
-import com.homi.model.dao.repo.LeaseBillRepo;
-import com.homi.model.dao.repo.LeaseRoomRepo;
-import com.homi.model.dao.repo.PaymentFlowRepo;
-import com.homi.model.dao.repo.RoomRepo;
-import com.homi.model.dao.repo.TenantRepo;
+import com.homi.model.dao.entity.*;
+import com.homi.model.dao.repo.*;
 import com.homi.model.finance.dto.LeaseBillFinanceQueryDTO;
 import com.homi.model.finance.vo.LeaseBillFeeFinanceItemVO;
 import com.homi.model.finance.vo.LeaseBillFinanceItemVO;
@@ -35,12 +26,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -201,7 +187,7 @@ public class LeaseBillFinanceService {
         if (query.getTenantId() != null) {
             tenantIds = List.of(query.getTenantId());
         }
-        if (StrUtil.isNotBlank(query.getTenantName()) || StrUtil.isNotBlank(query.getTenantPhone())) {
+        if (CharSequenceUtil.isNotBlank(query.getTenantName()) || CharSequenceUtil.isNotBlank(query.getTenantPhone())) {
             tenantIds = tenantRepo.getTenantList(query.getTenantName(), query.getTenantPhone(), null).stream()
                 .map(Tenant::getId)
                 .distinct()
@@ -209,7 +195,7 @@ public class LeaseBillFinanceService {
         }
 
         List<Long> leaseIds = null;
-        if (StrUtil.isNotBlank(query.getRoomKeyword())) {
+        if (CharSequenceUtil.isNotBlank(query.getRoomKeyword())) {
             RoomQueryDTO roomQueryDTO = new RoomQueryDTO();
             roomQueryDTO.setKeywords(query.getRoomKeyword());
             List<Long> roomIds = roomRepo.pageRoomGridList(roomQueryDTO).getRecords().stream()
@@ -231,7 +217,6 @@ public class LeaseBillFinanceService {
     private LambdaQueryWrapper<LeaseBill> buildBillWrapper(LeaseBillFinanceQueryDTO query, FilterContext filterContext) {
         LambdaQueryWrapper<LeaseBill> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(LeaseBill::getHistorical, false);
-        wrapper.eq(LeaseBill::getStatus, LeaseBillStatusEnum.NORMAL.getCode());
         if (query.getPayStatus() != null) {
             wrapper.eq(LeaseBill::getPayStatus, query.getPayStatus());
         }

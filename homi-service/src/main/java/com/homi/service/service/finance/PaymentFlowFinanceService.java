@@ -266,7 +266,7 @@ public class PaymentFlowFinanceService {
         if (!roomIds.isEmpty()) {
             return roomService.getRoomAddressByIds(roomIds);
         }
-        if (StrUtil.isBlank(lease.getRoomIds())) {
+        if (CharSequenceUtil.isBlank(lease.getRoomIds())) {
             return null;
         }
         List<Long> leaseRoomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
