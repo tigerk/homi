@@ -294,6 +294,7 @@ public class LeaseBillFinanceService {
             item.setOverdue(isOverdueBill(bill));
             item.setBillStart(bill.getBillStart());
             item.setBillEnd(bill.getBillEnd());
+            item.setStatus(bill.getStatus());
             item.setDueDate(bill.getDueDate());
             item.setRemark(bill.getRemark());
             item.setCreateTime(bill.getCreateTime());

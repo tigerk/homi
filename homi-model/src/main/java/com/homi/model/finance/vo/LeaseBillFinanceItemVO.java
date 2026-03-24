@@ -46,6 +46,9 @@ public class LeaseBillFinanceItemVO {
     @Schema(description = "支付状态")
     private Integer payStatus;
 
+    @Schema(description = "账单状态")
+    private Integer status;
+
     @Schema(description = "是否逾期")
     private Boolean overdue;
 
