@@ -85,6 +85,9 @@ public class LeaseBillListVO implements Serializable {
     @Schema(description = "作废人")
     private Long voidBy;
 
+    @Schema(description = "作废人昵称")
+    private String voidByName;
+
     @Schema(description = "房源地址")
     private String roomAddress;
 

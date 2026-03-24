@@ -21,8 +21,8 @@ import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.tenant.dto.LeaseBillCollectDTO;
 import com.homi.model.tenant.dto.LeaseBillFeeDTO;
-import com.homi.model.tenant.dto.LeaseBillVoidDTO;
 import com.homi.model.tenant.dto.LeaseBillUpdateDTO;
+import com.homi.model.tenant.dto.LeaseBillVoidDTO;
 import com.homi.model.tenant.vo.bill.FinanceFlowVO;
 import com.homi.model.tenant.vo.bill.LeaseBillFeeVO;
 import com.homi.model.tenant.vo.bill.LeaseBillListVO;
@@ -113,6 +113,11 @@ public class LeaseBillService {
         LeaseBillListVO vo = BeanCopyUtils.copyBean(bill, LeaseBillListVO.class);
         if (vo == null) {
             return null;
+        }
+
+        User voidByUser = userRepo.getById(bill.getVoidBy());
+        if (voidByUser != null) {
+            vo.setVoidByName(voidByUser.getNickname());
         }
         vo.setFeeList(toLeaseBillFeeVos(leaseBillFeeRepo.getFeesByBillId(billId)));
         attachBillContext(vo, bill);
