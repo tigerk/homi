@@ -12,6 +12,8 @@ import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
+import com.homi.external.mail.MailClient;
+import com.homi.external.sms.SmsClient;
 import com.homi.model.company.dto.CompanySwitchDTO;
 import com.homi.model.menu.vo.AsyncRoutesVO;
 import com.homi.saas.web.auth.dto.account.UserProfileUpdateDTO;
@@ -20,8 +22,6 @@ import com.homi.saas.web.auth.service.AuthService;
 import com.homi.saas.web.auth.service.WechatAuthService;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
-import com.homi.external.sms.SmsClient;
-import com.homi.external.mail.MailClient;
 import com.homi.service.service.company.CompanyUserService;
 import com.homi.service.service.sys.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -188,21 +188,13 @@ public class LoginController {
 
     @PostMapping("/saas/login/sms/send")
     @Log(title = "发送登录短信", operationType = OperationTypeEnum.OTHER)
-    public ResponseResult<Boolean> sendSmsCode(@RequestParam("phone") Long phone, @RequestParam("captcha") String captcha) {
+    public ResponseResult<Boolean> sendSmsCode(@RequestParam("phone") String phone, @RequestParam("captcha") String captcha) {
         String captchaCode = redisTemplate.opsForValue().get(RedisKey.CAPTCHA.format(phone));
         if (captchaCode == null || !captchaCode.equalsIgnoreCase(captcha)) {
             throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
         }
 
-        String rateKey = RedisKey.SMS_RATE_LIMIT.format(phone);
-        Boolean rateLimit = redisTemplate.hasKey(rateKey);
-        if (Boolean.TRUE.equals(rateLimit)) {
-            throw new BizException("发送过于频繁，请稍后再试");
-        }
-        redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
-
-        RandomGenerator verifyCodeGenerator = new RandomGenerator("0123456789", 4);
-        String verifyCode = verifyCodeGenerator.generate();
+        String verifyCode = getSmsVerifyCode(phone);
         // 保存到 Redis，key: sms:phone，value: code，有效期10分钟
         redisTemplate.opsForValue().set(RedisKey.SMS_CODE.format(phone), verifyCode, RedisKey.SMS_CODE.getTimeout(), RedisKey.SMS_CODE.getUnit());
 
@@ -290,6 +282,25 @@ public class LoginController {
         if (CharSequenceUtil.isBlank(phone)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "当前账号未绑定手机号");
         }
+        String verifyCode = getSmsVerifyCode(phone);
+        redisTemplate.opsForValue().set(RedisKey.ACCOUNT_PHONE_OLD_CODE.format(phone), verifyCode, RedisKey.ACCOUNT_PHONE_OLD_CODE.getTimeout(), RedisKey.ACCOUNT_PHONE_OLD_CODE.getUnit());
+
+        log.info("发送原手机号验证码，手机号：{}，验证码：{}", phone, verifyCode);
+        // smsClient.send(phone, "", "SMS_256500000", verifyCode);
+
+        return ResponseResult.ok(Boolean.TRUE);
+    }
+
+    /**
+     * 生成短信验证码，用于手机号变更、密码更新等场景
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/3/25 09:10
+     *
+     * @param phone 参数说明
+     * @return java.lang.String
+     */
+    private String getSmsVerifyCode(String phone) {
         String rateKey = RedisKey.SMS_RATE_LIMIT.format(phone);
         Boolean rateLimit = redisTemplate.hasKey(rateKey);
         if (Boolean.TRUE.equals(rateLimit)) {
@@ -298,13 +309,8 @@ public class LoginController {
         redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
 
         RandomGenerator verifyCodeGenerator = new RandomGenerator("0123456789", 4);
-        String verifyCode = verifyCodeGenerator.generate();
-        redisTemplate.opsForValue().set(RedisKey.ACCOUNT_PHONE_OLD_CODE.format(phone), verifyCode, RedisKey.ACCOUNT_PHONE_OLD_CODE.getTimeout(), RedisKey.ACCOUNT_PHONE_OLD_CODE.getUnit());
 
-        log.info("发送原手机号验证码，手机号：{}，验证码：{}", phone, verifyCode);
-        // smsClient.send(phone, "", "SMS_256500000", verifyCode);
-
-        return ResponseResult.ok(Boolean.TRUE);
+        return verifyCodeGenerator.generate();
     }
 
     @PostMapping("/saas/account/phone/new/sms/send")
@@ -314,15 +320,8 @@ public class LoginController {
         if (CharSequenceUtil.isBlank(phone)) {
             throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "手机号不能为空");
         }
-        String rateKey = RedisKey.SMS_RATE_LIMIT.format(phone);
-        Boolean rateLimit = redisTemplate.hasKey(rateKey);
-        if (Boolean.TRUE.equals(rateLimit)) {
-            throw new BizException("发送过于频繁，请稍后再试");
-        }
-        redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
 
-        RandomGenerator verifyCodeGenerator = new RandomGenerator("0123456789", 4);
-        String verifyCode = verifyCodeGenerator.generate();
+        String verifyCode = getSmsVerifyCode(phone);
         redisTemplate.opsForValue().set(RedisKey.ACCOUNT_PHONE_NEW_CODE.format(phone), verifyCode, RedisKey.ACCOUNT_PHONE_NEW_CODE.getTimeout(), RedisKey.ACCOUNT_PHONE_NEW_CODE.getUnit());
 
         log.info("发送新手机号验证码，手机号：{}，验证码：{}", phone, verifyCode);
@@ -340,7 +339,7 @@ public class LoginController {
         }
         String rateKey = RedisKey.SMS_RATE_LIMIT.format(email);
         Boolean rateLimit = redisTemplate.hasKey(rateKey);
-        if (Boolean.TRUE.equals(rateLimit)) {
+        if (rateLimit) {
             throw new BizException("发送过于频繁，请稍后再试");
         }
         redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
