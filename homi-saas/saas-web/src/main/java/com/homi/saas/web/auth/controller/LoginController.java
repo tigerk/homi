@@ -196,9 +196,10 @@ public class LoginController {
 
     @PostMapping("/saas/login/sms/send")
     @Log(title = "发送登录短信", operationType = OperationTypeEnum.OTHER)
-    public ResponseResult<Boolean> sendSmsCode(@RequestParam("phone") String phone, @RequestParam("captcha") String captcha) {
+    public ResponseResult<Boolean> sendSmsCode(@Valid @RequestBody LoginSmsSendDTO dto) {
+        String phone = dto.getPhone();
         String captchaCode = redisTemplate.opsForValue().get(RedisKey.CAPTCHA.format(phone));
-        if (captchaCode == null || !captchaCode.equalsIgnoreCase(captcha)) {
+        if (captchaCode == null || !captchaCode.equalsIgnoreCase(dto.getCaptcha())) {
             throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
         }
 

@@ -7,6 +7,7 @@ import cn.hutool.core.lang.Dict;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.event.OperationLogEvent;
 import com.homi.common.lib.response.RequestResultEnum;
@@ -201,13 +202,15 @@ public class OperationLogAspect {
         for (Object o : paramsArray) {
             if (ObjectUtil.isNotNull(o) && !isFilterObject(o)) {
                 String str = JSONUtil.toJsonStr(o);
-                if (!(o instanceof List<?>)) {
+                if (!(o instanceof List<?>) && (o instanceof Map<?, ?> || o instanceof Dict || JSONUtil.isTypeJSONObject(str))) {
                     Dict dict = JSONUtil.toBean(str, Dict.class);
                     if (MapUtil.isNotEmpty(dict)) {
                         MapUtil.removeAny(dict, EXCLUDE_PROPERTIES);
                         MapUtil.removeAny(dict, excludeParamNames);
                         str = JSONUtil.toJsonStr(dict);
                     }
+                } else if (o instanceof CharSequence && !StrUtil.startWith(str, "\"")) {
+                    str = JSONUtil.toJsonStr(o.toString());
                 }
 
                 params.add(str);

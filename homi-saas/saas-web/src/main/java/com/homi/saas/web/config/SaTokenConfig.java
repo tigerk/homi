@@ -57,7 +57,9 @@ public class SaTokenConfig implements WebMvcConfigurer {
                 ADMIN_PREFIX.concat("/captcha/**"),
                 ADMIN_PREFIX.concat("/test/**"),
                 ADMIN_PREFIX.concat("/sysFile/check-file/**"),
-                ADMIN_PREFIX.concat("/region/list/city")
+                ADMIN_PREFIX.concat("/region/list/city"),
+                // 创建试用申请单
+                ADMIN_PREFIX.concat("/trialApplication/create")
             ).check(r -> {
                 StpUtil.checkLogin();
 
