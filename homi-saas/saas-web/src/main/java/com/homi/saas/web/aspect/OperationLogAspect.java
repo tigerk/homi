@@ -105,10 +105,14 @@ public class OperationLogAspect {
 
             operationLog.setIpAddress(ip);
             operationLog.setRequestUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
-            UserLoginVO userLoginVO = (UserLoginVO) StpUtil.getSession().get(SaSession.USER);
-            operationLog.setUserId(userLoginVO.getId());
-            operationLog.setUsername(userLoginVO.getUsername());
-            operationLog.setCompanyId(userLoginVO.getCurCompanyId());
+            if (StpUtil.isLogin()) {
+                UserLoginVO userLoginVO = (UserLoginVO) StpUtil.getSession().get(SaSession.USER);
+                if (ObjectUtil.isNotNull(userLoginVO)) {
+                    operationLog.setUserId(userLoginVO.getId());
+                    operationLog.setUsername(userLoginVO.getUsername());
+                    operationLog.setCompanyId(userLoginVO.getCurCompanyId());
+                }
+            }
 
             if (e != null) {
                 operationLog.setStatus(RequestResultEnum.FAILURE.getCode());

@@ -4,18 +4,25 @@ import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.LineCaptcha;
 import cn.hutool.captcha.generator.RandomGenerator;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.annotation.LoginLog;
 import com.homi.common.lib.enums.OperationTypeEnum;
+import com.homi.common.lib.event.OperationLogEvent;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
+import com.homi.common.lib.response.RequestResultEnum;
 import com.homi.common.lib.response.ResponseResult;
+import com.homi.common.lib.utils.ServletUtils;
+import com.homi.common.lib.utils.SpringUtils;
 import com.homi.external.mail.MailClient;
 import com.homi.external.sms.SmsClient;
 import com.homi.model.company.dto.CompanySwitchDTO;
+import com.homi.model.company.dto.UserCompanyListDTO;
 import com.homi.model.menu.vo.AsyncRoutesVO;
+import com.homi.model.dao.entity.User;
 import com.homi.saas.web.auth.dto.account.UserProfileUpdateDTO;
 import com.homi.saas.web.auth.dto.login.*;
 import com.homi.saas.web.auth.service.AuthService;
@@ -24,6 +31,7 @@ import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.saas.web.config.LoginManager;
 import com.homi.service.service.company.CompanyUserService;
 import com.homi.service.service.sys.UserService;
+import eu.bitwalker.useragentutils.UserAgent;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -207,8 +215,7 @@ public class LoginController {
     }
 
     @PostMapping("/saas/login/update")
-    @Log(title = "更新密码", operationType = OperationTypeEnum.UPDATE)
-    public ResponseResult<Boolean> sendSmsCode(@RequestBody LoginUpdateDTO loginUpdate) {
+    public ResponseResult<Boolean> updatePassword(@RequestBody LoginUpdateDTO loginUpdate) {
         String verifyCode = redisTemplate.opsForValue().get(RedisKey.SMS_CODE.format(loginUpdate.getPhone()));
         if (verifyCode == null) {
             throw new BizException("请先发送验证码");
@@ -218,8 +225,23 @@ public class LoginController {
             throw new BizException("验证码错误");
         }
 
-        // 更新用户密码
-        return ResponseResult.ok(authService.updateUserPassword(loginUpdate.getPhone(), loginUpdate.getPassword()));
+        User user = userService.getUserByPhone(loginUpdate.getPhone());
+        if (user == null) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
+        }
+
+        boolean success = false;
+        String errorMsg = null;
+        try {
+            Boolean updated = authService.updateUserPassword(loginUpdate.getPhone(), loginUpdate.getPassword());
+            success = Boolean.TRUE.equals(updated);
+            return ResponseResult.ok(updated);
+        } catch (Exception ex) {
+            errorMsg = ex.getMessage();
+            throw ex;
+        } finally {
+            publishPasswordResetOperationLog(user, loginUpdate.getPhone(), success, errorMsg);
+        }
     }
 
     @PostMapping("/saas/register")
@@ -235,6 +257,40 @@ public class LoginController {
         }
 
         return ResponseResult.ok(authService.register(registerDTO));
+    }
+
+    private void publishPasswordResetOperationLog(User user, String phone, boolean success, String errorMsg) {
+        UserAgent userAgent = UserAgent.parseUserAgentString(ServletUtils.getRequest().getHeader("User-Agent"));
+        OperationLogEvent operationLog = new OperationLogEvent();
+        operationLog.setTitle("密码重置");
+        operationLog.setOperationType(OperationTypeEnum.UPDATE.getCode());
+        operationLog.setOperatorType(0);
+        operationLog.setMethod(LoginController.class.getName() + ".updatePassword()");
+        operationLog.setRequestMethod(ServletUtils.getRequest().getMethod());
+        operationLog.setRequestUrl(CharSequenceUtil.sub(ServletUtils.getRequest().getRequestURI(), 0, 255));
+        operationLog.setIpAddress(ServletUtils.getClientIP());
+        operationLog.setOs(userAgent.getOperatingSystem().getName());
+        operationLog.setBrowser(userAgent.getBrowser().getName());
+        operationLog.setUserId(user.getId());
+        operationLog.setUsername(user.getUsername());
+        operationLog.setCompanyId(getFirstCompanyId(user.getId()));
+        operationLog.setParam(CharSequenceUtil.sub("{\"phone\":\"" + phone + "\"}", 0, 2000));
+        operationLog.setStatus(success ? RequestResultEnum.SUCCESS.getCode() : RequestResultEnum.FAILURE.getCode());
+        if (CharSequenceUtil.isNotBlank(errorMsg)) {
+            operationLog.setErrorMsg(CharSequenceUtil.sub(errorMsg, 0, 2000));
+        }
+        operationLog.setRequestTime(DateUtil.date());
+        operationLog.setCostTime(0L);
+
+        SpringUtils.context().publishEvent(operationLog);
+    }
+
+    private Long getFirstCompanyId(Long userId) {
+        List<UserCompanyListDTO> companyList = companyUserService.getCompanyListByUserId(userId);
+        if (companyList.isEmpty()) {
+            return null;
+        }
+        return companyList.get(0).getCompanyId();
     }
 
     /**
