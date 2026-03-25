@@ -56,7 +56,8 @@ public class SaTokenConfig implements WebMvcConfigurer {
                 ADMIN_PREFIX.concat("/token/refresh"),
                 ADMIN_PREFIX.concat("/captcha/**"),
                 ADMIN_PREFIX.concat("/test/**"),
-                ADMIN_PREFIX.concat("/sysFile/check-file/**")
+                ADMIN_PREFIX.concat("/sysFile/check-file/**"),
+                ADMIN_PREFIX.concat("/region/list/city")
             ).check(r -> {
                 StpUtil.checkLogin();
 

@@ -71,4 +71,4 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
-default-avatar: https://avatars.githubusercontent.com/u/44761321
+default-avatar: https://api.dicebear.com/9.x/thumbs/svg?seed=Aidan
