@@ -169,8 +169,14 @@ public class PlatformMenuService {
         return platformMenuMapper.selectById(id);
     }
 
-    public Boolean createMenu(MenuCreateDTO dto) {
+    public void createMenu(MenuCreateDTO dto) {
         PlatformMenu platformMenu = BeanCopyUtils.copyBean(dto, PlatformMenu.class);
+        assert platformMenu != null;
+
+        // 如果不选择父菜单，默认为根菜单
+        if (Objects.isNull(dto.getParentId())) {
+            platformMenu.setParentId(0L);
+        }
 
         platformMenu.setFrameLoading(dto.getFrameLoading());
         platformMenu.setKeepAlive(dto.getKeepAlive());
@@ -184,8 +190,6 @@ public class PlatformMenuService {
         } else {
             platformMenuRepo.getBaseMapper().updateById(platformMenu);
         }
-
-        return true;
     }
 
     public void updateById(PlatformMenu platformMenu) {
