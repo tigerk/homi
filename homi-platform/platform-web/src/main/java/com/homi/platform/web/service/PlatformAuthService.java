@@ -7,11 +7,13 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
+import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.MenuTypeEnum;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.platform.PlatformUserTypeEnum;
 import com.homi.common.lib.exception.BizException;
+import com.homi.common.lib.redis.RedisKey;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.PlatformMenu;
@@ -29,6 +31,7 @@ import com.homi.platform.web.dto.login.PlatformLoginDTO;
 import com.homi.platform.web.vo.login.PlatformUserLoginVO;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Triple;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +55,7 @@ public class PlatformAuthService {
     private final PlatformUserRoleRepo platformUserRoleRepo;
 
     private final PlatformRoleRepo platformRoleRepo;
+    private final StringRedisTemplate redisTemplate;
 
     /**
      * 用户登录
@@ -206,5 +210,15 @@ public class PlatformAuthService {
             && !PlatformLoginManager.getCurrentUser().getUserType().equals(PlatformUserTypeEnum.SUPER_USER.getType())) {
             throw new BizException("无权限操作");
         }
+    }
+
+    public String getSmsVerifyCode(String phone) {
+        String rateKey = RedisKey.SMS_RATE_LIMIT.format(phone);
+        Boolean rateLimit = redisTemplate.hasKey(rateKey);
+        if (Boolean.TRUE.equals(rateLimit)) {
+            throw new BizException("发送过于频繁，请稍后再试");
+        }
+        redisTemplate.opsForValue().set(rateKey, "1", RedisKey.SMS_RATE_LIMIT.getTimeout(), RedisKey.SMS_RATE_LIMIT.getUnit());
+        return RandomUtil.randomNumbers(4);
     }
 }

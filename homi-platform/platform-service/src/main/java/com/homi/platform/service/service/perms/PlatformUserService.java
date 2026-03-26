@@ -147,6 +147,20 @@ public class PlatformUserService {
         return platformUserMapper.selectById(id);
     }
 
+    public PlatformUser getUserByPhone(String phone) {
+        return platformUserMapper.selectOne(new LambdaQueryWrapper<PlatformUser>()
+            .eq(PlatformUser::getPhone, phone));
+    }
+
+    public Boolean updateUserPasswordByPhone(String phone, String password) {
+        PlatformUser platformUser = getUserByPhone(phone);
+        if (Objects.isNull(platformUser)) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_EXIST);
+        }
+        platformUser.setPassword(SaSecureUtil.md5(password));
+        return platformUserMapper.updateById(platformUser) > 0;
+    }
+
     public void updateUserStatusByCompanyId(Long companyId, int status) {
         LambdaQueryWrapper<PlatformUser> queryWrapper = new LambdaQueryWrapper<>();
 
