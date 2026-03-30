@@ -3,10 +3,16 @@ package com.homi.service.service.dashboard;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.TrialApplicationStatusEnum;
 import com.homi.model.dao.entity.Company;
+import com.homi.model.dao.entity.House;
+import com.homi.model.dao.entity.Room;
 import com.homi.model.dao.entity.TrialApplication;
+import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.CompanyPackageRepo;
 import com.homi.model.dao.repo.CompanyRepo;
+import com.homi.model.dao.repo.HouseRepo;
+import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.dao.repo.TrialApplicationRepo;
+import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.dashboard.vo.PlatformOverviewVO;
 import com.homi.model.dashboard.vo.PlatformPackageCompanyCountVO;
 import com.homi.model.dashboard.vo.PlatformTrialStatsVO;
@@ -24,10 +30,16 @@ public class PlatformDashboardService {
     private final CompanyRepo companyRepo;
     private final CompanyPackageRepo companyPackageRepo;
     private final TrialApplicationRepo trialApplicationRepo;
+    private final HouseRepo houseRepo;
+    private final RoomRepo roomRepo;
+    private final UserRepo userRepo;
 
     public PlatformOverviewVO getOverview() {
         PlatformOverviewVO overview = new PlatformOverviewVO();
         overview.setCompanyCount(companyRepo.count());
+        overview.setHouseCount(houseRepo.count(new LambdaQueryWrapper<House>()));
+        overview.setRoomCount(roomRepo.count(new LambdaQueryWrapper<Room>()));
+        overview.setUserCount(userRepo.count(new LambdaQueryWrapper<User>()));
         overview.setPackageCompanyCounts(buildPackageCompanyCounts());
         overview.setTrialStats(buildTrialStats());
         return overview;

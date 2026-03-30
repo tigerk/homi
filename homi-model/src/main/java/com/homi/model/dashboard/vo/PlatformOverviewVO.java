@@ -8,6 +8,12 @@ import java.util.List;
 public class PlatformOverviewVO {
     private Long companyCount;
 
+    private Long houseCount;
+
+    private Long roomCount;
+
+    private Long userCount;
+
     private List<PlatformPackageCompanyCountVO> packageCompanyCounts;
 
     private PlatformTrialStatsVO trialStats;
