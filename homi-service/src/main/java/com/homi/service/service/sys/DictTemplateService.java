@@ -233,6 +233,22 @@ public class DictTemplateService {
         return syncVO;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void syncCompanyDictByLatestTemplate(Long companyId) {
+        int toVer = getLatestTemplateVersion();
+        if (toVer <= 0) {
+            return;
+        }
+
+        Company company = Optional.ofNullable(companyRepo.getById(companyId))
+            .orElseThrow(() -> new BizException("公司不存在"));
+
+        syncCompanyDictByTemplate(companyId, toVer);
+        company.setDictVer(toVer);
+        company.setDictSyncTime(DateUtil.date());
+        companyRepo.updateById(company);
+    }
+
     private CompanyDictSyncLog buildSyncLog(Long companyId, int fromVer, int toVer) {
         CompanyDictSyncLog syncLog = new CompanyDictSyncLog();
         syncLog.setCompanyId(companyId);
