@@ -15,10 +15,14 @@ import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Company;
 import com.homi.model.dao.entity.CompanyUser;
+import com.homi.model.dao.entity.House;
+import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.CompanyRepo;
 import com.homi.model.dao.repo.CompanyUserRepo;
+import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.RegionRepo;
+import com.homi.model.dao.repo.TenantRepo;
 import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.company.dto.CompanyCreateDTO;
 import com.homi.model.company.dto.CompanyDeleteDTO;
@@ -53,6 +57,8 @@ public class CompanyService {
     private final CompanyRepo companyRepo;
     private final UserRepo userRepo;
     private final CompanyUserRepo companyUserRepo;
+    private final HouseRepo houseRepo;
+    private final TenantRepo tenantRepo;
     private final RegionRepo regionRepo;
 
     private final UserService userService;
@@ -126,6 +132,30 @@ public class CompanyService {
             .collect(Collectors.toMap(IdNameVO::getId, IdNameVO::getName));
 
         IPage<Company> companyPage = companyRepo.page(page, queryWrapper);
+        List<Long> companyIds = companyPage.getRecords().stream()
+            .map(Company::getId)
+            .filter(Objects::nonNull)
+            .toList();
+        List<House> houses = CollUtil.isEmpty(companyIds) ? List.of() : houseRepo.list(new LambdaQueryWrapper<House>()
+                .in(House::getCompanyId, companyIds));
+        Map<Long, Integer> enteredHouseCountMap = houses
+            .stream()
+            .filter(house -> Objects.nonNull(house.getCompanyId()))
+            .collect(Collectors.groupingBy(House::getCompanyId, Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
+        Map<Long, Integer> enteredRoomCountMap = houses
+            .stream()
+            .filter(house -> Objects.nonNull(house.getCompanyId()))
+            .collect(Collectors.groupingBy(House::getCompanyId, Collectors.summingInt(house -> ObjectUtil.defaultIfNull(house.getRoomCount(), 0))));
+        Map<Long, Integer> tenantCountMap = CollUtil.isEmpty(companyIds) ? Map.of() : tenantRepo.list(new LambdaQueryWrapper<Tenant>()
+                .in(Tenant::getCompanyId, companyIds))
+            .stream()
+            .filter(tenant -> Objects.nonNull(tenant.getCompanyId()))
+            .collect(Collectors.groupingBy(Tenant::getCompanyId, Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
+        Map<Long, Integer> userCountMap = CollUtil.isEmpty(companyIds) ? Map.of() : companyUserRepo.list(new LambdaQueryWrapper<CompanyUser>()
+                .in(CompanyUser::getCompanyId, companyIds))
+            .stream()
+            .filter(companyUser -> Objects.nonNull(companyUser.getCompanyId()))
+            .collect(Collectors.groupingBy(CompanyUser::getCompanyId, Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
 
         PageVO<CompanyListVO> pageVO = new PageVO<>();
         pageVO.setTotal(companyPage.getTotal());
@@ -133,6 +163,10 @@ public class CompanyService {
             CompanyListVO vo = BeanCopyUtils.copyBean(company, CompanyListVO.class);
             assert vo != null;
             vo.setPackageName(packageMap.get(company.getPackageId()));
+            vo.setEnteredHouseCount(enteredHouseCountMap.getOrDefault(company.getId(), 0));
+            vo.setEnteredRoomCount(enteredRoomCountMap.getOrDefault(company.getId(), 0));
+            vo.setTenantCount(tenantCountMap.getOrDefault(company.getId(), 0));
+            vo.setUserCount(userCountMap.getOrDefault(company.getId(), 0));
 
             userRepo.getOptById(company.getAdminUserId()).ifPresent(account -> vo.setAdminPhone(account.getUsername()));
 

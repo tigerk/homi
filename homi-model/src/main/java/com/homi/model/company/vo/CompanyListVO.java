@@ -77,8 +77,20 @@ public class CompanyListVO {
     @Schema(description = "公司管理员账号")
     private String adminPhone;
 
-    @Schema(description = "账号数量")
+    @Schema(description = "房源数量")
     private Integer houseCount;
+
+    @Schema(description = "录入房源数量")
+    private Integer enteredHouseCount;
+
+    @Schema(description = "录入房间数量")
+    private Integer enteredRoomCount;
+
+    @Schema(description = "租客数量")
+    private Integer tenantCount;
+
+    @Schema(description = "账号数量")
+    private Integer userCount;
 
     @Schema(description = "公司性质 1：企业 2：个人")
     private Integer nature;
