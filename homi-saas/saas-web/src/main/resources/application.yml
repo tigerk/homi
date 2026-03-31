@@ -6,11 +6,6 @@ server:
 spring:
   application:
     name: homi-saas
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.webmvc.autoconfigure.actuate.endpoint.web.WebMvcHealthEndpointExtensionAutoConfiguration
-      - org.springframework.boot.webflux.autoconfigure.actuate.endpoint.web.WebFluxHealthEndpointExtensionAutoConfiguration
-      - org.springframework.boot.jersey.autoconfigure.actuate.endpoint.web.HealthEndpointJerseyExtensionAutoConfiguration
   profiles:
     active: prod
     # Servlet 配置
