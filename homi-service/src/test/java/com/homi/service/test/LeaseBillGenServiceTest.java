@@ -364,7 +364,7 @@ class LeaseBillGenServiceTest {
     private OtherFeeDTO createOtherFee(String name, Integer paymentMethod,
                                        Integer priceMethod, BigDecimal priceInput) {
         OtherFeeDTO fee = new OtherFeeDTO();
-        fee.setFeeName(name);
+        fee.setName(name);
         fee.setPaymentMethod(paymentMethod);
         fee.setPriceMethod(priceMethod);
         fee.setPriceInput(priceInput);

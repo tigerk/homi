@@ -1,11 +1,12 @@
 package com.homi.common.lib.config;
 
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.v3.oas.models.media.StringSchema;
 import org.springdoc.core.utils.SpringDocUtils;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.core.json.PackageVersion;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 
 /**
  * 应用于 homi
@@ -25,8 +26,9 @@ public class JacksonConfig {
     }
 
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
-        return builder -> builder.serializerByType(Long.class, ToStringSerializer.instance)
-            .serializerByType(Long.TYPE, ToStringSerializer.instance);
+    public SimpleModule longToStringJacksonModule() {
+        return new SimpleModule("long-to-string", PackageVersion.VERSION)
+            .addSerializer(Long.class, ToStringSerializer.instance)
+            .addSerializer(Long.TYPE, ToStringSerializer.instance);
     }
 }
