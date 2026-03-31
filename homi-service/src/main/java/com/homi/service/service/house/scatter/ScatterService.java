@@ -139,9 +139,10 @@ public class ScatterService {
             house.setDeptId(scatterCreateDTO.getDeptId());
             house.setSalesmanId(scatterCreateDTO.getSalesmanId());
 
+            house.setUpdateBy(scatterCreateDTO.getCreateBy());
+            house.setUpdateTime(scatterCreateDTO.getCreateTime());
+
             if (Objects.nonNull(house.getId())) {
-                house.setUpdateBy(scatterCreateDTO.getCreateBy());
-                house.setUpdateTime(scatterCreateDTO.getCreateTime());
                 houseRepo.updateById(house);
             } else {
                 // 生成房源编码
@@ -259,6 +260,7 @@ public class ScatterService {
 
         roomCreateDTO.getPriceConfig().setRoomId(room.getId());
         roomCreateDTO.getPriceConfig().setPrice(room.getPrice());
+        roomCreateDTO.getPriceConfig().setUpdateBy(house.getUpdateBy());
         priceConfigService.createOrUpdatePriceConfig(roomCreateDTO.getPriceConfig());
     }
 

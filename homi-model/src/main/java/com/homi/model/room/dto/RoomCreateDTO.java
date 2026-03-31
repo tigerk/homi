@@ -72,4 +72,7 @@ public class RoomCreateDTO {
 
     @Schema(description = "房间价格配置")
     private PriceConfigDTO priceConfig;
+
+    @Schema(description = "更新人")
+    private Long updateBy;
 }
