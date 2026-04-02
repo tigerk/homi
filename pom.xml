@@ -254,6 +254,11 @@
                 <version>${yeepay.version}</version>
             </dependency>
             <!--易宝支付 end-->
+            <dependency>
+                <groupId>com.fadada</groupId>
+                <artifactId>verify-process</artifactId>
+                <version>1.8.21</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>

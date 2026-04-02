@@ -48,6 +48,10 @@
             <artifactId>yop-java-sdk-biz</artifactId>
         </dependency>
         <!--易宝支付 end-->
+        <dependency>
+            <groupId>com.fadada</groupId>
+            <artifactId>verify-process</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
