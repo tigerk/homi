@@ -57,7 +57,21 @@ public class MyBatisGenerator {
             .mapperPackageName("com.homi.model.dao.mapper")
             .servicePackageName("com.homi.model.dao.repo")
             .tblNameList(ListUtil.of(
-                "contract_template"
+                "owner",
+                "owner_account",
+                "owner_account_flow",
+                "owner_bill",
+                "owner_bill_line",
+                "owner_bill_reduction",
+                "owner_company",
+                "owner_contract",
+                "owner_contract_house",
+                "owner_lease_free_rule",
+                "owner_lease_rule",
+                "owner_personal",
+                "owner_rent_free_rule",
+                "owner_settlement_rule",
+                "owner_withdraw_apply"
             )).build();
 
         myBatisGenerator.generate();

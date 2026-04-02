@@ -76,7 +76,7 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
         LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysNotice::getCompanyId, companyId)
             .eq(SysNotice::getStatus, StatusEnum.ACTIVE.getValue())
-            .notIn(SysNotice::getTargetScope, SysNoticeTargetScopeEnum.LANDLORD.getCode(), SysNoticeTargetScopeEnum.TENANT.getCode())
+            .notIn(SysNotice::getTargetScope, SysNoticeTargetScopeEnum.OWNER.getCode(), SysNoticeTargetScopeEnum.TENANT.getCode())
             .orderByDesc(SysNotice::getPublishTime);
         applyRoleScopeFilter(wrapper, roleIds);
         List<SysNotice> list = page(page, wrapper).getRecords();
@@ -101,7 +101,7 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
         Page<SysNotice> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
         LambdaQueryWrapper<SysNotice> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysNotice::getCompanyId, companyId)
-            .notIn(SysNotice::getTargetScope, SysNoticeTargetScopeEnum.LANDLORD.getCode(), SysNoticeTargetScopeEnum.TENANT.getCode())
+            .notIn(SysNotice::getTargetScope, SysNoticeTargetScopeEnum.OWNER.getCode(), SysNoticeTargetScopeEnum.TENANT.getCode())
             .eq(SysNotice::getStatus, StatusEnum.ACTIVE.getValue());
         applyRoleScopeFilter(wrapper, roleIds);
 

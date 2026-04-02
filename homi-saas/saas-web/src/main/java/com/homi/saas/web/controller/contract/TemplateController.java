@@ -16,7 +16,7 @@ import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.enums.contract.BookingParamsEnum;
 import com.homi.common.lib.enums.contract.ContractTypeEnum;
-import com.homi.common.lib.enums.contract.LandlordParamsEnum;
+import com.homi.common.lib.enums.contract.OwnerParamsEnum;
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
 import com.homi.service.service.contract.ContractTemplateService;
 import jakarta.validation.Valid;
@@ -87,8 +87,8 @@ public class TemplateController {
             // 租客
             return ResponseResult.ok(Arrays.stream(TenantParamsEnum.values()).map(p -> new Pair<>(p.getKey(), p.getValue())).toList());
         } else if (query.getContractType().equals(ContractTypeEnum.OWNER.getCode())) {
-            // 房东
-            return ResponseResult.ok(Arrays.stream(LandlordParamsEnum.values()).map(p -> new Pair<>(p.getKey(), p.getValue())).toList());
+            // 业主
+            return ResponseResult.ok(Arrays.stream(OwnerParamsEnum.values()).map(p -> new Pair<>(p.getKey(), p.getValue())).toList());
         } else if (query.getContractType().equals(ContractTypeEnum.BOOKING.getCode())) {
             // 预定
             return ResponseResult.ok(Arrays.stream(BookingParamsEnum.values()).map(p -> new Pair<>(p.getKey(), p.getValue())).toList());

@@ -1,0 +1,108 @@
+package com.homi.model.dao.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
+import java.util.Date;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import java.io.Serial;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+/**
+ * <p>
+ * 业主企业信息表
+ * </p>
+ *
+ * @author tk
+ * @since 2026-04-02
+ */
+@EqualsAndHashCode(callSuper = false)
+@Data
+@ToString(callSuper = true)
+@TableName("owner_company")
+@Schema(name = "OwnerCompany", description = "业主企业信息表")
+public class OwnerCompany implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @Schema(description = "主键ID")
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
+
+    @Schema(description = "SaaS企业ID")
+    @TableField("company_id")
+    private Long companyId;
+
+    @Schema(description = "企业名称")
+    @TableField("name")
+    private String name;
+
+    @Schema(description = "统一社会信用代码")
+    @TableField("uscc")
+    private String uscc;
+
+    @Schema(description = "法人姓名")
+    @TableField("legal_person")
+    private String legalPerson;
+
+    @Schema(description = "法人证件类型：0=身份证，1=护照，2=港澳通行证，3=台胞证")
+    @TableField("legal_person_id_type")
+    private Integer legalPersonIdType;
+
+    @Schema(description = "法人证件号码")
+    @TableField("legal_person_id_no")
+    private String legalPersonIdNo;
+
+    @Schema(description = "联系人")
+    @TableField("contact_name")
+    private String contactName;
+
+    @Schema(description = "联系人电话")
+    @TableField("contact_phone")
+    private String contactPhone;
+
+    @Schema(description = "注册地址")
+    @TableField("registered_address")
+    private String registeredAddress;
+
+    @Schema(description = "标签JSON数组")
+    @TableField("tags")
+    private String tags;
+
+    @Schema(description = "备注")
+    @TableField("remark")
+    private String remark;
+
+    @Schema(description = "状态：1=启用，0=禁用")
+    @TableField("status")
+    private Integer status;
+
+    @Schema(description = "是否删除：0=否，1=是")
+    @TableField("deleted")
+    @TableLogic
+    private Boolean deleted;
+
+    @Schema(description = "创建人")
+    @TableField("create_by")
+    private Long createBy;
+
+    @Schema(description = "创建时间")
+    @TableField("create_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date createTime;
+
+    @Schema(description = "更新人")
+    @TableField("update_by")
+    private Long updateBy;
+
+    @Schema(description = "更新时间")
+    @TableField("update_time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date updateTime;
+}
