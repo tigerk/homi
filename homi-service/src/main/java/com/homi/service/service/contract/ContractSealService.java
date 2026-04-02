@@ -190,8 +190,7 @@ public class ContractSealService {
     }
 
     private void handleProviderInfo(ContractSealCreateDTO dto, Long sealId, Long userId) {
-        if (StringUtils.isAllBlank(dto.getProviderAccountId(), dto.getProviderSealId(), dto.getProviderExtra())
-            && dto.getAuthStatus() == null && dto.getAuthTime() == null && dto.getExpireTime() == null) {
+        if (StringUtils.isAnyBlank(dto.getProviderAccountId(), dto.getProviderSealId(), dto.getProviderExtra()) && dto.getAuthStatus() == null && dto.getAuthTime() == null && dto.getExpireTime() == null) {
             return;
         }
 
