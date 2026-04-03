@@ -81,6 +81,15 @@ public class OwnerLeaseRule implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date firstPayDate;
 
+    @Schema(description = "交房日期")
+    @TableField("handover_date")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date handoverDate;
+
+    @Schema(description = "承租用途")
+    @TableField("usage_type")
+    private String usageType;
+
     @Schema(description = "计费开始日期")
     @TableField("billing_start")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

@@ -14,6 +14,9 @@ import java.util.Date;
 @Data
 @Schema(description = "轻托管免租规则DTO")
 public class OwnerRentFreeRuleDTO {
+    @Schema(description = "是否启用免租")
+    private Boolean enabled;
+
     @Schema(description = "免租类型")
     private OwnerFreeTypeEnum freeType;
 

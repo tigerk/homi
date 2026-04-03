@@ -48,6 +48,10 @@ public class OwnerRentFreeRule implements Serializable {
     @TableField("contract_house_id")
     private Long contractHouseId;
 
+    @Schema(description = "是否启用免租")
+    @TableField("enabled")
+    private Boolean enabled;
+
     @Schema(description = "免租类型：BUILT_IN/OUTSIDE")
     @TableField("free_type")
     private String freeType;

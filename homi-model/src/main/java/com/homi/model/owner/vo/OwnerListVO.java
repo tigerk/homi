@@ -8,6 +8,7 @@ import com.homi.common.lib.enums.owner.OwnerTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -40,6 +41,15 @@ public class OwnerListVO {
     @Schema(description = "房源名称列表")
     private String houseNames;
 
+    @Schema(description = "房源数量")
+    private Integer houseCount;
+
+    @Schema(description = "总面积")
+    private BigDecimal totalArea;
+
+    @Schema(description = "已配置房源数")
+    private Integer configuredHouseCount;
+
     @Schema(description = "合同开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date contractStart;
@@ -57,4 +67,8 @@ public class OwnerListVO {
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
+
+    @Schema(description = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date updateTime;
 }

@@ -67,6 +67,34 @@ public class OwnerCompany implements Serializable {
     @TableField("contact_phone")
     private String contactPhone;
 
+    @Schema(description = "收款人姓名")
+    @TableField("payee_name")
+    private String payeeName;
+
+    @Schema(description = "收款人电话")
+    @TableField("payee_phone")
+    private String payeePhone;
+
+    @Schema(description = "收款人证件类型")
+    @TableField("payee_id_type")
+    private Integer payeeIdType;
+
+    @Schema(description = "收款人证件号码")
+    @TableField("payee_id_no")
+    private String payeeIdNo;
+
+    @Schema(description = "银行卡开户名")
+    @TableField("bank_account_name")
+    private String bankAccountName;
+
+    @Schema(description = "银行卡号")
+    @TableField("bank_account_no")
+    private String bankAccountNo;
+
+    @Schema(description = "开户行名称")
+    @TableField("bank_name")
+    private String bankName;
+
     @Schema(description = "注册地址")
     @TableField("registered_address")
     private String registeredAddress;

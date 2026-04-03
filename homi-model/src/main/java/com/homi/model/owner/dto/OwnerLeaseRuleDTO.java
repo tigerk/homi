@@ -9,6 +9,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Schema(description = "包租规则DTO")
@@ -41,6 +42,13 @@ public class OwnerLeaseRuleDTO {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date firstPayDate;
 
+    @Schema(description = "交房日期")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date handoverDate;
+
+    @Schema(description = "承租用途")
+    private String usageType;
+
     @Schema(description = "计费开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date billingStart;
@@ -57,4 +65,7 @@ public class OwnerLeaseRuleDTO {
 
     @Schema(description = "备注")
     private String remark;
+
+    @Schema(description = "其他费用列表")
+    private List<OwnerLeaseFeeDTO> otherFeeList;
 }

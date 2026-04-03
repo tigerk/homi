@@ -7,4 +7,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class OwnerSettlementRuleRepo extends ServiceImpl<OwnerSettlementRuleMapper, OwnerSettlementRule> {
+    public void deleteByContractIdForce(Long contractId) {
+        baseMapper.deleteByContractIdForce(contractId);
+    }
 }

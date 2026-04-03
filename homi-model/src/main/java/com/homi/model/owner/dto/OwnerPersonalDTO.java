@@ -32,6 +32,39 @@ public class OwnerPersonalDTO {
     @Schema(description = "联系电话")
     private String phone;
 
+    @Schema(description = "收款人姓名")
+    private String payeeName;
+
+    @Schema(description = "收款人电话")
+    private String payeePhone;
+
+    @Schema(description = "收款人证件类型")
+    private IdTypeEnum payeeIdType;
+
+    @Schema(description = "收款人证件号码")
+    private String payeeIdNo;
+
+    @Schema(description = "银行卡开户名")
+    private String bankAccountName;
+
+    @Schema(description = "银行卡号")
+    private String bankAccountNo;
+
+    @Schema(description = "开户行名称")
+    private String bankName;
+
+    @Schema(description = "身份证国徽面")
+    private List<String> idCardFrontList;
+
+    @Schema(description = "身份证人像面")
+    private List<String> idCardBackList;
+
+    @Schema(description = "手持身份证照片")
+    private List<String> idCardInHandList;
+
+    @Schema(description = "其他附件")
+    private List<String> otherImageList;
+
     @Schema(description = "标签列表")
     private List<String> tags;
 

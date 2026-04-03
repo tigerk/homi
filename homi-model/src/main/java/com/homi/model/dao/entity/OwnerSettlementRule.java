@@ -64,6 +64,10 @@ public class OwnerSettlementRule implements Serializable {
     @TableField("guaranteed_rent_amount")
     private BigDecimal guaranteedRentAmount;
 
+    @Schema(description = "是否有保底租金")
+    @TableField("has_guaranteed_rent")
+    private Boolean hasGuaranteedRent;
+
     @Schema(description = "佣金方式：RATIO/FIXED")
     @TableField("commission_mode")
     private String commissionMode;
@@ -80,9 +84,33 @@ public class OwnerSettlementRule implements Serializable {
     @TableField("service_fee_value")
     private BigDecimal serviceFeeValue;
 
+    @Schema(description = "是否启用管理费")
+    @TableField("management_fee_enabled")
+    private Boolean managementFeeEnabled;
+
+    @Schema(description = "管理费方式")
+    @TableField("management_fee_mode")
+    private String managementFeeMode;
+
+    @Schema(description = "管理费值")
+    @TableField("management_fee_value")
+    private BigDecimal managementFeeValue;
+
     @Schema(description = "税费承担方：PLATFORM/OWNER/SHARED")
     @TableField("bear_tax_type")
     private String bearTaxType;
+
+    @Schema(description = "支付手续费承担方式")
+    @TableField("payment_fee_bear_type")
+    private String paymentFeeBearType;
+
+    @Schema(description = "分账时间")
+    @TableField("settlement_timing")
+    private String settlementTiming;
+
+    @Schema(description = "是否启用免租规则")
+    @TableField("rent_free_enabled")
+    private Boolean rentFreeEnabled;
 
     @Schema(description = "计算优先级")
     @TableField("calc_priority")

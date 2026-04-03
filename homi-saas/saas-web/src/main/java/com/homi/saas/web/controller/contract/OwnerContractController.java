@@ -9,11 +9,17 @@ import com.homi.model.owner.dto.OwnerContractIdDTO;
 import com.homi.model.owner.dto.OwnerContractStatusDTO;
 import com.homi.model.owner.dto.OwnerQueryDTO;
 import com.homi.model.owner.dto.OwnerUpdateDTO;
+import com.homi.model.owner.vo.OwnerContractTotalVO;
 import com.homi.model.owner.vo.OwnerDetailVO;
 import com.homi.model.owner.vo.OwnerListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.owner.OwnerContractService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,9 +47,23 @@ public class OwnerContractController {
         return ResponseResult.ok(ownerContractService.getOwnerContractList(query));
     }
 
+    @PostMapping("/total")
+    public ResponseResult<OwnerContractTotalVO> total(@RequestBody OwnerQueryDTO query) {
+        return ResponseResult.ok(ownerContractService.getOwnerContractTotal(query));
+    }
+
     @PostMapping("/detail")
     public ResponseResult<OwnerDetailVO> detail(@RequestBody OwnerContractIdDTO dto) {
         return ResponseResult.ok(ownerContractService.getOwnerContractDetail(dto));
+    }
+
+    @PostMapping("/preview")
+    public ResponseEntity<byte[]> preview(@RequestBody OwnerContractIdDTO dto) {
+        byte[] pdfBytes = ownerContractService.previewOwnerContract(dto);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.attachment().filename("owner-preview-" + dto.getContractId() + ".pdf").build());
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 
     @PostMapping("/update")

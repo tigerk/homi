@@ -2,6 +2,7 @@ package com.homi.model.owner.dto;
 
 import com.homi.common.lib.dto.PageDTO;
 import com.homi.common.lib.enums.StatusEnum;
+import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
 import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,9 +28,15 @@ public class OwnerQueryDTO extends PageDTO {
     @Schema(description = "业主类型")
     private OwnerTypeEnum ownerType;
 
+    @Schema(description = "合作模式")
+    private OwnerCooperationModeEnum cooperationMode;
+
     @Schema(description = "签署状态")
     private OwnerSignStatusEnum signStatus;
 
     @Schema(description = "状态")
     private StatusEnum status;
+
+    @Schema(description = "N天内到期合同")
+    private Integer expiringDaysWithin;
 }

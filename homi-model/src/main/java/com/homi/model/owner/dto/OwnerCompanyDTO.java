@@ -37,6 +37,30 @@ public class OwnerCompanyDTO {
     @Schema(description = "联系人电话")
     private String contactPhone;
 
+    @Schema(description = "收款人姓名")
+    private String payeeName;
+
+    @Schema(description = "收款人电话")
+    private String payeePhone;
+
+    @Schema(description = "收款人证件类型")
+    private IdTypeEnum payeeIdType;
+
+    @Schema(description = "收款人证件号码")
+    private String payeeIdNo;
+
+    @Schema(description = "银行卡开户名")
+    private String bankAccountName;
+
+    @Schema(description = "银行卡号")
+    private String bankAccountNo;
+
+    @Schema(description = "开户行名称")
+    private String bankName;
+
+    @Schema(description = "营业执照附件")
+    private List<String> businessLicenseUrls;
+
     @Schema(description = "注册地址")
     private String registeredAddress;
 

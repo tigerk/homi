@@ -63,6 +63,12 @@ public enum FileAttachBizTypeEnum {
      */
     TENANT_MATE_OTHER_IMAGE("tenant_mate_other_image"),
 
+    OWNER_ID_CARD_FRONT("owner_id_card_front"),
+    OWNER_ID_CARD_BACK("owner_id_card_back"),
+    OWNER_ID_CARD_IN_HAND("owner_id_card_in_hand"),
+    OWNER_OTHER_IMAGE("owner_other_image"),
+    OWNER_BUSINESS_LICENSE("owner_business_license"),
+
     DELIVERY_IMAGE("delivery_image"),
     /**
      * 电子印章图片

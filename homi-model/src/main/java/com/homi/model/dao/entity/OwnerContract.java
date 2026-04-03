@@ -63,6 +63,18 @@ public class OwnerContract implements Serializable {
     @TableField("sign_status")
     private Integer signStatus;
 
+    @Schema(description = "签约类型")
+    @TableField("sign_type")
+    private String signType;
+
+    @Schema(description = "合同介质")
+    @TableField("contract_medium")
+    private String contractMedium;
+
+    @Schema(description = "是否通知业主")
+    @TableField("notify_owner")
+    private Boolean notifyOwner;
+
     @Schema(description = "合同开始日期")
     @TableField("contract_start")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

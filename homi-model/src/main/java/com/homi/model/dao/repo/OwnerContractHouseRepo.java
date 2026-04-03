@@ -13,4 +13,8 @@ public class OwnerContractHouseRepo extends ServiceImpl<OwnerContractHouseMapper
     public List<OwnerContractHouse> listByContractId(Long contractId) {
         return list(new LambdaQueryWrapper<OwnerContractHouse>().eq(OwnerContractHouse::getContractId, contractId));
     }
+
+    public void deleteByContractIdForce(Long contractId) {
+        baseMapper.deleteByContractIdForce(contractId);
+    }
 }

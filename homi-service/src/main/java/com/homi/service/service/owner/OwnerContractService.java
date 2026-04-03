@@ -1,6 +1,7 @@
 package com.homi.service.service.owner;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -8,9 +9,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.contract.OwnerParamsEnum;
+import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
+import com.homi.common.lib.enums.owner.OwnerContractMediumEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
+import com.homi.common.lib.enums.owner.OwnerPaymentFeeBearTypeEnum;
+import com.homi.common.lib.enums.owner.OwnerSettlementTimingEnum;
 import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
+import com.homi.common.lib.enums.owner.OwnerSignTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerTypeEnum;
+import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.ContractTemplate;
@@ -20,37 +28,47 @@ import com.homi.model.dao.entity.OwnerAccount;
 import com.homi.model.dao.entity.OwnerCompany;
 import com.homi.model.dao.entity.OwnerContract;
 import com.homi.model.dao.entity.OwnerContractHouse;
+import com.homi.model.dao.entity.OwnerLeaseFee;
 import com.homi.model.dao.entity.OwnerLeaseFreeRule;
 import com.homi.model.dao.entity.OwnerLeaseRule;
 import com.homi.model.dao.entity.OwnerPersonal;
 import com.homi.model.dao.entity.OwnerRentFreeRule;
+import com.homi.model.dao.entity.OwnerSettlementItem;
 import com.homi.model.dao.entity.OwnerSettlementRule;
+import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.ContractTemplateRepo;
+import com.homi.model.dao.repo.FileAttachRepo;
 import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.OwnerAccountRepo;
 import com.homi.model.dao.repo.OwnerCompanyRepo;
 import com.homi.model.dao.repo.OwnerContractHouseRepo;
 import com.homi.model.dao.repo.OwnerContractRepo;
+import com.homi.model.dao.repo.OwnerLeaseFeeRepo;
 import com.homi.model.dao.repo.OwnerLeaseFreeRuleRepo;
 import com.homi.model.dao.repo.OwnerLeaseRuleRepo;
 import com.homi.model.dao.repo.OwnerPersonalRepo;
 import com.homi.model.dao.repo.OwnerRentFreeRuleRepo;
 import com.homi.model.dao.repo.OwnerRepo;
+import com.homi.model.dao.repo.OwnerSettlementItemRepo;
 import com.homi.model.dao.repo.OwnerSettlementRuleRepo;
+import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.owner.dto.OwnerCompanyDTO;
 import com.homi.model.owner.dto.OwnerContractDTO;
 import com.homi.model.owner.dto.OwnerContractIdDTO;
 import com.homi.model.owner.dto.OwnerContractStatusDTO;
 import com.homi.model.owner.dto.OwnerContractHouseDTO;
 import com.homi.model.owner.dto.OwnerCreateDTO;
+import com.homi.model.owner.dto.OwnerLeaseFeeDTO;
 import com.homi.model.owner.dto.OwnerLeaseFreeRuleDTO;
 import com.homi.model.owner.dto.OwnerLeaseRuleDTO;
 import com.homi.model.owner.dto.OwnerPersonalDTO;
 import com.homi.model.owner.dto.OwnerQueryDTO;
 import com.homi.model.owner.dto.OwnerRentFreeRuleDTO;
+import com.homi.model.owner.dto.OwnerSettlementItemDTO;
 import com.homi.model.owner.dto.OwnerSettlementRuleDTO;
 import com.homi.model.owner.dto.OwnerUpdateDTO;
 import com.homi.model.owner.vo.OwnerDetailVO;
+import com.homi.model.owner.vo.OwnerContractTotalVO;
 import com.homi.model.owner.vo.OwnerListVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -59,8 +77,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -73,12 +94,16 @@ public class OwnerContractService {
     private final OwnerContractRepo ownerContractRepo;
     private final OwnerContractHouseRepo ownerContractHouseRepo;
     private final OwnerSettlementRuleRepo ownerSettlementRuleRepo;
+    private final OwnerSettlementItemRepo ownerSettlementItemRepo;
     private final OwnerRentFreeRuleRepo ownerRentFreeRuleRepo;
     private final OwnerLeaseRuleRepo ownerLeaseRuleRepo;
+    private final OwnerLeaseFeeRepo ownerLeaseFeeRepo;
     private final OwnerLeaseFreeRuleRepo ownerLeaseFreeRuleRepo;
     private final OwnerAccountRepo ownerAccountRepo;
     private final ContractTemplateRepo contractTemplateRepo;
     private final HouseRepo houseRepo;
+    private final UserRepo userRepo;
+    private final FileAttachRepo fileAttachRepo;
 
     @Transactional(rollbackFor = Exception.class)
     public Long createOwnerContract(OwnerCreateDTO dto) {
@@ -92,6 +117,9 @@ public class OwnerContractService {
         contract.setContractNo(Objects.requireNonNullElseGet(contract.getContractNo(), this::generateContractNo));
         contract.setCooperationMode(enumName(dto.getOwnerContract().getCooperationMode()));
         contract.setSignStatus(Objects.requireNonNullElse(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING).getCode());
+        contract.setSignType(enumName(dto.getOwnerContract().getSignType()));
+        contract.setContractMedium(enumName(dto.getOwnerContract().getContractMedium()));
+        contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
         contract.setStatus(Objects.requireNonNullElse(dto.getOwnerContract().getStatus(), StatusEnum.ACTIVE).getValue());
         contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
         contract.setCreateBy(dto.getCreateBy());
@@ -113,14 +141,11 @@ public class OwnerContractService {
 
     public PageVO<OwnerListVO> getOwnerContractList(OwnerQueryDTO query) {
         Page<OwnerContract> page = new Page<>(query.getCurrentPage(), query.getPageSize());
-        LambdaQueryWrapper<OwnerContract> wrapper = new LambdaQueryWrapper<>();
+        LambdaQueryWrapper<OwnerContract> wrapper = buildOwnerContractWrapper(query, false);
         List<Long> ownerIds = resolveOwnerIds(query);
         if (ownerIds != null && ownerIds.isEmpty()) {
             return emptyPage(query);
         }
-        wrapper.in(ownerIds != null, OwnerContract::getOwnerId, ownerIds);
-        wrapper.eq(Objects.nonNull(query.getStatus()), OwnerContract::getStatus, query.getStatus() == null ? null : query.getStatus().getValue());
-        wrapper.eq(Objects.nonNull(query.getSignStatus()), OwnerContract::getSignStatus, query.getSignStatus() == null ? null : query.getSignStatus().getCode());
         wrapper.orderByDesc(OwnerContract::getCreateTime);
         Page<OwnerContract> result = ownerContractRepo.page(page, wrapper);
 
@@ -132,6 +157,25 @@ public class OwnerContractService {
             .pages(result.getPages())
             .list(list)
             .build();
+    }
+
+    public OwnerContractTotalVO getOwnerContractTotal(OwnerQueryDTO query) {
+        OwnerContractTotalVO vo = new OwnerContractTotalVO();
+        LambdaQueryWrapper<OwnerContract> wrapper = buildOwnerContractWrapper(query, true);
+        List<OwnerContract> contracts = ownerContractRepo.list(wrapper);
+        DateTime now = DateUtil.date();
+        DateTime expireLimit = DateUtil.offsetDay(now, 30);
+
+        vo.setTotal(contracts.size());
+        vo.setActiveTotal((int) contracts.stream().filter(item -> Objects.equals(item.getStatus(), StatusEnum.ACTIVE.getValue())).count());
+        vo.setDisabledTotal((int) contracts.stream().filter(item -> Objects.equals(item.getStatus(), StatusEnum.DISABLED.getValue())).count());
+        vo.setPendingSignTotal((int) contracts.stream().filter(item -> Objects.equals(item.getSignStatus(), OwnerSignStatusEnum.PENDING.getCode())).count());
+        vo.setSignedTotal((int) contracts.stream().filter(item -> Objects.equals(item.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())).count());
+        vo.setExpiring30DaysTotal((int) contracts.stream()
+            .filter(item -> item.getContractEnd() != null)
+            .filter(item -> !item.getContractEnd().before(now) && !item.getContractEnd().after(expireLimit))
+            .count());
+        return vo;
     }
 
     public OwnerDetailVO getOwnerContractDetail(OwnerContractIdDTO dto) {
@@ -151,6 +195,10 @@ public class OwnerContractService {
         vo.setOwnerId(owner.getId());
         vo.setOwnerType(ownerTypeOf(owner.getOwnerType()));
         vo.setOwnerContract(toOwnerContractDTO(contract));
+        ContractTemplate template = contractTemplateRepo.getById(contract.getContractTemplateId());
+        if (template != null) {
+            vo.setContractTemplateName(template.getTemplateName());
+        }
         if (OwnerTypeEnum.PERSONAL.equals(vo.getOwnerType())) {
             OwnerPersonal personal = ownerPersonalRepo.getById(owner.getOwnerTypeId());
             if (personal != null) {
@@ -209,11 +257,29 @@ public class OwnerContractService {
             vo.setOwnerLeaseFreeRuleList(leaseFreeRuleList);
         }
         vo.setContractHouseList(houseDTOList);
+        ContractHouseSummary summary = buildContractHouseSummary(contract, contractHouses);
+        vo.setHouseCount(summary.houseCount());
+        vo.setTotalArea(summary.totalArea());
+        vo.setConfiguredHouseCount(summary.configuredHouseCount());
         vo.setCreateBy(contract.getCreateBy());
         vo.setCreateTime(contract.getCreateTime());
         vo.setUpdateBy(contract.getUpdateBy());
         vo.setUpdateTime(contract.getUpdateTime());
+        Map<Long, String> userNameMap = getUserNameMap(contract.getCreateBy(), contract.getUpdateBy());
+        vo.setCreateByName(userNameMap.get(contract.getCreateBy()));
+        vo.setUpdateByName(userNameMap.get(contract.getUpdateBy()));
         return vo;
+    }
+
+    public byte[] previewOwnerContract(OwnerContractIdDTO dto) {
+        if (dto == null || dto.getContractId() == null) {
+            throw new IllegalArgumentException("合同ID不能为空");
+        }
+        OwnerContract contract = ownerContractRepo.getById(dto.getContractId());
+        if (contract == null || contract.getContractContent() == null) {
+            throw new IllegalArgumentException("业主合同不存在");
+        }
+        return ConvertHtml2PdfUtils.generatePdf(contract.getContractContent());
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -235,6 +301,9 @@ public class OwnerContractService {
         contract.setOwnerId(owner.getId());
         contract.setCooperationMode(enumName(dto.getOwnerContract().getCooperationMode()));
         contract.setSignStatus(Objects.requireNonNullElse(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING).getCode());
+        contract.setSignType(enumName(dto.getOwnerContract().getSignType()));
+        contract.setContractMedium(enumName(dto.getOwnerContract().getContractMedium()));
+        contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
         contract.setStatus(Objects.requireNonNullElse(dto.getOwnerContract().getStatus(), StatusEnum.ACTIVE).getValue());
         contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
         contract.setUpdateBy(dto.getUpdateBy());
@@ -362,9 +431,16 @@ public class OwnerContractService {
                 rule.setRuleVersion(1);
                 rule.setIncomeBasis(enumName(settlementRuleDTO.getIncomeBasis()));
                 rule.setSettlementMode(enumName(settlementRuleDTO.getSettlementMode()));
+                rule.setHasGuaranteedRent(Objects.requireNonNullElse(settlementRuleDTO.getHasGuaranteedRent(), Boolean.FALSE));
                 rule.setCommissionMode(enumName(settlementRuleDTO.getCommissionMode()));
                 rule.setServiceFeeMode(enumName(settlementRuleDTO.getServiceFeeMode()));
+                rule.setManagementFeeEnabled(Objects.requireNonNullElse(settlementRuleDTO.getManagementFeeEnabled(), Boolean.FALSE));
+                rule.setManagementFeeMode(enumName(settlementRuleDTO.getManagementFeeMode()));
+                rule.setManagementFeeValue(settlementRuleDTO.getManagementFeeValue());
                 rule.setBearTaxType(enumName(settlementRuleDTO.getBearTaxType()));
+                rule.setPaymentFeeBearType(enumName(settlementRuleDTO.getPaymentFeeBearType()));
+                rule.setSettlementTiming(enumName(settlementRuleDTO.getSettlementTiming()));
+                rule.setRentFreeEnabled(Objects.requireNonNullElse(settlementRuleDTO.getRentFreeEnabled(), Boolean.FALSE));
                 rule.setStatus(Objects.requireNonNullElse(settlementRuleDTO.getStatus(), StatusEnum.ACTIVE).getValue());
                 rule.setRuleSnapshot(JSONUtil.toJsonStr(settlementRuleDTO));
                 rule.setCreateBy(dto.getCreateBy());
@@ -372,6 +448,7 @@ public class OwnerContractService {
                 rule.setUpdateBy(dto.getCreateBy());
                 rule.setUpdateTime(now);
                 ownerSettlementRuleRepo.save(rule);
+                saveSettlementItems(dto, contract, house, settlementRuleDTO.getSettlementItemList(), now);
             }
             OwnerRentFreeRuleDTO rentFreeRuleDTO = houseDTO.getRentFreeRule();
             if (rentFreeRuleDTO != null) {
@@ -380,6 +457,7 @@ public class OwnerContractService {
                 rule.setCompanyId(contract.getCompanyId());
                 rule.setContractId(contract.getId());
                 rule.setContractHouseId(house.getId());
+                rule.setEnabled(Objects.requireNonNullElse(rentFreeRuleDTO.getEnabled(), Boolean.FALSE));
                 rule.setFreeType(enumName(rentFreeRuleDTO.getFreeType()));
                 rule.setBearType(enumName(rentFreeRuleDTO.getBearType()));
                 rule.setCalcMode(enumName(rentFreeRuleDTO.getCalcMode()));
@@ -407,6 +485,7 @@ public class OwnerContractService {
         leaseRule.setUpdateBy(dto.getCreateBy());
         leaseRule.setUpdateTime(now);
         ownerLeaseRuleRepo.save(leaseRule);
+        saveLeaseFees(dto, contractId, now);
 
         if (dto.getOwnerLeaseFreeRuleList() == null || dto.getOwnerLeaseFreeRuleList().isEmpty()) {
             return;
@@ -448,6 +527,7 @@ public class OwnerContractService {
             personal.setCompanyId(dto.getOwnerContract().getCompanyId());
             personal.setGender(personalDTO.getGender() == null ? null : personalDTO.getGender().getCode());
             personal.setIdType(personalDTO.getIdType() == null ? null : personalDTO.getIdType().getCode());
+            personal.setPayeeIdType(personalDTO.getPayeeIdType() == null ? null : personalDTO.getPayeeIdType().getCode());
             personal.setTags(JSONUtil.toJsonStr(personalDTO.getTags()));
             personal.setStatus(Objects.requireNonNullElse(personalDTO.getStatus(), StatusEnum.ACTIVE).getValue());
             personal.setCreateBy(dto.getCreateBy());
@@ -455,6 +535,7 @@ public class OwnerContractService {
             personal.setUpdateBy(dto.getCreateBy());
             personal.setUpdateTime(now);
             ownerPersonalRepo.save(personal);
+            syncOwnerPersonalFiles(personal.getId(), personalDTO);
             ownerTypeId = personal.getId();
             ownerName = personal.getName();
             ownerPhone = personal.getPhone();
@@ -467,6 +548,7 @@ public class OwnerContractService {
             BeanUtils.copyProperties(companyDTO, company);
             company.setCompanyId(dto.getOwnerContract().getCompanyId());
             company.setLegalPersonIdType(companyDTO.getLegalPersonIdType() == null ? null : companyDTO.getLegalPersonIdType().getCode());
+            company.setPayeeIdType(companyDTO.getPayeeIdType() == null ? null : companyDTO.getPayeeIdType().getCode());
             company.setTags(JSONUtil.toJsonStr(companyDTO.getTags()));
             company.setStatus(Objects.requireNonNullElse(companyDTO.getStatus(), StatusEnum.ACTIVE).getValue());
             company.setCreateBy(dto.getCreateBy());
@@ -474,6 +556,7 @@ public class OwnerContractService {
             company.setUpdateBy(dto.getCreateBy());
             company.setUpdateTime(now);
             ownerCompanyRepo.save(company);
+            syncOwnerCompanyFiles(company.getId(), companyDTO);
             ownerTypeId = company.getId();
             ownerName = company.getName();
             ownerPhone = company.getContactPhone();
@@ -522,6 +605,7 @@ public class OwnerContractService {
             personal.setCompanyId(dto.getOwnerContract().getCompanyId());
             personal.setGender(personalDTO.getGender() == null ? null : personalDTO.getGender().getCode());
             personal.setIdType(personalDTO.getIdType() == null ? null : personalDTO.getIdType().getCode());
+            personal.setPayeeIdType(personalDTO.getPayeeIdType() == null ? null : personalDTO.getPayeeIdType().getCode());
             personal.setTags(JSONUtil.toJsonStr(personalDTO.getTags()));
             personal.setStatus(Objects.requireNonNullElse(personalDTO.getStatus(), StatusEnum.ACTIVE).getValue());
             personal.setUpdateBy(dto.getUpdateBy());
@@ -531,6 +615,7 @@ public class OwnerContractService {
             } else {
                 ownerPersonalRepo.updateById(personal);
             }
+            syncOwnerPersonalFiles(personal.getId(), personalDTO);
             owner.setOwnerType(OwnerTypeEnum.PERSONAL.getCode());
             owner.setOwnerTypeId(personal.getId());
             owner.setOwnerName(personal.getName());
@@ -555,6 +640,7 @@ public class OwnerContractService {
             BeanUtils.copyProperties(companyDTO, company);
             company.setCompanyId(dto.getOwnerContract().getCompanyId());
             company.setLegalPersonIdType(companyDTO.getLegalPersonIdType() == null ? null : companyDTO.getLegalPersonIdType().getCode());
+            company.setPayeeIdType(companyDTO.getPayeeIdType() == null ? null : companyDTO.getPayeeIdType().getCode());
             company.setTags(JSONUtil.toJsonStr(companyDTO.getTags()));
             company.setStatus(Objects.requireNonNullElse(companyDTO.getStatus(), StatusEnum.ACTIVE).getValue());
             company.setUpdateBy(dto.getUpdateBy());
@@ -564,6 +650,7 @@ public class OwnerContractService {
             } else {
                 ownerCompanyRepo.updateById(company);
             }
+            syncOwnerCompanyFiles(company.getId(), companyDTO);
             owner.setOwnerType(OwnerTypeEnum.COMPANY.getCode());
             owner.setOwnerTypeId(company.getId());
             owner.setOwnerName(company.getName());
@@ -575,11 +662,13 @@ public class OwnerContractService {
     }
 
     private void clearContractRelations(Long contractId) {
-        ownerSettlementRuleRepo.remove(new LambdaQueryWrapper<OwnerSettlementRule>().eq(OwnerSettlementRule::getContractId, contractId));
-        ownerRentFreeRuleRepo.remove(new LambdaQueryWrapper<OwnerRentFreeRule>().eq(OwnerRentFreeRule::getContractId, contractId));
-        ownerLeaseRuleRepo.remove(new LambdaQueryWrapper<OwnerLeaseRule>().eq(OwnerLeaseRule::getContractId, contractId));
-        ownerLeaseFreeRuleRepo.remove(new LambdaQueryWrapper<OwnerLeaseFreeRule>().eq(OwnerLeaseFreeRule::getContractId, contractId));
-        ownerContractHouseRepo.remove(new LambdaQueryWrapper<OwnerContractHouse>().eq(OwnerContractHouse::getContractId, contractId));
+        ownerSettlementRuleRepo.deleteByContractIdForce(contractId);
+        ownerSettlementItemRepo.deleteByContractIdForce(contractId);
+        ownerRentFreeRuleRepo.deleteByContractIdForce(contractId);
+        ownerLeaseRuleRepo.deleteByContractIdForce(contractId);
+        ownerLeaseFeeRepo.deleteByContractIdForce(contractId);
+        ownerLeaseFreeRuleRepo.deleteByContractIdForce(contractId);
+        ownerContractHouseRepo.deleteByContractIdForce(contractId);
     }
 
     private void initOwnerAccount(Long companyId, Long ownerId, Date now) {
@@ -646,6 +735,7 @@ public class OwnerContractService {
         vo.setSignStatus(signStatusOf(contract.getSignStatus()));
         vo.setStatus(statusOf(contract.getStatus()));
         vo.setCreateTime(contract.getCreateTime());
+        vo.setUpdateTime(contract.getUpdateTime());
 
         ContractTemplate template = contractTemplateRepo.getById(contract.getContractTemplateId());
         if (template != null) {
@@ -653,7 +743,69 @@ public class OwnerContractService {
         }
         List<OwnerContractHouse> contractHouses = ownerContractHouseRepo.listByContractId(contract.getId());
         vo.setHouseNames(contractHouses.stream().map(OwnerContractHouse::getHouseNameSnapshot).collect(Collectors.joining("，")));
+        ContractHouseSummary summary = buildContractHouseSummary(contract, contractHouses);
+        vo.setHouseCount(summary.houseCount());
+        vo.setTotalArea(summary.totalArea());
+        vo.setConfiguredHouseCount(summary.configuredHouseCount());
         return vo;
+    }
+
+    private LambdaQueryWrapper<OwnerContract> buildOwnerContractWrapper(OwnerQueryDTO query, boolean ignoreStatusFilters) {
+        LambdaQueryWrapper<OwnerContract> wrapper = new LambdaQueryWrapper<>();
+        List<Long> ownerIds = resolveOwnerIds(query);
+        if (ownerIds != null && ownerIds.isEmpty()) {
+            wrapper.eq(OwnerContract::getId, -1L);
+            return wrapper;
+        }
+        wrapper.in(ownerIds != null, OwnerContract::getOwnerId, ownerIds);
+        wrapper.eq(query.getCooperationMode() != null, OwnerContract::getCooperationMode, query.getCooperationMode() == null ? null : query.getCooperationMode().name());
+        if (!ignoreStatusFilters) {
+            wrapper.eq(Objects.nonNull(query.getStatus()), OwnerContract::getStatus, query.getStatus() == null ? null : query.getStatus().getValue());
+            wrapper.eq(Objects.nonNull(query.getSignStatus()), OwnerContract::getSignStatus, query.getSignStatus() == null ? null : query.getSignStatus().getCode());
+            if (query.getExpiringDaysWithin() != null) {
+                wrapper.ge(OwnerContract::getContractEnd, DateUtil.beginOfDay(new Date()));
+                wrapper.le(OwnerContract::getContractEnd, DateUtil.endOfDay(DateUtil.offsetDay(new Date(), query.getExpiringDaysWithin())));
+            }
+        }
+        return wrapper;
+    }
+
+    private ContractHouseSummary buildContractHouseSummary(OwnerContract contract, List<OwnerContractHouse> contractHouses) {
+        List<Long> houseIds = contractHouses.stream().map(OwnerContractHouse::getHouseId).filter(Objects::nonNull).toList();
+        List<House> houses = houseIds.isEmpty() ? List.of() : houseRepo.listByIds(houseIds);
+        BigDecimal totalArea = houses.stream()
+            .map(House::getArea)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        int configuredHouseCount;
+        if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
+            configuredHouseCount = ownerLeaseRuleRepo.count(new LambdaQueryWrapper<OwnerLeaseRule>().eq(OwnerLeaseRule::getContractId, contract.getId())) > 0 ? contractHouses.size() : 0;
+        } else {
+            List<Long> configuredIds = ownerSettlementRuleRepo.list(new LambdaQueryWrapper<OwnerSettlementRule>().eq(OwnerSettlementRule::getContractId, contract.getId()))
+                .stream()
+                .map(OwnerSettlementRule::getContractHouseId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+            configuredHouseCount = configuredIds.size();
+        }
+        return new ContractHouseSummary(contractHouses.size(), totalArea, configuredHouseCount);
+    }
+
+    private Map<Long, String> getUserNameMap(Long... userIds) {
+        List<Long> idList = Arrays.stream(userIds).filter(Objects::nonNull).distinct().toList();
+        if (idList.isEmpty()) {
+            return Map.of();
+        }
+        List<User> users = userRepo.listByIds(idList);
+        Map<Long, String> result = new HashMap<>();
+        for (User user : users) {
+            result.put(user.getId(), user.getRealName() != null && !user.getRealName().isBlank() ? user.getRealName() : user.getNickname());
+        }
+        return result;
+    }
+
+    private record ContractHouseSummary(Integer houseCount, BigDecimal totalArea, Integer configuredHouseCount) {
     }
 
     private List<Long> resolveOwnerIds(OwnerQueryDTO query) {
@@ -756,6 +908,9 @@ public class OwnerContractService {
         dto.setContractTemplateId(contract.getContractTemplateId());
         dto.setContractContent(contract.getContractContent());
         dto.setSignStatus(signStatusOf(contract.getSignStatus()));
+        dto.setSignType(contract.getSignType() == null ? null : OwnerSignTypeEnum.valueOf(contract.getSignType()));
+        dto.setContractMedium(contract.getContractMedium() == null ? null : OwnerContractMediumEnum.valueOf(contract.getContractMedium()));
+        dto.setNotifyOwner(Objects.requireNonNullElse(contract.getNotifyOwner(), Boolean.FALSE));
         dto.setContractStart(contract.getContractStart());
         dto.setContractEnd(contract.getContractEnd());
         dto.setStatus(statusOf(contract.getStatus()));
@@ -777,6 +932,17 @@ public class OwnerContractService {
         dto.setIdType(personal.getIdType() == null ? null : idTypeOf(personal.getIdType()));
         dto.setIdNo(personal.getIdNo());
         dto.setPhone(personal.getPhone());
+        dto.setPayeeName(personal.getPayeeName());
+        dto.setPayeePhone(personal.getPayeePhone());
+        dto.setPayeeIdType(personal.getPayeeIdType() == null ? null : idTypeOf(personal.getPayeeIdType()));
+        dto.setPayeeIdNo(personal.getPayeeIdNo());
+        dto.setBankAccountName(personal.getBankAccountName());
+        dto.setBankAccountNo(personal.getBankAccountNo());
+        dto.setBankName(personal.getBankName());
+        dto.setIdCardFrontList(getFileUrls(personal.getId(), FileAttachBizTypeEnum.OWNER_ID_CARD_FRONT.getBizType()));
+        dto.setIdCardBackList(getFileUrls(personal.getId(), FileAttachBizTypeEnum.OWNER_ID_CARD_BACK.getBizType()));
+        dto.setIdCardInHandList(getFileUrls(personal.getId(), FileAttachBizTypeEnum.OWNER_ID_CARD_IN_HAND.getBizType()));
+        dto.setOtherImageList(getFileUrls(personal.getId(), FileAttachBizTypeEnum.OWNER_OTHER_IMAGE.getBizType()));
         dto.setTags(parseTags(personal.getTags()));
         dto.setRemark(personal.getRemark());
         dto.setStatus(statusOf(personal.getStatus()));
@@ -795,6 +961,14 @@ public class OwnerContractService {
         dto.setLegalPersonIdNo(company.getLegalPersonIdNo());
         dto.setContactName(company.getContactName());
         dto.setContactPhone(company.getContactPhone());
+        dto.setPayeeName(company.getPayeeName());
+        dto.setPayeePhone(company.getPayeePhone());
+        dto.setPayeeIdType(company.getPayeeIdType() == null ? null : idTypeOf(company.getPayeeIdType()));
+        dto.setPayeeIdNo(company.getPayeeIdNo());
+        dto.setBankAccountName(company.getBankAccountName());
+        dto.setBankAccountNo(company.getBankAccountNo());
+        dto.setBankName(company.getBankName());
+        dto.setBusinessLicenseUrls(getFileUrls(company.getId(), FileAttachBizTypeEnum.OWNER_BUSINESS_LICENSE.getBizType()));
         dto.setRegisteredAddress(company.getRegisteredAddress());
         dto.setTags(parseTags(company.getTags()));
         dto.setRemark(company.getRemark());
@@ -808,11 +982,24 @@ public class OwnerContractService {
         dto.setIncomeBasis(rule.getIncomeBasis() == null ? null : com.homi.common.lib.enums.owner.OwnerIncomeBasisEnum.valueOf(rule.getIncomeBasis()));
         dto.setSettlementMode(rule.getSettlementMode() == null ? null : com.homi.common.lib.enums.owner.OwnerSettlementModeEnum.valueOf(rule.getSettlementMode()));
         dto.setGuaranteedRentAmount(rule.getGuaranteedRentAmount());
+        dto.setHasGuaranteedRent(Objects.requireNonNullElse(rule.getHasGuaranteedRent(), Boolean.FALSE));
         dto.setCommissionMode(rule.getCommissionMode() == null ? null : com.homi.common.lib.enums.owner.OwnerFeeModeEnum.valueOf(rule.getCommissionMode()));
         dto.setCommissionValue(rule.getCommissionValue());
         dto.setServiceFeeMode(rule.getServiceFeeMode() == null ? null : com.homi.common.lib.enums.owner.OwnerFeeModeEnum.valueOf(rule.getServiceFeeMode()));
         dto.setServiceFeeValue(rule.getServiceFeeValue());
+        dto.setManagementFeeEnabled(Objects.requireNonNullElse(rule.getManagementFeeEnabled(), Boolean.FALSE));
+        dto.setManagementFeeMode(rule.getManagementFeeMode() == null ? null : com.homi.common.lib.enums.owner.OwnerFeeModeEnum.valueOf(rule.getManagementFeeMode()));
+        dto.setManagementFeeValue(rule.getManagementFeeValue());
         dto.setBearTaxType(rule.getBearTaxType() == null ? null : com.homi.common.lib.enums.owner.OwnerBearTypeEnum.valueOf(rule.getBearTaxType()));
+        dto.setPaymentFeeBearType(rule.getPaymentFeeBearType() == null ? null : OwnerPaymentFeeBearTypeEnum.valueOf(rule.getPaymentFeeBearType()));
+        dto.setSettlementTiming(rule.getSettlementTiming() == null ? null : OwnerSettlementTimingEnum.valueOf(rule.getSettlementTiming()));
+        dto.setRentFreeEnabled(Objects.requireNonNullElse(rule.getRentFreeEnabled(), Boolean.FALSE));
+        dto.setSettlementItemList(ownerSettlementItemRepo.list(new LambdaQueryWrapper<OwnerSettlementItem>()
+                .eq(OwnerSettlementItem::getContractId, rule.getContractId())
+                .eq(OwnerSettlementItem::getContractHouseId, rule.getContractHouseId()))
+            .stream()
+            .map(this::toOwnerSettlementItemDTO)
+            .toList());
         dto.setEffectiveStart(rule.getEffectiveStart());
         dto.setEffectiveEnd(rule.getEffectiveEnd());
         dto.setStatus(statusOf(rule.getStatus()));
@@ -822,6 +1009,7 @@ public class OwnerContractService {
 
     private OwnerRentFreeRuleDTO toOwnerRentFreeRuleDTO(OwnerRentFreeRule rule) {
         OwnerRentFreeRuleDTO dto = new OwnerRentFreeRuleDTO();
+        dto.setEnabled(Objects.requireNonNullElse(rule.getEnabled(), Boolean.FALSE));
         dto.setFreeType(rule.getFreeType() == null ? null : com.homi.common.lib.enums.owner.OwnerFreeTypeEnum.valueOf(rule.getFreeType()));
         dto.setStartDate(rule.getStartDate());
         dto.setEndDate(rule.getEndDate());
@@ -845,11 +1033,17 @@ public class OwnerContractService {
         dto.setRentDueDay(rule.getRentDueDay());
         dto.setRentDueOffsetDays(rule.getRentDueOffsetDays());
         dto.setFirstPayDate(rule.getFirstPayDate());
+        dto.setHandoverDate(rule.getHandoverDate());
+        dto.setUsageType(rule.getUsageType());
         dto.setBillingStart(rule.getBillingStart());
         dto.setBillingEnd(rule.getBillingEnd());
         dto.setProrateType(rule.getProrateType() == null ? null : com.homi.common.lib.enums.owner.OwnerProrateTypeEnum.valueOf(rule.getProrateType()));
         dto.setStatus(statusOf(rule.getStatus()));
         dto.setRemark(rule.getRemark());
+        dto.setOtherFeeList(ownerLeaseFeeRepo.list(new LambdaQueryWrapper<OwnerLeaseFee>().eq(OwnerLeaseFee::getContractId, rule.getContractId()))
+            .stream()
+            .map(this::toOwnerLeaseFeeDTO)
+            .toList());
         return dto;
     }
 
@@ -863,6 +1057,30 @@ public class OwnerContractService {
         dto.setFreeRatio(rule.getFreeRatio());
         dto.setStatus(statusOf(rule.getStatus()));
         dto.setRemark(rule.getRemark());
+        return dto;
+    }
+
+    private OwnerSettlementItemDTO toOwnerSettlementItemDTO(OwnerSettlementItem item) {
+        OwnerSettlementItemDTO dto = new OwnerSettlementItemDTO();
+        dto.setFeeType(item.getFeeType());
+        dto.setItemName(item.getItemName());
+        dto.setTransferEnabled(Objects.requireNonNullElse(item.getTransferEnabled(), Boolean.FALSE));
+        dto.setTransferRatio(item.getTransferRatio());
+        dto.setSortOrder(item.getSortOrder());
+        dto.setRemark(item.getRemark());
+        return dto;
+    }
+
+    private OwnerLeaseFeeDTO toOwnerLeaseFeeDTO(OwnerLeaseFee fee) {
+        OwnerLeaseFeeDTO dto = new OwnerLeaseFeeDTO();
+        dto.setFeeType(fee.getFeeType());
+        dto.setFeeName(fee.getFeeName());
+        dto.setFeeDirection(fee.getFeeDirection() == null ? null : FinanceFlowDirectionEnum.valueOf(fee.getFeeDirection()));
+        dto.setPaymentMethod(paymentMethodOf(fee.getPaymentMethod()));
+        dto.setPriceMethod(priceMethodOf(fee.getPriceMethod()));
+        dto.setPriceInput(fee.getPriceInput());
+        dto.setSortOrder(fee.getSortOrder());
+        dto.setRemark(fee.getRemark());
         return dto;
     }
 
@@ -891,5 +1109,102 @@ public class OwnerContractService {
             return new ArrayList<>();
         }
         return JSONUtil.toList(tags, String.class);
+    }
+
+    private void saveSettlementItems(OwnerCreateDTO dto, OwnerContract contract, OwnerContractHouse house, List<OwnerSettlementItemDTO> items, Date now) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        List<OwnerSettlementItem> records = items.stream().map(item -> {
+            OwnerSettlementItem record = new OwnerSettlementItem();
+            record.setCompanyId(contract.getCompanyId());
+            record.setContractId(contract.getId());
+            record.setContractHouseId(house.getId());
+            record.setFeeType(item.getFeeType());
+            record.setItemName(item.getItemName());
+            record.setTransferEnabled(Objects.requireNonNullElse(item.getTransferEnabled(), Boolean.FALSE));
+            record.setTransferRatio(item.getTransferRatio());
+            record.setSortOrder(Objects.requireNonNullElse(item.getSortOrder(), 0));
+            record.setRemark(item.getRemark());
+            record.setStatus(StatusEnum.ACTIVE.getValue());
+            record.setCreateBy(dto.getCreateBy());
+            record.setCreateTime(now);
+            record.setUpdateBy(dto.getCreateBy());
+            record.setUpdateTime(now);
+            return record;
+        }).toList();
+        ownerSettlementItemRepo.saveBatch(records);
+    }
+
+    private void saveLeaseFees(OwnerCreateDTO dto, Long contractId, Date now) {
+        if (dto.getOwnerLeaseRule() == null || dto.getOwnerLeaseRule().getOtherFeeList() == null || dto.getOwnerLeaseRule().getOtherFeeList().isEmpty()) {
+            return;
+        }
+        List<OwnerLeaseFee> records = dto.getOwnerLeaseRule().getOtherFeeList().stream().map(item -> {
+            OwnerLeaseFee fee = new OwnerLeaseFee();
+            fee.setCompanyId(dto.getOwnerContract().getCompanyId());
+            fee.setContractId(contractId);
+            fee.setFeeType(item.getFeeType());
+            fee.setFeeName(item.getFeeName());
+            fee.setFeeDirection(enumName(item.getFeeDirection()));
+            fee.setPaymentMethod(item.getPaymentMethod() == null ? null : item.getPaymentMethod().getCode());
+            fee.setPriceMethod(item.getPriceMethod() == null ? null : item.getPriceMethod().getCode());
+            fee.setPriceInput(item.getPriceInput());
+            fee.setSortOrder(Objects.requireNonNullElse(item.getSortOrder(), 0));
+            fee.setRemark(item.getRemark());
+            fee.setStatus(StatusEnum.ACTIVE.getValue());
+            fee.setCreateBy(dto.getCreateBy());
+            fee.setCreateTime(now);
+            fee.setUpdateBy(dto.getCreateBy());
+            fee.setUpdateTime(now);
+            return fee;
+        }).toList();
+        ownerLeaseFeeRepo.saveBatch(records);
+    }
+
+    private void syncOwnerPersonalFiles(Long bizId, OwnerPersonalDTO dto) {
+        if (bizId == null || dto == null) return;
+        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_ID_CARD_FRONT.getBizType(), nullSafeList(dto.getIdCardFrontList()));
+        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_ID_CARD_BACK.getBizType(), nullSafeList(dto.getIdCardBackList()));
+        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_ID_CARD_IN_HAND.getBizType(), nullSafeList(dto.getIdCardInHandList()));
+        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_OTHER_IMAGE.getBizType(), nullSafeList(dto.getOtherImageList()));
+    }
+
+    private void syncOwnerCompanyFiles(Long bizId, OwnerCompanyDTO dto) {
+        if (bizId == null || dto == null) return;
+        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_BUSINESS_LICENSE.getBizType(), nullSafeList(dto.getBusinessLicenseUrls()));
+    }
+
+    private List<String> getFileUrls(Long bizId, String bizType) {
+        if (bizId == null) return List.of();
+        return fileAttachRepo.getFileAttachListByBizIdAndBizTypes(bizId, List.of(bizType))
+            .stream()
+            .map(file -> file.getFileUrl())
+            .filter(Objects::nonNull)
+            .toList();
+    }
+
+    private List<String> nullSafeList(List<String> list) {
+        return list == null ? List.of() : list;
+    }
+
+    private com.homi.common.lib.enums.price.PaymentMethodEnum paymentMethodOf(Integer code) {
+        if (code == null) return null;
+        for (com.homi.common.lib.enums.price.PaymentMethodEnum item : com.homi.common.lib.enums.price.PaymentMethodEnum.values()) {
+            if (Objects.equals(item.getCode(), code)) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    private com.homi.common.lib.enums.price.PriceMethodEnum priceMethodOf(Integer code) {
+        if (code == null) return null;
+        for (com.homi.common.lib.enums.price.PriceMethodEnum item : com.homi.common.lib.enums.price.PriceMethodEnum.values()) {
+            if (Objects.equals(item.getCode(), code)) {
+                return item;
+            }
+        }
+        return null;
     }
 }
