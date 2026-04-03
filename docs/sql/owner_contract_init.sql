@@ -176,6 +176,7 @@ CREATE TABLE IF NOT EXISTS `owner_settlement_item` (
   `company_id` bigint NOT NULL COMMENT '公司ID',
   `contract_id` bigint NOT NULL COMMENT '合同ID',
   `contract_house_id` bigint NOT NULL COMMENT '合同房源ID',
+  `fee_direction` varchar(16) NOT NULL DEFAULT 'IN' COMMENT '收支方向: IN/OUT',
   `fee_type` varchar(64) NOT NULL COMMENT '费用科目类型',
   `item_name` varchar(64) NOT NULL COMMENT '费用科目名称',
   `transfer_enabled` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否转给业主',

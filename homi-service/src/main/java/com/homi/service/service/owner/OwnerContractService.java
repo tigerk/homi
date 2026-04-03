@@ -1062,6 +1062,7 @@ public class OwnerContractService {
 
     private OwnerSettlementItemDTO toOwnerSettlementItemDTO(OwnerSettlementItem item) {
         OwnerSettlementItemDTO dto = new OwnerSettlementItemDTO();
+        dto.setFeeDirection(item.getFeeDirection());
         dto.setFeeType(item.getFeeType());
         dto.setItemName(item.getItemName());
         dto.setTransferEnabled(Objects.requireNonNullElse(item.getTransferEnabled(), Boolean.FALSE));
@@ -1120,6 +1121,7 @@ public class OwnerContractService {
             record.setCompanyId(contract.getCompanyId());
             record.setContractId(contract.getId());
             record.setContractHouseId(house.getId());
+            record.setFeeDirection(item.getFeeDirection());
             record.setFeeType(item.getFeeType());
             record.setItemName(item.getItemName());
             record.setTransferEnabled(Objects.requireNonNullElse(item.getTransferEnabled(), Boolean.FALSE));

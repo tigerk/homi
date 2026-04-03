@@ -37,6 +37,9 @@ public class OwnerSettlementItem implements Serializable {
     @TableField("contract_house_id")
     private Long contractHouseId;
 
+    @TableField("fee_direction")
+    private String feeDirection;
+
     @TableField("fee_type")
     private String feeType;
 
