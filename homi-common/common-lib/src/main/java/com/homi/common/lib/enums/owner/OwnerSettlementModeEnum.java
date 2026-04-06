@@ -10,7 +10,7 @@ import lombok.Getter;
 public enum OwnerSettlementModeEnum {
     FIXED("FIXED", "固定保底"),
     SHARE_GROSS("SHARE_GROSS", "毛收分成"),
-    SHARE_NET("SHARE_NET", "净收分成"),
+    SHARE_NET("SHARE_NET", "按净收入分成"),
     GUARANTEE_PLUS_SHARE("GUARANTEE_PLUS_SHARE", "保底加分成"),
     AGENCY("AGENCY", "代收代付");
 

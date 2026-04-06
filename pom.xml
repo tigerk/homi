@@ -41,6 +41,7 @@
         <lombok.version>1.18.42</lombok.version>
         <jjwt.version>0.13.0</jjwt.version>
         <yeepay.version>4.4.15</yeepay.version>
+        <shedlock.version>7.7.0</shedlock.version>
     </properties>
 
     <dependencies>
@@ -211,6 +212,16 @@
                 <groupId>com.qiniu</groupId>
                 <artifactId>qiniu-java-sdk</artifactId>
                 <version>[7.19.0, 7.19.99]</version>
+            </dependency>
+            <dependency>
+                <groupId>net.javacrumbs.shedlock</groupId>
+                <artifactId>shedlock-spring</artifactId>
+                <version>${shedlock.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.javacrumbs.shedlock</groupId>
+                <artifactId>shedlock-provider-redis-spring</artifactId>
+                <version>${shedlock.version}</version>
             </dependency>
 
             <dependency>
