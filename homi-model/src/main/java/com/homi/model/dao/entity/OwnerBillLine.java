@@ -47,6 +47,18 @@ public class OwnerBillLine implements Serializable {
     @TableField("source_id")
     private Long sourceId;
 
+    @Schema(description = "合同房源类型")
+    @TableField("subject_type")
+    private String subjectType;
+
+    @Schema(description = "合同房源ID")
+    @TableField("subject_id")
+    private Long subjectId;
+
+    @Schema(description = "合同房源名称快照")
+    @TableField("subject_name_snapshot")
+    private String subjectNameSnapshot;
+
     @Schema(description = "明细类型")
     @TableField("item_type")
     private String itemType;

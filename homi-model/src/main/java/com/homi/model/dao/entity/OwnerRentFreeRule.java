@@ -45,8 +45,8 @@ public class OwnerRentFreeRule implements Serializable {
     private Long contractId;
 
     @Schema(description = "业主合同房源ID")
-    @TableField("contract_house_id")
-    private Long contractHouseId;
+    @TableField("contract_subject_id")
+    private Long contractSubjectId;
 
     @Schema(description = "是否启用免租")
     @TableField("enabled")

@@ -13,6 +13,7 @@ import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
 import com.homi.common.lib.enums.owner.OwnerContractMediumEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
+import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerPaymentFeeBearTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerSettlementTimingEnum;
 import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
@@ -27,7 +28,7 @@ import com.homi.model.dao.entity.Owner;
 import com.homi.model.dao.entity.OwnerAccount;
 import com.homi.model.dao.entity.OwnerCompany;
 import com.homi.model.dao.entity.OwnerContract;
-import com.homi.model.dao.entity.OwnerContractHouse;
+import com.homi.model.dao.entity.OwnerContractSubject;
 import com.homi.model.dao.entity.OwnerLeaseFee;
 import com.homi.model.dao.entity.OwnerLeaseFreeRule;
 import com.homi.model.dao.entity.OwnerLeaseRule;
@@ -41,8 +42,8 @@ import com.homi.model.dao.repo.FileAttachRepo;
 import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.OwnerAccountRepo;
 import com.homi.model.dao.repo.OwnerCompanyRepo;
-import com.homi.model.dao.repo.OwnerContractHouseRepo;
 import com.homi.model.dao.repo.OwnerContractRepo;
+import com.homi.model.dao.repo.OwnerContractSubjectRepo;
 import com.homi.model.dao.repo.OwnerLeaseFeeRepo;
 import com.homi.model.dao.repo.OwnerLeaseFreeRuleRepo;
 import com.homi.model.dao.repo.OwnerLeaseRuleRepo;
@@ -56,7 +57,7 @@ import com.homi.model.owner.dto.OwnerCompanyDTO;
 import com.homi.model.owner.dto.OwnerContractDTO;
 import com.homi.model.owner.dto.OwnerContractIdDTO;
 import com.homi.model.owner.dto.OwnerContractStatusDTO;
-import com.homi.model.owner.dto.OwnerContractHouseDTO;
+import com.homi.model.owner.dto.OwnerContractSubjectDTO;
 import com.homi.model.owner.dto.OwnerCreateDTO;
 import com.homi.model.owner.dto.OwnerLeaseFeeDTO;
 import com.homi.model.owner.dto.OwnerLeaseFreeRuleDTO;
@@ -92,7 +93,7 @@ public class OwnerContractService {
     private final OwnerPersonalRepo ownerPersonalRepo;
     private final OwnerCompanyRepo ownerCompanyRepo;
     private final OwnerContractRepo ownerContractRepo;
-    private final OwnerContractHouseRepo ownerContractHouseRepo;
+    private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final OwnerSettlementRuleRepo ownerSettlementRuleRepo;
     private final OwnerSettlementItemRepo ownerSettlementItemRepo;
     private final OwnerRentFreeRuleRepo ownerRentFreeRuleRepo;
@@ -126,12 +127,12 @@ public class OwnerContractService {
         contract.setCreateTime(now);
         contract.setUpdateBy(dto.getCreateBy());
         contract.setUpdateTime(now);
-        contract.setContractContent(buildContractContent(contract, ownerId, dto.getContractHouseList()));
+        contract.setContractContent(buildContractContent(contract, ownerId, dto.getContractSubjectList()));
         ownerContractRepo.save(contract);
 
-        List<OwnerContractHouse> contractHouses = saveContractHouses(dto, contract.getId(), now);
+        List<OwnerContractSubject> contractSubjects = saveContractSubjects(dto, contract.getId(), now);
         if (OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode())) {
-            saveLightManagedRules(dto, contract, contractHouses, now);
+            saveLightManagedRules(dto, contract, contractSubjects, now);
         } else if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
             saveMasterLeaseRules(dto, contract.getId(), now);
         }
@@ -211,14 +212,15 @@ public class OwnerContractService {
             }
         }
 
-        List<OwnerContractHouse> contractHouses = ownerContractHouseRepo.listByContractId(contract.getId());
-        List<OwnerContractHouseDTO> houseDTOList = contractHouses.stream().map(item -> {
-            OwnerContractHouseDTO houseDTO = new OwnerContractHouseDTO();
-            houseDTO.setId(item.getId());
-            houseDTO.setHouseId(item.getHouseId());
-            houseDTO.setHouseName(item.getHouseNameSnapshot());
-            houseDTO.setRemark(item.getRemark());
-            return houseDTO;
+        List<OwnerContractSubject> contractSubjects = ownerContractSubjectRepo.listByContractId(contract.getId());
+        List<OwnerContractSubjectDTO> subjectDTOList = contractSubjects.stream().map(item -> {
+            OwnerContractSubjectDTO subjectDTO = new OwnerContractSubjectDTO();
+            subjectDTO.setId(item.getId());
+            subjectDTO.setSubjectType(item.getSubjectType() == null ? null : OwnerContractSubjectTypeEnum.valueOf(item.getSubjectType()));
+            subjectDTO.setSubjectId(item.getSubjectId());
+            subjectDTO.setSubjectName(item.getSubjectNameSnapshot());
+            subjectDTO.setRemark(item.getRemark());
+            return subjectDTO;
         }).collect(Collectors.toList());
 
         if (OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode())) {
@@ -228,20 +230,20 @@ public class OwnerContractService {
             List<OwnerRentFreeRule> rentFreeRules = ownerRentFreeRuleRepo.list(
                 new LambdaQueryWrapper<OwnerRentFreeRule>().eq(OwnerRentFreeRule::getContractId, contract.getId())
             );
-            for (OwnerContractHouseDTO houseDTO : houseDTOList) {
+            for (OwnerContractSubjectDTO subjectDTO : subjectDTOList) {
                 OwnerSettlementRule settlementRule = settlementRules.stream()
-                    .filter(item -> Objects.equals(item.getContractHouseId(), houseDTO.getId()))
+                    .filter(item -> Objects.equals(item.getContractSubjectId(), subjectDTO.getId()))
                     .findFirst()
                     .orElse(null);
                 if (settlementRule != null) {
-                    houseDTO.setSettlementRule(toOwnerSettlementRuleDTO(settlementRule));
+                    subjectDTO.setSettlementRule(toOwnerSettlementRuleDTO(settlementRule));
                 }
                 OwnerRentFreeRule rentFreeRule = rentFreeRules.stream()
-                    .filter(item -> Objects.equals(item.getContractHouseId(), houseDTO.getId()))
+                    .filter(item -> Objects.equals(item.getContractSubjectId(), subjectDTO.getId()))
                     .findFirst()
                     .orElse(null);
                 if (rentFreeRule != null) {
-                    houseDTO.setRentFreeRule(toOwnerRentFreeRuleDTO(rentFreeRule));
+                    subjectDTO.setRentFreeRule(toOwnerRentFreeRuleDTO(rentFreeRule));
                 }
             }
         } else {
@@ -256,11 +258,11 @@ public class OwnerContractService {
             ).stream().map(this::toOwnerLeaseFreeRuleDTO).collect(Collectors.toList());
             vo.setOwnerLeaseFreeRuleList(leaseFreeRuleList);
         }
-        vo.setContractHouseList(houseDTOList);
-        ContractHouseSummary summary = buildContractHouseSummary(contract, contractHouses);
-        vo.setHouseCount(summary.houseCount());
+        vo.setContractSubjectList(subjectDTOList);
+        ContractSubjectSummary summary = buildContractSubjectSummary(contract, contractSubjects);
+        vo.setSubjectCount(summary.subjectCount());
         vo.setTotalArea(summary.totalArea());
-        vo.setConfiguredHouseCount(summary.configuredHouseCount());
+        vo.setConfiguredSubjectCount(summary.configuredSubjectCount());
         vo.setCreateBy(contract.getCreateBy());
         vo.setCreateTime(contract.getCreateTime());
         vo.setUpdateBy(contract.getUpdateBy());
@@ -308,13 +310,13 @@ public class OwnerContractService {
         contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
         contract.setUpdateBy(dto.getUpdateBy());
         contract.setUpdateTime(now);
-        contract.setContractContent(buildContractContent(contract, owner.getId(), dto.getContractHouseList()));
+        contract.setContractContent(buildContractContent(contract, owner.getId(), dto.getContractSubjectList()));
         ownerContractRepo.updateById(contract);
 
         clearContractRelations(contract.getId());
-        List<OwnerContractHouse> contractHouses = saveContractHouses(toCreateDTO(dto), contract.getId(), now);
+        List<OwnerContractSubject> contractSubjects = saveContractSubjects(toCreateDTO(dto), contract.getId(), now);
         if (OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode())) {
-            saveLightManagedRules(toCreateDTO(dto), contract, contractHouses, now);
+            saveLightManagedRules(toCreateDTO(dto), contract, contractSubjects, now);
         } else {
             saveMasterLeaseRules(toCreateDTO(dto), contract.getId(), now);
         }
@@ -336,11 +338,11 @@ public class OwnerContractService {
         contract.setUpdateTime(now);
         ownerContractRepo.updateById(contract);
 
-        ownerContractHouseRepo.listByContractId(contract.getId()).forEach(item -> {
+        ownerContractSubjectRepo.listByContractId(contract.getId()).forEach(item -> {
             item.setStatus(dto.getStatus().getValue());
             item.setUpdateBy(updateBy);
             item.setUpdateTime(now);
-            ownerContractHouseRepo.updateById(item);
+            ownerContractSubjectRepo.updateById(item);
         });
         return contract.getId();
     }
@@ -366,8 +368,8 @@ public class OwnerContractService {
         if (dto.getOwnerContract() == null) {
             throw new IllegalArgumentException("业主合同信息不能为空");
         }
-        if (dto.getContractHouseList() == null || dto.getContractHouseList().isEmpty()) {
-            throw new IllegalArgumentException("签约房源不能为空");
+        if (dto.getContractSubjectList() == null || dto.getContractSubjectList().isEmpty()) {
+            throw new IllegalArgumentException("合同房源不能为空");
         }
         OwnerCooperationModeEnum mode = dto.getOwnerContract().getCooperationMode();
         if (mode == null) {
@@ -382,8 +384,8 @@ public class OwnerContractService {
         if (dto == null || dto.getOwnerContract() == null || dto.getOwnerContract().getId() == null) {
             throw new IllegalArgumentException("业主合同ID不能为空");
         }
-        if (dto.getContractHouseList() == null || dto.getContractHouseList().isEmpty()) {
-            throw new IllegalArgumentException("签约房源不能为空");
+        if (dto.getContractSubjectList() == null || dto.getContractSubjectList().isEmpty()) {
+            throw new IllegalArgumentException("合同房源不能为空");
         }
         OwnerCooperationModeEnum mode = dto.getOwnerContract().getCooperationMode();
         if (mode == null) {
@@ -394,17 +396,18 @@ public class OwnerContractService {
         }
     }
 
-    private List<OwnerContractHouse> saveContractHouses(OwnerCreateDTO dto, Long contractId, Date now) {
-        List<OwnerContractHouse> records = dto.getContractHouseList().stream().map(item -> {
-            House house = houseRepo.getById(item.getHouseId());
-            if (house == null) {
-                throw new IllegalArgumentException("房源不存在: " + item.getHouseId());
+    private List<OwnerContractSubject> saveContractSubjects(OwnerCreateDTO dto, Long contractId, Date now) {
+        List<OwnerContractSubject> records = dto.getContractSubjectList().stream().map(item -> {
+            OwnerContractSubjectTypeEnum subjectType = Objects.requireNonNullElse(item.getSubjectType(), OwnerContractSubjectTypeEnum.HOUSE);
+            if (item.getSubjectId() == null) {
+                throw new IllegalArgumentException("合同房源ID不能为空");
             }
-            OwnerContractHouse record = new OwnerContractHouse();
+            OwnerContractSubject record = new OwnerContractSubject();
             record.setCompanyId(dto.getOwnerContract().getCompanyId());
             record.setContractId(contractId);
-            record.setHouseId(item.getHouseId());
-            record.setHouseNameSnapshot(house.getHouseName());
+            record.setSubjectType(subjectType.getCode());
+            record.setSubjectId(item.getSubjectId());
+            record.setSubjectNameSnapshot(resolveSubjectName(subjectType, item.getSubjectId(), item.getSubjectName()));
             record.setRemark(item.getRemark());
             record.setStatus(1);
             record.setCreateBy(dto.getCreateBy());
@@ -413,21 +416,21 @@ public class OwnerContractService {
             record.setUpdateTime(now);
             return record;
         }).collect(Collectors.toList());
-        ownerContractHouseRepo.saveBatch(records);
+        ownerContractSubjectRepo.saveBatch(records);
         return records;
     }
 
-    private void saveLightManagedRules(OwnerCreateDTO dto, OwnerContract contract, List<OwnerContractHouse> contractHouses, Date now) {
-        for (int i = 0; i < contractHouses.size(); i++) {
-            OwnerContractHouse house = contractHouses.get(i);
-            OwnerContractHouseDTO houseDTO = dto.getContractHouseList().get(i);
-            OwnerSettlementRuleDTO settlementRuleDTO = houseDTO.getSettlementRule();
+    private void saveLightManagedRules(OwnerCreateDTO dto, OwnerContract contract, List<OwnerContractSubject> contractSubjects, Date now) {
+        for (int i = 0; i < contractSubjects.size(); i++) {
+            OwnerContractSubject subject = contractSubjects.get(i);
+            OwnerContractSubjectDTO subjectDTO = dto.getContractSubjectList().get(i);
+            OwnerSettlementRuleDTO settlementRuleDTO = subjectDTO.getSettlementRule();
             if (settlementRuleDTO != null) {
                 OwnerSettlementRule rule = new OwnerSettlementRule();
                 BeanUtils.copyProperties(settlementRuleDTO, rule);
                 rule.setCompanyId(contract.getCompanyId());
                 rule.setContractId(contract.getId());
-                rule.setContractHouseId(house.getId());
+                rule.setContractSubjectId(subject.getId());
                 rule.setRuleVersion(1);
                 rule.setIncomeBasis(enumName(settlementRuleDTO.getIncomeBasis()));
                 rule.setSettlementMode(enumName(settlementRuleDTO.getSettlementMode()));
@@ -448,15 +451,15 @@ public class OwnerContractService {
                 rule.setUpdateBy(dto.getCreateBy());
                 rule.setUpdateTime(now);
                 ownerSettlementRuleRepo.save(rule);
-                saveSettlementItems(dto, contract, house, settlementRuleDTO.getSettlementItemList(), now);
+                saveSettlementItems(dto, contract, subject, settlementRuleDTO.getSettlementItemList(), now);
             }
-            OwnerRentFreeRuleDTO rentFreeRuleDTO = houseDTO.getRentFreeRule();
+            OwnerRentFreeRuleDTO rentFreeRuleDTO = subjectDTO.getRentFreeRule();
             if (rentFreeRuleDTO != null) {
                 OwnerRentFreeRule rule = new OwnerRentFreeRule();
                 BeanUtils.copyProperties(rentFreeRuleDTO, rule);
                 rule.setCompanyId(contract.getCompanyId());
                 rule.setContractId(contract.getId());
-                rule.setContractHouseId(house.getId());
+                rule.setContractSubjectId(subject.getId());
                 rule.setEnabled(Objects.requireNonNullElse(rentFreeRuleDTO.getEnabled(), Boolean.FALSE));
                 rule.setFreeType(enumName(rentFreeRuleDTO.getFreeType()));
                 rule.setBearType(enumName(rentFreeRuleDTO.getBearType()));
@@ -668,7 +671,7 @@ public class OwnerContractService {
         ownerLeaseRuleRepo.deleteByContractIdForce(contractId);
         ownerLeaseFeeRepo.deleteByContractIdForce(contractId);
         ownerLeaseFreeRuleRepo.deleteByContractIdForce(contractId);
-        ownerContractHouseRepo.deleteByContractIdForce(contractId);
+        ownerContractSubjectRepo.deleteByContractIdForce(contractId);
     }
 
     private void initOwnerAccount(Long companyId, Long ownerId, Date now) {
@@ -692,22 +695,34 @@ public class OwnerContractService {
         ownerAccountRepo.save(account);
     }
 
-    private String buildContractContent(OwnerContract contract, Long ownerId, List<OwnerContractHouseDTO> houseDTOs) {
+    private String buildContractContent(OwnerContract contract, Long ownerId, List<OwnerContractSubjectDTO> subjectDTOs) {
         ContractTemplate template = contractTemplateRepo.getById(contract.getContractTemplateId());
         if (template == null || template.getTemplateContent() == null) {
             return contract.getContractContent();
         }
         Owner owner = ownerRepo.getById(ownerId);
-        List<House> houses = houseDTOs.stream().map(item -> houseRepo.getById(item.getHouseId())).filter(Objects::nonNull).toList();
+        List<OwnerContractSubjectDTO> houseSubjects = Objects.requireNonNullElse(subjectDTOs, List.<OwnerContractSubjectDTO>of())
+            .stream()
+            .filter(item -> OwnerContractSubjectTypeEnum.HOUSE.equals(Objects.requireNonNullElse(item.getSubjectType(), OwnerContractSubjectTypeEnum.HOUSE)))
+            .toList();
+        List<House> houses = houseSubjects.stream()
+            .map(item -> houseRepo.getById(item.getSubjectId()))
+            .filter(Objects::nonNull)
+            .toList();
+        String subjectNames = Objects.requireNonNullElse(subjectDTOs, List.<OwnerContractSubjectDTO>of())
+            .stream()
+            .map(OwnerContractSubjectDTO::getSubjectName)
+            .filter(Objects::nonNull)
+            .collect(Collectors.joining("，"));
         String content = template.getTemplateContent();
         content = content.replace(OwnerParamsEnum.CONTRACT_NUMBER.getKey(), contract.getContractNo());
         content = content.replace(OwnerParamsEnum.HOUSE_ADDRESS.getKey(), houses.stream().map(this::formatHouseAddress).collect(Collectors.joining("；")));
-        content = content.replace(OwnerParamsEnum.PROJECT_NAME.getKey(), houses.stream().map(House::getHouseName).filter(Objects::nonNull).collect(Collectors.joining("，")));
+        content = content.replace(OwnerParamsEnum.PROJECT_NAME.getKey(), subjectNames);
         content = content.replace(OwnerParamsEnum.BUILDING_NUMBER.getKey(), houses.stream().map(House::getBuilding).filter(Objects::nonNull).collect(Collectors.joining("，")));
         content = content.replace(OwnerParamsEnum.UNIT_NUMBER.getKey(), houses.stream().map(House::getUnit).filter(Objects::nonNull).collect(Collectors.joining("，")));
         content = content.replace(OwnerParamsEnum.HOUSE_NUMBER.getKey(), houses.stream().map(House::getDoorNumber).filter(Objects::nonNull).collect(Collectors.joining("，")));
         content = content.replace(OwnerParamsEnum.SHARED_ROOM_NUMBER.getKey(), "");
-        content = content.replace(OwnerParamsEnum.SIGNED_HOUSE_LIST.getKey(), houses.stream().map(House::getHouseName).filter(Objects::nonNull).collect(Collectors.joining("，")));
+        content = content.replace(OwnerParamsEnum.SIGNED_HOUSE_LIST.getKey(), subjectNames);
         content = content.replace(OwnerParamsEnum.HOUSE_PROPERTY_NUMBER.getKey(), houses.stream().map(House::getCertificateNo).filter(Objects::nonNull).collect(Collectors.joining("，")));
         content = content.replace(OwnerParamsEnum.HOUSE_TYPE.getKey(), "");
         content = content.replace(OwnerParamsEnum.PROPERTY_TYPE.getKey(), "");
@@ -741,12 +756,13 @@ public class OwnerContractService {
         if (template != null) {
             vo.setContractTemplateName(template.getTemplateName());
         }
-        List<OwnerContractHouse> contractHouses = ownerContractHouseRepo.listByContractId(contract.getId());
-        vo.setHouseNames(contractHouses.stream().map(OwnerContractHouse::getHouseNameSnapshot).collect(Collectors.joining("，")));
-        ContractHouseSummary summary = buildContractHouseSummary(contract, contractHouses);
-        vo.setHouseCount(summary.houseCount());
+        List<OwnerContractSubject> contractSubjects = ownerContractSubjectRepo.listByContractId(contract.getId());
+        vo.setSubjectNames(contractSubjects.stream().map(OwnerContractSubject::getSubjectNameSnapshot).collect(Collectors.joining("，")));
+        ContractSubjectSummary summary = buildContractSubjectSummary(contract, contractSubjects);
+        vo.setSubjectCount(summary.subjectCount());
         vo.setTotalArea(summary.totalArea());
-        vo.setConfiguredHouseCount(summary.configuredHouseCount());
+        vo.setConfiguredSubjectCount(summary.configuredSubjectCount());
+        vo.setOwnerTag(resolveOwnerTag(owner));
         return vo;
     }
 
@@ -770,8 +786,12 @@ public class OwnerContractService {
         return wrapper;
     }
 
-    private ContractHouseSummary buildContractHouseSummary(OwnerContract contract, List<OwnerContractHouse> contractHouses) {
-        List<Long> houseIds = contractHouses.stream().map(OwnerContractHouse::getHouseId).filter(Objects::nonNull).toList();
+    private ContractSubjectSummary buildContractSubjectSummary(OwnerContract contract, List<OwnerContractSubject> contractSubjects) {
+        List<Long> houseIds = contractSubjects.stream()
+            .filter(item -> OwnerContractSubjectTypeEnum.HOUSE.getCode().equals(item.getSubjectType()))
+            .map(OwnerContractSubject::getSubjectId)
+            .filter(Objects::nonNull)
+            .toList();
         List<House> houses = houseIds.isEmpty() ? List.of() : houseRepo.listByIds(houseIds);
         BigDecimal totalArea = houses.stream()
             .map(House::getArea)
@@ -779,17 +799,17 @@ public class OwnerContractService {
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         int configuredHouseCount;
         if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
-            configuredHouseCount = ownerLeaseRuleRepo.count(new LambdaQueryWrapper<OwnerLeaseRule>().eq(OwnerLeaseRule::getContractId, contract.getId())) > 0 ? contractHouses.size() : 0;
+            configuredHouseCount = ownerLeaseRuleRepo.count(new LambdaQueryWrapper<OwnerLeaseRule>().eq(OwnerLeaseRule::getContractId, contract.getId())) > 0 ? contractSubjects.size() : 0;
         } else {
             List<Long> configuredIds = ownerSettlementRuleRepo.list(new LambdaQueryWrapper<OwnerSettlementRule>().eq(OwnerSettlementRule::getContractId, contract.getId()))
                 .stream()
-                .map(OwnerSettlementRule::getContractHouseId)
+                .map(OwnerSettlementRule::getContractSubjectId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
             configuredHouseCount = configuredIds.size();
         }
-        return new ContractHouseSummary(contractHouses.size(), totalArea, configuredHouseCount);
+        return new ContractSubjectSummary(contractSubjects.size(), totalArea, configuredHouseCount);
     }
 
     private Map<Long, String> getUserNameMap(Long... userIds) {
@@ -805,7 +825,7 @@ public class OwnerContractService {
         return result;
     }
 
-    private record ContractHouseSummary(Integer houseCount, BigDecimal totalArea, Integer configuredHouseCount) {
+    private record ContractSubjectSummary(Integer subjectCount, BigDecimal totalArea, Integer configuredSubjectCount) {
     }
 
     private List<Long> resolveOwnerIds(OwnerQueryDTO query) {
@@ -851,7 +871,7 @@ public class OwnerContractService {
         createDTO.setOwnerPersonal(dto.getOwnerPersonal());
         createDTO.setOwnerCompany(dto.getOwnerCompany());
         createDTO.setOwnerContract(dto.getOwnerContract());
-        createDTO.setContractHouseList(dto.getContractHouseList());
+        createDTO.setContractSubjectList(dto.getContractSubjectList());
         createDTO.setOwnerLeaseRule(dto.getOwnerLeaseRule());
         createDTO.setOwnerLeaseFreeRuleList(dto.getOwnerLeaseFreeRuleList());
         createDTO.setCreateBy(dto.getUpdateBy());
@@ -996,7 +1016,7 @@ public class OwnerContractService {
         dto.setRentFreeEnabled(Objects.requireNonNullElse(rule.getRentFreeEnabled(), Boolean.FALSE));
         dto.setSettlementItemList(ownerSettlementItemRepo.list(new LambdaQueryWrapper<OwnerSettlementItem>()
                 .eq(OwnerSettlementItem::getContractId, rule.getContractId())
-                .eq(OwnerSettlementItem::getContractHouseId, rule.getContractHouseId()))
+                .eq(OwnerSettlementItem::getContractSubjectId, rule.getContractSubjectId()))
             .stream()
             .map(this::toOwnerSettlementItemDTO)
             .toList());
@@ -1112,7 +1132,7 @@ public class OwnerContractService {
         return JSONUtil.toList(tags, String.class);
     }
 
-    private void saveSettlementItems(OwnerCreateDTO dto, OwnerContract contract, OwnerContractHouse house, List<OwnerSettlementItemDTO> items, Date now) {
+    private void saveSettlementItems(OwnerCreateDTO dto, OwnerContract contract, OwnerContractSubject subject, List<OwnerSettlementItemDTO> items, Date now) {
         if (items == null || items.isEmpty()) {
             return;
         }
@@ -1120,7 +1140,7 @@ public class OwnerContractService {
             OwnerSettlementItem record = new OwnerSettlementItem();
             record.setCompanyId(contract.getCompanyId());
             record.setContractId(contract.getId());
-            record.setContractHouseId(house.getId());
+            record.setContractSubjectId(subject.getId());
             record.setFeeDirection(item.getFeeDirection());
             record.setFeeType(item.getFeeType());
             record.setItemName(item.getItemName());
@@ -1136,6 +1156,35 @@ public class OwnerContractService {
             return record;
         }).toList();
         ownerSettlementItemRepo.saveBatch(records);
+    }
+
+    private String resolveSubjectName(OwnerContractSubjectTypeEnum subjectType, Long subjectId, String fallbackName) {
+        if (subjectType == null || subjectId == null) {
+            return fallbackName;
+        }
+        if (OwnerContractSubjectTypeEnum.HOUSE.equals(subjectType)) {
+            House house = houseRepo.getById(subjectId);
+            if (house == null) {
+                throw new IllegalArgumentException("房源不存在: " + subjectId);
+            }
+            return house.getHouseName();
+        }
+        return fallbackName;
+    }
+
+    private String resolveOwnerTag(Owner owner) {
+        if (owner == null || owner.getOwnerType() == null || owner.getOwnerTypeId() == null) {
+            return null;
+        }
+        List<String> tags;
+        if (Objects.equals(owner.getOwnerType(), OwnerTypeEnum.PERSONAL.getCode())) {
+            OwnerPersonal personal = ownerPersonalRepo.getById(owner.getOwnerTypeId());
+            tags = personal == null ? List.of() : parseTags(personal.getTags());
+        } else {
+            OwnerCompany company = ownerCompanyRepo.getById(owner.getOwnerTypeId());
+            tags = company == null ? List.of() : parseTags(company.getTags());
+        }
+        return tags.isEmpty() ? null : tags.get(0);
     }
 
     private void saveLeaseFees(OwnerCreateDTO dto, Long contractId, Date now) {

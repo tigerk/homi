@@ -48,6 +48,18 @@ public class OwnerBill implements Serializable {
     @TableField("contract_id")
     private Long contractId;
 
+    @Schema(description = "合同房源类型")
+    @TableField("subject_type")
+    private String subjectType;
+
+    @Schema(description = "合同房源ID")
+    @TableField("subject_id")
+    private Long subjectId;
+
+    @Schema(description = "合同房源名称快照")
+    @TableField("subject_name_snapshot")
+    private String subjectNameSnapshot;
+
     @Schema(description = "账单编号")
     @TableField("bill_no")
     private String billNo;

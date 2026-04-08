@@ -29,6 +29,9 @@ public class OwnerListVO {
     @Schema(description = "业主联系电话")
     private String ownerPhone;
 
+    @Schema(description = "业主标签")
+    private String ownerTag;
+
     @Schema(description = "合同编号")
     private String contractNo;
 
@@ -38,17 +41,17 @@ public class OwnerListVO {
     @Schema(description = "合同模板名称")
     private String contractTemplateName;
 
-    @Schema(description = "房源名称列表")
-    private String houseNames;
+    @Schema(description = "合同房源名称列表")
+    private String subjectNames;
 
-    @Schema(description = "房源数量")
-    private Integer houseCount;
+    @Schema(description = "合同房源数量")
+    private Integer subjectCount;
 
     @Schema(description = "总面积")
     private BigDecimal totalArea;
 
     @Schema(description = "已配置房源数")
-    private Integer configuredHouseCount;
+    private Integer configuredSubjectCount;
 
     @Schema(description = "合同开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

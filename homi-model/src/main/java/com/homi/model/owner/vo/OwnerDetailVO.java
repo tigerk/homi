@@ -3,10 +3,10 @@ package com.homi.model.owner.vo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.model.owner.dto.OwnerCompanyDTO;
 import com.homi.model.owner.dto.OwnerContractDTO;
-import com.homi.model.owner.dto.OwnerContractHouseDTO;
 import com.homi.model.owner.dto.OwnerLeaseFreeRuleDTO;
 import com.homi.model.owner.dto.OwnerLeaseRuleDTO;
 import com.homi.model.owner.dto.OwnerPersonalDTO;
+import com.homi.model.owner.dto.OwnerContractSubjectDTO;
 import com.homi.common.lib.enums.owner.OwnerTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -37,16 +37,16 @@ public class OwnerDetailVO {
     private String contractTemplateName;
 
     @Schema(description = "合同房源列表")
-    private List<OwnerContractHouseDTO> contractHouseList;
+    private List<OwnerContractSubjectDTO> contractSubjectList;
 
-    @Schema(description = "房源数量")
-    private Integer houseCount;
+    @Schema(description = "合同房源数量")
+    private Integer subjectCount;
 
     @Schema(description = "总面积")
     private BigDecimal totalArea;
 
     @Schema(description = "已配置房源数")
-    private Integer configuredHouseCount;
+    private Integer configuredSubjectCount;
 
     @Schema(description = "包租规则")
     private OwnerLeaseRuleDTO ownerLeaseRule;

@@ -13,68 +13,76 @@ import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.Date;
 
+/**
+ * <p>
+ * 业主合同房源表
+ * </p>
+ *
+ * @author tk
+ * @since 2026-04-08
+ */
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("owner_settlement_item")
-@Schema(name = "OwnerSettlementItem", description = "轻托管分账费用科目规则表")
-public class OwnerSettlementItem implements Serializable {
+@TableName("owner_contract_subject")
+@Schema(name = "OwnerContractSubject", description = "业主合同房源表")
+public class OwnerContractSubject implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "主键ID")
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    @Schema(description = "SaaS企业ID")
     @TableField("company_id")
     private Long companyId;
 
+    @Schema(description = "业主合同ID")
     @TableField("contract_id")
     private Long contractId;
 
-    @TableField("contract_subject_id")
-    private Long contractSubjectId;
+    @Schema(description = "合同房源类型")
+    @TableField("subject_type")
+    private String subjectType;
 
-    @TableField("fee_direction")
-    private String feeDirection;
+    @Schema(description = "合同房源ID")
+    @TableField("subject_id")
+    private Long subjectId;
 
-    @TableField("fee_type")
-    private String feeType;
+    @Schema(description = "合同房源名称快照")
+    @TableField("subject_name_snapshot")
+    private String subjectNameSnapshot;
 
-    @TableField("item_name")
-    private String itemName;
-
-    @TableField("transfer_enabled")
-    private Boolean transferEnabled;
-
-    @TableField("transfer_ratio")
-    private BigDecimal transferRatio;
-
-    @TableField("sort_order")
-    private Integer sortOrder;
-
+    @Schema(description = "备注")
     @TableField("remark")
     private String remark;
 
+    @Schema(description = "状态：1=启用，0=禁用")
     @TableField("status")
     private Integer status;
 
+    @Schema(description = "是否删除：0=否，1=是")
     @TableField("deleted")
     @TableLogic
     private Boolean deleted;
 
+    @Schema(description = "创建人")
     @TableField("create_by")
     private Long createBy;
 
+    @Schema(description = "创建时间")
     @TableField("create_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
+    @Schema(description = "更新人")
     @TableField("update_by")
     private Long updateBy;
 
+    @Schema(description = "更新时间")
     @TableField("update_time")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateTime;

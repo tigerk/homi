@@ -1,5 +1,6 @@
 package com.homi.service.service.house;
 
+import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,7 +12,7 @@ import com.homi.model.dao.entity.Booking;
 import com.homi.model.dao.entity.Dept;
 import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.OwnerContract;
-import com.homi.model.dao.entity.OwnerContractHouse;
+import com.homi.model.dao.entity.OwnerContractSubject;
 import com.homi.model.dao.entity.Room;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.HouseQueryDTO;
@@ -55,7 +56,7 @@ public class HouseService {
     private final DeptRepo deptRepo;
     private final RoomTrackRepo roomTrackRepo;
     private final OwnerContractRepo ownerContractRepo;
-    private final OwnerContractHouseRepo ownerContractHouseRepo;
+    private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final RoomRepo roomRepo;
 
     private final RoomService roomService;
@@ -152,11 +153,12 @@ public class HouseService {
             return Collections.emptySet();
         }
 
-        return ownerContractHouseRepo.lambdaQuery()
-            .in(OwnerContractHouse::getContractId, contractIds)
+        return ownerContractSubjectRepo.lambdaQuery()
+            .in(OwnerContractSubject::getContractId, contractIds)
+            .eq(OwnerContractSubject::getSubjectType, OwnerContractSubjectTypeEnum.HOUSE.getCode())
             .list()
             .stream()
-            .map(OwnerContractHouse::getHouseId)
+            .map(OwnerContractSubject::getSubjectId)
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
     }

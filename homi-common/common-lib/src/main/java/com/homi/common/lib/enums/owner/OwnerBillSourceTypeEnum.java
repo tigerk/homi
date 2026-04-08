@@ -11,7 +11,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Schema(enumAsRef = true, description = "业主账单来源类型枚举")
 public enum OwnerBillSourceTypeEnum {
-    OWNER_CONTRACT_HOUSE("OWNER_CONTRACT_HOUSE", "业主合同房源");
+    OWNER_CONTRACT_SUBJECT("OWNER_CONTRACT_SUBJECT", "业主合同房源");
 
     private final String code;
     private final String name;

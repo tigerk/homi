@@ -110,6 +110,9 @@ public class OwnerFinanceService {
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
         vo.setContractId(bill.getContractId());
         vo.setContractNo(contract != null ? contract.getContractNo() : null);
+        vo.setSubjectType(bill.getSubjectType() == null ? null : com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum.valueOf(bill.getSubjectType()));
+        vo.setSubjectId(bill.getSubjectId());
+        vo.setSubjectName(bill.getSubjectNameSnapshot());
         vo.setCooperationMode(contract != null && contract.getCooperationMode() != null ? com.homi.common.lib.enums.owner.OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()) : null);
         vo.setBillStart(bill.getBillStart());
         vo.setBillEnd(bill.getBillEnd());
@@ -446,6 +449,9 @@ public class OwnerFinanceService {
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
         vo.setContractId(item.getContractId());
         vo.setContractNo(contract != null ? contract.getContractNo() : null);
+        vo.setSubjectType(item.getSubjectType() == null ? null : com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum.valueOf(item.getSubjectType()));
+        vo.setSubjectId(item.getSubjectId());
+        vo.setSubjectName(item.getSubjectNameSnapshot());
         vo.setCooperationMode(contract != null && contract.getCooperationMode() != null ? com.homi.common.lib.enums.owner.OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()) : null);
         vo.setBillStart(item.getBillStart());
         vo.setBillEnd(item.getBillEnd());

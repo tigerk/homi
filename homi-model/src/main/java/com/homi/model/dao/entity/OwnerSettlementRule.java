@@ -45,8 +45,8 @@ public class OwnerSettlementRule implements Serializable {
     private Long contractId;
 
     @Schema(description = "业主合同房源ID")
-    @TableField("contract_house_id")
-    private Long contractHouseId;
+    @TableField("contract_subject_id")
+    private Long contractSubjectId;
 
     @Schema(description = "规则版本")
     @TableField("rule_version")

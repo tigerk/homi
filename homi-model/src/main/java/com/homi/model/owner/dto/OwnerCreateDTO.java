@@ -22,7 +22,7 @@ public class OwnerCreateDTO {
     private OwnerContractDTO ownerContract;
 
     @Schema(description = "合同房源列表")
-    private List<OwnerContractHouseDTO> contractHouseList;
+    private List<OwnerContractSubjectDTO> contractSubjectList;
 
     @Schema(description = "包租规则")
     private OwnerLeaseRuleDTO ownerLeaseRule;
