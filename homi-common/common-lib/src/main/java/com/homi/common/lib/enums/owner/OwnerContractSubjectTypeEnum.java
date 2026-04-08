@@ -12,8 +12,8 @@ import lombok.Getter;
 @Schema(enumAsRef = true, description = "业主合同房源类型枚举")
 public enum OwnerContractSubjectTypeEnum {
     HOUSE("HOUSE", "房源"),
-    BUILDING("BUILDING", "楼栋"),
-    COMMUNITY("COMMUNITY", "项目");
+    FOCUS_BUILDING("FOCUS_BUILDING", "楼栋"),
+    FOCUS("FOCUS", "集中式项目");
 
     private final String code;
     private final String name;

@@ -23,6 +23,8 @@ import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.ContractTemplate;
+import com.homi.model.dao.entity.Focus;
+import com.homi.model.dao.entity.FocusBuilding;
 import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.Owner;
 import com.homi.model.dao.entity.OwnerAccount;
@@ -39,6 +41,8 @@ import com.homi.model.dao.entity.OwnerSettlementRule;
 import com.homi.model.dao.entity.User;
 import com.homi.model.dao.repo.ContractTemplateRepo;
 import com.homi.model.dao.repo.FileAttachRepo;
+import com.homi.model.dao.repo.FocusBuildingRepo;
+import com.homi.model.dao.repo.FocusRepo;
 import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.OwnerAccountRepo;
 import com.homi.model.dao.repo.OwnerCompanyRepo;
@@ -103,6 +107,8 @@ public class OwnerContractService {
     private final OwnerAccountRepo ownerAccountRepo;
     private final ContractTemplateRepo contractTemplateRepo;
     private final HouseRepo houseRepo;
+    private final FocusRepo focusRepo;
+    private final FocusBuildingRepo focusBuildingRepo;
     private final UserRepo userRepo;
     private final FileAttachRepo fileAttachRepo;
 
@@ -1169,7 +1175,30 @@ public class OwnerContractService {
             }
             return house.getHouseName();
         }
+        if (OwnerContractSubjectTypeEnum.FOCUS.equals(subjectType)) {
+            Focus focus = focusRepo.getById(subjectId);
+            if (focus == null) {
+                throw new IllegalArgumentException("集中式项目不存在: " + subjectId);
+            }
+            return focus.getFocusName();
+        }
+        if (OwnerContractSubjectTypeEnum.FOCUS_BUILDING.equals(subjectType)) {
+            FocusBuilding focusBuilding = focusBuildingRepo.getById(subjectId);
+            if (focusBuilding == null) {
+                throw new IllegalArgumentException("集中式楼栋不存在: " + subjectId);
+            }
+            return buildFocusBuildingName(focusBuilding);
+        }
         return fallbackName;
+    }
+
+    private String buildFocusBuildingName(FocusBuilding focusBuilding) {
+        Focus focus = focusRepo.getById(focusBuilding.getFocusId());
+        String focusName = focus == null ? "" : defaultString(focus.getFocusName());
+        String building = defaultString(focusBuilding.getBuilding());
+        String unit = defaultString(focusBuilding.getUnit());
+        String suffix = building + unit;
+        return isBlank(focusName) ? suffix : focusName + suffix;
     }
 
     private String resolveOwnerTag(Owner owner) {

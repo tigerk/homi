@@ -5,7 +5,7 @@
 RENAME TABLE owner_contract_house TO owner_contract_subject;
 
 ALTER TABLE owner_contract_subject
-  ADD COLUMN subject_type varchar(32) NOT NULL DEFAULT 'HOUSE' COMMENT '合同房源类型: HOUSE/BUILDING/COMMUNITY' AFTER contract_id,
+  ADD COLUMN subject_type varchar(32) NOT NULL DEFAULT 'HOUSE' COMMENT '合同房源类型: HOUSE/FOCUS_BUILDING/FOCUS' AFTER contract_id,
   CHANGE COLUMN house_id subject_id bigint NOT NULL COMMENT '合同房源ID',
   CHANGE COLUMN house_name_snapshot subject_name_snapshot varchar(255) DEFAULT NULL COMMENT '合同房源名称快照',
   RENAME INDEX uk_owner_contract_house TO uk_owner_contract_subject,
@@ -33,7 +33,7 @@ ALTER TABLE owner_rent_free_rule
 
 -- 3. 账单主表增加合同房源维度
 ALTER TABLE owner_bill
-  ADD COLUMN subject_type varchar(32) DEFAULT NULL COMMENT '合同房源类型: HOUSE/BUILDING/COMMUNITY' AFTER contract_id,
+  ADD COLUMN subject_type varchar(32) DEFAULT NULL COMMENT '合同房源类型: HOUSE/FOCUS_BUILDING/FOCUS' AFTER contract_id,
   ADD COLUMN subject_id bigint DEFAULT NULL COMMENT '合同房源ID' AFTER subject_type,
   ADD COLUMN subject_name_snapshot varchar(255) DEFAULT NULL COMMENT '合同房源名称快照' AFTER subject_id,
   ADD UNIQUE KEY uk_owner_bill_subject_period (contract_id, subject_type, subject_id, bill_start, bill_end, deleted),
@@ -41,7 +41,7 @@ ALTER TABLE owner_bill
 
 -- 4. 账单明细增加合同房源维度
 ALTER TABLE owner_bill_line
-  ADD COLUMN subject_type varchar(32) DEFAULT NULL COMMENT '合同房源类型: HOUSE/BUILDING/COMMUNITY' AFTER source_id,
+  ADD COLUMN subject_type varchar(32) DEFAULT NULL COMMENT '合同房源类型: HOUSE/FOCUS_BUILDING/FOCUS' AFTER source_id,
   ADD COLUMN subject_id bigint DEFAULT NULL COMMENT '合同房源ID' AFTER subject_type,
   ADD COLUMN subject_name_snapshot varchar(255) DEFAULT NULL COMMENT '合同房源名称快照' AFTER subject_id,
   ADD KEY idx_owner_bill_line_subject (subject_type, subject_id);
@@ -51,7 +51,7 @@ ALTER TABLE owner_bill_line
 --   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
 --   `company_id` bigint NOT NULL COMMENT 'SaaS企业ID',
 --   `contract_id` bigint NOT NULL COMMENT '业主合同ID',
---   `subject_type` varchar(32) NOT NULL DEFAULT 'HOUSE' COMMENT '合同房源类型: HOUSE/BUILDING/COMMUNITY',
+--   `subject_type` varchar(32) NOT NULL DEFAULT 'HOUSE' COMMENT '合同房源类型: HOUSE/FOCUS_BUILDING/FOCUS',
 --   `subject_id` bigint NOT NULL COMMENT '合同房源ID',
 --   `subject_name_snapshot` varchar(255) DEFAULT NULL COMMENT '合同房源名称快照',
 --   `remark` varchar(500) DEFAULT NULL COMMENT '备注',
