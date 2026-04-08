@@ -67,7 +67,7 @@ public class DictDataController {
     }
 
     @PostMapping("/listByDictCode")
-    @Schema(description = "通过字典编号查询数据项")
+    @Schema(description = "通过字典编号（dictCode）查询数据项")
     public ResponseResult<List<DictData>> listByDictCode(@RequestBody DictCodeDTO dictCodeQuery) {
         Dict dictByCode = dictService.getDictByCode(dictCodeQuery.getDictCode());
         if (Objects.isNull(dictByCode)) {
@@ -78,7 +78,7 @@ public class DictDataController {
     }
 
     @GetMapping("/listByParentCode")
-    @Schema(description = "通过父节点编号查询数据项，使用二级结构返回，children 字段包含子项")
+    @Schema(description = "通过父节点编号（dictCode）查询数据项，使用二级结构返回，children 字段包含子项")
     public ResponseResult<List<DictWithDataVO>> listByParentCode(@RequestParam("dictCode") String dictCode) {
         Dict dictByCode = dictService.getDictByCode(dictCode);
 
