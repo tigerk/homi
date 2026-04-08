@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
+import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerWithdrawOperateEnum;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Owner;
@@ -110,7 +111,7 @@ public class OwnerFinanceService {
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
         vo.setContractId(bill.getContractId());
         vo.setContractNo(contract != null ? contract.getContractNo() : null);
-        vo.setSubjectType(bill.getSubjectType() == null ? null : com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum.valueOf(bill.getSubjectType()));
+        vo.setSubjectType(OwnerContractSubjectTypeEnum.fromCode(bill.getSubjectType()));
         vo.setSubjectId(bill.getSubjectId());
         vo.setSubjectName(bill.getSubjectNameSnapshot());
         vo.setCooperationMode(contract != null && contract.getCooperationMode() != null ? com.homi.common.lib.enums.owner.OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()) : null);
@@ -449,7 +450,7 @@ public class OwnerFinanceService {
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
         vo.setContractId(item.getContractId());
         vo.setContractNo(contract != null ? contract.getContractNo() : null);
-        vo.setSubjectType(item.getSubjectType() == null ? null : com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum.valueOf(item.getSubjectType()));
+        vo.setSubjectType(OwnerContractSubjectTypeEnum.fromCode(item.getSubjectType()));
         vo.setSubjectId(item.getSubjectId());
         vo.setSubjectName(item.getSubjectNameSnapshot());
         vo.setCooperationMode(contract != null && contract.getCooperationMode() != null ? com.homi.common.lib.enums.owner.OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()) : null);

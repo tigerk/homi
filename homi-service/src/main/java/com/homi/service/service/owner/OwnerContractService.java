@@ -222,7 +222,7 @@ public class OwnerContractService {
         List<OwnerContractSubjectDTO> subjectDTOList = contractSubjects.stream().map(item -> {
             OwnerContractSubjectDTO subjectDTO = new OwnerContractSubjectDTO();
             subjectDTO.setId(item.getId());
-            subjectDTO.setSubjectType(item.getSubjectType() == null ? null : OwnerContractSubjectTypeEnum.valueOf(item.getSubjectType()));
+            subjectDTO.setSubjectType(OwnerContractSubjectTypeEnum.fromCode(item.getSubjectType()));
             subjectDTO.setSubjectId(item.getSubjectId());
             subjectDTO.setSubjectName(item.getSubjectNameSnapshot());
             subjectDTO.setRemark(item.getRemark());
