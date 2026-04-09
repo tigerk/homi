@@ -11,8 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * 业主账单定时任务
  * <p>
- * 处理轻托管模式下，配置为“起租日直接给业主生成账单”的合同，
- * 到达起租日后自动生成业主账单。
+ * 处理轻托管和包租模式下的业主账单自动生成。
  */
 @Component
 @EnableScheduling
@@ -29,12 +28,13 @@ public class OwnerBillJob {
     @SchedulerLock(name = "ownerBillJob.generateLeaseStartOwnerBillTask", lockAtMostFor = "PT20M", lockAtLeastFor = "PT30S")
     public void generateLeaseStartOwnerBillTask() {
         try {
-            Integer count = ownerBillService.generateLeaseStartOwnerBills();
-            if (count > 0) {
-                log.info("自动生成起租日业主账单成功，数量={}", count);
+            Integer lightManagedCount = ownerBillService.generateLeaseStartOwnerBills();
+            Integer masterLeaseCount = ownerBillService.generateMasterLeaseOwnerBills();
+            if (lightManagedCount > 0 || masterLeaseCount > 0) {
+                log.info("自动生成业主账单成功，轻托管数量={}，包租数量={}", lightManagedCount, masterLeaseCount);
             }
         } catch (Exception e) {
-            log.error("自动生成起租日业主账单失败", e);
+            log.error("自动生成业主账单失败", e);
         }
     }
 }

@@ -72,6 +72,9 @@ public class OwnerBillDetailVO {
     @Schema(description = "已结金额")
     private BigDecimal settledAmount;
 
+    @Schema(description = "未结金额")
+    private BigDecimal unpaidAmount;
+
     @Schema(description = "已提现金额")
     private BigDecimal withdrawnAmount;
 
@@ -114,4 +117,7 @@ public class OwnerBillDetailVO {
 
     @Schema(description = "账单减免列表")
     private List<OwnerBillReductionVO> reductionList;
+
+    @Schema(description = "付款记录列表")
+    private List<OwnerBillPaymentVO> paymentList;
 }

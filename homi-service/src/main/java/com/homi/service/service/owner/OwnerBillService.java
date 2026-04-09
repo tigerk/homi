@@ -1,6 +1,7 @@
 package com.homi.service.service.owner;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -36,8 +37,12 @@ public class OwnerBillService {
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final OwnerSettlementRuleRepo ownerSettlementRuleRepo;
     private final OwnerRentFreeRuleRepo ownerRentFreeRuleRepo;
+    private final OwnerLeaseRuleRepo ownerLeaseRuleRepo;
+    private final OwnerLeaseFeeRepo ownerLeaseFeeRepo;
+    private final OwnerLeaseFreeRuleRepo ownerLeaseFreeRuleRepo;
     private final OwnerBillRepo ownerBillRepo;
     private final OwnerBillLineRepo ownerBillLineRepo;
+    private final OwnerBillReductionRepo ownerBillReductionRepo;
     private final OwnerAccountRepo ownerAccountRepo;
     private final OwnerAccountFlowRepo ownerAccountFlowRepo;
 
@@ -69,6 +74,33 @@ public class OwnerBillService {
             }
         }
         return successCount;
+    }
+
+    /**
+     * 自动生成包租应付账单
+     *
+     * @return 成功生成的账单数量
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Integer generateMasterLeaseOwnerBills() {
+        Date todayEnd = DateUtil.endOfDay(new Date());
+
+        List<OwnerContract> contractList = ownerContractRepo.list(new LambdaQueryWrapper<OwnerContract>()
+            .eq(OwnerContract::getCooperationMode, OwnerCooperationModeEnum.MASTER_LEASE.name())
+            .eq(OwnerContract::getStatus, StatusEnum.ACTIVE.getValue())
+            .eq(OwnerContract::getApprovalStatus, BizApprovalStatusEnum.APPROVED.getCode())
+            .eq(OwnerContract::getSignStatus, OwnerSignStatusEnum.SIGNED.getCode())
+            .le(OwnerContract::getContractStart, todayEnd));
+
+        int createdCount = 0;
+        for (OwnerContract contract : contractList) {
+            try {
+                createdCount += generateMasterLeaseOwnerBillsByContract(contract.getId(), todayEnd);
+            } catch (Exception e) {
+                log.error("生成包租业主应付账单失败, contractId={}", contract.getId(), e);
+            }
+        }
+        return createdCount;
     }
 
     /**
@@ -200,6 +232,375 @@ public class OwnerBillService {
             && Objects.equals(contract.getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode())
             && Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())
             && OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode());
+    }
+
+    private int generateMasterLeaseOwnerBillsByContract(Long contractId, Date todayEnd) {
+        OwnerContract contract = ownerContractRepo.getById(contractId);
+        if (contract == null || !isMasterLeaseBillContract(contract)) {
+            return 0;
+        }
+
+        OwnerLeaseRule leaseRule = ownerLeaseRuleRepo.lambdaQuery()
+            .eq(OwnerLeaseRule::getContractId, contractId)
+            .eq(OwnerLeaseRule::getStatus, StatusEnum.ACTIVE.getValue())
+            .orderByDesc(OwnerLeaseRule::getId)
+            .last("limit 1")
+            .one();
+        if (leaseRule == null) {
+            return 0;
+        }
+
+        Date billingStart = resolveMasterLeaseBillingStart(contract, leaseRule);
+        Date billingEnd = resolveMasterLeaseBillingEnd(contract, leaseRule);
+        if (billingStart == null || billingEnd == null || billingStart.after(todayEnd) || billingStart.after(billingEnd)) {
+            return 0;
+        }
+
+        int paymentMonths = Math.max(1, ObjectUtil.defaultIfNull(leaseRule.getPaymentMonths(), 1));
+        List<OwnerLeaseFee> leaseFeeList = ownerLeaseFeeRepo.lambdaQuery()
+            .eq(OwnerLeaseFee::getContractId, contractId)
+            .eq(OwnerLeaseFee::getStatus, StatusEnum.ACTIVE.getValue())
+            .orderByAsc(OwnerLeaseFee::getSortOrder)
+            .orderByAsc(OwnerLeaseFee::getId)
+            .list();
+        List<OwnerLeaseFreeRule> leaseFreeRuleList = ownerLeaseFreeRuleRepo.lambdaQuery()
+            .eq(OwnerLeaseFreeRule::getContractId, contractId)
+            .eq(OwnerLeaseFreeRule::getStatus, StatusEnum.ACTIVE.getValue())
+            .orderByAsc(OwnerLeaseFreeRule::getId)
+            .list();
+
+        int createdCount = 0;
+        Date periodStart = DateUtil.beginOfDay(billingStart);
+        Date firstPeriodStart = periodStart;
+        while (!periodStart.after(todayEnd) && !periodStart.after(billingEnd)) {
+            Date periodEnd = resolveMasterLeasePeriodEnd(periodStart, paymentMonths, billingEnd);
+            if (!existsMasterLeaseBill(contractId, periodStart, periodEnd)) {
+                createMasterLeaseBill(contract, leaseRule, leaseFeeList, leaseFreeRuleList, periodStart, periodEnd, firstPeriodStart.equals(periodStart));
+                createdCount++;
+            }
+            periodStart = DateUtil.beginOfDay(DateUtil.offsetMonth(periodStart, paymentMonths));
+        }
+        return createdCount;
+    }
+
+    private boolean isMasterLeaseBillContract(OwnerContract contract) {
+        return Objects.equals(contract.getStatus(), StatusEnum.ACTIVE.getValue())
+            && Objects.equals(contract.getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode())
+            && Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())
+            && OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode());
+    }
+
+    private Date resolveMasterLeaseBillingStart(OwnerContract contract, OwnerLeaseRule leaseRule) {
+        if (leaseRule.getBillingStart() != null) {
+            return DateUtil.beginOfDay(leaseRule.getBillingStart());
+        }
+        if (leaseRule.getFirstPayDate() != null) {
+            return DateUtil.beginOfDay(leaseRule.getFirstPayDate());
+        }
+        if (contract.getContractStart() != null) {
+            return DateUtil.beginOfDay(contract.getContractStart());
+        }
+        return null;
+    }
+
+    private Date resolveMasterLeaseBillingEnd(OwnerContract contract, OwnerLeaseRule leaseRule) {
+        if (leaseRule.getBillingEnd() != null) {
+            return DateUtil.endOfDay(leaseRule.getBillingEnd());
+        }
+        if (contract.getContractEnd() != null) {
+            return DateUtil.endOfDay(contract.getContractEnd());
+        }
+        return null;
+    }
+
+    private Date resolveMasterLeasePeriodEnd(Date periodStart, int paymentMonths, Date billingEnd) {
+        Date currentPeriodEnd = DateUtil.endOfDay(DateUtil.offsetDay(DateUtil.offsetMonth(periodStart, paymentMonths), -1));
+        if (billingEnd != null && currentPeriodEnd.after(billingEnd)) {
+            return DateUtil.endOfDay(billingEnd);
+        }
+        return currentPeriodEnd;
+    }
+
+    private boolean existsMasterLeaseBill(Long contractId, Date billStart, Date billEnd) {
+        return ownerBillRepo.count(new LambdaQueryWrapper<OwnerBill>()
+            .eq(OwnerBill::getContractId, contractId)
+            .eq(OwnerBill::getBillStart, billStart)
+            .eq(OwnerBill::getBillEnd, billEnd)) > 0;
+    }
+
+    private void createMasterLeaseBill(
+        OwnerContract contract,
+        OwnerLeaseRule leaseRule,
+        List<OwnerLeaseFee> leaseFeeList,
+        List<OwnerLeaseFreeRule> leaseFreeRuleList,
+        Date periodStart,
+        Date periodEnd,
+        boolean firstPeriod
+    ) {
+        Date now = new Date();
+        List<OwnerContractSubject> subjectList = ownerContractSubjectRepo.listByContractId(contract.getId());
+        String subjectSummary = buildMasterLeaseSubjectSummary(subjectList);
+
+        BigDecimal incomeAmount = BigDecimal.ZERO;
+        BigDecimal expenseAmount = BigDecimal.ZERO;
+        BigDecimal reductionAmount = BigDecimal.ZERO;
+        List<OwnerBillLine> lineList = new ArrayList<>();
+        List<OwnerBillReduction> reductionList = new ArrayList<>();
+
+        BigDecimal rentAmount = calcMasterLeaseRentAmount(leaseRule, periodStart, periodEnd);
+        if (rentAmount.compareTo(BigDecimal.ZERO) > 0) {
+            incomeAmount = incomeAmount.add(rentAmount);
+            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
+                OwnerBillItemTypeEnum.RENT.getCode(), OwnerBillItemTypeEnum.RENT.getName(), FinanceFlowDirectionEnum.IN.getCode(), rentAmount,
+                "包租周期租金", "月租金 " + ObjectUtil.defaultIfNull(leaseRule.getRentAmount(), BigDecimal.ZERO) + "，按账期自动生成"));
+        }
+
+        if (firstPeriod && ObjectUtil.defaultIfNull(leaseRule.getDepositAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal depositAmount = ObjectUtil.defaultIfNull(leaseRule.getDepositAmount(), BigDecimal.ZERO);
+            incomeAmount = incomeAmount.add(depositAmount);
+            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
+                OwnerBillItemTypeEnum.DEPOSIT.getCode(), OwnerBillItemTypeEnum.DEPOSIT.getName(), FinanceFlowDirectionEnum.IN.getCode(), depositAmount,
+                "首期押金", "包租首期押金"));
+        }
+
+        for (OwnerLeaseFee leaseFee : leaseFeeList) {
+            BigDecimal feeAmount = calcMasterLeaseFeeAmount(leaseRule, leaseFee, periodStart, periodEnd);
+            if (feeAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+            String direction = ObjectUtil.defaultIfNull(leaseFee.getFeeDirection(), FinanceFlowDirectionEnum.IN.getCode());
+            if (FinanceFlowDirectionEnum.OUT.getCode().equals(direction)) {
+                expenseAmount = expenseAmount.add(feeAmount);
+            } else {
+                incomeAmount = incomeAmount.add(feeAmount);
+            }
+            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_LEASE_FEE.getCode(), leaseFee.getId(),
+                OwnerBillItemTypeEnum.OTHER_FEE.getCode(), ObjectUtil.defaultIfNull(leaseFee.getFeeName(), "其他费用"), direction, feeAmount,
+                leaseFee.getRemark(), buildMasterLeaseFeeFormula(leaseRule, leaseFee, periodStart, periodEnd)));
+        }
+
+        for (OwnerLeaseFreeRule freeRule : leaseFreeRuleList) {
+            BigDecimal currentReductionAmount = calcMasterLeaseReductionAmount(rentAmount, freeRule, periodStart, periodEnd);
+            if (currentReductionAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+            reductionAmount = reductionAmount.add(currentReductionAmount);
+            reductionList.add(buildMasterLeaseReduction(contract, freeRule, periodStart, currentReductionAmount, now));
+        }
+
+        BigDecimal payableAmount = incomeAmount.subtract(expenseAmount).subtract(reductionAmount);
+
+        OwnerBill ownerBill = new OwnerBill();
+        ownerBill.setCompanyId(contract.getCompanyId());
+        ownerBill.setOwnerId(contract.getOwnerId());
+        ownerBill.setContractId(contract.getId());
+        ownerBill.setSubjectType(null);
+        ownerBill.setSubjectId(null);
+        ownerBill.setSubjectNameSnapshot(subjectSummary);
+        ownerBill.setBillNo(generateOwnerBillNo());
+        ownerBill.setBillStart(periodStart);
+        ownerBill.setBillEnd(periodEnd);
+        ownerBill.setIncomeAmount(incomeAmount);
+        ownerBill.setReductionAmount(reductionAmount);
+        ownerBill.setExpenseAmount(expenseAmount);
+        ownerBill.setAdjustAmount(BigDecimal.ZERO);
+        ownerBill.setPayableAmount(payableAmount);
+        ownerBill.setSettledAmount(BigDecimal.ZERO);
+        ownerBill.setWithdrawnAmount(BigDecimal.ZERO);
+        ownerBill.setFreezeAmount(BigDecimal.ZERO);
+        ownerBill.setWithdrawableAmount(BigDecimal.ZERO);
+        ownerBill.setBillStatus(OwnerBillStatusEnum.NORMAL.getCode());
+        ownerBill.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
+        ownerBill.setSettlementStatus(OwnerBillSettlementStatusEnum.UNSETTLED.getCode());
+        ownerBill.setGeneratedAt(now);
+        ownerBill.setApprovedAt(now);
+        ownerBill.setRemark("包租应付账单自动生成");
+        ownerBill.setCreateTime(now);
+        ownerBill.setUpdateTime(now);
+        ownerBillRepo.save(ownerBill);
+
+        lineList.forEach(item -> {
+            item.setBillId(ownerBill.getId());
+            item.setSubjectNameSnapshot(subjectSummary);
+            item.setCreateTime(now);
+        });
+        if (!lineList.isEmpty()) {
+            ownerBillLineRepo.saveBatch(lineList);
+        }
+
+        reductionList.forEach(item -> {
+            item.setBillId(ownerBill.getId());
+            item.setCreateTime(now);
+            item.setUpdateTime(now);
+        });
+        if (!reductionList.isEmpty()) {
+            ownerBillReductionRepo.saveBatch(reductionList);
+        }
+    }
+
+    private String buildMasterLeaseSubjectSummary(List<OwnerContractSubject> subjectList) {
+        if (subjectList == null || subjectList.isEmpty()) {
+            return "包租合同房源";
+        }
+        if (subjectList.size() == 1) {
+            return CharSequenceUtil.nullToDefault(subjectList.get(0).getSubjectNameSnapshot(), "包租合同房源");
+        }
+        return subjectList.stream()
+            .map(OwnerContractSubject::getSubjectNameSnapshot)
+            .filter(StrUtil::isNotBlank)
+            .limit(2)
+            .collect(Collectors.joining("、")) + " 等" + subjectList.size() + "项";
+    }
+
+    private BigDecimal calcMasterLeaseRentAmount(OwnerLeaseRule leaseRule, Date periodStart, Date periodEnd) {
+        BigDecimal monthlyRent = ObjectUtil.defaultIfNull(leaseRule.getRentAmount(), BigDecimal.ZERO);
+        if (monthlyRent.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        int paymentMonths = Math.max(1, ObjectUtil.defaultIfNull(leaseRule.getPaymentMonths(), 1));
+        Date fullPeriodEnd = DateUtil.endOfDay(DateUtil.offsetDay(DateUtil.offsetMonth(periodStart, paymentMonths), -1));
+        BigDecimal fullAmount = monthlyRent.multiply(BigDecimal.valueOf(paymentMonths));
+        if (!periodEnd.before(fullPeriodEnd)) {
+            return fullAmount.setScale(2, RoundingMode.HALF_UP);
+        }
+        if (OwnerProrateTypeEnum.FULL_PERIOD.getCode().equals(leaseRule.getProrateType())) {
+            return fullAmount.setScale(2, RoundingMode.HALF_UP);
+        }
+        long fullDays = DateUtil.betweenDay(periodStart, fullPeriodEnd, true) + 1;
+        long actualDays = DateUtil.betweenDay(periodStart, periodEnd, true) + 1;
+        if (fullDays <= 0 || actualDays <= 0) {
+            return BigDecimal.ZERO;
+        }
+        return fullAmount.multiply(BigDecimal.valueOf(actualDays))
+            .divide(BigDecimal.valueOf(fullDays), 2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal calcMasterLeaseFeeAmount(OwnerLeaseRule leaseRule, OwnerLeaseFee leaseFee, Date periodStart, Date periodEnd) {
+        int occurrenceCount = countMasterLeaseFeeOccurrences(resolveMasterLeaseBillingAnchor(leaseRule), periodStart, periodEnd, leaseFee.getPaymentMethod());
+        if (occurrenceCount <= 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal unitAmount;
+        if (Integer.valueOf(2).equals(leaseFee.getPriceMethod())) {
+            unitAmount = ObjectUtil.defaultIfNull(leaseRule.getRentAmount(), BigDecimal.ZERO)
+                .multiply(ObjectUtil.defaultIfNull(leaseFee.getPriceInput(), BigDecimal.ZERO))
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        } else {
+            unitAmount = ObjectUtil.defaultIfNull(leaseFee.getPriceInput(), BigDecimal.ZERO);
+        }
+        return unitAmount.multiply(BigDecimal.valueOf(occurrenceCount)).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private String buildMasterLeaseFeeFormula(OwnerLeaseRule leaseRule, OwnerLeaseFee leaseFee, Date periodStart, Date periodEnd) {
+        int occurrenceCount = countMasterLeaseFeeOccurrences(resolveMasterLeaseBillingAnchor(leaseRule), periodStart, periodEnd, leaseFee.getPaymentMethod());
+        String formula = Integer.valueOf(2).equals(leaseFee.getPriceMethod())
+            ? "月租金 × " + ObjectUtil.defaultIfNull(leaseFee.getPriceInput(), BigDecimal.ZERO) + "%"
+            : "固定金额 " + ObjectUtil.defaultIfNull(leaseFee.getPriceInput(), BigDecimal.ZERO);
+        return formula + " × " + occurrenceCount;
+    }
+
+    private int countMasterLeaseFeeOccurrences(Date anchorDate, Date periodStart, Date periodEnd, Integer paymentMethod) {
+        if (anchorDate == null) {
+            return 0;
+        }
+        if (paymentMethod == null || Integer.valueOf(0).equals(paymentMethod)) {
+            return 1;
+        }
+        if (Integer.valueOf(1).equals(paymentMethod)) {
+            return DateUtil.beginOfDay(anchorDate).equals(DateUtil.beginOfDay(periodStart)) ? 1 : 0;
+        }
+        int intervalMonths = switch (paymentMethod) {
+            case 2 -> 1;
+            case 3 -> 2;
+            case 4 -> 3;
+            case 5 -> 6;
+            case 6 -> 12;
+            default -> 0;
+        };
+        if (intervalMonths <= 0) {
+            return 0;
+        }
+        int count = 0;
+        Date current = DateUtil.beginOfDay(anchorDate);
+        while (!current.after(periodEnd)) {
+            if (!current.before(periodStart)) {
+                count++;
+            }
+            current = DateUtil.beginOfDay(DateUtil.offsetMonth(current, intervalMonths));
+        }
+        return count;
+    }
+
+    private Date resolveMasterLeaseBillingAnchor(OwnerLeaseRule leaseRule) {
+        if (leaseRule.getBillingStart() != null) {
+            return DateUtil.beginOfDay(leaseRule.getBillingStart());
+        }
+        if (leaseRule.getFirstPayDate() != null) {
+            return DateUtil.beginOfDay(leaseRule.getFirstPayDate());
+        }
+        return null;
+    }
+
+    private BigDecimal calcMasterLeaseReductionAmount(BigDecimal rentAmount, OwnerLeaseFreeRule freeRule, Date periodStart, Date periodEnd) {
+        if (freeRule == null || freeRule.getStartDate() == null || freeRule.getEndDate() == null) {
+            return BigDecimal.ZERO;
+        }
+        Date overlapStart = DateUtil.beginOfDay(freeRule.getStartDate());
+        Date overlapEnd = DateUtil.endOfDay(freeRule.getEndDate());
+        if (periodEnd.before(overlapStart) || periodStart.after(overlapEnd)) {
+            return BigDecimal.ZERO;
+        }
+        if (OwnerFreeCalcModeEnum.RATIO.getCode().equals(freeRule.getCalcMode())) {
+            return ObjectUtil.defaultIfNull(rentAmount, BigDecimal.ZERO)
+                .multiply(ObjectUtil.defaultIfNull(freeRule.getFreeRatio(), BigDecimal.ZERO))
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        }
+        return ObjectUtil.defaultIfNull(freeRule.getFreeAmount(), BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private OwnerBillLine buildMasterLeaseLine(
+        OwnerContract contract,
+        Date bizDate,
+        String sourceType,
+        Long sourceId,
+        String itemType,
+        String itemName,
+        String direction,
+        BigDecimal amount,
+        String remark,
+        String formulaSnapshot
+    ) {
+        OwnerBillLine line = new OwnerBillLine();
+        line.setSourceType(sourceType);
+        line.setSourceId(sourceId);
+        line.setSubjectType(null);
+        line.setSubjectId(null);
+        line.setItemType(itemType);
+        line.setItemName(itemName);
+        line.setDirection(direction);
+        line.setAmount(amount);
+        line.setBizDate(bizDate);
+        line.setRemark(remark);
+        line.setFormulaSnapshot(formulaSnapshot);
+        return line;
+    }
+
+    private OwnerBillReduction buildMasterLeaseReduction(OwnerContract contract, OwnerLeaseFreeRule freeRule, Date bizDate, BigDecimal amount, Date now) {
+        OwnerBillReduction reduction = new OwnerBillReduction();
+        reduction.setCompanyId(contract.getCompanyId());
+        reduction.setOwnerId(contract.getOwnerId());
+        reduction.setSourceType(OwnerBillSourceTypeEnum.OWNER_LEASE_FREE_RULE.getCode());
+        reduction.setSourceId(freeRule.getId());
+        reduction.setReductionType("LEASE_FREE");
+        reduction.setReductionName("包租免租");
+        reduction.setAmount(amount);
+        reduction.setBizDate(bizDate);
+        reduction.setRemark(freeRule.getRemark());
+        reduction.setRuleSnapshot("calcMode=" + freeRule.getCalcMode());
+        reduction.setStatus(StatusEnum.ACTIVE.getValue());
+        reduction.setCreateTime(now);
+        reduction.setUpdateTime(now);
+        return reduction;
     }
 
     private boolean existsLeaseStartBill(Long contractId, Long subjectId, Date billDate) {

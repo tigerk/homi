@@ -1,30 +1,41 @@
 package com.homi.service.service.owner;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
+import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
 import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
+import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
+import com.homi.common.lib.enums.owner.OwnerBillSettlementStatusEnum;
+import com.homi.common.lib.enums.owner.OwnerBillSourceTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerWithdrawOperateEnum;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.dao.entity.FileAttach;
 import com.homi.model.dao.entity.Owner;
 import com.homi.model.dao.entity.OwnerAccount;
 import com.homi.model.dao.entity.OwnerAccountFlow;
 import com.homi.model.dao.entity.OwnerBill;
 import com.homi.model.dao.entity.OwnerBillLine;
+import com.homi.model.dao.entity.OwnerBillPayment;
 import com.homi.model.dao.entity.OwnerBillReduction;
 import com.homi.model.dao.entity.OwnerContract;
 import com.homi.model.dao.entity.OwnerWithdrawApply;
+import com.homi.model.dao.repo.FileAttachRepo;
 import com.homi.model.dao.repo.OwnerAccountFlowRepo;
 import com.homi.model.dao.repo.OwnerAccountRepo;
 import com.homi.model.dao.repo.OwnerBillLineRepo;
+import com.homi.model.dao.repo.OwnerBillPaymentRepo;
 import com.homi.model.dao.repo.OwnerBillReductionRepo;
 import com.homi.model.dao.repo.OwnerBillRepo;
 import com.homi.model.dao.repo.OwnerContractRepo;
 import com.homi.model.dao.repo.OwnerRepo;
 import com.homi.model.dao.repo.OwnerWithdrawApplyRepo;
 import com.homi.model.owner.dto.OwnerBillIdDTO;
+import com.homi.model.owner.dto.OwnerBillPaymentCreateDTO;
 import com.homi.model.owner.dto.OwnerBillQueryDTO;
 import com.homi.model.owner.dto.OwnerWithdrawApplyIdDTO;
 import com.homi.model.owner.dto.OwnerWithdrawApplyQueryDTO;
@@ -34,6 +45,7 @@ import com.homi.model.owner.vo.OwnerAccountFlowVO;
 import com.homi.model.owner.vo.OwnerBillDetailVO;
 import com.homi.model.owner.vo.OwnerBillLineVO;
 import com.homi.model.owner.vo.OwnerBillListVO;
+import com.homi.model.owner.vo.OwnerBillPaymentVO;
 import com.homi.model.owner.vo.OwnerBillReductionVO;
 import com.homi.model.owner.vo.OwnerWithdrawApplyDetailVO;
 import com.homi.model.owner.vo.OwnerWithdrawApplyListVO;
@@ -56,12 +68,14 @@ import java.util.stream.Collectors;
 public class OwnerFinanceService {
     private final OwnerBillRepo ownerBillRepo;
     private final OwnerBillLineRepo ownerBillLineRepo;
+    private final OwnerBillPaymentRepo ownerBillPaymentRepo;
     private final OwnerBillReductionRepo ownerBillReductionRepo;
     private final OwnerWithdrawApplyRepo ownerWithdrawApplyRepo;
     private final OwnerAccountFlowRepo ownerAccountFlowRepo;
     private final OwnerAccountRepo ownerAccountRepo;
     private final OwnerRepo ownerRepo;
     private final OwnerContractRepo ownerContractRepo;
+    private final FileAttachRepo fileAttachRepo;
 
     public PageVO<OwnerBillListVO> pageOwnerBills(OwnerBillQueryDTO query) {
         Page<OwnerBill> page = new Page<>(query.getCurrentPage(), query.getPageSize());
@@ -123,9 +137,10 @@ public class OwnerFinanceService {
         vo.setAdjustAmount(bill.getAdjustAmount());
         vo.setPayableAmount(bill.getPayableAmount());
         vo.setSettledAmount(bill.getSettledAmount());
+        vo.setUnpaidAmount(defaultZero(bill.getPayableAmount()).subtract(defaultZero(bill.getSettledAmount())).max(BigDecimal.ZERO));
         vo.setWithdrawnAmount(bill.getWithdrawnAmount());
         vo.setFreezeAmount(bill.getFreezeAmount());
-        vo.setWithdrawableAmount(bill.getWithdrawableAmount());
+        vo.setWithdrawableAmount(OwnerCooperationModeEnum.MASTER_LEASE.equals(vo.getCooperationMode()) ? BigDecimal.ZERO : bill.getWithdrawableAmount());
         vo.setBillStatus(bill.getBillStatus());
         vo.setApprovalStatus(bill.getApprovalStatus());
         vo.setSettlementStatus(bill.getSettlementStatus());
@@ -138,6 +153,7 @@ public class OwnerFinanceService {
             .stream().map(this::toOwnerBillLineVO).toList());
         vo.setReductionList(ownerBillReductionRepo.list(new LambdaQueryWrapper<OwnerBillReduction>().eq(OwnerBillReduction::getBillId, bill.getId()).orderByAsc(OwnerBillReduction::getId))
             .stream().map(this::toOwnerBillReductionVO).toList());
+        vo.setPaymentList(buildOwnerBillPaymentVOList(bill.getId()));
         return vo;
     }
 
@@ -245,6 +261,70 @@ public class OwnerFinanceService {
         vo.setAvailableAmount(account != null ? account.getAvailableAmount() : BigDecimal.ZERO);
         vo.setFrozenAmount(account != null ? account.getFrozenAmount() : BigDecimal.ZERO);
         return vo;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Long createOwnerBillPayment(OwnerBillPaymentCreateDTO dto, Long operatorId) {
+        if (dto == null || dto.getBillId() == null) {
+            throw new IllegalArgumentException("业主账单ID不能为空");
+        }
+        if (dto.getPayAmount() == null || dto.getPayAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("付款金额必须大于0");
+        }
+        if (dto.getPayTime() == null) {
+            throw new IllegalArgumentException("付款时间不能为空");
+        }
+        if (dto.getPayChannel() == null) {
+            throw new IllegalArgumentException("付款渠道不能为空");
+        }
+
+        OwnerBill bill = ownerBillRepo.getById(dto.getBillId());
+        if (bill == null) {
+            throw new IllegalArgumentException("业主账单不存在");
+        }
+        OwnerContract contract = ownerContractRepo.getById(bill.getContractId());
+        if (contract == null || !OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
+            throw new IllegalArgumentException("仅包租账单支持登记付款");
+        }
+
+        BigDecimal unpaidAmount = defaultZero(bill.getPayableAmount()).subtract(defaultZero(bill.getSettledAmount())).max(BigDecimal.ZERO);
+        if (dto.getPayAmount().compareTo(unpaidAmount) > 0) {
+            throw new IllegalArgumentException("付款金额不能超过当前未结金额");
+        }
+
+        Date now = new Date();
+        OwnerBillPayment payment = new OwnerBillPayment();
+        payment.setCompanyId(bill.getCompanyId());
+        payment.setBillId(bill.getId());
+        payment.setOwnerId(bill.getOwnerId());
+        payment.setContractId(bill.getContractId());
+        payment.setPaymentNo(generateOwnerBillPaymentNo());
+        payment.setPayAmount(dto.getPayAmount());
+        payment.setPayTime(dto.getPayTime());
+        payment.setPayChannel(dto.getPayChannel().getCode());
+        payment.setThirdTradeNo(dto.getThirdTradeNo());
+        payment.setRemark(dto.getRemark());
+        payment.setCreateBy(operatorId);
+        payment.setCreateTime(now);
+        payment.setUpdateBy(operatorId);
+        payment.setUpdateTime(now);
+        ownerBillPaymentRepo.save(payment);
+
+        if (dto.getVoucherUrls() != null && !dto.getVoucherUrls().isEmpty()) {
+            fileAttachRepo.recreateFileAttachList(payment.getId(), FileAttachBizTypeEnum.OWNER_BILL_PAYMENT_VOUCHER.getBizType(), dto.getVoucherUrls());
+        }
+
+        BigDecimal nextSettledAmount = defaultZero(bill.getSettledAmount()).add(dto.getPayAmount());
+        bill.setSettledAmount(nextSettledAmount);
+        if (nextSettledAmount.compareTo(defaultZero(bill.getPayableAmount())) >= 0) {
+            bill.setSettlementStatus(OwnerBillSettlementStatusEnum.SETTLED.getCode());
+        } else {
+            bill.setSettlementStatus(OwnerBillSettlementStatusEnum.PART_SETTLED.getCode());
+        }
+        bill.setUpdateBy(operatorId);
+        bill.setUpdateTime(now);
+        ownerBillRepo.updateById(bill);
+        return payment.getId();
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -460,7 +540,7 @@ public class OwnerFinanceService {
         vo.setReductionAmount(item.getReductionAmount());
         vo.setExpenseAmount(item.getExpenseAmount());
         vo.setPayableAmount(item.getPayableAmount());
-        vo.setWithdrawableAmount(item.getWithdrawableAmount());
+        vo.setWithdrawableAmount(contract != null && OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode()) ? BigDecimal.ZERO : item.getWithdrawableAmount());
         vo.setBillStatus(item.getBillStatus());
         vo.setApprovalStatus(item.getApprovalStatus());
         vo.setSettlementStatus(item.getSettlementStatus());
@@ -525,6 +605,46 @@ public class OwnerFinanceService {
         vo.setRuleSnapshot(item.getRuleSnapshot());
         vo.setStatus(item.getStatus());
         return vo;
+    }
+
+    private List<OwnerBillPaymentVO> buildOwnerBillPaymentVOList(Long billId) {
+        if (billId == null) {
+            return Collections.emptyList();
+        }
+        List<OwnerBillPayment> paymentList = ownerBillPaymentRepo.list(new LambdaQueryWrapper<OwnerBillPayment>()
+            .eq(OwnerBillPayment::getBillId, billId)
+            .orderByDesc(OwnerBillPayment::getPayTime)
+            .orderByDesc(OwnerBillPayment::getId));
+        if (paymentList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> paymentIds = paymentList.stream().map(OwnerBillPayment::getId).toList();
+        Map<Long, List<String>> voucherMap = fileAttachRepo.lambdaQuery()
+            .in(FileAttach::getBizId, paymentIds)
+            .eq(FileAttach::getBizType, FileAttachBizTypeEnum.OWNER_BILL_PAYMENT_VOUCHER.getBizType())
+            .orderByAsc(FileAttach::getSortOrder)
+            .list()
+            .stream()
+            .collect(Collectors.groupingBy(FileAttach::getBizId, Collectors.mapping(FileAttach::getFileUrl, Collectors.toList())));
+        return paymentList.stream().map(item -> toOwnerBillPaymentVO(item, voucherMap.get(item.getId()))).toList();
+    }
+
+    private OwnerBillPaymentVO toOwnerBillPaymentVO(OwnerBillPayment item, List<String> voucherUrls) {
+        OwnerBillPaymentVO vo = new OwnerBillPaymentVO();
+        vo.setPaymentId(item.getId());
+        vo.setPaymentNo(item.getPaymentNo());
+        vo.setPayAmount(item.getPayAmount());
+        vo.setPayTime(item.getPayTime());
+        vo.setPayChannel(item.getPayChannel() == null ? null : PaymentFlowChannelEnum.valueOf(item.getPayChannel()));
+        vo.setThirdTradeNo(item.getThirdTradeNo());
+        vo.setRemark(item.getRemark());
+        vo.setVoucherUrls(voucherUrls == null ? Collections.emptyList() : voucherUrls);
+        vo.setCreateTime(item.getCreateTime());
+        return vo;
+    }
+
+    private String generateOwnerBillPaymentNo() {
+        return "OBP" + DateUtil.format(new Date(), "yyyyMMddHHmmss") + IdUtil.fastSimpleUUID().substring(0, 6).toUpperCase();
     }
 
     private OwnerAccountFlowVO toOwnerAccountFlowVO(OwnerAccountFlow item) {

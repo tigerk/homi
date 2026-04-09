@@ -3,6 +3,7 @@ package com.homi.saas.web.controller.finance;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.owner.dto.OwnerBillIdDTO;
+import com.homi.model.owner.dto.OwnerBillPaymentCreateDTO;
 import com.homi.model.owner.dto.OwnerBillQueryDTO;
 import com.homi.model.owner.dto.OwnerWithdrawApplyIdDTO;
 import com.homi.model.owner.dto.OwnerWithdrawApplyQueryDTO;
@@ -46,6 +47,12 @@ public class OwnerFinanceController {
     @Operation(summary = "业主账单详情")
     public ResponseResult<OwnerBillDetailVO> billDetail(@RequestBody OwnerBillIdDTO dto) {
         return ResponseResult.ok(ownerFinanceService.getOwnerBillDetail(dto));
+    }
+
+    @PostMapping("/bill/payment/create")
+    @Operation(summary = "登记业主账单付款")
+    public ResponseResult<Long> billPaymentCreate(@RequestBody OwnerBillPaymentCreateDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerFinanceService.createOwnerBillPayment(dto, loginUser.getId()));
     }
 
     @PostMapping("/withdraw/page")
