@@ -1,5 +1,6 @@
 package com.homi.service.service.owner;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
@@ -1155,7 +1156,7 @@ public class OwnerContractService {
             OwnerCompany company = ownerCompanyRepo.getById(owner.getOwnerTypeId());
             tags = company == null ? List.of() : parseTags(company.getTags());
         }
-        return tags.isEmpty() ? null : tags.get(0);
+        return tags.isEmpty() ? null : tags.getFirst();
     }
 
     private void saveLeaseFees(OwnerCreateDTO dto, Long contractId, Date now) {
@@ -1186,27 +1187,23 @@ public class OwnerContractService {
 
     private void syncOwnerPersonalFiles(Long bizId, OwnerPersonalDTO dto) {
         if (bizId == null || dto == null) return;
-        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_ID_CARD_FRONT.getBizType(), nullSafeList(dto.getIdCardFrontList()));
-        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_ID_CARD_BACK.getBizType(), nullSafeList(dto.getIdCardBackList()));
-        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_ID_CARD_IN_HAND.getBizType(), nullSafeList(dto.getIdCardInHandList()));
-        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_OTHER_IMAGE.getBizType(), nullSafeList(dto.getOtherImageList()));
+        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_ID_CARD_FRONT.getBizType(), CollUtil.emptyIfNull(dto.getIdCardFrontList()));
+        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_ID_CARD_BACK.getBizType(), CollUtil.emptyIfNull(dto.getIdCardBackList()));
+        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_ID_CARD_IN_HAND.getBizType(), CollUtil.emptyIfNull(dto.getIdCardInHandList()));
+        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_OTHER_IMAGE.getBizType(), CollUtil.emptyIfNull(dto.getOtherImageList()));
     }
 
     private void syncOwnerCompanyFiles(Long bizId, OwnerCompanyDTO dto) {
         if (bizId == null || dto == null) return;
-        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_BUSINESS_LICENSE.getBizType(), nullSafeList(dto.getBusinessLicenseUrls()));
+        fileAttachRepo.recreateFileAttachList(bizId, FileAttachBizTypeEnum.OWNER_BUSINESS_LICENSE.getBizType(), CollUtil.emptyIfNull(dto.getBusinessLicenseUrls()));
     }
 
     private List<String> getFileUrls(Long bizId, String bizType) {
         if (bizId == null) return List.of();
         return fileAttachRepo.getFileAttachListByBizIdAndBizTypes(bizId, List.of(bizType))
             .stream()
-            .map(file -> file.getFileUrl())
+            .map(FileAttach::getFileUrl)
             .filter(Objects::nonNull)
             .toList();
-    }
-
-    private List<String> nullSafeList(List<String> list) {
-        return list == null ? List.of() : list;
     }
 }
