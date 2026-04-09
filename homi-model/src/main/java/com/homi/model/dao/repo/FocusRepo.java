@@ -1,5 +1,6 @@
 package com.homi.model.dao.repo;
 
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -50,6 +51,11 @@ public class FocusRepo extends ServiceImpl<FocusMapper, Focus> {
     public Focus saveFocus(FocusCreateDTO focusCreateDto) {
         Focus toSave = new Focus();
         BeanUtils.copyProperties(focusCreateDto, toSave);
+
+        if (CharSequenceUtil.isNotBlank(focusCreateDto.getCommunity().getDistrict()) && CharSequenceUtil.isNotBlank(focusCreateDto.getCommunity().getAddress())) {
+            toSave.setAddress(String.format("%s%s", focusCreateDto.getCommunity().getDistrict(), focusCreateDto.getCommunity().getAddress()));
+        }
+
         toSave.setCommunityId(focusCreateDto.getCommunity().getCommunityId());
 
         toSave.setFacilities(JSONUtil.toJsonStr(focusCreateDto.getFacilities()));
