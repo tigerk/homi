@@ -41,6 +41,7 @@ public class OwnerBillGenerateService {
     private final OwnerLeaseFreeRuleRepo ownerLeaseFreeRuleRepo;
     private final OwnerBillRepo ownerBillRepo;
     private final OwnerBillLineRepo ownerBillLineRepo;
+    private final OwnerBillPaymentRepo ownerBillPaymentRepo;
     private final OwnerBillReductionRepo ownerBillReductionRepo;
     private final OwnerAccountRepo ownerAccountRepo;
     private final OwnerAccountFlowRepo ownerAccountFlowRepo;
@@ -76,30 +77,38 @@ public class OwnerBillGenerateService {
     }
 
     /**
-     * 自动生成包租应付账单
+     * 重建包租合同的全部业主应付账单计划。
+     * <p>
+     * 在新增或编辑包租合同后立即调用，直接按合同周期生成完整账单。
      *
+     * @param contractId 合同ID
      * @return 成功生成的账单数量
      */
     @Transactional(rollbackFor = Exception.class)
-    public Integer generateMasterLeaseOwnerBills() {
-        Date todayEnd = DateUtil.endOfDay(new Date());
-
-        List<OwnerContract> contractList = ownerContractRepo.list(new LambdaQueryWrapper<OwnerContract>()
-            .eq(OwnerContract::getCooperationMode, OwnerCooperationModeEnum.MASTER_LEASE.name())
-            .eq(OwnerContract::getStatus, StatusEnum.ACTIVE.getValue())
-            .eq(OwnerContract::getApprovalStatus, BizApprovalStatusEnum.APPROVED.getCode())
-            .eq(OwnerContract::getSignStatus, OwnerSignStatusEnum.SIGNED.getCode())
-            .le(OwnerContract::getContractStart, todayEnd));
-
-        int createdCount = 0;
-        for (OwnerContract contract : contractList) {
-            try {
-                createdCount += generateMasterLeaseOwnerBillsByContract(contract.getId(), todayEnd);
-            } catch (Exception e) {
-                log.error("生成包租业主应付账单失败, contractId={}", contract.getId(), e);
-            }
+    public Integer rebuildMasterLeaseOwnerBillsByContract(Long contractId) {
+        OwnerContract contract = ownerContractRepo.getById(contractId);
+        if (contract == null) {
+            throw new IllegalArgumentException("业主合同不存在");
         }
-        return createdCount;
+        if (!OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
+            return 0;
+        }
+        clearMasterLeaseBillsByContract(contractId);
+        Date planEnd = resolveMasterLeasePlanEnd(contractId);
+        if (planEnd == null) {
+            return 0;
+        }
+        return generateMasterLeaseOwnerBillsByContract(contractId, planEnd);
+    }
+
+    /**
+     * 清空包租合同下尚未发生结算的账单计划。
+     *
+     * @param contractId 合同ID
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void clearMasterLeaseOwnerBillsByContract(Long contractId) {
+        clearMasterLeaseBillsByContract(contractId);
     }
 
     /**
@@ -235,7 +244,7 @@ public class OwnerBillGenerateService {
 
     private int generateMasterLeaseOwnerBillsByContract(Long contractId, Date todayEnd) {
         OwnerContract contract = ownerContractRepo.getById(contractId);
-        if (contract == null || !isMasterLeaseBillContract(contract)) {
+        if (contract == null || !OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
             return 0;
         }
 
@@ -280,6 +289,54 @@ public class OwnerBillGenerateService {
             periodStart = DateUtil.beginOfDay(DateUtil.offsetMonth(periodStart, paymentMonths));
         }
         return createdCount;
+    }
+
+    private Date resolveMasterLeasePlanEnd(Long contractId) {
+        OwnerContract contract = ownerContractRepo.getById(contractId);
+        if (contract == null) {
+            return null;
+        }
+        OwnerLeaseRule leaseRule = ownerLeaseRuleRepo.lambdaQuery()
+            .eq(OwnerLeaseRule::getContractId, contractId)
+            .eq(OwnerLeaseRule::getStatus, StatusEnum.ACTIVE.getValue())
+            .orderByDesc(OwnerLeaseRule::getId)
+            .last("limit 1")
+            .one();
+        if (leaseRule == null) {
+            return null;
+        }
+        return resolveMasterLeaseBillingEnd(contract, leaseRule);
+    }
+
+    private void clearMasterLeaseBillsByContract(Long contractId) {
+        List<OwnerBill> billList = ownerBillRepo.lambdaQuery()
+            .eq(OwnerBill::getContractId, contractId)
+            .orderByAsc(OwnerBill::getId)
+            .list();
+        if (billList.isEmpty()) {
+            return;
+        }
+
+        boolean hasSettledBill = billList.stream().anyMatch(item ->
+            ObjectUtil.defaultIfNull(item.getSettledAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
+                || ObjectUtil.defaultIfNull(item.getWithdrawnAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
+                || ObjectUtil.defaultIfNull(item.getFreezeAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
+        );
+        if (hasSettledBill) {
+            throw new IllegalArgumentException("包租账单已发生结算，不允许重建账单计划");
+        }
+
+        List<Long> billIds = billList.stream().map(OwnerBill::getId).toList();
+        boolean hasPayment = ownerBillPaymentRepo.lambdaQuery()
+            .in(OwnerBillPayment::getBillId, billIds)
+            .count() > 0;
+        if (hasPayment) {
+            throw new IllegalArgumentException("包租账单已登记付款，不允许重建账单计划");
+        }
+
+        ownerBillReductionRepo.remove(new LambdaQueryWrapper<OwnerBillReduction>().in(OwnerBillReduction::getBillId, billIds));
+        ownerBillLineRepo.remove(new LambdaQueryWrapper<OwnerBillLine>().in(OwnerBillLine::getBillId, billIds));
+        ownerBillRepo.removeByIds(billIds);
     }
 
     private boolean isMasterLeaseBillContract(OwnerContract contract) {

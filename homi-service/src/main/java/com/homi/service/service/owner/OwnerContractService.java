@@ -54,6 +54,7 @@ public class OwnerContractService {
     private final FocusBuildingRepo focusBuildingRepo;
     private final UserRepo userRepo;
     private final FileAttachRepo fileAttachRepo;
+    private final OwnerBillGenerateService ownerBillGenerateService;
 
     @Transactional(rollbackFor = Exception.class)
     public Long createOwnerContract(OwnerCreateDTO dto) {
@@ -84,6 +85,7 @@ public class OwnerContractService {
             saveLightManagedRules(dto, contract, contractSubjects, now);
         } else if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
             saveMasterLeaseRules(dto, contract.getId(), now);
+            ownerBillGenerateService.rebuildMasterLeaseOwnerBillsByContract(contract.getId());
         }
         initOwnerAccount(dto.getOwnerContract().getCompanyId(), ownerId, now);
         return contract.getId();
@@ -247,6 +249,9 @@ public class OwnerContractService {
         updateOwnerInfo(dto, owner);
 
         Date now = DateUtil.date();
+        if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(currentContract.getCooperationMode())) {
+            ownerBillGenerateService.clearMasterLeaseOwnerBillsByContract(currentContract.getId());
+        }
         OwnerContract contract = BeanCopyUtils.copyBean(dto.getOwnerContract(), OwnerContract.class);
         assert contract != null;
         contract.setOwnerId(owner.getId());
@@ -268,6 +273,7 @@ public class OwnerContractService {
             saveLightManagedRules(toCreateDTO(dto), contract, contractSubjects, now);
         } else {
             saveMasterLeaseRules(toCreateDTO(dto), contract.getId(), now);
+            ownerBillGenerateService.rebuildMasterLeaseOwnerBillsByContract(contract.getId());
         }
         return contract.getId();
     }
@@ -304,6 +310,9 @@ public class OwnerContractService {
         OwnerContract contract = ownerContractRepo.getById(dto.getContractId());
         if (contract == null) {
             throw new IllegalArgumentException("业主合同不存在");
+        }
+        if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
+            ownerBillGenerateService.clearMasterLeaseOwnerBillsByContract(contract.getId());
         }
         contract.setUpdateBy(updateBy);
         contract.setUpdateTime(DateUtil.date());
