@@ -1,4 +1,4 @@
-package com.homi.saas.web.controller.finance;
+package com.homi.saas.web.controller.owner;
 
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
@@ -27,8 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/saas/finance/owner")
-public class OwnerFinanceController {
+@RequestMapping("/saas/owner")
+public class OwnerBillController {
     private final OwnerFinanceService ownerFinanceService;
 
     @PostMapping("/bill/page")
