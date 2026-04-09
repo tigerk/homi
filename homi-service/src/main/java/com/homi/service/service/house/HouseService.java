@@ -1,5 +1,6 @@
 package com.homi.service.service.house;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -113,6 +114,7 @@ public class HouseService {
         Page<House> page = new Page<>(query.getCurrentPage(), query.getPageSize());
         IPage<House> housePage = houseRepo.lambdaQuery()
             .eq(House::getCompanyId, query.getCompanyId())
+            .eq(ObjectUtil.isNotNull(query.getLeaseMode()), House::getLeaseMode, query.getLeaseMode())
             .and(cn.hutool.core.text.CharSequenceUtil.isNotBlank(query.getKeywords()), wrapper -> wrapper
                 .like(House::getHouseName, query.getKeywords())
                 .or()

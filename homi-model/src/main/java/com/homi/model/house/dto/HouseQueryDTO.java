@@ -16,6 +16,9 @@ public class HouseQueryDTO extends PageDTO {
     @Schema(description = "搜索关键字，支持房源名称/编号/地址")
     private String keywords;
 
+    @Schema(description = "租赁模式: 1=集中式 2=分散式")
+    private Integer leaseMode;
+
     @Schema(description = "排除的业主合同ID，编辑当前合同场景下用于保留当前合同已选房源")
     private Long excludeOwnerContractId;
 }

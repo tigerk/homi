@@ -22,9 +22,9 @@ public class FocusQueryDTO extends PageDTO {
     @Schema(description = "搜索关键词")
     private String keywords;
 
-     /**
-      * 租赁模式ID
-      */
-     @Schema(description = "租赁模式ID")
-     private Long leaseModeId;
+    @Schema(description = "租赁模式: 1=集中式 2=分散式")
+    private Integer leaseMode;
+
+    @Schema(description = "租赁模式关联ID")
+    private Long leaseModeId;
 }

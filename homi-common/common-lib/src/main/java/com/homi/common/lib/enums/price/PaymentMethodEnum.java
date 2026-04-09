@@ -1,5 +1,6 @@
 package com.homi.common.lib.enums.price;
 
+import cn.hutool.core.util.EnumUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -23,4 +24,11 @@ public enum PaymentMethodEnum {
     private final String name;
 
 
+    public static PaymentMethodEnum getByCode(Integer code) {
+        if (code == null) {
+            return null;
+        }
+
+        return EnumUtil.getBy(PaymentMethodEnum::getCode, code);
+    }
 }

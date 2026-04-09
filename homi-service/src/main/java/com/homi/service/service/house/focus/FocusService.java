@@ -349,6 +349,16 @@ public class FocusService {
     }
 
     public PageVO<FocusListVO> getFocusList(FocusQueryDTO query) {
+        if (Objects.nonNull(query.getLeaseMode()) && !LeaseModeEnum.FOCUS.getCode().equals(query.getLeaseMode())) {
+            return PageVO.<FocusListVO>builder()
+                .currentPage(query.getCurrentPage())
+                .pageSize(query.getPageSize())
+                .total(0L)
+                .pages(0L)
+                .list(Collections.emptyList())
+                .build();
+        }
+
         IPage<Focus> pageQuery = new Page<>(query.getCurrentPage(), query.getPageSize());
 
         LambdaQueryWrapper<Focus> wrapper = new LambdaQueryWrapper<>();

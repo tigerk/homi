@@ -1,7 +1,7 @@
 package com.homi.service.service.owner;
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -11,69 +11,17 @@ import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.contract.OwnerParamsEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
-import com.homi.common.lib.enums.owner.OwnerContractMediumEnum;
-import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
-import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerPaymentFeeBearTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerSettlementTimingEnum;
-import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
-import com.homi.common.lib.enums.owner.OwnerSignTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerTypeEnum;
-import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
+import com.homi.common.lib.enums.owner.*;
+import com.homi.common.lib.enums.price.PaymentMethodEnum;
+import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
+import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dao.entity.ContractTemplate;
-import com.homi.model.dao.entity.Focus;
-import com.homi.model.dao.entity.FocusBuilding;
-import com.homi.model.dao.entity.House;
-import com.homi.model.dao.entity.Owner;
-import com.homi.model.dao.entity.OwnerAccount;
-import com.homi.model.dao.entity.OwnerCompany;
-import com.homi.model.dao.entity.OwnerContract;
-import com.homi.model.dao.entity.OwnerContractSubject;
-import com.homi.model.dao.entity.OwnerLeaseFee;
-import com.homi.model.dao.entity.OwnerLeaseFreeRule;
-import com.homi.model.dao.entity.OwnerLeaseRule;
-import com.homi.model.dao.entity.OwnerPersonal;
-import com.homi.model.dao.entity.OwnerRentFreeRule;
-import com.homi.model.dao.entity.OwnerSettlementItem;
-import com.homi.model.dao.entity.OwnerSettlementRule;
-import com.homi.model.dao.entity.User;
-import com.homi.model.dao.repo.ContractTemplateRepo;
-import com.homi.model.dao.repo.FileAttachRepo;
-import com.homi.model.dao.repo.FocusBuildingRepo;
-import com.homi.model.dao.repo.FocusRepo;
-import com.homi.model.dao.repo.HouseRepo;
-import com.homi.model.dao.repo.OwnerAccountRepo;
-import com.homi.model.dao.repo.OwnerCompanyRepo;
-import com.homi.model.dao.repo.OwnerContractRepo;
-import com.homi.model.dao.repo.OwnerContractSubjectRepo;
-import com.homi.model.dao.repo.OwnerLeaseFeeRepo;
-import com.homi.model.dao.repo.OwnerLeaseFreeRuleRepo;
-import com.homi.model.dao.repo.OwnerLeaseRuleRepo;
-import com.homi.model.dao.repo.OwnerPersonalRepo;
-import com.homi.model.dao.repo.OwnerRentFreeRuleRepo;
-import com.homi.model.dao.repo.OwnerRepo;
-import com.homi.model.dao.repo.OwnerSettlementItemRepo;
-import com.homi.model.dao.repo.OwnerSettlementRuleRepo;
-import com.homi.model.dao.repo.UserRepo;
-import com.homi.model.owner.dto.OwnerCompanyDTO;
-import com.homi.model.owner.dto.OwnerContractDTO;
-import com.homi.model.owner.dto.OwnerContractIdDTO;
-import com.homi.model.owner.dto.OwnerContractStatusDTO;
-import com.homi.model.owner.dto.OwnerContractSubjectDTO;
-import com.homi.model.owner.dto.OwnerCreateDTO;
-import com.homi.model.owner.dto.OwnerLeaseFeeDTO;
-import com.homi.model.owner.dto.OwnerLeaseFreeRuleDTO;
-import com.homi.model.owner.dto.OwnerLeaseRuleDTO;
-import com.homi.model.owner.dto.OwnerPersonalDTO;
-import com.homi.model.owner.dto.OwnerQueryDTO;
-import com.homi.model.owner.dto.OwnerRentFreeRuleDTO;
-import com.homi.model.owner.dto.OwnerSettlementItemDTO;
-import com.homi.model.owner.dto.OwnerSettlementRuleDTO;
-import com.homi.model.owner.dto.OwnerUpdateDTO;
-import com.homi.model.owner.vo.OwnerDetailVO;
+import com.homi.model.dao.entity.*;
+import com.homi.model.dao.repo.*;
+import com.homi.model.owner.dto.*;
 import com.homi.model.owner.vo.OwnerContractTotalVO;
+import com.homi.model.owner.vo.OwnerDetailVO;
 import com.homi.model.owner.vo.OwnerListVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -81,13 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -1103,8 +1045,8 @@ public class OwnerContractService {
         dto.setFeeType(fee.getFeeType());
         dto.setFeeName(fee.getFeeName());
         dto.setFeeDirection(fee.getFeeDirection() == null ? null : FinanceFlowDirectionEnum.valueOf(fee.getFeeDirection()));
-        dto.setPaymentMethod(paymentMethodOf(fee.getPaymentMethod()));
-        dto.setPriceMethod(priceMethodOf(fee.getPriceMethod()));
+        dto.setPaymentMethod(PaymentMethodEnum.getByCode(fee.getPaymentMethod()));
+        dto.setPriceMethod(PriceMethodEnum.getByCode(fee.getPriceMethod()));
         dto.setPriceInput(fee.getPriceInput());
         dto.setSortOrder(fee.getSortOrder());
         dto.setRemark(fee.getRemark());
@@ -1266,25 +1208,5 @@ public class OwnerContractService {
 
     private List<String> nullSafeList(List<String> list) {
         return list == null ? List.of() : list;
-    }
-
-    private com.homi.common.lib.enums.price.PaymentMethodEnum paymentMethodOf(Integer code) {
-        if (code == null) return null;
-        for (com.homi.common.lib.enums.price.PaymentMethodEnum item : com.homi.common.lib.enums.price.PaymentMethodEnum.values()) {
-            if (Objects.equals(item.getCode(), code)) {
-                return item;
-            }
-        }
-        return null;
-    }
-
-    private com.homi.common.lib.enums.price.PriceMethodEnum priceMethodOf(Integer code) {
-        if (code == null) return null;
-        for (com.homi.common.lib.enums.price.PriceMethodEnum item : com.homi.common.lib.enums.price.PriceMethodEnum.values()) {
-            if (Objects.equals(item.getCode(), code)) {
-                return item;
-            }
-        }
-        return null;
     }
 }

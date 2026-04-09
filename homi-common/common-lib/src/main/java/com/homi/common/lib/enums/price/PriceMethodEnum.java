@@ -8,8 +8,11 @@ package com.homi.common.lib.enums.price;
  * {@code @date} 2025/10/30
  */
 
+import cn.hutool.core.util.EnumUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.Objects;
 
 @Getter
 @AllArgsConstructor
@@ -24,4 +27,12 @@ public enum PriceMethodEnum {
     private final Integer code;
 
     private final String name;
+
+    public static PriceMethodEnum getByCode(Integer code) {
+        if (code == null) {
+            return null;
+        }
+
+        return EnumUtil.getBy(PriceMethodEnum::getCode, code);
+    }
 }
