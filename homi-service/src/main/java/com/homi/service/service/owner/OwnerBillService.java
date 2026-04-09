@@ -1,749 +1,665 @@
 package com.homi.service.service.owner;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.homi.common.lib.enums.StatusEnum;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
-import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
-import com.homi.common.lib.enums.owner.*;
-import com.homi.model.dao.entity.*;
-import com.homi.model.dao.repo.*;
+import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
+import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
+import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
+import com.homi.common.lib.enums.owner.OwnerBillSettlementStatusEnum;
+import com.homi.common.lib.enums.owner.OwnerWithdrawOperateEnum;
+import com.homi.common.lib.vo.PageVO;
+import com.homi.model.dao.entity.FileAttach;
+import com.homi.model.dao.entity.Owner;
+import com.homi.model.dao.entity.OwnerAccount;
+import com.homi.model.dao.entity.OwnerAccountFlow;
+import com.homi.model.dao.entity.OwnerBill;
+import com.homi.model.dao.entity.OwnerBillLine;
+import com.homi.model.dao.entity.OwnerBillPayment;
+import com.homi.model.dao.entity.OwnerBillReduction;
+import com.homi.model.dao.entity.OwnerContract;
+import com.homi.model.dao.entity.OwnerWithdrawApply;
+import com.homi.model.dao.repo.FileAttachRepo;
+import com.homi.model.dao.repo.OwnerAccountFlowRepo;
+import com.homi.model.dao.repo.OwnerAccountRepo;
+import com.homi.model.dao.repo.OwnerBillLineRepo;
+import com.homi.model.dao.repo.OwnerBillPaymentRepo;
+import com.homi.model.dao.repo.OwnerBillReductionRepo;
+import com.homi.model.dao.repo.OwnerBillRepo;
+import com.homi.model.dao.repo.OwnerContractRepo;
+import com.homi.model.dao.repo.OwnerRepo;
+import com.homi.model.dao.repo.OwnerWithdrawApplyRepo;
+import com.homi.model.owner.dto.OwnerBillIdDTO;
+import com.homi.model.owner.dto.OwnerBillPaymentCreateDTO;
+import com.homi.model.owner.dto.OwnerBillQueryDTO;
+import com.homi.model.owner.dto.OwnerWithdrawApplyIdDTO;
+import com.homi.model.owner.dto.OwnerWithdrawApplyQueryDTO;
+import com.homi.model.owner.dto.OwnerWithdrawCreateDTO;
+import com.homi.model.owner.dto.OwnerWithdrawOperateDTO;
+import com.homi.model.owner.vo.OwnerAccountFlowVO;
+import com.homi.model.owner.vo.OwnerBillDetailVO;
+import com.homi.model.owner.vo.OwnerBillLineVO;
+import com.homi.model.owner.vo.OwnerBillListVO;
+import com.homi.model.owner.vo.OwnerBillPaymentVO;
+import com.homi.model.owner.vo.OwnerBillReductionVO;
+import com.homi.model.owner.vo.OwnerWithdrawApplyDetailVO;
+import com.homi.model.owner.vo.OwnerWithdrawApplyListVO;
+import com.homi.model.owner.vo.OwnerBillSummaryVO;
+import com.homi.model.owner.vo.OwnerWithdrawSummaryVO;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.*;
-import java.util.function.Function;
+import java.util.Date;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * 业主账单服务
- * <p>
- * 负责轻托管模式下起租日账单的自动生成。
- */
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class OwnerBillService {
-    private final OwnerContractRepo ownerContractRepo;
-    private final OwnerContractSubjectRepo ownerContractSubjectRepo;
-    private final OwnerSettlementRuleRepo ownerSettlementRuleRepo;
-    private final OwnerRentFreeRuleRepo ownerRentFreeRuleRepo;
-    private final OwnerLeaseRuleRepo ownerLeaseRuleRepo;
-    private final OwnerLeaseFeeRepo ownerLeaseFeeRepo;
-    private final OwnerLeaseFreeRuleRepo ownerLeaseFreeRuleRepo;
     private final OwnerBillRepo ownerBillRepo;
     private final OwnerBillLineRepo ownerBillLineRepo;
+    private final OwnerBillPaymentRepo ownerBillPaymentRepo;
     private final OwnerBillReductionRepo ownerBillReductionRepo;
-    private final OwnerAccountRepo ownerAccountRepo;
+    private final OwnerWithdrawApplyRepo ownerWithdrawApplyRepo;
     private final OwnerAccountFlowRepo ownerAccountFlowRepo;
+    private final OwnerAccountRepo ownerAccountRepo;
+    private final OwnerRepo ownerRepo;
+    private final OwnerContractRepo ownerContractRepo;
+    private final FileAttachRepo fileAttachRepo;
 
-    /**
-     * 自动生成起租日业主账单
-     *
-     * @return 成功生成的账单数量
-     */
+    public PageVO<OwnerBillListVO> pageOwnerBills(OwnerBillQueryDTO query) {
+        Page<OwnerBill> page = new Page<>(query.getCurrentPage(), query.getPageSize());
+        LambdaQueryWrapper<OwnerBill> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(query.getOwnerId() != null, OwnerBill::getOwnerId, query.getOwnerId());
+        wrapper.eq(query.getContractId() != null, OwnerBill::getContractId, query.getContractId());
+        wrapper.like(StrUtil.isNotBlank(query.getBillNo()), OwnerBill::getBillNo, query.getBillNo());
+        List<Long> ownerIds = resolveOwnerIds(query.getOwnerName());
+        if (ownerIds != null && ownerIds.isEmpty()) {
+            return emptyBillPage(query);
+        }
+        wrapper.in(ownerIds != null, OwnerBill::getOwnerId, ownerIds);
+        wrapper.orderByDesc(OwnerBill::getGeneratedAt);
+        wrapper.orderByDesc(OwnerBill::getId);
+        Page<OwnerBill> result = ownerBillRepo.page(page, wrapper);
+
+        Map<Long, Owner> ownerMap = ownerRepo.listByIds(result.getRecords().stream().map(OwnerBill::getOwnerId).filter(Objects::nonNull).distinct().toList())
+            .stream().collect(Collectors.toMap(Owner::getId, item -> item));
+        Map<Long, OwnerContract> contractMap = ownerContractRepo.listByIds(result.getRecords().stream().map(OwnerBill::getContractId).filter(Objects::nonNull).distinct().toList())
+            .stream().collect(Collectors.toMap(OwnerContract::getId, item -> item));
+
+        List<OwnerBillListVO> list = result.getRecords().stream().map(item -> toOwnerBillListVO(item, ownerMap.get(item.getOwnerId()), contractMap.get(item.getContractId()))).toList();
+        return PageVO.<OwnerBillListVO>builder()
+            .currentPage(result.getCurrent())
+            .pageSize(result.getSize())
+            .total(result.getTotal())
+            .pages(result.getPages())
+            .list(list)
+            .build();
+    }
+
+    public OwnerBillDetailVO getOwnerBillDetail(OwnerBillIdDTO dto) {
+        if (dto == null || dto.getBillId() == null) {
+            throw new IllegalArgumentException("业主账单ID不能为空");
+        }
+        OwnerBill bill = ownerBillRepo.getById(dto.getBillId());
+        if (bill == null) {
+            throw new IllegalArgumentException("业主账单不存在");
+        }
+        Owner owner = ownerRepo.getById(bill.getOwnerId());
+        OwnerContract contract = ownerContractRepo.getById(bill.getContractId());
+        OwnerBillDetailVO vo = new OwnerBillDetailVO();
+        vo.setBillId(bill.getId());
+        vo.setBillNo(bill.getBillNo());
+        vo.setOwnerId(bill.getOwnerId());
+        vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
+        vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
+        vo.setContractId(bill.getContractId());
+        vo.setContractNo(contract != null ? contract.getContractNo() : null);
+        vo.setSubjectType(OwnerContractSubjectTypeEnum.fromCode(bill.getSubjectType()));
+        vo.setSubjectId(bill.getSubjectId());
+        vo.setSubjectName(bill.getSubjectNameSnapshot());
+        vo.setCooperationMode(contract != null && contract.getCooperationMode() != null ? com.homi.common.lib.enums.owner.OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()) : null);
+        vo.setBillStart(bill.getBillStart());
+        vo.setBillEnd(bill.getBillEnd());
+        vo.setIncomeAmount(bill.getIncomeAmount());
+        vo.setReductionAmount(bill.getReductionAmount());
+        vo.setExpenseAmount(bill.getExpenseAmount());
+        vo.setAdjustAmount(bill.getAdjustAmount());
+        vo.setPayableAmount(bill.getPayableAmount());
+        vo.setSettledAmount(bill.getSettledAmount());
+        vo.setUnpaidAmount(defaultZero(bill.getPayableAmount()).subtract(defaultZero(bill.getSettledAmount())).max(BigDecimal.ZERO));
+        vo.setWithdrawnAmount(bill.getWithdrawnAmount());
+        vo.setFreezeAmount(bill.getFreezeAmount());
+        vo.setWithdrawableAmount(OwnerCooperationModeEnum.MASTER_LEASE.equals(vo.getCooperationMode()) ? BigDecimal.ZERO : bill.getWithdrawableAmount());
+        vo.setBillStatus(bill.getBillStatus());
+        vo.setApprovalStatus(bill.getApprovalStatus());
+        vo.setSettlementStatus(bill.getSettlementStatus());
+        vo.setGeneratedAt(bill.getGeneratedAt());
+        vo.setApprovedAt(bill.getApprovedAt());
+        vo.setRemark(bill.getRemark());
+        vo.setCreateTime(bill.getCreateTime());
+        vo.setUpdateTime(bill.getUpdateTime());
+        vo.setLineList(ownerBillLineRepo.list(new LambdaQueryWrapper<OwnerBillLine>().eq(OwnerBillLine::getBillId, bill.getId()).orderByAsc(OwnerBillLine::getId))
+            .stream().map(this::toOwnerBillLineVO).toList());
+        vo.setReductionList(ownerBillReductionRepo.list(new LambdaQueryWrapper<OwnerBillReduction>().eq(OwnerBillReduction::getBillId, bill.getId()).orderByAsc(OwnerBillReduction::getId))
+            .stream().map(this::toOwnerBillReductionVO).toList());
+        vo.setPaymentList(buildOwnerBillPaymentVOList(bill.getId()));
+        return vo;
+    }
+
+    public OwnerBillSummaryVO summaryOwnerBills(OwnerBillQueryDTO query) {
+        OwnerBillSummaryVO vo = new OwnerBillSummaryVO();
+        List<Long> ownerIds = resolveOwnerIds(query.getOwnerName());
+        if (ownerIds != null && ownerIds.isEmpty()) {
+            vo.setBillCount(0L);
+            vo.setTotalIncomeAmount(BigDecimal.ZERO);
+            vo.setTotalPayableAmount(BigDecimal.ZERO);
+            vo.setTotalWithdrawableAmount(BigDecimal.ZERO);
+            return vo;
+        }
+        List<OwnerBill> bills = ownerBillRepo.list(buildOwnerBillWrapper(query, ownerIds));
+        vo.setBillCount((long) bills.size());
+        vo.setTotalIncomeAmount(sumBillAmount(bills, OwnerBill::getIncomeAmount));
+        vo.setTotalPayableAmount(sumBillAmount(bills, OwnerBill::getPayableAmount));
+        vo.setTotalWithdrawableAmount(sumBillAmount(bills, OwnerBill::getWithdrawableAmount));
+        return vo;
+    }
+
+    public PageVO<OwnerWithdrawApplyListVO> pageOwnerWithdrawApplies(OwnerWithdrawApplyQueryDTO query) {
+        Page<OwnerWithdrawApply> page = new Page<>(query.getCurrentPage(), query.getPageSize());
+        LambdaQueryWrapper<OwnerWithdrawApply> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(query.getOwnerId() != null, OwnerWithdrawApply::getOwnerId, query.getOwnerId());
+        wrapper.like(StrUtil.isNotBlank(query.getApplyNo()), OwnerWithdrawApply::getApplyNo, query.getApplyNo());
+        wrapper.eq(query.getApprovalStatus() != null, OwnerWithdrawApply::getApprovalStatus, query.getApprovalStatus());
+        wrapper.eq(query.getWithdrawStatus() != null, OwnerWithdrawApply::getWithdrawStatus, query.getWithdrawStatus());
+        List<Long> ownerIds = resolveOwnerIds(query.getOwnerName());
+        if (ownerIds != null && ownerIds.isEmpty()) {
+            return emptyWithdrawPage(query);
+        }
+        wrapper.in(ownerIds != null, OwnerWithdrawApply::getOwnerId, ownerIds);
+        wrapper.orderByDesc(OwnerWithdrawApply::getAppliedAt);
+        wrapper.orderByDesc(OwnerWithdrawApply::getId);
+        Page<OwnerWithdrawApply> result = ownerWithdrawApplyRepo.page(page, wrapper);
+
+        Map<Long, Owner> ownerMap = ownerRepo.listByIds(result.getRecords().stream().map(OwnerWithdrawApply::getOwnerId).filter(Objects::nonNull).distinct().toList())
+            .stream().collect(Collectors.toMap(Owner::getId, item -> item));
+        List<OwnerWithdrawApplyListVO> list = result.getRecords().stream().map(item -> toOwnerWithdrawListVO(item, ownerMap.get(item.getOwnerId()))).toList();
+        return PageVO.<OwnerWithdrawApplyListVO>builder()
+            .currentPage(result.getCurrent())
+            .pageSize(result.getSize())
+            .total(result.getTotal())
+            .pages(result.getPages())
+            .list(list)
+            .build();
+    }
+
+    public OwnerWithdrawApplyDetailVO getOwnerWithdrawApplyDetail(OwnerWithdrawApplyIdDTO dto) {
+        if (dto == null || dto.getApplyId() == null) {
+            throw new IllegalArgumentException("提现申请ID不能为空");
+        }
+        OwnerWithdrawApply apply = ownerWithdrawApplyRepo.getById(dto.getApplyId());
+        if (apply == null) {
+            throw new IllegalArgumentException("提现申请不存在");
+        }
+        Owner owner = ownerRepo.getById(apply.getOwnerId());
+        OwnerWithdrawApplyDetailVO vo = new OwnerWithdrawApplyDetailVO();
+        vo.setApplyId(apply.getId());
+        vo.setApplyNo(apply.getApplyNo());
+        vo.setOwnerId(apply.getOwnerId());
+        vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
+        vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
+        vo.setApplyAmount(apply.getApplyAmount());
+        vo.setFeeAmount(apply.getFeeAmount());
+        vo.setActualAmount(apply.getActualAmount());
+        vo.setApprovalStatus(apply.getApprovalStatus());
+        vo.setWithdrawStatus(apply.getWithdrawStatus());
+        vo.setPayeeName(apply.getPayeeName());
+        vo.setPayeeAccountNo(apply.getPayeeAccountNo());
+        vo.setPayeeBankName(apply.getPayeeBankName());
+        vo.setChannel(apply.getChannel());
+        vo.setThirdTradeNo(apply.getThirdTradeNo());
+        vo.setFailureReason(apply.getFailureReason());
+        vo.setRemark(apply.getRemark());
+        vo.setAppliedAt(apply.getAppliedAt());
+        vo.setApprovedAt(apply.getApprovedAt());
+        vo.setPaidAt(apply.getPaidAt());
+        vo.setCreateTime(apply.getCreateTime());
+        vo.setUpdateTime(apply.getUpdateTime());
+        vo.setFlowList(ownerAccountFlowRepo.list(new LambdaQueryWrapper<OwnerAccountFlow>()
+                .eq(OwnerAccountFlow::getOwnerId, apply.getOwnerId())
+                .eq(OwnerAccountFlow::getBizId, apply.getId())
+                .orderByDesc(OwnerAccountFlow::getId))
+            .stream().map(this::toOwnerAccountFlowVO).toList());
+        return vo;
+    }
+
+    public OwnerWithdrawSummaryVO summaryOwnerWithdrawApplies(OwnerWithdrawApplyQueryDTO query) {
+        OwnerWithdrawSummaryVO vo = new OwnerWithdrawSummaryVO();
+        List<Long> ownerIds = resolveOwnerIds(query.getOwnerName());
+        if (ownerIds != null && ownerIds.isEmpty()) {
+            fillEmptyWithdrawSummary(vo);
+            return vo;
+        }
+        List<OwnerWithdrawApply> list = ownerWithdrawApplyRepo.list(buildOwnerWithdrawWrapper(query, ownerIds));
+        vo.setApplyCount((long) list.size());
+        vo.setPendingApprovalCount(list.stream().filter(item -> BizApprovalStatusEnum.PENDING.getCode().equals(item.getApprovalStatus())).count());
+        vo.setProcessingCount(list.stream().filter(item -> Integer.valueOf(1).equals(item.getWithdrawStatus())).count());
+        vo.setSuccessCount(list.stream().filter(item -> Integer.valueOf(2).equals(item.getWithdrawStatus())).count());
+        vo.setTotalApplyAmount(list.stream().map(OwnerWithdrawApply::getApplyAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add));
+        vo.setTotalActualAmount(list.stream().map(OwnerWithdrawApply::getActualAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add));
+        OwnerAccount account = query.getOwnerId() == null ? null : ownerAccountRepo.getByOwnerId(query.getOwnerId());
+        vo.setAvailableAmount(account != null ? account.getAvailableAmount() : BigDecimal.ZERO);
+        vo.setFrozenAmount(account != null ? account.getFrozenAmount() : BigDecimal.ZERO);
+        return vo;
+    }
+
     @Transactional(rollbackFor = Exception.class)
-    public Integer generateLeaseStartOwnerBills() {
-        Date todayStart = DateUtil.beginOfDay(new Date());
-        Date todayEnd = DateUtil.endOfDay(new Date());
-
-        List<OwnerContract> contractList = ownerContractRepo.list(new LambdaQueryWrapper<OwnerContract>()
-            .eq(OwnerContract::getCooperationMode, OwnerCooperationModeEnum.LIGHT_MANAGED.name())
-            .eq(OwnerContract::getStatus, StatusEnum.ACTIVE.getValue())
-            .eq(OwnerContract::getApprovalStatus, BizApprovalStatusEnum.APPROVED.getCode())
-            .eq(OwnerContract::getSignStatus, OwnerSignStatusEnum.SIGNED.getCode())
-            .le(OwnerContract::getContractStart, todayEnd));
-
-        int successCount = 0;
-        for (OwnerContract contract : contractList) {
-            try {
-                if (generateLeaseStartOwnerBillByContract(contract.getId(), todayStart, todayEnd)) {
-                    successCount++;
-                }
-            } catch (Exception e) {
-                log.error("生成起租日业主账单失败, contractId={}", contract.getId(), e);
-            }
+    public Long createOwnerBillPayment(OwnerBillPaymentCreateDTO dto, Long operatorId) {
+        if (dto == null || dto.getBillId() == null) {
+            throw new IllegalArgumentException("业主账单ID不能为空");
         }
-        return successCount;
-    }
-
-    /**
-     * 自动生成包租应付账单
-     *
-     * @return 成功生成的账单数量
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public Integer generateMasterLeaseOwnerBills() {
-        Date todayEnd = DateUtil.endOfDay(new Date());
-
-        List<OwnerContract> contractList = ownerContractRepo.list(new LambdaQueryWrapper<OwnerContract>()
-            .eq(OwnerContract::getCooperationMode, OwnerCooperationModeEnum.MASTER_LEASE.name())
-            .eq(OwnerContract::getStatus, StatusEnum.ACTIVE.getValue())
-            .eq(OwnerContract::getApprovalStatus, BizApprovalStatusEnum.APPROVED.getCode())
-            .eq(OwnerContract::getSignStatus, OwnerSignStatusEnum.SIGNED.getCode())
-            .le(OwnerContract::getContractStart, todayEnd));
-
-        int createdCount = 0;
-        for (OwnerContract contract : contractList) {
-            try {
-                createdCount += generateMasterLeaseOwnerBillsByContract(contract.getId(), todayEnd);
-            } catch (Exception e) {
-                log.error("生成包租业主应付账单失败, contractId={}", contract.getId(), e);
-            }
+        if (dto.getPayAmount() == null || dto.getPayAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("付款金额必须大于0");
         }
-        return createdCount;
-    }
-
-    /**
-     * 按合同生成起租日业主账单
-     *
-     * @param contractId 合同ID
-     * @param todayStart 当天开始时间
-     * @param todayEnd   当天结束时间
-     * @return 是否成功生成账单
-     */
-    public boolean generateLeaseStartOwnerBillByContract(Long contractId, Date todayStart, Date todayEnd) {
-        OwnerContract contract = ownerContractRepo.getById(contractId);
-        if (contract == null || !isLeaseStartBillContract(contract)) {
-            return false;
+        if (dto.getPayTime() == null) {
+            throw new IllegalArgumentException("付款时间不能为空");
         }
-        if (contract.getContractStart() == null || contract.getContractStart().after(todayEnd)) {
-            return false;
+        if (dto.getPayChannel() == null) {
+            throw new IllegalArgumentException("付款渠道不能为空");
         }
 
-        Date billDate = DateUtil.beginOfDay(contract.getContractStart());
-
-        List<OwnerContractSubject> contractSubjectList = ownerContractSubjectRepo.listByContractId(contractId);
-        if (contractSubjectList.isEmpty()) {
-            return false;
+        OwnerBill bill = ownerBillRepo.getById(dto.getBillId());
+        if (bill == null) {
+            throw new IllegalArgumentException("业主账单不存在");
+        }
+        OwnerContract contract = ownerContractRepo.getById(bill.getContractId());
+        if (contract == null || !OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
+            throw new IllegalArgumentException("仅包租账单支持登记付款");
         }
 
-        Map<Long, OwnerSettlementRule> settlementRuleMap = ownerSettlementRuleRepo.list(new LambdaQueryWrapper<OwnerSettlementRule>()
-                .eq(OwnerSettlementRule::getContractId, contractId)
-                .eq(OwnerSettlementRule::getStatus, StatusEnum.ACTIVE.getValue()))
-            .stream()
-            .filter(item -> OwnerSettlementTimingEnum.LEASE_START_GENERATE_BILL.name().equals(item.getSettlementTiming()))
-            .collect(Collectors.toMap(OwnerSettlementRule::getContractSubjectId, Function.identity(), (left, right) -> left));
-
-        if (settlementRuleMap.isEmpty()) {
-            return false;
+        BigDecimal unpaidAmount = defaultZero(bill.getPayableAmount()).subtract(defaultZero(bill.getSettledAmount())).max(BigDecimal.ZERO);
+        if (dto.getPayAmount().compareTo(unpaidAmount) > 0) {
+            throw new IllegalArgumentException("付款金额不能超过当前未结金额");
         }
 
-        Map<Long, OwnerRentFreeRule> rentFreeRuleMap = ownerRentFreeRuleRepo.list(new LambdaQueryWrapper<OwnerRentFreeRule>()
-                .eq(OwnerRentFreeRule::getContractId, contractId)
-                .eq(OwnerRentFreeRule::getStatus, StatusEnum.ACTIVE.getValue()))
-            .stream()
-            .filter(item -> Boolean.TRUE.equals(item.getEnabled()))
-            .collect(Collectors.toMap(OwnerRentFreeRule::getContractSubjectId, Function.identity(), (left, right) -> left));
-
-        boolean created = false;
-        for (OwnerContractSubject contractSubject : contractSubjectList) {
-            OwnerSettlementRule settlementRule = settlementRuleMap.get(contractSubject.getId());
-            if (settlementRule == null) {
-                continue;
-            }
-            if (existsLeaseStartBill(contractId, contractSubject.getSubjectId(), billDate)) {
-                continue;
-            }
-
-            BigDecimal rentAmount = resolveLeaseStartRentAmount(settlementRule);
-            if (rentAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                log.warn("起租日账单未生成标的明细，结算方式暂不支持自动计算, contractId={}, contractSubjectId={}, settlementMode={}",
-                    contractId, contractSubject.getId(), settlementRule.getSettlementMode());
-                continue;
-            }
-
-            BigDecimal incomeAmount = rentAmount;
-            BigDecimal expenseAmount = BigDecimal.ZERO;
-            List<OwnerBillLine> lineList = new ArrayList<>();
-            List<String> remarkList = new ArrayList<>();
-
-            OwnerRentFreeRule rentFreeRule = rentFreeRuleMap.get(contractSubject.getId());
-            if (isMatchedRentFreeRule(billDate, rentFreeRule)) {
-                remarkList.add("合同房源【" + CharSequenceUtil.nullToDefault(contractSubject.getSubjectNameSnapshot(), "") + "】命中免租规则，当前未自动冲减，请人工复核。");
-            }
-
-            lineList.add(buildRentLine(contractSubject, settlementRule, billDate, rentAmount));
-
-            BigDecimal managementFeeAmount = calcManagementFee(settlementRule, rentAmount);
-            if (managementFeeAmount.compareTo(BigDecimal.ZERO) > 0) {
-                expenseAmount = expenseAmount.add(managementFeeAmount);
-                lineList.add(buildManagementFeeLine(contractSubject, billDate, managementFeeAmount));
-            }
-
-            BigDecimal payableAmount = incomeAmount.subtract(expenseAmount);
-            BigDecimal withdrawableAmount = payableAmount.compareTo(BigDecimal.ZERO) > 0 ? payableAmount : BigDecimal.ZERO;
-            Date now = DateUtil.date();
-
-            OwnerBill ownerBill = new OwnerBill();
-            ownerBill.setCompanyId(contract.getCompanyId());
-            ownerBill.setOwnerId(contract.getOwnerId());
-            ownerBill.setContractId(contract.getId());
-            ownerBill.setSubjectType(contractSubject.getSubjectType());
-            ownerBill.setSubjectId(contractSubject.getSubjectId());
-            ownerBill.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
-            ownerBill.setBillNo(generateOwnerBillNo());
-            ownerBill.setBillStart(billDate);
-            ownerBill.setBillEnd(billDate);
-            ownerBill.setIncomeAmount(incomeAmount);
-            ownerBill.setReductionAmount(BigDecimal.ZERO);
-            ownerBill.setExpenseAmount(expenseAmount);
-            ownerBill.setAdjustAmount(BigDecimal.ZERO);
-            ownerBill.setPayableAmount(payableAmount);
-            ownerBill.setSettledAmount(BigDecimal.ZERO);
-            ownerBill.setWithdrawnAmount(BigDecimal.ZERO);
-            ownerBill.setFreezeAmount(BigDecimal.ZERO);
-            ownerBill.setWithdrawableAmount(withdrawableAmount);
-            ownerBill.setBillStatus(OwnerBillStatusEnum.NORMAL.getCode());
-            ownerBill.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
-            ownerBill.setSettlementStatus(OwnerBillSettlementStatusEnum.UNSETTLED.getCode());
-            ownerBill.setGeneratedAt(now);
-            ownerBill.setApprovedAt(now);
-            ownerBill.setRemark(remarkList.isEmpty() ? "起租日自动生成账单" : String.join("；", remarkList));
-            ownerBill.setCreateTime(now);
-            ownerBill.setUpdateTime(now);
-            ownerBillRepo.save(ownerBill);
-
-            lineList.forEach(item -> {
-                item.setBillId(ownerBill.getId());
-                item.setCreateTime(now);
-            });
-            ownerBillLineRepo.saveBatch(lineList);
-
-            if (withdrawableAmount.compareTo(BigDecimal.ZERO) > 0) {
-                increaseOwnerAccountAmount(contract, ownerBill, withdrawableAmount, now);
-            }
-            created = true;
-        }
-        return created;
-    }
-
-    private boolean isLeaseStartBillContract(OwnerContract contract) {
-        return Objects.equals(contract.getStatus(), StatusEnum.ACTIVE.getValue())
-            && Objects.equals(contract.getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode())
-            && Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())
-            && OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode());
-    }
-
-    private int generateMasterLeaseOwnerBillsByContract(Long contractId, Date todayEnd) {
-        OwnerContract contract = ownerContractRepo.getById(contractId);
-        if (contract == null || !isMasterLeaseBillContract(contract)) {
-            return 0;
-        }
-
-        OwnerLeaseRule leaseRule = ownerLeaseRuleRepo.lambdaQuery()
-            .eq(OwnerLeaseRule::getContractId, contractId)
-            .eq(OwnerLeaseRule::getStatus, StatusEnum.ACTIVE.getValue())
-            .orderByDesc(OwnerLeaseRule::getId)
-            .last("limit 1")
-            .one();
-        if (leaseRule == null) {
-            return 0;
-        }
-
-        Date billingStart = resolveMasterLeaseBillingStart(contract, leaseRule);
-        Date billingEnd = resolveMasterLeaseBillingEnd(contract, leaseRule);
-        if (billingStart == null || billingEnd == null || billingStart.after(todayEnd) || billingStart.after(billingEnd)) {
-            return 0;
-        }
-
-        int paymentMonths = Math.max(1, ObjectUtil.defaultIfNull(leaseRule.getPaymentMonths(), 1));
-        List<OwnerLeaseFee> leaseFeeList = ownerLeaseFeeRepo.lambdaQuery()
-            .eq(OwnerLeaseFee::getContractId, contractId)
-            .eq(OwnerLeaseFee::getStatus, StatusEnum.ACTIVE.getValue())
-            .orderByAsc(OwnerLeaseFee::getSortOrder)
-            .orderByAsc(OwnerLeaseFee::getId)
-            .list();
-        List<OwnerLeaseFreeRule> leaseFreeRuleList = ownerLeaseFreeRuleRepo.lambdaQuery()
-            .eq(OwnerLeaseFreeRule::getContractId, contractId)
-            .eq(OwnerLeaseFreeRule::getStatus, StatusEnum.ACTIVE.getValue())
-            .orderByAsc(OwnerLeaseFreeRule::getId)
-            .list();
-
-        int createdCount = 0;
-        Date periodStart = DateUtil.beginOfDay(billingStart);
-        Date firstPeriodStart = periodStart;
-        while (!periodStart.after(todayEnd) && !periodStart.after(billingEnd)) {
-            Date periodEnd = resolveMasterLeasePeriodEnd(periodStart, paymentMonths, billingEnd);
-            if (!existsMasterLeaseBill(contractId, periodStart, periodEnd)) {
-                createMasterLeaseBill(contract, leaseRule, leaseFeeList, leaseFreeRuleList, periodStart, periodEnd, firstPeriodStart.equals(periodStart));
-                createdCount++;
-            }
-            periodStart = DateUtil.beginOfDay(DateUtil.offsetMonth(periodStart, paymentMonths));
-        }
-        return createdCount;
-    }
-
-    private boolean isMasterLeaseBillContract(OwnerContract contract) {
-        return Objects.equals(contract.getStatus(), StatusEnum.ACTIVE.getValue())
-            && Objects.equals(contract.getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode())
-            && Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())
-            && OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode());
-    }
-
-    private Date resolveMasterLeaseBillingStart(OwnerContract contract, OwnerLeaseRule leaseRule) {
-        if (leaseRule.getBillingStart() != null) {
-            return DateUtil.beginOfDay(leaseRule.getBillingStart());
-        }
-        if (leaseRule.getFirstPayDate() != null) {
-            return DateUtil.beginOfDay(leaseRule.getFirstPayDate());
-        }
-        if (contract.getContractStart() != null) {
-            return DateUtil.beginOfDay(contract.getContractStart());
-        }
-        return null;
-    }
-
-    private Date resolveMasterLeaseBillingEnd(OwnerContract contract, OwnerLeaseRule leaseRule) {
-        if (leaseRule.getBillingEnd() != null) {
-            return DateUtil.endOfDay(leaseRule.getBillingEnd());
-        }
-        if (contract.getContractEnd() != null) {
-            return DateUtil.endOfDay(contract.getContractEnd());
-        }
-        return null;
-    }
-
-    private Date resolveMasterLeasePeriodEnd(Date periodStart, int paymentMonths, Date billingEnd) {
-        Date currentPeriodEnd = DateUtil.endOfDay(DateUtil.offsetDay(DateUtil.offsetMonth(periodStart, paymentMonths), -1));
-        if (billingEnd != null && currentPeriodEnd.after(billingEnd)) {
-            return DateUtil.endOfDay(billingEnd);
-        }
-        return currentPeriodEnd;
-    }
-
-    private boolean existsMasterLeaseBill(Long contractId, Date billStart, Date billEnd) {
-        return ownerBillRepo.count(new LambdaQueryWrapper<OwnerBill>()
-            .eq(OwnerBill::getContractId, contractId)
-            .eq(OwnerBill::getBillStart, billStart)
-            .eq(OwnerBill::getBillEnd, billEnd)) > 0;
-    }
-
-    private void createMasterLeaseBill(
-        OwnerContract contract,
-        OwnerLeaseRule leaseRule,
-        List<OwnerLeaseFee> leaseFeeList,
-        List<OwnerLeaseFreeRule> leaseFreeRuleList,
-        Date periodStart,
-        Date periodEnd,
-        boolean firstPeriod
-    ) {
         Date now = new Date();
-        List<OwnerContractSubject> subjectList = ownerContractSubjectRepo.listByContractId(contract.getId());
-        String subjectSummary = buildMasterLeaseSubjectSummary(subjectList);
+        OwnerBillPayment payment = new OwnerBillPayment();
+        payment.setCompanyId(bill.getCompanyId());
+        payment.setBillId(bill.getId());
+        payment.setOwnerId(bill.getOwnerId());
+        payment.setContractId(bill.getContractId());
+        payment.setPaymentNo(generateOwnerBillPaymentNo());
+        payment.setPayAmount(dto.getPayAmount());
+        payment.setPayTime(dto.getPayTime());
+        payment.setPayChannel(dto.getPayChannel().getCode());
+        payment.setThirdTradeNo(dto.getThirdTradeNo());
+        payment.setRemark(dto.getRemark());
+        payment.setCreateBy(operatorId);
+        payment.setCreateTime(now);
+        payment.setUpdateBy(operatorId);
+        payment.setUpdateTime(now);
+        ownerBillPaymentRepo.save(payment);
 
-        BigDecimal incomeAmount = BigDecimal.ZERO;
-        BigDecimal expenseAmount = BigDecimal.ZERO;
-        BigDecimal reductionAmount = BigDecimal.ZERO;
-        List<OwnerBillLine> lineList = new ArrayList<>();
-        List<OwnerBillReduction> reductionList = new ArrayList<>();
-
-        BigDecimal rentAmount = calcMasterLeaseRentAmount(leaseRule, periodStart, periodEnd);
-        if (rentAmount.compareTo(BigDecimal.ZERO) > 0) {
-            incomeAmount = incomeAmount.add(rentAmount);
-            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
-                OwnerBillItemTypeEnum.RENT.getCode(), OwnerBillItemTypeEnum.RENT.getName(), FinanceFlowDirectionEnum.IN.getCode(), rentAmount,
-                "包租周期租金", "月租金 " + ObjectUtil.defaultIfNull(leaseRule.getRentAmount(), BigDecimal.ZERO) + "，按账期自动生成"));
-        }
-
-        if (firstPeriod && ObjectUtil.defaultIfNull(leaseRule.getDepositAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal depositAmount = ObjectUtil.defaultIfNull(leaseRule.getDepositAmount(), BigDecimal.ZERO);
-            incomeAmount = incomeAmount.add(depositAmount);
-            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
-                OwnerBillItemTypeEnum.DEPOSIT.getCode(), OwnerBillItemTypeEnum.DEPOSIT.getName(), FinanceFlowDirectionEnum.IN.getCode(), depositAmount,
-                "首期押金", "包租首期押金"));
+        if (dto.getVoucherUrls() != null && !dto.getVoucherUrls().isEmpty()) {
+            fileAttachRepo.recreateFileAttachList(payment.getId(), FileAttachBizTypeEnum.OWNER_BILL_PAYMENT_VOUCHER.getBizType(), dto.getVoucherUrls());
         }
 
-        for (OwnerLeaseFee leaseFee : leaseFeeList) {
-            BigDecimal feeAmount = calcMasterLeaseFeeAmount(leaseRule, leaseFee, periodStart, periodEnd);
-            if (feeAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                continue;
-            }
-            String direction = ObjectUtil.defaultIfNull(leaseFee.getFeeDirection(), FinanceFlowDirectionEnum.IN.getCode());
-            if (FinanceFlowDirectionEnum.OUT.getCode().equals(direction)) {
-                expenseAmount = expenseAmount.add(feeAmount);
-            } else {
-                incomeAmount = incomeAmount.add(feeAmount);
-            }
-            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_LEASE_FEE.getCode(), leaseFee.getId(),
-                OwnerBillItemTypeEnum.OTHER_FEE.getCode(), ObjectUtil.defaultIfNull(leaseFee.getFeeName(), "其他费用"), direction, feeAmount,
-                leaseFee.getRemark(), buildMasterLeaseFeeFormula(leaseRule, leaseFee, periodStart, periodEnd)));
-        }
-
-        for (OwnerLeaseFreeRule freeRule : leaseFreeRuleList) {
-            BigDecimal currentReductionAmount = calcMasterLeaseReductionAmount(rentAmount, freeRule, periodStart, periodEnd);
-            if (currentReductionAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                continue;
-            }
-            reductionAmount = reductionAmount.add(currentReductionAmount);
-            reductionList.add(buildMasterLeaseReduction(contract, freeRule, periodStart, currentReductionAmount, now));
-        }
-
-        BigDecimal payableAmount = incomeAmount.subtract(expenseAmount).subtract(reductionAmount);
-
-        OwnerBill ownerBill = new OwnerBill();
-        ownerBill.setCompanyId(contract.getCompanyId());
-        ownerBill.setOwnerId(contract.getOwnerId());
-        ownerBill.setContractId(contract.getId());
-        ownerBill.setSubjectType(null);
-        ownerBill.setSubjectId(null);
-        ownerBill.setSubjectNameSnapshot(subjectSummary);
-        ownerBill.setBillNo(generateOwnerBillNo());
-        ownerBill.setBillStart(periodStart);
-        ownerBill.setBillEnd(periodEnd);
-        ownerBill.setIncomeAmount(incomeAmount);
-        ownerBill.setReductionAmount(reductionAmount);
-        ownerBill.setExpenseAmount(expenseAmount);
-        ownerBill.setAdjustAmount(BigDecimal.ZERO);
-        ownerBill.setPayableAmount(payableAmount);
-        ownerBill.setSettledAmount(BigDecimal.ZERO);
-        ownerBill.setWithdrawnAmount(BigDecimal.ZERO);
-        ownerBill.setFreezeAmount(BigDecimal.ZERO);
-        ownerBill.setWithdrawableAmount(BigDecimal.ZERO);
-        ownerBill.setBillStatus(OwnerBillStatusEnum.NORMAL.getCode());
-        ownerBill.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
-        ownerBill.setSettlementStatus(OwnerBillSettlementStatusEnum.UNSETTLED.getCode());
-        ownerBill.setGeneratedAt(now);
-        ownerBill.setApprovedAt(now);
-        ownerBill.setRemark("包租应付账单自动生成");
-        ownerBill.setCreateTime(now);
-        ownerBill.setUpdateTime(now);
-        ownerBillRepo.save(ownerBill);
-
-        lineList.forEach(item -> {
-            item.setBillId(ownerBill.getId());
-            item.setSubjectNameSnapshot(subjectSummary);
-            item.setCreateTime(now);
-        });
-        if (!lineList.isEmpty()) {
-            ownerBillLineRepo.saveBatch(lineList);
-        }
-
-        reductionList.forEach(item -> {
-            item.setBillId(ownerBill.getId());
-            item.setCreateTime(now);
-            item.setUpdateTime(now);
-        });
-        if (!reductionList.isEmpty()) {
-            ownerBillReductionRepo.saveBatch(reductionList);
-        }
-    }
-
-    private String buildMasterLeaseSubjectSummary(List<OwnerContractSubject> subjectList) {
-        if (subjectList == null || subjectList.isEmpty()) {
-            return "包租合同房源";
-        }
-        if (subjectList.size() == 1) {
-            return CharSequenceUtil.nullToDefault(subjectList.get(0).getSubjectNameSnapshot(), "包租合同房源");
-        }
-        return subjectList.stream()
-            .map(OwnerContractSubject::getSubjectNameSnapshot)
-            .filter(StrUtil::isNotBlank)
-            .limit(2)
-            .collect(Collectors.joining("、")) + " 等" + subjectList.size() + "项";
-    }
-
-    private BigDecimal calcMasterLeaseRentAmount(OwnerLeaseRule leaseRule, Date periodStart, Date periodEnd) {
-        BigDecimal monthlyRent = ObjectUtil.defaultIfNull(leaseRule.getRentAmount(), BigDecimal.ZERO);
-        if (monthlyRent.compareTo(BigDecimal.ZERO) <= 0) {
-            return BigDecimal.ZERO;
-        }
-        int paymentMonths = Math.max(1, ObjectUtil.defaultIfNull(leaseRule.getPaymentMonths(), 1));
-        Date fullPeriodEnd = DateUtil.endOfDay(DateUtil.offsetDay(DateUtil.offsetMonth(periodStart, paymentMonths), -1));
-        BigDecimal fullAmount = monthlyRent.multiply(BigDecimal.valueOf(paymentMonths));
-        if (!periodEnd.before(fullPeriodEnd)) {
-            return fullAmount.setScale(2, RoundingMode.HALF_UP);
-        }
-        if (OwnerProrateTypeEnum.FULL_PERIOD.getCode().equals(leaseRule.getProrateType())) {
-            return fullAmount.setScale(2, RoundingMode.HALF_UP);
-        }
-        long fullDays = DateUtil.betweenDay(periodStart, fullPeriodEnd, true) + 1;
-        long actualDays = DateUtil.betweenDay(periodStart, periodEnd, true) + 1;
-        if (fullDays <= 0 || actualDays <= 0) {
-            return BigDecimal.ZERO;
-        }
-        return fullAmount.multiply(BigDecimal.valueOf(actualDays))
-            .divide(BigDecimal.valueOf(fullDays), 2, RoundingMode.HALF_UP);
-    }
-
-    private BigDecimal calcMasterLeaseFeeAmount(OwnerLeaseRule leaseRule, OwnerLeaseFee leaseFee, Date periodStart, Date periodEnd) {
-        int occurrenceCount = countMasterLeaseFeeOccurrences(resolveMasterLeaseBillingAnchor(leaseRule), periodStart, periodEnd, leaseFee.getPaymentMethod());
-        if (occurrenceCount <= 0) {
-            return BigDecimal.ZERO;
-        }
-        BigDecimal unitAmount;
-        if (Integer.valueOf(2).equals(leaseFee.getPriceMethod())) {
-            unitAmount = ObjectUtil.defaultIfNull(leaseRule.getRentAmount(), BigDecimal.ZERO)
-                .multiply(ObjectUtil.defaultIfNull(leaseFee.getPriceInput(), BigDecimal.ZERO))
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        BigDecimal nextSettledAmount = defaultZero(bill.getSettledAmount()).add(dto.getPayAmount());
+        bill.setSettledAmount(nextSettledAmount);
+        if (nextSettledAmount.compareTo(defaultZero(bill.getPayableAmount())) >= 0) {
+            bill.setSettlementStatus(OwnerBillSettlementStatusEnum.SETTLED.getCode());
         } else {
-            unitAmount = ObjectUtil.defaultIfNull(leaseFee.getPriceInput(), BigDecimal.ZERO);
+            bill.setSettlementStatus(OwnerBillSettlementStatusEnum.PART_SETTLED.getCode());
         }
-        return unitAmount.multiply(BigDecimal.valueOf(occurrenceCount)).setScale(2, RoundingMode.HALF_UP);
+        bill.setUpdateBy(operatorId);
+        bill.setUpdateTime(now);
+        ownerBillRepo.updateById(bill);
+        return payment.getId();
     }
 
-    private String buildMasterLeaseFeeFormula(OwnerLeaseRule leaseRule, OwnerLeaseFee leaseFee, Date periodStart, Date periodEnd) {
-        int occurrenceCount = countMasterLeaseFeeOccurrences(resolveMasterLeaseBillingAnchor(leaseRule), periodStart, periodEnd, leaseFee.getPaymentMethod());
-        String formula = Integer.valueOf(2).equals(leaseFee.getPriceMethod())
-            ? "月租金 × " + ObjectUtil.defaultIfNull(leaseFee.getPriceInput(), BigDecimal.ZERO) + "%"
-            : "固定金额 " + ObjectUtil.defaultIfNull(leaseFee.getPriceInput(), BigDecimal.ZERO);
-        return formula + " × " + occurrenceCount;
-    }
-
-    private int countMasterLeaseFeeOccurrences(Date anchorDate, Date periodStart, Date periodEnd, Integer paymentMethod) {
-        if (anchorDate == null) {
-            return 0;
+    @Transactional(rollbackFor = Exception.class)
+    public Long createOwnerWithdrawApply(OwnerWithdrawCreateDTO dto, Long operatorId) {
+        if (dto == null || dto.getOwnerId() == null || dto.getApplyAmount() == null || dto.getApplyAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("提现申请参数不正确");
         }
-        if (paymentMethod == null || Integer.valueOf(0).equals(paymentMethod)) {
-            return 1;
-        }
-        if (Integer.valueOf(1).equals(paymentMethod)) {
-            return DateUtil.beginOfDay(anchorDate).equals(DateUtil.beginOfDay(periodStart)) ? 1 : 0;
-        }
-        int intervalMonths = switch (paymentMethod) {
-            case 2 -> 1;
-            case 3 -> 2;
-            case 4 -> 3;
-            case 5 -> 6;
-            case 6 -> 12;
-            default -> 0;
-        };
-        if (intervalMonths <= 0) {
-            return 0;
-        }
-        int count = 0;
-        Date current = DateUtil.beginOfDay(anchorDate);
-        while (!current.after(periodEnd)) {
-            if (!current.before(periodStart)) {
-                count++;
-            }
-            current = DateUtil.beginOfDay(DateUtil.offsetMonth(current, intervalMonths));
-        }
-        return count;
-    }
-
-    private Date resolveMasterLeaseBillingAnchor(OwnerLeaseRule leaseRule) {
-        if (leaseRule.getBillingStart() != null) {
-            return DateUtil.beginOfDay(leaseRule.getBillingStart());
-        }
-        if (leaseRule.getFirstPayDate() != null) {
-            return DateUtil.beginOfDay(leaseRule.getFirstPayDate());
-        }
-        return null;
-    }
-
-    private BigDecimal calcMasterLeaseReductionAmount(BigDecimal rentAmount, OwnerLeaseFreeRule freeRule, Date periodStart, Date periodEnd) {
-        if (freeRule == null || freeRule.getStartDate() == null || freeRule.getEndDate() == null) {
-            return BigDecimal.ZERO;
-        }
-        Date overlapStart = DateUtil.beginOfDay(freeRule.getStartDate());
-        Date overlapEnd = DateUtil.endOfDay(freeRule.getEndDate());
-        if (periodEnd.before(overlapStart) || periodStart.after(overlapEnd)) {
-            return BigDecimal.ZERO;
-        }
-        if (OwnerFreeCalcModeEnum.RATIO.getCode().equals(freeRule.getCalcMode())) {
-            return ObjectUtil.defaultIfNull(rentAmount, BigDecimal.ZERO)
-                .multiply(ObjectUtil.defaultIfNull(freeRule.getFreeRatio(), BigDecimal.ZERO))
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-        }
-        return ObjectUtil.defaultIfNull(freeRule.getFreeAmount(), BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private OwnerBillLine buildMasterLeaseLine(
-        OwnerContract contract,
-        Date bizDate,
-        String sourceType,
-        Long sourceId,
-        String itemType,
-        String itemName,
-        String direction,
-        BigDecimal amount,
-        String remark,
-        String formulaSnapshot
-    ) {
-        OwnerBillLine line = new OwnerBillLine();
-        line.setSourceType(sourceType);
-        line.setSourceId(sourceId);
-        line.setSubjectType(null);
-        line.setSubjectId(null);
-        line.setItemType(itemType);
-        line.setItemName(itemName);
-        line.setDirection(direction);
-        line.setAmount(amount);
-        line.setBizDate(bizDate);
-        line.setRemark(remark);
-        line.setFormulaSnapshot(formulaSnapshot);
-        return line;
-    }
-
-    private OwnerBillReduction buildMasterLeaseReduction(OwnerContract contract, OwnerLeaseFreeRule freeRule, Date bizDate, BigDecimal amount, Date now) {
-        OwnerBillReduction reduction = new OwnerBillReduction();
-        reduction.setCompanyId(contract.getCompanyId());
-        reduction.setOwnerId(contract.getOwnerId());
-        reduction.setSourceType(OwnerBillSourceTypeEnum.OWNER_LEASE_FREE_RULE.getCode());
-        reduction.setSourceId(freeRule.getId());
-        reduction.setReductionType("LEASE_FREE");
-        reduction.setReductionName("包租免租");
-        reduction.setAmount(amount);
-        reduction.setBizDate(bizDate);
-        reduction.setRemark(freeRule.getRemark());
-        reduction.setRuleSnapshot("calcMode=" + freeRule.getCalcMode());
-        reduction.setStatus(StatusEnum.ACTIVE.getValue());
-        reduction.setCreateTime(now);
-        reduction.setUpdateTime(now);
-        return reduction;
-    }
-
-    private boolean existsLeaseStartBill(Long contractId, Long subjectId, Date billDate) {
-        return ownerBillRepo.count(new LambdaQueryWrapper<OwnerBill>()
-            .eq(OwnerBill::getContractId, contractId)
-            .eq(OwnerBill::getSubjectId, subjectId)
-            .eq(OwnerBill::getBillStart, billDate)
-            .eq(OwnerBill::getBillEnd, billDate)) > 0;
-    }
-
-    /**
-     * 起租日账单仅处理可以直接确定金额的规则。
-     * <p>
-     * 目前支持：
-     * - 固定结算：按保底金额/固定金额生成
-     * - 保底 + 分成：先生成保底部分
-     */
-    private BigDecimal resolveLeaseStartRentAmount(OwnerSettlementRule settlementRule) {
-        OwnerSettlementModeEnum settlementMode = resolveSettlementMode(settlementRule);
-        if (settlementMode == null) {
-            return BigDecimal.ZERO;
-        }
-        return switch (settlementMode) {
-            case FIXED, GUARANTEE_PLUS_SHARE -> ObjectUtil.defaultIfNull(settlementRule.getGuaranteedRentAmount(), BigDecimal.ZERO);
-            default -> BigDecimal.ZERO;
-        };
-    }
-
-    private boolean isMatchedRentFreeRule(Date billDate, OwnerRentFreeRule rentFreeRule) {
-        if (rentFreeRule == null || billDate == null || rentFreeRule.getStartDate() == null || rentFreeRule.getEndDate() == null) {
-            return false;
-        }
-        Date begin = DateUtil.beginOfDay(rentFreeRule.getStartDate());
-        Date end = DateUtil.endOfDay(rentFreeRule.getEndDate());
-        return !billDate.before(begin) && !billDate.after(end);
-    }
-
-    private BigDecimal calcManagementFee(OwnerSettlementRule settlementRule, BigDecimal baseAmount) {
-        if (settlementRule == null || !Boolean.TRUE.equals(settlementRule.getManagementFeeEnabled())) {
-            return BigDecimal.ZERO;
-        }
-        BigDecimal managementFeeValue = ObjectUtil.defaultIfNull(settlementRule.getManagementFeeValue(), BigDecimal.ZERO);
-        if (managementFeeValue.compareTo(BigDecimal.ZERO) <= 0) {
-            return BigDecimal.ZERO;
-        }
-        if (OwnerSettlementModeEnum.FIXED.getCode().equals(settlementRule.getManagementFeeMode())) {
-            return managementFeeValue;
-        }
-        return baseAmount.multiply(managementFeeValue)
-            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-    }
-
-    private OwnerBillLine buildRentLine(OwnerContractSubject contractSubject, OwnerSettlementRule settlementRule, Date billDate, BigDecimal amount) {
-        OwnerBillLine line = new OwnerBillLine();
-        line.setSourceType(OwnerBillSourceTypeEnum.OWNER_CONTRACT_SUBJECT.getCode());
-        line.setSourceId(contractSubject.getId());
-        line.setSubjectType(contractSubject.getSubjectType());
-        line.setSubjectId(contractSubject.getSubjectId());
-        line.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
-        line.setItemType(OwnerBillItemTypeEnum.RENT.getCode());
-        line.setItemName(buildRentLineName(settlementRule));
-        line.setDirection(FinanceFlowDirectionEnum.IN.getCode());
-        line.setAmount(amount);
-        line.setBizDate(billDate);
-        line.setRemark(contractSubject.getSubjectNameSnapshot());
-        line.setFormulaSnapshot("leaseStartBill");
-        return line;
-    }
-
-    private OwnerBillLine buildManagementFeeLine(OwnerContractSubject contractSubject, Date billDate, BigDecimal amount) {
-        OwnerBillLine line = new OwnerBillLine();
-        line.setSourceType(OwnerBillSourceTypeEnum.OWNER_CONTRACT_SUBJECT.getCode());
-        line.setSourceId(contractSubject.getId());
-        line.setSubjectType(contractSubject.getSubjectType());
-        line.setSubjectId(contractSubject.getSubjectId());
-        line.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
-        line.setItemType(OwnerBillItemTypeEnum.MANAGEMENT_FEE.getCode());
-        line.setItemName("管理费");
-        line.setDirection(FinanceFlowDirectionEnum.OUT.getCode());
-        line.setAmount(amount);
-        line.setBizDate(billDate);
-        line.setRemark(contractSubject.getSubjectNameSnapshot());
-        line.setFormulaSnapshot("managementFee");
-        return line;
-    }
-
-    private String buildRentLineName(OwnerSettlementRule settlementRule) {
-        OwnerSettlementModeEnum settlementMode = resolveSettlementMode(settlementRule);
-        if (settlementMode == null) {
-            return "起租日结算";
-        }
-        return switch (settlementMode) {
-            case FIXED -> "起租日固定结算";
-            case GUARANTEE_PLUS_SHARE -> "起租日保底结算";
-            default -> "起租日结算";
-        };
-    }
-
-    private OwnerSettlementModeEnum resolveSettlementMode(OwnerSettlementRule settlementRule) {
-        if (settlementRule == null || StrUtil.isBlank(settlementRule.getSettlementMode())) {
-            return null;
-        }
-        try {
-            return OwnerSettlementModeEnum.valueOf(settlementRule.getSettlementMode());
-        } catch (IllegalArgumentException e) {
-            log.warn("未知的轻托管结算方式, settlementMode={}", settlementRule.getSettlementMode());
-            return null;
-        }
-    }
-
-    private void increaseOwnerAccountAmount(OwnerContract contract, OwnerBill ownerBill, BigDecimal amount, Date now) {
-        OwnerAccount account = ownerAccountRepo.getByOwnerId(contract.getOwnerId());
+        OwnerAccount account = ownerAccountRepo.getByOwnerId(dto.getOwnerId());
         if (account == null) {
-            log.warn("业主账户不存在，跳过账户入账, ownerId={}, contractId={}", contract.getOwnerId(), contract.getId());
-            return;
+            throw new IllegalArgumentException("业主账户不存在");
         }
+        BigDecimal feeAmount = dto.getFeeAmount() == null ? BigDecimal.ZERO : dto.getFeeAmount();
+        if (defaultZero(account.getAvailableAmount()).compareTo(dto.getApplyAmount()) < 0) {
+            throw new IllegalArgumentException("可提现余额不足");
+        }
+        Date now = DateUtil.date();
+        OwnerWithdrawApply apply = new OwnerWithdrawApply();
+        apply.setCompanyId(account.getCompanyId());
+        apply.setOwnerId(dto.getOwnerId());
+        apply.setApplyNo("OWA" + System.currentTimeMillis());
+        apply.setApplyAmount(dto.getApplyAmount());
+        apply.setFeeAmount(feeAmount);
+        apply.setActualAmount(dto.getApplyAmount().subtract(feeAmount));
+        apply.setApprovalStatus(BizApprovalStatusEnum.PENDING.getCode());
+        apply.setWithdrawStatus(0);
+        apply.setPayeeName(dto.getPayeeName());
+        apply.setPayeeAccountNo(dto.getPayeeAccountNo());
+        apply.setPayeeBankName(dto.getPayeeBankName());
+        apply.setRemark(dto.getRemark());
+        apply.setAppliedAt(now);
+        apply.setCreateBy(operatorId);
+        apply.setCreateTime(now);
+        apply.setUpdateBy(operatorId);
+        apply.setUpdateTime(now);
+        ownerWithdrawApplyRepo.save(apply);
 
-        BigDecimal availableBefore = ObjectUtil.defaultIfNull(account.getAvailableAmount(), BigDecimal.ZERO);
-        BigDecimal frozenBefore = ObjectUtil.defaultIfNull(account.getFrozenAmount(), BigDecimal.ZERO);
-        account.setAvailableAmount(availableBefore.add(amount));
-        account.setTotalIncomeAmount(ObjectUtil.defaultIfNull(account.getTotalIncomeAmount(), BigDecimal.ZERO).add(amount));
-        account.setUpdateTime(now);
+        BigDecimal availableBefore = defaultZero(account.getAvailableAmount());
+        BigDecimal frozenBefore = defaultZero(account.getFrozenAmount());
+        account.setAvailableAmount(availableBefore.subtract(dto.getApplyAmount()));
+        account.setFrozenAmount(frozenBefore.add(dto.getApplyAmount()));
         ownerAccountRepo.updateById(account);
+        saveOwnerAccountFlow(account.getCompanyId(), dto.getOwnerId(), "OWNER_WITHDRAW_APPLY", apply.getId(), "OUT", "WITHDRAW_FREEZE",
+            dto.getApplyAmount(), availableBefore, account.getAvailableAmount(), frozenBefore, account.getFrozenAmount(), "发起提现冻结", operatorId, now);
+        return apply.getId();
+    }
 
+    @Transactional(rollbackFor = Exception.class)
+    public Long operateOwnerWithdrawApply(OwnerWithdrawOperateDTO dto, Long operatorId) {
+        if (dto == null || dto.getApplyId() == null || dto.getOperateType() == null) {
+            throw new IllegalArgumentException("提现操作参数不正确");
+        }
+        OwnerWithdrawApply apply = ownerWithdrawApplyRepo.getById(dto.getApplyId());
+        if (apply == null) {
+            throw new IllegalArgumentException("提现申请不存在");
+        }
+        OwnerAccount account = ownerAccountRepo.getByOwnerId(apply.getOwnerId());
+        if (account == null) {
+            throw new IllegalArgumentException("业主账户不存在");
+        }
+        Date now = DateUtil.date();
+        switch (dto.getOperateType()) {
+            case APPROVE -> apply.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
+            case REJECT -> {
+                apply.setApprovalStatus(BizApprovalStatusEnum.REJECTED.getCode());
+                apply.setWithdrawStatus(4);
+                unfreezeWithdrawAmount(account, apply.getApplyAmount(), apply.getOwnerId(), apply.getId(), "WITHDRAW_REJECT", "提现驳回解冻", operatorId, now);
+            }
+            case PAYING -> apply.setWithdrawStatus(1);
+            case SUCCESS -> {
+                apply.setWithdrawStatus(2);
+                BigDecimal availableBefore = defaultZero(account.getAvailableAmount());
+                BigDecimal frozenBefore = defaultZero(account.getFrozenAmount());
+                account.setFrozenAmount(frozenBefore.subtract(apply.getApplyAmount()));
+                account.setTotalWithdrawAmount(defaultZero(account.getTotalWithdrawAmount()).add(apply.getApplyAmount()));
+                ownerAccountRepo.updateById(account);
+                saveOwnerAccountFlow(account.getCompanyId(), apply.getOwnerId(), "OWNER_WITHDRAW_APPLY", apply.getId(), "OUT", "WITHDRAW_SUCCESS",
+                    apply.getApplyAmount(), availableBefore, account.getAvailableAmount(), frozenBefore, account.getFrozenAmount(), "提现成功扣减冻结", operatorId, now);
+                apply.setPaidAt(now);
+                apply.setThirdTradeNo(dto.getThirdTradeNo());
+                apply.setChannel(dto.getChannel());
+            }
+            case FAIL -> {
+                apply.setWithdrawStatus(3);
+                apply.setFailureReason(dto.getFailureReason());
+                unfreezeWithdrawAmount(account, apply.getApplyAmount(), apply.getOwnerId(), apply.getId(), "WITHDRAW_FAIL", "提现失败解冻", operatorId, now);
+            }
+            case CANCEL -> {
+                apply.setApprovalStatus(BizApprovalStatusEnum.WITHDRAWN.getCode());
+                apply.setWithdrawStatus(4);
+                unfreezeWithdrawAmount(account, apply.getApplyAmount(), apply.getOwnerId(), apply.getId(), "WITHDRAW_CANCEL", "提现取消解冻", operatorId, now);
+            }
+            default -> throw new IllegalArgumentException("不支持的提现操作");
+        }
+        apply.setUpdateBy(operatorId);
+        apply.setUpdateTime(now);
+        if (dto.getOperateType() == OwnerWithdrawOperateEnum.APPROVE) {
+            apply.setApprovedAt(now);
+        }
+        ownerWithdrawApplyRepo.updateById(apply);
+        return apply.getId();
+    }
+
+    private PageVO<OwnerBillListVO> emptyBillPage(OwnerBillQueryDTO query) {
+        return PageVO.<OwnerBillListVO>builder()
+            .currentPage(query.getCurrentPage())
+            .pageSize(query.getPageSize())
+            .total(0L)
+            .pages(0L)
+            .list(Collections.emptyList())
+            .build();
+    }
+
+    private PageVO<OwnerWithdrawApplyListVO> emptyWithdrawPage(OwnerWithdrawApplyQueryDTO query) {
+        return PageVO.<OwnerWithdrawApplyListVO>builder()
+            .currentPage(query.getCurrentPage())
+            .pageSize(query.getPageSize())
+            .total(0L)
+            .pages(0L)
+            .list(Collections.emptyList())
+            .build();
+    }
+
+    private List<Long> resolveOwnerIds(String ownerName) {
+        if (StrUtil.isBlank(ownerName)) {
+            return null;
+        }
+        return ownerRepo.list(new LambdaQueryWrapper<Owner>().like(Owner::getOwnerName, ownerName)).stream().map(Owner::getId).toList();
+    }
+
+    private LambdaQueryWrapper<OwnerBill> buildOwnerBillWrapper(OwnerBillQueryDTO query, List<Long> ownerIds) {
+        LambdaQueryWrapper<OwnerBill> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(query.getOwnerId() != null, OwnerBill::getOwnerId, query.getOwnerId());
+        wrapper.eq(query.getContractId() != null, OwnerBill::getContractId, query.getContractId());
+        wrapper.like(StrUtil.isNotBlank(query.getBillNo()), OwnerBill::getBillNo, query.getBillNo());
+        wrapper.eq(query.getApprovalStatus() != null, OwnerBill::getApprovalStatus, query.getApprovalStatus());
+        wrapper.eq(query.getSettlementStatus() != null, OwnerBill::getSettlementStatus, query.getSettlementStatus());
+        wrapper.in(ownerIds != null, OwnerBill::getOwnerId, ownerIds);
+        return wrapper;
+    }
+
+    private LambdaQueryWrapper<OwnerWithdrawApply> buildOwnerWithdrawWrapper(OwnerWithdrawApplyQueryDTO query, List<Long> ownerIds) {
+        LambdaQueryWrapper<OwnerWithdrawApply> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(query.getOwnerId() != null, OwnerWithdrawApply::getOwnerId, query.getOwnerId());
+        wrapper.like(StrUtil.isNotBlank(query.getApplyNo()), OwnerWithdrawApply::getApplyNo, query.getApplyNo());
+        wrapper.eq(query.getApprovalStatus() != null, OwnerWithdrawApply::getApprovalStatus, query.getApprovalStatus());
+        wrapper.eq(query.getWithdrawStatus() != null, OwnerWithdrawApply::getWithdrawStatus, query.getWithdrawStatus());
+        wrapper.in(ownerIds != null, OwnerWithdrawApply::getOwnerId, ownerIds);
+        return wrapper;
+    }
+
+    private BigDecimal sumBillAmount(List<OwnerBill> bills, java.util.function.Function<OwnerBill, BigDecimal> getter) {
+        return bills.stream().map(getter).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private void fillEmptyWithdrawSummary(OwnerWithdrawSummaryVO vo) {
+        vo.setApplyCount(0L);
+        vo.setPendingApprovalCount(0L);
+        vo.setProcessingCount(0L);
+        vo.setSuccessCount(0L);
+        vo.setTotalApplyAmount(BigDecimal.ZERO);
+        vo.setTotalActualAmount(BigDecimal.ZERO);
+        vo.setAvailableAmount(BigDecimal.ZERO);
+        vo.setFrozenAmount(BigDecimal.ZERO);
+    }
+
+    private void unfreezeWithdrawAmount(OwnerAccount account, BigDecimal amount, Long ownerId, Long applyId, String changeType, String remark, Long operatorId, Date now) {
+        BigDecimal availableBefore = defaultZero(account.getAvailableAmount());
+        BigDecimal frozenBefore = defaultZero(account.getFrozenAmount());
+        account.setAvailableAmount(availableBefore.add(amount));
+        account.setFrozenAmount(frozenBefore.subtract(amount));
+        ownerAccountRepo.updateById(account);
+        saveOwnerAccountFlow(account.getCompanyId(), ownerId, "OWNER_WITHDRAW_APPLY", applyId, "IN", changeType,
+            amount, availableBefore, account.getAvailableAmount(), frozenBefore, account.getFrozenAmount(), remark, operatorId, now);
+    }
+
+    private void saveOwnerAccountFlow(Long companyId, Long ownerId, String bizType, Long bizId, String flowDirection, String changeType,
+                                      BigDecimal amount, BigDecimal availableBefore, BigDecimal availableAfter,
+                                      BigDecimal frozenBefore, BigDecimal frozenAfter, String remark, Long operatorId, Date now) {
         OwnerAccountFlow flow = new OwnerAccountFlow();
-        flow.setCompanyId(contract.getCompanyId());
-        flow.setOwnerId(contract.getOwnerId());
-        flow.setBizType(OwnerAccountFlowBizTypeEnum.OWNER_BILL.getCode());
-        flow.setBizId(ownerBill.getId());
-        flow.setFlowDirection(FinanceFlowDirectionEnum.IN.getCode());
-        flow.setChangeType(OwnerAccountFlowChangeTypeEnum.BILL_SETTLE_IN.getCode());
+        flow.setCompanyId(companyId);
+        flow.setOwnerId(ownerId);
+        flow.setBizType(bizType);
+        flow.setBizId(bizId);
+        flow.setFlowDirection(flowDirection);
+        flow.setChangeType(changeType);
         flow.setAmount(amount);
         flow.setAvailableBefore(availableBefore);
-        flow.setAvailableAfter(account.getAvailableAmount());
+        flow.setAvailableAfter(availableAfter);
         flow.setFrozenBefore(frozenBefore);
-        flow.setFrozenAfter(account.getFrozenAmount());
-        flow.setRemark("起租日账单入账");
-        flow.setCreateBy(contract.getCreateBy());
+        flow.setFrozenAfter(frozenAfter);
+        flow.setRemark(remark);
+        flow.setCreateBy(operatorId);
         flow.setCreateTime(now);
         ownerAccountFlowRepo.save(flow);
     }
 
-    private String generateOwnerBillNo() {
-        return "OWB" + IdUtil.getSnowflakeNextIdStr();
+    private OwnerBillListVO toOwnerBillListVO(OwnerBill item, Owner owner, OwnerContract contract) {
+        OwnerBillListVO vo = new OwnerBillListVO();
+        vo.setBillId(item.getId());
+        vo.setBillNo(item.getBillNo());
+        vo.setOwnerId(item.getOwnerId());
+        vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
+        vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
+        vo.setContractId(item.getContractId());
+        vo.setContractNo(contract != null ? contract.getContractNo() : null);
+        vo.setSubjectType(OwnerContractSubjectTypeEnum.fromCode(item.getSubjectType()));
+        vo.setSubjectId(item.getSubjectId());
+        vo.setSubjectName(item.getSubjectNameSnapshot());
+        vo.setCooperationMode(contract != null && contract.getCooperationMode() != null ? com.homi.common.lib.enums.owner.OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()) : null);
+        vo.setBillStart(item.getBillStart());
+        vo.setBillEnd(item.getBillEnd());
+        vo.setIncomeAmount(item.getIncomeAmount());
+        vo.setReductionAmount(item.getReductionAmount());
+        vo.setExpenseAmount(item.getExpenseAmount());
+        vo.setPayableAmount(item.getPayableAmount());
+        vo.setWithdrawableAmount(contract != null && OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode()) ? BigDecimal.ZERO : item.getWithdrawableAmount());
+        vo.setBillStatus(item.getBillStatus());
+        vo.setApprovalStatus(item.getApprovalStatus());
+        vo.setSettlementStatus(item.getSettlementStatus());
+        vo.setGeneratedAt(item.getGeneratedAt());
+        vo.setApprovedAt(item.getApprovedAt());
+        vo.setCreateTime(item.getCreateTime());
+        return vo;
+    }
+
+    private BigDecimal defaultZero(BigDecimal amount) {
+        return amount == null ? BigDecimal.ZERO : amount;
+    }
+
+    private OwnerWithdrawApplyListVO toOwnerWithdrawListVO(OwnerWithdrawApply item, Owner owner) {
+        OwnerWithdrawApplyListVO vo = new OwnerWithdrawApplyListVO();
+        vo.setApplyId(item.getId());
+        vo.setApplyNo(item.getApplyNo());
+        vo.setOwnerId(item.getOwnerId());
+        vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
+        vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
+        vo.setApplyAmount(item.getApplyAmount());
+        vo.setFeeAmount(item.getFeeAmount());
+        vo.setActualAmount(item.getActualAmount());
+        vo.setApprovalStatus(item.getApprovalStatus());
+        vo.setWithdrawStatus(item.getWithdrawStatus());
+        vo.setPayeeName(item.getPayeeName());
+        vo.setPayeeBankName(item.getPayeeBankName());
+        vo.setChannel(item.getChannel());
+        vo.setAppliedAt(item.getAppliedAt());
+        vo.setApprovedAt(item.getApprovedAt());
+        vo.setPaidAt(item.getPaidAt());
+        vo.setCreateTime(item.getCreateTime());
+        return vo;
+    }
+
+    private OwnerBillLineVO toOwnerBillLineVO(OwnerBillLine item) {
+        OwnerBillLineVO vo = new OwnerBillLineVO();
+        vo.setId(item.getId());
+        vo.setSourceType(item.getSourceType());
+        vo.setSourceId(item.getSourceId());
+        vo.setItemType(item.getItemType());
+        vo.setItemName(item.getItemName());
+        vo.setDirection(item.getDirection());
+        vo.setAmount(item.getAmount());
+        vo.setBizDate(item.getBizDate());
+        vo.setRemark(item.getRemark());
+        vo.setFormulaSnapshot(item.getFormulaSnapshot());
+        vo.setCreateTime(item.getCreateTime());
+        return vo;
+    }
+
+    private OwnerBillReductionVO toOwnerBillReductionVO(OwnerBillReduction item) {
+        OwnerBillReductionVO vo = new OwnerBillReductionVO();
+        vo.setId(item.getId());
+        vo.setSourceType(item.getSourceType());
+        vo.setSourceId(item.getSourceId());
+        vo.setReductionType(item.getReductionType());
+        vo.setReductionName(item.getReductionName());
+        vo.setAmount(item.getAmount());
+        vo.setBizDate(item.getBizDate());
+        vo.setRemark(item.getRemark());
+        vo.setRuleSnapshot(item.getRuleSnapshot());
+        vo.setStatus(item.getStatus());
+        return vo;
+    }
+
+    private List<OwnerBillPaymentVO> buildOwnerBillPaymentVOList(Long billId) {
+        if (billId == null) {
+            return Collections.emptyList();
+        }
+        List<OwnerBillPayment> paymentList = ownerBillPaymentRepo.list(new LambdaQueryWrapper<OwnerBillPayment>()
+            .eq(OwnerBillPayment::getBillId, billId)
+            .orderByDesc(OwnerBillPayment::getPayTime)
+            .orderByDesc(OwnerBillPayment::getId));
+        if (paymentList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> paymentIds = paymentList.stream().map(OwnerBillPayment::getId).toList();
+        Map<Long, List<String>> voucherMap = fileAttachRepo.lambdaQuery()
+            .in(FileAttach::getBizId, paymentIds)
+            .eq(FileAttach::getBizType, FileAttachBizTypeEnum.OWNER_BILL_PAYMENT_VOUCHER.getBizType())
+            .orderByAsc(FileAttach::getSortOrder)
+            .list()
+            .stream()
+            .collect(Collectors.groupingBy(FileAttach::getBizId, Collectors.mapping(FileAttach::getFileUrl, Collectors.toList())));
+        return paymentList.stream().map(item -> toOwnerBillPaymentVO(item, voucherMap.get(item.getId()))).toList();
+    }
+
+    private OwnerBillPaymentVO toOwnerBillPaymentVO(OwnerBillPayment item, List<String> voucherUrls) {
+        OwnerBillPaymentVO vo = new OwnerBillPaymentVO();
+        vo.setPaymentId(item.getId());
+        vo.setPaymentNo(item.getPaymentNo());
+        vo.setPayAmount(item.getPayAmount());
+        vo.setPayTime(item.getPayTime());
+        vo.setPayChannel(item.getPayChannel() == null ? null : PaymentFlowChannelEnum.valueOf(item.getPayChannel()));
+        vo.setThirdTradeNo(item.getThirdTradeNo());
+        vo.setRemark(item.getRemark());
+        vo.setVoucherUrls(voucherUrls == null ? Collections.emptyList() : voucherUrls);
+        vo.setCreateTime(item.getCreateTime());
+        return vo;
+    }
+
+    private String generateOwnerBillPaymentNo() {
+        return "OBP" + DateUtil.format(new Date(), "yyyyMMddHHmmss") + IdUtil.fastSimpleUUID().substring(0, 6).toUpperCase();
+    }
+
+    private OwnerAccountFlowVO toOwnerAccountFlowVO(OwnerAccountFlow item) {
+        OwnerAccountFlowVO vo = new OwnerAccountFlowVO();
+        vo.setId(item.getId());
+        vo.setBizType(item.getBizType());
+        vo.setBizId(item.getBizId());
+        vo.setFlowDirection(item.getFlowDirection());
+        vo.setChangeType(item.getChangeType());
+        vo.setAmount(item.getAmount());
+        vo.setAvailableBefore(item.getAvailableBefore());
+        vo.setAvailableAfter(item.getAvailableAfter());
+        vo.setFrozenBefore(item.getFrozenBefore());
+        vo.setFrozenAfter(item.getFrozenAfter());
+        vo.setRemark(item.getRemark());
+        vo.setCreateTime(item.getCreateTime());
+        return vo;
     }
 }

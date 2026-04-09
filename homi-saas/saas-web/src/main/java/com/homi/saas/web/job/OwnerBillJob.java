@@ -1,6 +1,6 @@
 package com.homi.saas.web.job;
 
-import com.homi.service.service.owner.OwnerBillService;
+import com.homi.service.service.owner.OwnerBillGenerateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @RequiredArgsConstructor
 public class OwnerBillJob {
-    private final OwnerBillService ownerBillService;
+    private final OwnerBillGenerateService ownerBillGenerateService;
 
     /**
      * 自动生成起租日业主账单
@@ -28,8 +28,8 @@ public class OwnerBillJob {
     @SchedulerLock(name = "ownerBillJob.generateLeaseStartOwnerBillTask", lockAtMostFor = "PT20M", lockAtLeastFor = "PT30S")
     public void generateLeaseStartOwnerBillTask() {
         try {
-            Integer lightManagedCount = ownerBillService.generateLeaseStartOwnerBills();
-            Integer masterLeaseCount = ownerBillService.generateMasterLeaseOwnerBills();
+            Integer lightManagedCount = ownerBillGenerateService.generateLeaseStartOwnerBills();
+            Integer masterLeaseCount = ownerBillGenerateService.generateMasterLeaseOwnerBills();
             if (lightManagedCount > 0 || masterLeaseCount > 0) {
                 log.info("自动生成业主账单成功，轻托管数量={}，包租数量={}", lightManagedCount, masterLeaseCount);
             }
