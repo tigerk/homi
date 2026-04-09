@@ -1046,8 +1046,8 @@ public class OwnerContractService {
         dto.setFeeType(fee.getFeeType());
         dto.setFeeName(fee.getFeeName());
         dto.setFeeDirection(fee.getFeeDirection() == null ? null : FinanceFlowDirectionEnum.valueOf(fee.getFeeDirection()));
-        dto.setPaymentMethod(PaymentMethodEnum.getByCode(fee.getPaymentMethod()));
-        dto.setPriceMethod(PriceMethodEnum.getByCode(fee.getPriceMethod()));
+        dto.setPaymentMethod(fee.getPaymentMethod());
+        dto.setPriceMethod(fee.getPriceMethod());
         dto.setPriceInput(fee.getPriceInput());
         dto.setSortOrder(fee.getSortOrder());
         dto.setRemark(fee.getRemark());
@@ -1170,8 +1170,8 @@ public class OwnerContractService {
             fee.setFeeType(item.getFeeType());
             fee.setFeeName(item.getFeeName());
             fee.setFeeDirection(enumName(item.getFeeDirection()));
-            fee.setPaymentMethod(item.getPaymentMethod() == null ? null : item.getPaymentMethod().getCode());
-            fee.setPriceMethod(item.getPriceMethod() == null ? null : item.getPriceMethod().getCode());
+            fee.setPaymentMethod(item.getPaymentMethod());
+            fee.setPriceMethod(item.getPriceMethod());
             fee.setPriceInput(item.getPriceInput());
             fee.setSortOrder(Objects.requireNonNullElse(item.getSortOrder(), 0));
             fee.setRemark(item.getRemark());
