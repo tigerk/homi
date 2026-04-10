@@ -345,6 +345,7 @@ CREATE TABLE IF NOT EXISTS `owner_bill` (
   `bill_no` varchar(64) NOT NULL COMMENT '账单编号',
   `bill_start` date DEFAULT NULL COMMENT '账单开始日期',
   `bill_end` date DEFAULT NULL COMMENT '账单结束日期',
+  `due_date` date DEFAULT NULL COMMENT '应付日期',
   `income_amount` decimal(18,2) NOT NULL DEFAULT 0.00 COMMENT '收入金额',
   `reduction_amount` decimal(18,2) NOT NULL DEFAULT 0.00 COMMENT '减免金额',
   `expense_amount` decimal(18,2) NOT NULL DEFAULT 0.00 COMMENT '费用金额',
@@ -369,7 +370,8 @@ CREATE TABLE IF NOT EXISTS `owner_bill` (
   UNIQUE KEY `uk_owner_bill_no` (`bill_no`),
   KEY `idx_owner_bill_company` (`company_id`),
   KEY `idx_owner_bill_owner` (`owner_id`),
-  KEY `idx_owner_bill_contract` (`contract_id`)
+  KEY `idx_owner_bill_contract` (`contract_id`),
+  KEY `idx_owner_bill_due_date` (`due_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='业主账单主表';
 
 CREATE TABLE IF NOT EXISTS `owner_bill_line` (

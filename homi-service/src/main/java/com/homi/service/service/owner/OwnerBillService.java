@@ -135,6 +135,7 @@ public class OwnerBillService {
         vo.setCooperationMode(contract != null && contract.getCooperationMode() != null ? com.homi.common.lib.enums.owner.OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()) : null);
         vo.setBillStart(bill.getBillStart());
         vo.setBillEnd(bill.getBillEnd());
+        vo.setDueDate(bill.getDueDate());
         vo.setIncomeAmount(bill.getIncomeAmount());
         vo.setReductionAmount(bill.getReductionAmount());
         vo.setExpenseAmount(bill.getExpenseAmount());
@@ -557,6 +558,7 @@ public class OwnerBillService {
         vo.setCooperationMode(contract != null && contract.getCooperationMode() != null ? com.homi.common.lib.enums.owner.OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()) : null);
         vo.setBillStart(item.getBillStart());
         vo.setBillEnd(item.getBillEnd());
+        vo.setDueDate(item.getDueDate());
         vo.setIncomeAmount(item.getIncomeAmount());
         vo.setReductionAmount(item.getReductionAmount());
         vo.setExpenseAmount(item.getExpenseAmount());

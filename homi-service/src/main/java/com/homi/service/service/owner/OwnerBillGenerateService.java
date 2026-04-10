@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
+import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
 import com.homi.common.lib.enums.owner.*;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -472,6 +474,7 @@ public class OwnerBillGenerateService {
         ownerBill.setBillNo(generateOwnerBillNo());
         ownerBill.setBillStart(periodStart);
         ownerBill.setBillEnd(periodEnd);
+        ownerBill.setDueDate(resolveMasterLeaseDueDate(leaseRule, periodStart));
         ownerBill.setIncomeAmount(incomeAmount);
         ownerBill.setReductionAmount(reductionAmount);
         ownerBill.setExpenseAmount(expenseAmount);
@@ -613,6 +616,36 @@ public class OwnerBillGenerateService {
         return null;
     }
 
+    /**
+     * 按付款设置计算包租账单的应付日期。
+     * <p>
+     * 规则与租客账单一致：
+     * - 提前付款：账期开始日 - 偏移天数
+     * - 固定付款：账期开始所在月份的固定日期
+     * - 延后付款：账期开始日 + 偏移天数
+     */
+    private Date resolveMasterLeaseDueDate(OwnerLeaseRule leaseRule, Date periodStart) {
+        if (leaseRule == null || periodStart == null) {
+            return null;
+        }
+        LocalDate periodStartDate = DateUtil.toLocalDateTime(periodStart).toLocalDate();
+        Integer rentDueType = ObjectUtil.defaultIfNull(leaseRule.getRentDueType(), LeaseRentDueTypeEnum.FIXED.getCode());
+        if (Objects.equals(rentDueType, LeaseRentDueTypeEnum.EARLY.getCode())) {
+            int offsetDays = ObjectUtil.defaultIfNull(leaseRule.getRentDueOffsetDays(), 0);
+            return DateUtil.date(periodStartDate.minusDays(offsetDays));
+        }
+        if (Objects.equals(rentDueType, LeaseRentDueTypeEnum.LATE.getCode())) {
+            int offsetDays = ObjectUtil.defaultIfNull(leaseRule.getRentDueOffsetDays(), 0);
+            return DateUtil.date(periodStartDate.plusDays(offsetDays));
+        }
+
+        Integer rentDueDay = ObjectUtil.defaultIfNull(leaseRule.getRentDueDay(), 0);
+        int actualDay = rentDueDay == null || rentDueDay <= 0
+            ? periodStartDate.lengthOfMonth()
+            : Math.min(rentDueDay, periodStartDate.lengthOfMonth());
+        return DateUtil.date(periodStartDate.withDayOfMonth(actualDay));
+    }
+
     private BigDecimal calcMasterLeaseReductionAmount(BigDecimal rentAmount, OwnerLeaseFreeRule freeRule, Date periodStart, Date periodEnd) {
         if (freeRule == null || freeRule.getStartDate() == null || freeRule.getEndDate() == null) {
             return BigDecimal.ZERO;
@@ -621,6 +654,18 @@ public class OwnerBillGenerateService {
         Date overlapEnd = DateUtil.endOfDay(freeRule.getEndDate());
         if (periodEnd.before(overlapStart) || periodStart.after(overlapEnd)) {
             return BigDecimal.ZERO;
+        }
+        if (OwnerFreeCalcModeEnum.BY_DAYS.getCode().equals(freeRule.getCalcMode())) {
+            Date actualStart = periodStart.after(overlapStart) ? periodStart : overlapStart;
+            Date actualEnd = periodEnd.before(overlapEnd) ? periodEnd : overlapEnd;
+            long fullDays = DateUtil.betweenDay(periodStart, periodEnd, true) + 1;
+            long freeDays = DateUtil.betweenDay(actualStart, actualEnd, true) + 1;
+            if (fullDays <= 0 || freeDays <= 0) {
+                return BigDecimal.ZERO;
+            }
+            return ObjectUtil.defaultIfNull(rentAmount, BigDecimal.ZERO)
+                .multiply(BigDecimal.valueOf(freeDays))
+                .divide(BigDecimal.valueOf(fullDays), 2, RoundingMode.HALF_UP);
         }
         if (OwnerFreeCalcModeEnum.RATIO.getCode().equals(freeRule.getCalcMode())) {
             return ObjectUtil.defaultIfNull(rentAmount, BigDecimal.ZERO)

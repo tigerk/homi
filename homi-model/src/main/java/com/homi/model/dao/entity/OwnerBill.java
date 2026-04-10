@@ -74,6 +74,11 @@ public class OwnerBill implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date billEnd;
 
+    @Schema(description = "应付日期")
+    @TableField("due_date")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date dueDate;
+
     @Schema(description = "收入金额")
     @TableField("income_amount")
     private BigDecimal incomeAmount;
