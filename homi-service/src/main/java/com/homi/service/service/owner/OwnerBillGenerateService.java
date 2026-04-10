@@ -112,6 +112,35 @@ public class OwnerBillGenerateService {
     }
 
     /**
+     * 判断包租合同账单条款是否已锁定。
+     * <p>
+     * 一旦该合同下已有付款记录，或账单已发生已结/已提现/冻结金额变化，则不允许再重建账单计划。
+     *
+     * @param contractId 合同ID
+     * @return 是否锁定
+     */
+    public boolean isMasterLeaseBillLocked(Long contractId) {
+        List<OwnerBill> billList = ownerBillRepo.lambdaQuery()
+            .eq(OwnerBill::getContractId, contractId)
+            .list();
+        if (billList.isEmpty()) {
+            return false;
+        }
+        boolean hasSettledBill = billList.stream().anyMatch(item ->
+            ObjectUtil.defaultIfNull(item.getSettledAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
+                || ObjectUtil.defaultIfNull(item.getWithdrawnAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
+                || ObjectUtil.defaultIfNull(item.getFreezeAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
+        );
+        if (hasSettledBill) {
+            return true;
+        }
+        List<Long> billIds = billList.stream().map(OwnerBill::getId).toList();
+        return ownerBillPaymentRepo.lambdaQuery()
+            .in(OwnerBillPayment::getBillId, billIds)
+            .count() > 0;
+    }
+
+    /**
      * 按合同生成起租日业主账单
      *
      * @param contractId 合同ID
@@ -316,24 +345,11 @@ public class OwnerBillGenerateService {
         if (billList.isEmpty()) {
             return;
         }
-
-        boolean hasSettledBill = billList.stream().anyMatch(item ->
-            ObjectUtil.defaultIfNull(item.getSettledAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
-                || ObjectUtil.defaultIfNull(item.getWithdrawnAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
-                || ObjectUtil.defaultIfNull(item.getFreezeAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
-        );
-        if (hasSettledBill) {
-            throw new IllegalArgumentException("包租账单已发生结算，不允许重建账单计划");
+        if (isMasterLeaseBillLocked(contractId)) {
+            throw new IllegalArgumentException("包租账单已发生付款或结算，账单条款已锁定");
         }
 
         List<Long> billIds = billList.stream().map(OwnerBill::getId).toList();
-        boolean hasPayment = ownerBillPaymentRepo.lambdaQuery()
-            .in(OwnerBillPayment::getBillId, billIds)
-            .count() > 0;
-        if (hasPayment) {
-            throw new IllegalArgumentException("包租账单已登记付款，不允许重建账单计划");
-        }
-
         ownerBillReductionRepo.remove(new LambdaQueryWrapper<OwnerBillReduction>().in(OwnerBillReduction::getBillId, billIds));
         ownerBillLineRepo.remove(new LambdaQueryWrapper<OwnerBillLine>().in(OwnerBillLine::getBillId, billIds));
         ownerBillRepo.removeByIds(billIds);

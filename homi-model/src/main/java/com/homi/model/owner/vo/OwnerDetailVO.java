@@ -54,6 +54,12 @@ public class OwnerDetailVO {
     @Schema(description = "包租免租规则列表")
     private List<OwnerLeaseFreeRuleDTO> ownerLeaseFreeRuleList;
 
+    @Schema(description = "包租账单条款是否已锁定")
+    private Boolean masterLeaseBillLocked;
+
+    @Schema(description = "包租账单条款锁定原因")
+    private String masterLeaseBillLockReason;
+
     @Schema(description = "创建人")
     private Long createBy;
 

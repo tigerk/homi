@@ -1,6 +1,7 @@
 package com.homi.model.owner.dto;
 
 import com.homi.common.lib.dto.PageDTO;
+import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,6 +21,9 @@ public class OwnerBillQueryDTO extends PageDTO {
 
     @Schema(description = "账单编号")
     private String billNo;
+
+    @Schema(description = "合作模式")
+    private OwnerCooperationModeEnum cooperationMode;
 
     @Schema(description = "审批状态")
     private Integer approvalStatus;

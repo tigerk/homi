@@ -83,10 +83,15 @@ public class OwnerBillService {
         wrapper.eq(query.getContractId() != null, OwnerBill::getContractId, query.getContractId());
         wrapper.like(StrUtil.isNotBlank(query.getBillNo()), OwnerBill::getBillNo, query.getBillNo());
         List<Long> ownerIds = resolveOwnerIds(query.getOwnerName());
+        List<Long> contractIds = resolveContractIds(query);
         if (ownerIds != null && ownerIds.isEmpty()) {
             return emptyBillPage(query);
         }
+        if (contractIds != null && contractIds.isEmpty()) {
+            return emptyBillPage(query);
+        }
         wrapper.in(ownerIds != null, OwnerBill::getOwnerId, ownerIds);
+        wrapper.in(contractIds != null, OwnerBill::getContractId, contractIds);
         wrapper.orderByDesc(OwnerBill::getGeneratedAt);
         wrapper.orderByDesc(OwnerBill::getId);
         Page<OwnerBill> result = ownerBillRepo.page(page, wrapper);
@@ -159,17 +164,33 @@ public class OwnerBillService {
     public OwnerBillSummaryVO summaryOwnerBills(OwnerBillQueryDTO query) {
         OwnerBillSummaryVO vo = new OwnerBillSummaryVO();
         List<Long> ownerIds = resolveOwnerIds(query.getOwnerName());
+        List<Long> contractIds = resolveContractIds(query);
         if (ownerIds != null && ownerIds.isEmpty()) {
             vo.setBillCount(0L);
             vo.setTotalIncomeAmount(BigDecimal.ZERO);
             vo.setTotalPayableAmount(BigDecimal.ZERO);
+            vo.setTotalSettledAmount(BigDecimal.ZERO);
+            vo.setTotalUnpaidAmount(BigDecimal.ZERO);
             vo.setTotalWithdrawableAmount(BigDecimal.ZERO);
             return vo;
         }
-        List<OwnerBill> bills = ownerBillRepo.list(buildOwnerBillWrapper(query, ownerIds));
+        if (contractIds != null && contractIds.isEmpty()) {
+            vo.setBillCount(0L);
+            vo.setTotalIncomeAmount(BigDecimal.ZERO);
+            vo.setTotalPayableAmount(BigDecimal.ZERO);
+            vo.setTotalSettledAmount(BigDecimal.ZERO);
+            vo.setTotalUnpaidAmount(BigDecimal.ZERO);
+            vo.setTotalWithdrawableAmount(BigDecimal.ZERO);
+            return vo;
+        }
+        List<OwnerBill> bills = ownerBillRepo.list(buildOwnerBillWrapper(query, ownerIds, contractIds));
         vo.setBillCount((long) bills.size());
         vo.setTotalIncomeAmount(sumBillAmount(bills, OwnerBill::getIncomeAmount));
         vo.setTotalPayableAmount(sumBillAmount(bills, OwnerBill::getPayableAmount));
+        vo.setTotalSettledAmount(sumBillAmount(bills, OwnerBill::getSettledAmount));
+        vo.setTotalUnpaidAmount(bills.stream()
+            .map(item -> defaultZero(item.getPayableAmount()).subtract(defaultZero(item.getSettledAmount())).max(BigDecimal.ZERO))
+            .reduce(BigDecimal.ZERO, BigDecimal::add));
         vo.setTotalWithdrawableAmount(sumBillAmount(bills, OwnerBill::getWithdrawableAmount));
         return vo;
     }
@@ -453,7 +474,7 @@ public class OwnerBillService {
         return ownerRepo.list(new LambdaQueryWrapper<Owner>().like(Owner::getOwnerName, ownerName)).stream().map(Owner::getId).toList();
     }
 
-    private LambdaQueryWrapper<OwnerBill> buildOwnerBillWrapper(OwnerBillQueryDTO query, List<Long> ownerIds) {
+    private LambdaQueryWrapper<OwnerBill> buildOwnerBillWrapper(OwnerBillQueryDTO query, List<Long> ownerIds, List<Long> contractIds) {
         LambdaQueryWrapper<OwnerBill> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(query.getOwnerId() != null, OwnerBill::getOwnerId, query.getOwnerId());
         wrapper.eq(query.getContractId() != null, OwnerBill::getContractId, query.getContractId());
@@ -461,6 +482,7 @@ public class OwnerBillService {
         wrapper.eq(query.getApprovalStatus() != null, OwnerBill::getApprovalStatus, query.getApprovalStatus());
         wrapper.eq(query.getSettlementStatus() != null, OwnerBill::getSettlementStatus, query.getSettlementStatus());
         wrapper.in(ownerIds != null, OwnerBill::getOwnerId, ownerIds);
+        wrapper.in(contractIds != null, OwnerBill::getContractId, contractIds);
         return wrapper;
     }
 
@@ -539,6 +561,8 @@ public class OwnerBillService {
         vo.setReductionAmount(item.getReductionAmount());
         vo.setExpenseAmount(item.getExpenseAmount());
         vo.setPayableAmount(item.getPayableAmount());
+        vo.setSettledAmount(item.getSettledAmount());
+        vo.setUnpaidAmount(defaultZero(item.getPayableAmount()).subtract(defaultZero(item.getSettledAmount())).max(BigDecimal.ZERO));
         vo.setWithdrawableAmount(contract != null && OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode()) ? BigDecimal.ZERO : item.getWithdrawableAmount());
         vo.setBillStatus(item.getBillStatus());
         vo.setApprovalStatus(item.getApprovalStatus());
@@ -551,6 +575,20 @@ public class OwnerBillService {
 
     private BigDecimal defaultZero(BigDecimal amount) {
         return amount == null ? BigDecimal.ZERO : amount;
+    }
+
+    private List<Long> resolveContractIds(OwnerBillQueryDTO query) {
+        if (query.getCooperationMode() == null) {
+            return null;
+        }
+        return ownerContractRepo.list(new LambdaQueryWrapper<OwnerContract>()
+                .eq(OwnerContract::getCooperationMode, query.getCooperationMode().name())
+                .select(OwnerContract::getId))
+            .stream()
+            .map(OwnerContract::getId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
     }
 
     private OwnerWithdrawApplyListVO toOwnerWithdrawListVO(OwnerWithdrawApply item, Owner owner) {

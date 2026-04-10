@@ -17,6 +17,12 @@ public class OwnerBillSummaryVO {
     @Schema(description = "应付总额")
     private BigDecimal totalPayableAmount;
 
+    @Schema(description = "已结总额")
+    private BigDecimal totalSettledAmount;
+
+    @Schema(description = "未结总额")
+    private BigDecimal totalUnpaidAmount;
+
     @Schema(description = "可提现总额")
     private BigDecimal totalWithdrawableAmount;
 }

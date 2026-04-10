@@ -65,6 +65,12 @@ public class OwnerBillListVO {
     @Schema(description = "应付金额")
     private BigDecimal payableAmount;
 
+    @Schema(description = "已结金额")
+    private BigDecimal settledAmount;
+
+    @Schema(description = "未结金额")
+    private BigDecimal unpaidAmount;
+
     @Schema(description = "可提现金额")
     private BigDecimal withdrawableAmount;
 

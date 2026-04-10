@@ -208,6 +208,9 @@ public class OwnerContractService {
                 new LambdaQueryWrapper<OwnerLeaseFreeRule>().eq(OwnerLeaseFreeRule::getContractId, contract.getId())
             ).stream().map(this::toOwnerLeaseFreeRuleDTO).collect(Collectors.toList());
             vo.setOwnerLeaseFreeRuleList(leaseFreeRuleList);
+            boolean masterLeaseBillLocked = ownerBillGenerateService.isMasterLeaseBillLocked(contract.getId());
+            vo.setMasterLeaseBillLocked(masterLeaseBillLocked);
+            vo.setMasterLeaseBillLockReason(masterLeaseBillLocked ? "该包租合同已发生付款或结算，账单条款已锁定；如需调整，请走合同变更。" : null);
         }
         vo.setContractSubjectList(subjectDTOList);
         ContractSubjectSummary summary = buildContractSubjectSummary(contract, contractSubjects);
@@ -249,8 +252,21 @@ public class OwnerContractService {
         updateOwnerInfo(dto, owner);
 
         Date now = DateUtil.date();
+        boolean shouldRebuildMasterLeaseBills = false;
         if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(currentContract.getCooperationMode())) {
-            ownerBillGenerateService.clearMasterLeaseOwnerBillsByContract(currentContract.getId());
+            boolean masterLeaseBillLocked = ownerBillGenerateService.isMasterLeaseBillLocked(currentContract.getId());
+            boolean masterLeaseBillChanged = hasMasterLeaseBillChange(currentContract, dto);
+            if (masterLeaseBillLocked && masterLeaseBillChanged) {
+                throw new IllegalArgumentException("包租合同已发生付款或结算，账单条款已锁定；如需调整，请走合同变更");
+            }
+            if (!masterLeaseBillLocked && masterLeaseBillChanged) {
+                ownerBillGenerateService.clearMasterLeaseOwnerBillsByContract(currentContract.getId());
+                shouldRebuildMasterLeaseBills = true;
+            }
+        }
+        if (!OwnerCooperationModeEnum.MASTER_LEASE.name().equals(currentContract.getCooperationMode())
+            && OwnerCooperationModeEnum.MASTER_LEASE.equals(dto.getOwnerContract().getCooperationMode())) {
+            shouldRebuildMasterLeaseBills = true;
         }
         OwnerContract contract = BeanCopyUtils.copyBean(dto.getOwnerContract(), OwnerContract.class);
         assert contract != null;
@@ -273,7 +289,9 @@ public class OwnerContractService {
             saveLightManagedRules(toCreateDTO(dto), contract, contractSubjects, now);
         } else {
             saveMasterLeaseRules(toCreateDTO(dto), contract.getId(), now);
-            ownerBillGenerateService.rebuildMasterLeaseOwnerBillsByContract(contract.getId());
+            if (shouldRebuildMasterLeaseBills) {
+                ownerBillGenerateService.rebuildMasterLeaseOwnerBillsByContract(contract.getId());
+            }
         }
         return contract.getId();
     }
@@ -817,6 +835,111 @@ public class OwnerContractService {
 
     private String defaultString(String value) {
         return value == null ? "" : value;
+    }
+
+    private boolean hasMasterLeaseBillChange(OwnerContract currentContract, OwnerUpdateDTO dto) {
+        OwnerCooperationModeEnum nextMode = dto.getOwnerContract().getCooperationMode();
+        if (!OwnerCooperationModeEnum.MASTER_LEASE.equals(nextMode)) {
+            return true;
+        }
+
+        OwnerDetailVO currentDetail = getOwnerContractDetail(buildOwnerContractIdDTO(currentContract.getId()));
+        Map<String, Object> currentSnapshot = new LinkedHashMap<>();
+        currentSnapshot.put("cooperationMode", currentContract.getCooperationMode());
+        currentSnapshot.put("contractStart", formatDate(currentContract.getContractStart()));
+        currentSnapshot.put("contractEnd", formatDate(currentContract.getContractEnd()));
+        currentSnapshot.put("subjectList", normalizeContractSubjectList(currentDetail.getContractSubjectList()));
+        currentSnapshot.put("leaseRule", normalizeOwnerLeaseRule(currentDetail.getOwnerLeaseRule()));
+        currentSnapshot.put("leaseFreeRuleList", normalizeLeaseFreeRuleList(currentDetail.getOwnerLeaseFreeRuleList()));
+
+        Map<String, Object> nextSnapshot = new LinkedHashMap<>();
+        nextSnapshot.put("cooperationMode", nextMode.name());
+        nextSnapshot.put("contractStart", formatDate(dto.getOwnerContract().getContractStart()));
+        nextSnapshot.put("contractEnd", formatDate(dto.getOwnerContract().getContractEnd()));
+        nextSnapshot.put("subjectList", normalizeContractSubjectList(dto.getContractSubjectList()));
+        nextSnapshot.put("leaseRule", normalizeOwnerLeaseRule(dto.getOwnerLeaseRule()));
+        nextSnapshot.put("leaseFreeRuleList", normalizeLeaseFreeRuleList(dto.getOwnerLeaseFreeRuleList()));
+        return !Objects.equals(JSONUtil.toJsonStr(currentSnapshot), JSONUtil.toJsonStr(nextSnapshot));
+    }
+
+    private OwnerContractIdDTO buildOwnerContractIdDTO(Long contractId) {
+        OwnerContractIdDTO dto = new OwnerContractIdDTO();
+        dto.setContractId(contractId);
+        return dto;
+    }
+
+    private List<Map<String, Object>> normalizeContractSubjectList(List<OwnerContractSubjectDTO> list) {
+        return Objects.requireNonNullElse(list, List.<OwnerContractSubjectDTO>of())
+            .stream()
+            .map(item -> {
+                Map<String, Object> map = new LinkedHashMap<>();
+                map.put("subjectType", item.getSubjectType() == null ? null : item.getSubjectType().name());
+                map.put("subjectId", item.getSubjectId());
+                return map;
+            })
+            .sorted(Comparator.comparing(item -> String.valueOf(item.get("subjectType")) + "_" + String.valueOf(item.get("subjectId"))))
+            .toList();
+    }
+
+    private Map<String, Object> normalizeOwnerLeaseRule(OwnerLeaseRuleDTO rule) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        if (rule == null) {
+            return map;
+        }
+        map.put("rentAmount", rule.getRentAmount());
+        map.put("depositAmount", rule.getDepositAmount());
+        map.put("depositMonths", rule.getDepositMonths());
+        map.put("paymentMonths", rule.getPaymentMonths());
+        map.put("rentDueType", rule.getRentDueType() == null ? null : rule.getRentDueType().name());
+        map.put("rentDueDay", rule.getRentDueDay());
+        map.put("rentDueOffsetDays", rule.getRentDueOffsetDays());
+        map.put("firstPayDate", formatDate(rule.getFirstPayDate()));
+        map.put("billingStart", formatDate(rule.getBillingStart()));
+        map.put("billingEnd", formatDate(rule.getBillingEnd()));
+        map.put("prorateType", rule.getProrateType() == null ? null : rule.getProrateType().name());
+        map.put("otherFeeList", normalizeLeaseFeeList(rule.getOtherFeeList()));
+        return map;
+    }
+
+    private List<Map<String, Object>> normalizeLeaseFeeList(List<OwnerLeaseFeeDTO> list) {
+        return Objects.requireNonNullElse(list, List.<OwnerLeaseFeeDTO>of())
+            .stream()
+            .map(item -> {
+                Map<String, Object> map = new LinkedHashMap<>();
+                map.put("feeType", item.getFeeType());
+                map.put("feeName", item.getFeeName());
+                map.put("feeDirection", item.getFeeDirection() == null ? null : item.getFeeDirection().name());
+                map.put("paymentMethod", item.getPaymentMethod());
+                map.put("priceMethod", item.getPriceMethod());
+                map.put("priceInput", item.getPriceInput());
+                map.put("sortOrder", item.getSortOrder());
+                map.put("remark", defaultString(item.getRemark()));
+                return map;
+            })
+            .sorted(Comparator.comparing(item -> JSONUtil.toJsonStr(item)))
+            .toList();
+    }
+
+    private List<Map<String, Object>> normalizeLeaseFreeRuleList(List<OwnerLeaseFreeRuleDTO> list) {
+        return Objects.requireNonNullElse(list, List.<OwnerLeaseFreeRuleDTO>of())
+            .stream()
+            .map(item -> {
+                Map<String, Object> map = new LinkedHashMap<>();
+                map.put("freeType", item.getFreeType() == null ? null : item.getFreeType().name());
+                map.put("startDate", formatDate(item.getStartDate()));
+                map.put("endDate", formatDate(item.getEndDate()));
+                map.put("calcMode", item.getCalcMode() == null ? null : item.getCalcMode().name());
+                map.put("freeAmount", item.getFreeAmount());
+                map.put("freeRatio", item.getFreeRatio());
+                map.put("remark", defaultString(item.getRemark()));
+                return map;
+            })
+            .sorted(Comparator.comparing(item -> JSONUtil.toJsonStr(item)))
+            .toList();
+    }
+
+    private String formatDate(Date value) {
+        return value == null ? null : DateUtil.formatDate(value);
     }
 
     private boolean isBlank(String value) {
