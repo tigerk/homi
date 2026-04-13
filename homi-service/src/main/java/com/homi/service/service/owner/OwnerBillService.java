@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
+import com.homi.common.lib.enums.owner.OwnerBillBizTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
 import com.homi.common.lib.enums.owner.OwnerBillSettlementStatusEnum;
@@ -124,6 +125,7 @@ public class OwnerBillService {
         OwnerBillDetailVO vo = new OwnerBillDetailVO();
         vo.setBillId(bill.getId());
         vo.setBillNo(bill.getBillNo());
+        vo.setBillBizType(OwnerBillBizTypeEnum.fromCode(bill.getBillBizType()));
         vo.setOwnerId(bill.getOwnerId());
         vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
@@ -547,6 +549,7 @@ public class OwnerBillService {
         OwnerBillListVO vo = new OwnerBillListVO();
         vo.setBillId(item.getId());
         vo.setBillNo(item.getBillNo());
+        vo.setBillBizType(OwnerBillBizTypeEnum.fromCode(item.getBillBizType()));
         vo.setOwnerId(item.getOwnerId());
         vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);

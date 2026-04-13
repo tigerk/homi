@@ -343,6 +343,7 @@ CREATE TABLE IF NOT EXISTS `owner_bill` (
   `owner_id` bigint NOT NULL COMMENT '业主ID',
   `contract_id` bigint NOT NULL COMMENT '业主合同ID',
   `bill_no` varchar(64) NOT NULL COMMENT '账单编号',
+  `bill_biz_type` varchar(64) DEFAULT NULL COMMENT '账单业务类型',
   `bill_start` date DEFAULT NULL COMMENT '账单开始日期',
   `bill_end` date DEFAULT NULL COMMENT '账单结束日期',
   `due_date` date DEFAULT NULL COMMENT '应付日期',

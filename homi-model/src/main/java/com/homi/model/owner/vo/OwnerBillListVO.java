@@ -1,6 +1,7 @@
 package com.homi.model.owner.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.common.lib.enums.owner.OwnerBillBizTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,6 +18,9 @@ public class OwnerBillListVO {
 
     @Schema(description = "账单编号")
     private String billNo;
+
+    @Schema(description = "账单业务类型")
+    private OwnerBillBizTypeEnum billBizType;
 
     @Schema(description = "业主ID")
     private Long ownerId;

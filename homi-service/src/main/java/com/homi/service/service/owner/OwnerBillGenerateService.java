@@ -231,6 +231,7 @@ public class OwnerBillGenerateService {
             ownerBill.setSubjectId(contractSubject.getSubjectId());
             ownerBill.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
             ownerBill.setBillNo(generateOwnerBillNo());
+            ownerBill.setBillBizType(OwnerBillBizTypeEnum.LIGHT_MANAGED_SETTLEMENT.getCode());
             ownerBill.setBillStart(billDate);
             ownerBill.setBillEnd(billDate);
             ownerBill.setIncomeAmount(incomeAmount);
@@ -472,6 +473,7 @@ public class OwnerBillGenerateService {
         ownerBill.setSubjectId(null);
         ownerBill.setSubjectNameSnapshot(subjectSummary);
         ownerBill.setBillNo(generateOwnerBillNo());
+        ownerBill.setBillBizType(OwnerBillBizTypeEnum.MASTER_LEASE_PAYABLE.getCode());
         ownerBill.setBillStart(periodStart);
         ownerBill.setBillEnd(periodEnd);
         ownerBill.setDueDate(resolveMasterLeaseDueDate(leaseRule, periodStart));
