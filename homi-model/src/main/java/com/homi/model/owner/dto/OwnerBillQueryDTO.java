@@ -23,7 +23,7 @@ public class OwnerBillQueryDTO extends PageDTO {
     private String billNo;
 
     @Schema(description = "合作模式")
-    private OwnerCooperationModeEnum cooperationMode;
+    private String cooperationMode;
 
     @Schema(description = "审批状态")
     private Integer approvalStatus;

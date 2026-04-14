@@ -1,66 +1,25 @@
 package com.homi.service.service.owner;
 
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
-import com.homi.common.lib.enums.owner.OwnerBillBizTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
-import com.homi.common.lib.enums.owner.OwnerBillSettlementStatusEnum;
-import com.homi.common.lib.enums.owner.OwnerWithdrawOperateEnum;
+import com.homi.common.lib.enums.owner.*;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dao.entity.FileAttach;
-import com.homi.model.dao.entity.Owner;
-import com.homi.model.dao.entity.OwnerAccount;
-import com.homi.model.dao.entity.OwnerAccountFlow;
-import com.homi.model.dao.entity.OwnerBill;
-import com.homi.model.dao.entity.OwnerBillLine;
-import com.homi.model.dao.entity.OwnerBillPayment;
-import com.homi.model.dao.entity.OwnerBillReduction;
-import com.homi.model.dao.entity.OwnerContract;
-import com.homi.model.dao.entity.OwnerWithdrawApply;
-import com.homi.model.dao.repo.FileAttachRepo;
-import com.homi.model.dao.repo.OwnerAccountFlowRepo;
-import com.homi.model.dao.repo.OwnerAccountRepo;
-import com.homi.model.dao.repo.OwnerBillLineRepo;
-import com.homi.model.dao.repo.OwnerBillPaymentRepo;
-import com.homi.model.dao.repo.OwnerBillReductionRepo;
-import com.homi.model.dao.repo.OwnerBillRepo;
-import com.homi.model.dao.repo.OwnerContractRepo;
-import com.homi.model.dao.repo.OwnerRepo;
-import com.homi.model.dao.repo.OwnerWithdrawApplyRepo;
-import com.homi.model.owner.dto.OwnerBillIdDTO;
-import com.homi.model.owner.dto.OwnerBillPaymentCreateDTO;
-import com.homi.model.owner.dto.OwnerBillQueryDTO;
-import com.homi.model.owner.dto.OwnerWithdrawApplyIdDTO;
-import com.homi.model.owner.dto.OwnerWithdrawApplyQueryDTO;
-import com.homi.model.owner.dto.OwnerWithdrawCreateDTO;
-import com.homi.model.owner.dto.OwnerWithdrawOperateDTO;
-import com.homi.model.owner.vo.OwnerAccountFlowVO;
-import com.homi.model.owner.vo.OwnerBillDetailVO;
-import com.homi.model.owner.vo.OwnerBillLineVO;
-import com.homi.model.owner.vo.OwnerBillListVO;
-import com.homi.model.owner.vo.OwnerBillPaymentVO;
-import com.homi.model.owner.vo.OwnerBillReductionVO;
-import com.homi.model.owner.vo.OwnerWithdrawApplyDetailVO;
-import com.homi.model.owner.vo.OwnerWithdrawApplyListVO;
-import com.homi.model.owner.vo.OwnerBillSummaryVO;
-import com.homi.model.owner.vo.OwnerWithdrawSummaryVO;
+import com.homi.model.dao.entity.*;
+import com.homi.model.dao.repo.*;
+import com.homi.model.owner.dto.*;
+import com.homi.model.owner.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,8 +42,8 @@ public class OwnerBillService {
         wrapper.eq(query.getOwnerId() != null, OwnerBill::getOwnerId, query.getOwnerId());
         wrapper.eq(query.getContractId() != null, OwnerBill::getContractId, query.getContractId());
         wrapper.like(StrUtil.isNotBlank(query.getBillNo()), OwnerBill::getBillNo, query.getBillNo());
-        List<Long> ownerIds = resolveOwnerIds(query.getOwnerName());
-        List<Long> contractIds = resolveContractIds(query);
+        List<Long> ownerIds = ownerRepo.getOwnerIdsByOwnerName(query.getOwnerName());
+        List<Long> contractIds = ownerContractRepo.getContractIdsByCooperationMode(query.getCooperationMode());
         if (ownerIds != null && ownerIds.isEmpty()) {
             return emptyBillPage(query);
         }
@@ -164,26 +123,34 @@ public class OwnerBillService {
         return vo;
     }
 
+    /**
+     * 组装Empty业主账单汇总VO
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/4/14 16:24
+     *
+     * @param vo 参数说明
+     */
+    public void getEmptyOwnerBillSummary(OwnerBillSummaryVO vo) {
+        vo.setBillCount(0L);
+        vo.setTotalIncomeAmount(BigDecimal.ZERO);
+        vo.setTotalPayableAmount(BigDecimal.ZERO);
+        vo.setTotalSettledAmount(BigDecimal.ZERO);
+        vo.setTotalUnpaidAmount(BigDecimal.ZERO);
+        vo.setTotalWithdrawableAmount(BigDecimal.ZERO);
+    }
+
     public OwnerBillSummaryVO summaryOwnerBills(OwnerBillQueryDTO query) {
         OwnerBillSummaryVO vo = new OwnerBillSummaryVO();
-        List<Long> ownerIds = resolveOwnerIds(query.getOwnerName());
-        List<Long> contractIds = resolveContractIds(query);
+        List<Long> ownerIds = ownerRepo.getOwnerIdsByOwnerName(query.getOwnerName());
         if (ownerIds != null && ownerIds.isEmpty()) {
-            vo.setBillCount(0L);
-            vo.setTotalIncomeAmount(BigDecimal.ZERO);
-            vo.setTotalPayableAmount(BigDecimal.ZERO);
-            vo.setTotalSettledAmount(BigDecimal.ZERO);
-            vo.setTotalUnpaidAmount(BigDecimal.ZERO);
-            vo.setTotalWithdrawableAmount(BigDecimal.ZERO);
+            getEmptyOwnerBillSummary(vo);
             return vo;
         }
+
+        List<Long> contractIds = ownerContractRepo.getContractIdsByCooperationMode(query.getCooperationMode());
         if (contractIds != null && contractIds.isEmpty()) {
-            vo.setBillCount(0L);
-            vo.setTotalIncomeAmount(BigDecimal.ZERO);
-            vo.setTotalPayableAmount(BigDecimal.ZERO);
-            vo.setTotalSettledAmount(BigDecimal.ZERO);
-            vo.setTotalUnpaidAmount(BigDecimal.ZERO);
-            vo.setTotalWithdrawableAmount(BigDecimal.ZERO);
+            getEmptyOwnerBillSummary(vo);
             return vo;
         }
         List<OwnerBill> bills = ownerBillRepo.list(buildOwnerBillWrapper(query, ownerIds, contractIds));
@@ -205,7 +172,7 @@ public class OwnerBillService {
         wrapper.like(StrUtil.isNotBlank(query.getApplyNo()), OwnerWithdrawApply::getApplyNo, query.getApplyNo());
         wrapper.eq(query.getApprovalStatus() != null, OwnerWithdrawApply::getApprovalStatus, query.getApprovalStatus());
         wrapper.eq(query.getWithdrawStatus() != null, OwnerWithdrawApply::getWithdrawStatus, query.getWithdrawStatus());
-        List<Long> ownerIds = resolveOwnerIds(query.getOwnerName());
+        List<Long> ownerIds = ownerRepo.getOwnerIdsByOwnerName(query.getOwnerName());
         if (ownerIds != null && ownerIds.isEmpty()) {
             return emptyWithdrawPage(query);
         }
@@ -268,7 +235,7 @@ public class OwnerBillService {
 
     public OwnerWithdrawSummaryVO summaryOwnerWithdrawApplies(OwnerWithdrawApplyQueryDTO query) {
         OwnerWithdrawSummaryVO vo = new OwnerWithdrawSummaryVO();
-        List<Long> ownerIds = resolveOwnerIds(query.getOwnerName());
+        List<Long> ownerIds = ownerRepo.getOwnerIdsByOwnerName(query.getOwnerName());
         if (ownerIds != null && ownerIds.isEmpty()) {
             fillEmptyWithdrawSummary(vo);
             return vo;
@@ -470,13 +437,6 @@ public class OwnerBillService {
             .build();
     }
 
-    private List<Long> resolveOwnerIds(String ownerName) {
-        if (StrUtil.isBlank(ownerName)) {
-            return null;
-        }
-        return ownerRepo.list(new LambdaQueryWrapper<Owner>().like(Owner::getOwnerName, ownerName)).stream().map(Owner::getId).toList();
-    }
-
     private LambdaQueryWrapper<OwnerBill> buildOwnerBillWrapper(OwnerBillQueryDTO query, List<Long> ownerIds, List<Long> contractIds) {
         LambdaQueryWrapper<OwnerBill> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(query.getOwnerId() != null, OwnerBill::getOwnerId, query.getOwnerId());
@@ -580,20 +540,6 @@ public class OwnerBillService {
 
     private BigDecimal defaultZero(BigDecimal amount) {
         return amount == null ? BigDecimal.ZERO : amount;
-    }
-
-    private List<Long> resolveContractIds(OwnerBillQueryDTO query) {
-        if (query.getCooperationMode() == null) {
-            return null;
-        }
-        return ownerContractRepo.list(new LambdaQueryWrapper<OwnerContract>()
-                .eq(OwnerContract::getCooperationMode, query.getCooperationMode().name())
-                .select(OwnerContract::getId))
-            .stream()
-            .map(OwnerContract::getId)
-            .filter(Objects::nonNull)
-            .distinct()
-            .toList();
     }
 
     private OwnerWithdrawApplyListVO toOwnerWithdrawListVO(OwnerWithdrawApply item, Owner owner) {
