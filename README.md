@@ -24,6 +24,16 @@ company 记录公司信息 、user 登录用户 、 company-user 关联，然后
 
 > “排序” 字段使用 sort_order 而不是 sort。
 
+## 时间命名规范
+
+* 仅表示“日期”的字段：*_date
+
+例如：bill_start_date、bill_end_date、due_date、biz_date
+
+* 表示“事件发生时刻”的字段：*_at
+
+例如：generated_at、approved_at、cancel_at、pay_at
+
 ## 🏠系统字段命名规范表
 
 | 中文      |  英文写法   |                说明                 |

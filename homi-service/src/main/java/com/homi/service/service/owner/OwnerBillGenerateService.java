@@ -10,6 +10,8 @@ import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
 import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
+import com.homi.common.lib.enums.owner.OwnerPayableBillPaymentStatusEnum;
+import com.homi.common.lib.enums.owner.OwnerPayableBillStatusEnum;
 import com.homi.common.lib.enums.owner.*;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
@@ -41,10 +43,12 @@ public class OwnerBillGenerateService {
     private final OwnerLeaseRuleRepo ownerLeaseRuleRepo;
     private final OwnerLeaseFeeRepo ownerLeaseFeeRepo;
     private final OwnerLeaseFreeRuleRepo ownerLeaseFreeRuleRepo;
-    private final OwnerBillRepo ownerBillRepo;
-    private final OwnerBillLineRepo ownerBillLineRepo;
-    private final OwnerBillPaymentRepo ownerBillPaymentRepo;
-    private final OwnerBillReductionRepo ownerBillReductionRepo;
+    private final OwnerSettlementBillRepo ownerSettlementBillRepo;
+    private final OwnerSettlementBillLineRepo ownerSettlementBillLineRepo;
+    private final OwnerSettlementBillReductionRepo ownerSettlementBillReductionRepo;
+    private final OwnerPayableBillRepo ownerPayableBillRepo;
+    private final OwnerPayableBillLineRepo ownerPayableBillLineRepo;
+    private final OwnerPayableBillPaymentRepo ownerPayableBillPaymentRepo;
     private final OwnerAccountRepo ownerAccountRepo;
     private final OwnerAccountFlowRepo ownerAccountFlowRepo;
 
@@ -122,23 +126,22 @@ public class OwnerBillGenerateService {
      * @return 是否锁定
      */
     public boolean isMasterLeaseBillLocked(Long contractId) {
-        List<OwnerBill> billList = ownerBillRepo.lambdaQuery()
-            .eq(OwnerBill::getContractId, contractId)
+        List<OwnerPayableBill> billList = ownerPayableBillRepo.lambdaQuery()
+            .eq(OwnerPayableBill::getContractId, contractId)
             .list();
         if (billList.isEmpty()) {
             return false;
         }
-        boolean hasSettledBill = billList.stream().anyMatch(item ->
-            ObjectUtil.defaultIfNull(item.getSettledAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
-                || ObjectUtil.defaultIfNull(item.getWithdrawnAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
-                || ObjectUtil.defaultIfNull(item.getFreezeAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
+        boolean hasPaidBill = billList.stream().anyMatch(item ->
+            ObjectUtil.defaultIfNull(item.getPaidAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0
+                || !Objects.equals(item.getPaymentStatus(), OwnerPayableBillPaymentStatusEnum.UNPAID.getCode())
         );
-        if (hasSettledBill) {
+        if (hasPaidBill) {
             return true;
         }
-        List<Long> billIds = billList.stream().map(OwnerBill::getId).toList();
-        return ownerBillPaymentRepo.lambdaQuery()
-            .in(OwnerBillPayment::getBillId, billIds)
+        List<Long> billIds = billList.stream().map(OwnerPayableBill::getId).toList();
+        return ownerPayableBillPaymentRepo.lambdaQuery()
+            .in(OwnerPayableBillPayment::getBillId, billIds)
             .count() > 0;
     }
 
@@ -203,7 +206,7 @@ public class OwnerBillGenerateService {
 
             BigDecimal incomeAmount = rentAmount;
             BigDecimal expenseAmount = BigDecimal.ZERO;
-            List<OwnerBillLine> lineList = new ArrayList<>();
+            List<OwnerSettlementBillLine> lineList = new ArrayList<>();
             List<String> remarkList = new ArrayList<>();
 
             OwnerRentFreeRule rentFreeRule = rentFreeRuleMap.get(contractSubject.getId());
@@ -223,17 +226,16 @@ public class OwnerBillGenerateService {
             BigDecimal withdrawableAmount = payableAmount.compareTo(BigDecimal.ZERO) > 0 ? payableAmount : BigDecimal.ZERO;
             Date now = DateUtil.date();
 
-            OwnerBill ownerBill = new OwnerBill();
+            OwnerSettlementBill ownerBill = new OwnerSettlementBill();
             ownerBill.setCompanyId(contract.getCompanyId());
             ownerBill.setOwnerId(contract.getOwnerId());
             ownerBill.setContractId(contract.getId());
             ownerBill.setSubjectType(contractSubject.getSubjectType());
             ownerBill.setSubjectId(contractSubject.getSubjectId());
             ownerBill.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
-            ownerBill.setBillNo(generateOwnerBillNo());
-            ownerBill.setBillBizType(OwnerBillBizTypeEnum.LIGHT_MANAGED_SETTLEMENT.getCode());
-            ownerBill.setBillStart(billDate);
-            ownerBill.setBillEnd(billDate);
+            ownerBill.setBillNo(generateOwnerSettlementBillNo());
+            ownerBill.setBillStartDate(billDate);
+            ownerBill.setBillEndDate(billDate);
             ownerBill.setIncomeAmount(incomeAmount);
             ownerBill.setReductionAmount(BigDecimal.ZERO);
             ownerBill.setExpenseAmount(expenseAmount);
@@ -251,13 +253,14 @@ public class OwnerBillGenerateService {
             ownerBill.setRemark(remarkList.isEmpty() ? "起租日自动生成账单" : String.join("；", remarkList));
             ownerBill.setCreateTime(now);
             ownerBill.setUpdateTime(now);
-            ownerBillRepo.save(ownerBill);
+            ownerSettlementBillRepo.save(ownerBill);
 
             lineList.forEach(item -> {
                 item.setBillId(ownerBill.getId());
+                item.setCompanyId(contract.getCompanyId());
                 item.setCreateTime(now);
             });
-            ownerBillLineRepo.saveBatch(lineList);
+            ownerSettlementBillLineRepo.saveBatch(lineList);
 
             if (withdrawableAmount.compareTo(BigDecimal.ZERO) > 0) {
                 increaseOwnerAccountAmount(contract, ownerBill, withdrawableAmount, now);
@@ -341,9 +344,9 @@ public class OwnerBillGenerateService {
     }
 
     private void clearMasterLeaseBillsByContract(Long contractId) {
-        List<OwnerBill> billList = ownerBillRepo.lambdaQuery()
-            .eq(OwnerBill::getContractId, contractId)
-            .orderByAsc(OwnerBill::getId)
+        List<OwnerPayableBill> billList = ownerPayableBillRepo.lambdaQuery()
+            .eq(OwnerPayableBill::getContractId, contractId)
+            .orderByAsc(OwnerPayableBill::getId)
             .list();
         if (billList.isEmpty()) {
             return;
@@ -352,10 +355,9 @@ public class OwnerBillGenerateService {
             throw new IllegalArgumentException("包租账单已发生付款或结算，账单条款已锁定");
         }
 
-        List<Long> billIds = billList.stream().map(OwnerBill::getId).toList();
-        ownerBillReductionRepo.remove(new LambdaQueryWrapper<OwnerBillReduction>().in(OwnerBillReduction::getBillId, billIds));
-        ownerBillLineRepo.remove(new LambdaQueryWrapper<OwnerBillLine>().in(OwnerBillLine::getBillId, billIds));
-        ownerBillRepo.removeByIds(billIds);
+        List<Long> billIds = billList.stream().map(OwnerPayableBill::getId).toList();
+        ownerPayableBillLineRepo.remove(new LambdaQueryWrapper<OwnerPayableBillLine>().in(OwnerPayableBillLine::getBillId, billIds));
+        ownerPayableBillRepo.removeByIds(billIds);
     }
 
     private boolean isMasterLeaseBillContract(OwnerContract contract) {
@@ -397,10 +399,10 @@ public class OwnerBillGenerateService {
     }
 
     private boolean existsMasterLeaseBill(Long contractId, Date billStart, Date billEnd) {
-        return ownerBillRepo.count(new LambdaQueryWrapper<OwnerBill>()
-            .eq(OwnerBill::getContractId, contractId)
-            .eq(OwnerBill::getBillStart, billStart)
-            .eq(OwnerBill::getBillEnd, billEnd)) > 0;
+        return ownerPayableBillRepo.count(new LambdaQueryWrapper<OwnerPayableBill>()
+            .eq(OwnerPayableBill::getContractId, contractId)
+            .eq(OwnerPayableBill::getBillStartDate, billStart)
+            .eq(OwnerPayableBill::getBillEndDate, billEnd)) > 0;
     }
 
     private void createMasterLeaseBill(
@@ -419,8 +421,7 @@ public class OwnerBillGenerateService {
         BigDecimal incomeAmount = BigDecimal.ZERO;
         BigDecimal expenseAmount = BigDecimal.ZERO;
         BigDecimal reductionAmount = BigDecimal.ZERO;
-        List<OwnerBillLine> lineList = new ArrayList<>();
-        List<OwnerBillReduction> reductionList = new ArrayList<>();
+        List<OwnerPayableBillLine> lineList = new ArrayList<>();
 
         BigDecimal rentAmount = calcMasterLeaseRentAmount(leaseRule, periodStart, periodEnd);
         if (rentAmount.compareTo(BigDecimal.ZERO) > 0) {
@@ -460,58 +461,44 @@ public class OwnerBillGenerateService {
                 continue;
             }
             reductionAmount = reductionAmount.add(currentReductionAmount);
-            reductionList.add(buildMasterLeaseReduction(contract, freeRule, periodStart, currentReductionAmount, now));
+            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_LEASE_FREE_RULE.getCode(), freeRule.getId(),
+                OwnerBillItemTypeEnum.OTHER_FEE.getCode(), "包租免租", FinanceFlowDirectionEnum.OUT.getCode(), currentReductionAmount,
+                freeRule.getRemark(), "calcMode=" + freeRule.getCalcMode()));
         }
 
         BigDecimal payableAmount = incomeAmount.subtract(expenseAmount).subtract(reductionAmount);
 
-        OwnerBill ownerBill = new OwnerBill();
+        OwnerPayableBill ownerBill = new OwnerPayableBill();
         ownerBill.setCompanyId(contract.getCompanyId());
         ownerBill.setOwnerId(contract.getOwnerId());
         ownerBill.setContractId(contract.getId());
         ownerBill.setSubjectType(null);
         ownerBill.setSubjectId(null);
         ownerBill.setSubjectNameSnapshot(subjectSummary);
-        ownerBill.setBillNo(generateOwnerBillNo());
-        ownerBill.setBillBizType(OwnerBillBizTypeEnum.MASTER_LEASE_PAYABLE.getCode());
-        ownerBill.setBillStart(periodStart);
-        ownerBill.setBillEnd(periodEnd);
+        ownerBill.setBillNo(generateOwnerPayableBillNo());
+        ownerBill.setBillStartDate(periodStart);
+        ownerBill.setBillEndDate(periodEnd);
         ownerBill.setDueDate(resolveMasterLeaseDueDate(leaseRule, periodStart));
-        ownerBill.setIncomeAmount(incomeAmount);
-        ownerBill.setReductionAmount(reductionAmount);
-        ownerBill.setExpenseAmount(expenseAmount);
         ownerBill.setAdjustAmount(BigDecimal.ZERO);
         ownerBill.setPayableAmount(payableAmount);
-        ownerBill.setSettledAmount(BigDecimal.ZERO);
-        ownerBill.setWithdrawnAmount(BigDecimal.ZERO);
-        ownerBill.setFreezeAmount(BigDecimal.ZERO);
-        ownerBill.setWithdrawableAmount(BigDecimal.ZERO);
-        ownerBill.setBillStatus(OwnerBillStatusEnum.NORMAL.getCode());
-        ownerBill.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
-        ownerBill.setSettlementStatus(OwnerBillSettlementStatusEnum.UNSETTLED.getCode());
+        ownerBill.setPaidAmount(BigDecimal.ZERO);
+        ownerBill.setUnpaidAmount(payableAmount);
+        ownerBill.setBillStatus(OwnerPayableBillStatusEnum.NORMAL.getCode());
+        ownerBill.setPaymentStatus(OwnerPayableBillPaymentStatusEnum.UNPAID.getCode());
         ownerBill.setGeneratedAt(now);
-        ownerBill.setApprovedAt(now);
         ownerBill.setRemark("包租应付账单自动生成");
         ownerBill.setCreateTime(now);
         ownerBill.setUpdateTime(now);
-        ownerBillRepo.save(ownerBill);
+        ownerPayableBillRepo.save(ownerBill);
 
         lineList.forEach(item -> {
             item.setBillId(ownerBill.getId());
+            item.setCompanyId(contract.getCompanyId());
             item.setSubjectNameSnapshot(subjectSummary);
             item.setCreateTime(now);
         });
         if (!lineList.isEmpty()) {
-            ownerBillLineRepo.saveBatch(lineList);
-        }
-
-        reductionList.forEach(item -> {
-            item.setBillId(ownerBill.getId());
-            item.setCreateTime(now);
-            item.setUpdateTime(now);
-        });
-        if (!reductionList.isEmpty()) {
-            ownerBillReductionRepo.saveBatch(reductionList);
+            ownerPayableBillLineRepo.saveBatch(lineList);
         }
     }
 
@@ -677,7 +664,7 @@ public class OwnerBillGenerateService {
         return ObjectUtil.defaultIfNull(freeRule.getFreeAmount(), BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
     }
 
-    private OwnerBillLine buildMasterLeaseLine(
+    private OwnerPayableBillLine buildMasterLeaseLine(
         OwnerContract contract,
         Date bizDate,
         String sourceType,
@@ -689,7 +676,7 @@ public class OwnerBillGenerateService {
         String remark,
         String formulaSnapshot
     ) {
-        OwnerBillLine line = new OwnerBillLine();
+        OwnerPayableBillLine line = new OwnerPayableBillLine();
         line.setSourceType(sourceType);
         line.setSourceId(sourceId);
         line.setSubjectType(null);
@@ -698,36 +685,18 @@ public class OwnerBillGenerateService {
         line.setItemName(itemName);
         line.setDirection(direction);
         line.setAmount(amount);
-        line.setBizDate(bizDate);
+        line.setBizTime(bizDate);
         line.setRemark(remark);
         line.setFormulaSnapshot(formulaSnapshot);
         return line;
     }
 
-    private OwnerBillReduction buildMasterLeaseReduction(OwnerContract contract, OwnerLeaseFreeRule freeRule, Date bizDate, BigDecimal amount, Date now) {
-        OwnerBillReduction reduction = new OwnerBillReduction();
-        reduction.setCompanyId(contract.getCompanyId());
-        reduction.setOwnerId(contract.getOwnerId());
-        reduction.setSourceType(OwnerBillSourceTypeEnum.OWNER_LEASE_FREE_RULE.getCode());
-        reduction.setSourceId(freeRule.getId());
-        reduction.setReductionType("LEASE_FREE");
-        reduction.setReductionName("包租免租");
-        reduction.setAmount(amount);
-        reduction.setBizDate(bizDate);
-        reduction.setRemark(freeRule.getRemark());
-        reduction.setRuleSnapshot("calcMode=" + freeRule.getCalcMode());
-        reduction.setStatus(StatusEnum.ACTIVE.getValue());
-        reduction.setCreateTime(now);
-        reduction.setUpdateTime(now);
-        return reduction;
-    }
-
     private boolean existsLeaseStartBill(Long contractId, Long subjectId, Date billDate) {
-        return ownerBillRepo.count(new LambdaQueryWrapper<OwnerBill>()
-            .eq(OwnerBill::getContractId, contractId)
-            .eq(OwnerBill::getSubjectId, subjectId)
-            .eq(OwnerBill::getBillStart, billDate)
-            .eq(OwnerBill::getBillEnd, billDate)) > 0;
+        return ownerSettlementBillRepo.count(new LambdaQueryWrapper<OwnerSettlementBill>()
+            .eq(OwnerSettlementBill::getContractId, contractId)
+            .eq(OwnerSettlementBill::getSubjectId, subjectId)
+            .eq(OwnerSettlementBill::getBillStartDate, billDate)
+            .eq(OwnerSettlementBill::getBillEndDate, billDate)) > 0;
     }
 
     /**
@@ -772,10 +741,11 @@ public class OwnerBillGenerateService {
             .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
-    private OwnerBillLine buildRentLine(OwnerContractSubject contractSubject, OwnerSettlementRule settlementRule, Date billDate, BigDecimal amount) {
-        OwnerBillLine line = new OwnerBillLine();
+    private OwnerSettlementBillLine buildRentLine(OwnerContractSubject contractSubject, OwnerSettlementRule settlementRule, Date billDate, BigDecimal amount) {
+        OwnerSettlementBillLine line = new OwnerSettlementBillLine();
         line.setSourceType(OwnerBillSourceTypeEnum.OWNER_CONTRACT_SUBJECT.getCode());
         line.setSourceId(contractSubject.getId());
+        line.setCompanyId(null);
         line.setSubjectType(contractSubject.getSubjectType());
         line.setSubjectId(contractSubject.getSubjectId());
         line.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
@@ -783,16 +753,17 @@ public class OwnerBillGenerateService {
         line.setItemName(buildRentLineName(settlementRule));
         line.setDirection(FinanceFlowDirectionEnum.IN.getCode());
         line.setAmount(amount);
-        line.setBizDate(billDate);
+        line.setBizTime(billDate);
         line.setRemark(contractSubject.getSubjectNameSnapshot());
         line.setFormulaSnapshot("leaseStartBill");
         return line;
     }
 
-    private OwnerBillLine buildManagementFeeLine(OwnerContractSubject contractSubject, Date billDate, BigDecimal amount) {
-        OwnerBillLine line = new OwnerBillLine();
+    private OwnerSettlementBillLine buildManagementFeeLine(OwnerContractSubject contractSubject, Date billDate, BigDecimal amount) {
+        OwnerSettlementBillLine line = new OwnerSettlementBillLine();
         line.setSourceType(OwnerBillSourceTypeEnum.OWNER_CONTRACT_SUBJECT.getCode());
         line.setSourceId(contractSubject.getId());
+        line.setCompanyId(null);
         line.setSubjectType(contractSubject.getSubjectType());
         line.setSubjectId(contractSubject.getSubjectId());
         line.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
@@ -800,7 +771,7 @@ public class OwnerBillGenerateService {
         line.setItemName("管理费");
         line.setDirection(FinanceFlowDirectionEnum.OUT.getCode());
         line.setAmount(amount);
-        line.setBizDate(billDate);
+        line.setBizTime(billDate);
         line.setRemark(contractSubject.getSubjectNameSnapshot());
         line.setFormulaSnapshot("managementFee");
         return line;
@@ -830,7 +801,7 @@ public class OwnerBillGenerateService {
         }
     }
 
-    private void increaseOwnerAccountAmount(OwnerContract contract, OwnerBill ownerBill, BigDecimal amount, Date now) {
+    private void increaseOwnerAccountAmount(OwnerContract contract, OwnerSettlementBill ownerBill, BigDecimal amount, Date now) {
         OwnerAccount account = ownerAccountRepo.getByOwnerId(contract.getOwnerId());
         if (account == null) {
             log.warn("业主账户不存在，跳过账户入账, ownerId={}, contractId={}", contract.getOwnerId(), contract.getId());
@@ -862,7 +833,11 @@ public class OwnerBillGenerateService {
         ownerAccountFlowRepo.save(flow);
     }
 
-    private String generateOwnerBillNo() {
-        return "OWB" + IdUtil.getSnowflakeNextIdStr();
+    private String generateOwnerSettlementBillNo() {
+        return "OSB" + IdUtil.getSnowflakeNextIdStr();
+    }
+
+    private String generateOwnerPayableBillNo() {
+        return "OPB" + IdUtil.getSnowflakeNextIdStr();
     }
 }
