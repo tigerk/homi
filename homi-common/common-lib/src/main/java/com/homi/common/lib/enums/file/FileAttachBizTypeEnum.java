@@ -68,7 +68,6 @@ public enum FileAttachBizTypeEnum {
     OWNER_ID_CARD_IN_HAND("owner_id_card_in_hand"),
     OWNER_OTHER_IMAGE("owner_other_image"),
     OWNER_BUSINESS_LICENSE("owner_business_license"),
-    OWNER_BILL_PAYMENT_VOUCHER("owner_bill_payment_voucher"),
     OWNER_PAYABLE_BILL_PAYMENT_VOUCHER("owner_payable_bill_payment_voucher"),
 
     DELIVERY_IMAGE("delivery_image"),

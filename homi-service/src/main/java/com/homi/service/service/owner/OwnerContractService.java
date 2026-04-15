@@ -54,7 +54,7 @@ public class OwnerContractService {
     private final FocusBuildingRepo focusBuildingRepo;
     private final UserRepo userRepo;
     private final FileAttachRepo fileAttachRepo;
-    private final OwnerBillGenerateService ownerBillGenerateService;
+    private final OwnerBillingGenerateService ownerBillingGenerateService;
 
     @Transactional(rollbackFor = Exception.class)
     public Long createOwnerContract(OwnerCreateDTO dto) {
@@ -85,7 +85,7 @@ public class OwnerContractService {
             saveLightManagedRules(dto, contract, contractSubjects, now);
         } else if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
             saveMasterLeaseRules(dto, contract.getId(), now);
-            ownerBillGenerateService.rebuildMasterLeaseOwnerBillsByContract(contract.getId());
+            ownerBillingGenerateService.rebuildMasterLeasePayableBillsByContract(contract.getId());
         }
         initOwnerAccount(dto.getOwnerContract().getCompanyId(), ownerId, now);
         return contract.getId();
@@ -208,7 +208,7 @@ public class OwnerContractService {
                 new LambdaQueryWrapper<OwnerLeaseFreeRule>().eq(OwnerLeaseFreeRule::getContractId, contract.getId())
             ).stream().map(this::toOwnerLeaseFreeRuleDTO).collect(Collectors.toList());
             vo.setOwnerLeaseFreeRuleList(leaseFreeRuleList);
-            boolean masterLeaseBillLocked = ownerBillGenerateService.isMasterLeaseBillLocked(contract.getId());
+            boolean masterLeaseBillLocked = ownerBillingGenerateService.isMasterLeaseBillLocked(contract.getId());
             vo.setMasterLeaseBillLocked(masterLeaseBillLocked);
             vo.setMasterLeaseBillLockReason(masterLeaseBillLocked ? "该包租合同已发生付款或结算，账单条款已锁定；如需调整，请走合同变更。" : null);
         }
@@ -254,13 +254,13 @@ public class OwnerContractService {
         Date now = DateUtil.date();
         boolean shouldRebuildMasterLeaseBills = false;
         if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(currentContract.getCooperationMode())) {
-            boolean masterLeaseBillLocked = ownerBillGenerateService.isMasterLeaseBillLocked(currentContract.getId());
+            boolean masterLeaseBillLocked = ownerBillingGenerateService.isMasterLeaseBillLocked(currentContract.getId());
             boolean masterLeaseBillChanged = hasMasterLeaseBillChange(currentContract, dto);
             if (masterLeaseBillLocked && masterLeaseBillChanged) {
                 throw new IllegalArgumentException("包租合同已发生付款或结算，账单条款已锁定；如需调整，请走合同变更");
             }
             if (!masterLeaseBillLocked && masterLeaseBillChanged) {
-                ownerBillGenerateService.clearMasterLeaseOwnerBillsByContract(currentContract.getId());
+                ownerBillingGenerateService.clearMasterLeasePayableBillsByContract(currentContract.getId());
                 shouldRebuildMasterLeaseBills = true;
             }
         }
@@ -290,7 +290,7 @@ public class OwnerContractService {
         } else {
             saveMasterLeaseRules(toCreateDTO(dto), contract.getId(), now);
             if (shouldRebuildMasterLeaseBills) {
-                ownerBillGenerateService.rebuildMasterLeaseOwnerBillsByContract(contract.getId());
+                ownerBillingGenerateService.rebuildMasterLeasePayableBillsByContract(contract.getId());
             }
         }
         return contract.getId();
@@ -330,7 +330,7 @@ public class OwnerContractService {
             throw new IllegalArgumentException("业主合同不存在");
         }
         if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
-            ownerBillGenerateService.clearMasterLeaseOwnerBillsByContract(contract.getId());
+            ownerBillingGenerateService.clearMasterLeasePayableBillsByContract(contract.getId());
         }
         contract.setUpdateBy(updateBy);
         contract.setUpdateTime(DateUtil.date());

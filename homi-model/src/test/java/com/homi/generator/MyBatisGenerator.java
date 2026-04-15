@@ -60,18 +60,22 @@ public class MyBatisGenerator {
                 "owner",
                 "owner_account",
                 "owner_account_flow",
-                "owner_bill",
-                "owner_bill_line",
-                "owner_bill_reduction",
                 "owner_company",
                 "owner_contract",
-                "owner_contract_house",
+                "owner_contract_subject",
                 "owner_lease_free_rule",
                 "owner_lease_rule",
+                "owner_payable_bill",
+                "owner_payable_bill_line",
+                "owner_payable_bill_payment",
                 "owner_personal",
                 "owner_rent_free_rule",
+                "owner_settlement_bill",
+                "owner_settlement_bill_line",
+                "owner_settlement_bill_reduction",
                 "owner_settlement_rule",
-                "owner_withdraw_apply"
+                "owner_withdraw_apply",
+                "biz_operate_log"
             )).build();
 
         myBatisGenerator.generate();

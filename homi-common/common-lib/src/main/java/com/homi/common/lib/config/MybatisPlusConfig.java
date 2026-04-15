@@ -56,8 +56,7 @@ public class MybatisPlusConfig {
         "sys_notice_role",
         "sys_notice_read",
         "company_product",
-        "contract_seal_provider",
-        "owner_bill_line"
+        "contract_seal_provider"
     );
 
     /**

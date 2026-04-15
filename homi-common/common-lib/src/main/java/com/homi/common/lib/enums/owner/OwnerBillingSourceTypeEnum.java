@@ -5,12 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 业主账单来源类型枚举
+ * 业主单据来源类型枚举
  */
 @Getter
 @AllArgsConstructor
-@Schema(enumAsRef = true, description = "业主账单来源类型枚举")
-public enum OwnerBillSourceTypeEnum {
+@Schema(enumAsRef = true, description = "业主单据来源类型枚举")
+public enum OwnerBillingSourceTypeEnum {
     OWNER_CONTRACT_SUBJECT("OWNER_CONTRACT_SUBJECT", "业主合同房源"),
     OWNER_CONTRACT("OWNER_CONTRACT", "业主合同"),
     OWNER_LEASE_FEE("OWNER_LEASE_FEE", "包租其他费用"),

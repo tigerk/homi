@@ -28,14 +28,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 业主账单服务
+ * 业主单据生成服务
  * <p>
- * 负责轻托管模式下起租日账单的自动生成。
+ * 负责轻托管结算单和包租应付单的生成。
  */
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class OwnerBillGenerateService {
+public class OwnerBillingGenerateService {
     private final OwnerContractRepo ownerContractRepo;
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final OwnerSettlementRuleRepo ownerSettlementRuleRepo;
@@ -53,12 +53,12 @@ public class OwnerBillGenerateService {
     private final OwnerAccountFlowRepo ownerAccountFlowRepo;
 
     /**
-     * 自动生成起租日业主账单
+     * 自动生成起租日业主结算单
      *
      * @return 成功生成的账单数量
      */
     @Transactional(rollbackFor = Exception.class)
-    public Integer generateLeaseStartOwnerBills() {
+    public Integer generateLeaseStartSettlementBills() {
         Date todayStart = DateUtil.beginOfDay(new Date());
         Date todayEnd = DateUtil.endOfDay(new Date());
 
@@ -72,7 +72,7 @@ public class OwnerBillGenerateService {
         int successCount = 0;
         for (OwnerContract contract : contractList) {
             try {
-                if (generateLeaseStartOwnerBillByContract(contract.getId(), todayStart, todayEnd)) {
+                if (generateLeaseStartSettlementBillByContract(contract.getId(), todayStart, todayEnd)) {
                     successCount++;
                 }
             } catch (Exception e) {
@@ -83,7 +83,7 @@ public class OwnerBillGenerateService {
     }
 
     /**
-     * 重建包租合同的全部业主应付账单计划。
+     * 重建包租合同的全部业主应付单计划。
      * <p>
      * 在新增或编辑包租合同后立即调用，直接按合同周期生成完整账单。
      *
@@ -91,7 +91,7 @@ public class OwnerBillGenerateService {
      * @return 成功生成的账单数量
      */
     @Transactional(rollbackFor = Exception.class)
-    public Integer rebuildMasterLeaseOwnerBillsByContract(Long contractId) {
+    public Integer rebuildMasterLeasePayableBillsByContract(Long contractId) {
         OwnerContract contract = ownerContractRepo.getById(contractId);
         if (contract == null) {
             throw new IllegalArgumentException("业主合同不存在");
@@ -104,7 +104,7 @@ public class OwnerBillGenerateService {
         if (planEnd == null) {
             return 0;
         }
-        return generateMasterLeaseOwnerBillsByContract(contractId, planEnd);
+        return generateMasterLeasePayableBillsByContract(contractId, planEnd);
     }
 
     /**
@@ -113,7 +113,7 @@ public class OwnerBillGenerateService {
      * @param contractId 合同ID
      */
     @Transactional(rollbackFor = Exception.class)
-    public void clearMasterLeaseOwnerBillsByContract(Long contractId) {
+    public void clearMasterLeasePayableBillsByContract(Long contractId) {
         clearMasterLeaseBillsByContract(contractId);
     }
 
@@ -146,14 +146,14 @@ public class OwnerBillGenerateService {
     }
 
     /**
-     * 按合同生成起租日业主账单
+     * 按合同生成起租日业主结算单
      *
      * @param contractId 合同ID
      * @param todayStart 当天开始时间
      * @param todayEnd   当天结束时间
      * @return 是否成功生成账单
      */
-    public boolean generateLeaseStartOwnerBillByContract(Long contractId, Date todayStart, Date todayEnd) {
+    public boolean generateLeaseStartSettlementBillByContract(Long contractId, Date todayStart, Date todayEnd) {
         OwnerContract contract = ownerContractRepo.getById(contractId);
         if (contract == null || !isLeaseStartBillContract(contract)) {
             return false;
@@ -245,9 +245,9 @@ public class OwnerBillGenerateService {
             ownerBill.setWithdrawnAmount(BigDecimal.ZERO);
             ownerBill.setFreezeAmount(BigDecimal.ZERO);
             ownerBill.setWithdrawableAmount(withdrawableAmount);
-            ownerBill.setBillStatus(OwnerBillStatusEnum.NORMAL.getCode());
+            ownerBill.setBillStatus(OwnerSettlementBillStatusEnum.NORMAL.getCode());
             ownerBill.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
-            ownerBill.setSettlementStatus(OwnerBillSettlementStatusEnum.UNSETTLED.getCode());
+            ownerBill.setSettlementStatus(OwnerSettlementStatusEnum.UNSETTLED.getCode());
             ownerBill.setGeneratedAt(now);
             ownerBill.setApprovedAt(now);
             ownerBill.setRemark(remarkList.isEmpty() ? "起租日自动生成账单" : String.join("；", remarkList));
@@ -277,7 +277,7 @@ public class OwnerBillGenerateService {
             && OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode());
     }
 
-    private int generateMasterLeaseOwnerBillsByContract(Long contractId, Date todayEnd) {
+    private int generateMasterLeasePayableBillsByContract(Long contractId, Date todayEnd) {
         OwnerContract contract = ownerContractRepo.getById(contractId);
         if (contract == null || !OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
             return 0;
@@ -426,16 +426,16 @@ public class OwnerBillGenerateService {
         BigDecimal rentAmount = calcMasterLeaseRentAmount(leaseRule, periodStart, periodEnd);
         if (rentAmount.compareTo(BigDecimal.ZERO) > 0) {
             incomeAmount = incomeAmount.add(rentAmount);
-            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
-                OwnerBillItemTypeEnum.RENT.getCode(), OwnerBillItemTypeEnum.RENT.getName(), FinanceFlowDirectionEnum.IN.getCode(), rentAmount,
+            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
+                OwnerBillingItemTypeEnum.RENT.getCode(), OwnerBillingItemTypeEnum.RENT.getName(), FinanceFlowDirectionEnum.IN.getCode(), rentAmount,
                 "包租周期租金", "月租金 " + ObjectUtil.defaultIfNull(leaseRule.getRentAmount(), BigDecimal.ZERO) + "，按账期自动生成"));
         }
 
         if (firstPeriod && ObjectUtil.defaultIfNull(leaseRule.getDepositAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal depositAmount = ObjectUtil.defaultIfNull(leaseRule.getDepositAmount(), BigDecimal.ZERO);
             incomeAmount = incomeAmount.add(depositAmount);
-            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
-                OwnerBillItemTypeEnum.DEPOSIT.getCode(), OwnerBillItemTypeEnum.DEPOSIT.getName(), FinanceFlowDirectionEnum.IN.getCode(), depositAmount,
+            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
+                OwnerBillingItemTypeEnum.DEPOSIT.getCode(), OwnerBillingItemTypeEnum.DEPOSIT.getName(), FinanceFlowDirectionEnum.IN.getCode(), depositAmount,
                 "首期押金", "包租首期押金"));
         }
 
@@ -450,8 +450,8 @@ public class OwnerBillGenerateService {
             } else {
                 incomeAmount = incomeAmount.add(feeAmount);
             }
-            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_LEASE_FEE.getCode(), leaseFee.getId(),
-                OwnerBillItemTypeEnum.OTHER_FEE.getCode(), ObjectUtil.defaultIfNull(leaseFee.getFeeName(), "其他费用"), direction, feeAmount,
+            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_LEASE_FEE.getCode(), leaseFee.getId(),
+                OwnerBillingItemTypeEnum.OTHER_FEE.getCode(), ObjectUtil.defaultIfNull(leaseFee.getFeeName(), "其他费用"), direction, feeAmount,
                 leaseFee.getRemark(), buildMasterLeaseFeeFormula(leaseRule, leaseFee, periodStart, periodEnd)));
         }
 
@@ -461,8 +461,8 @@ public class OwnerBillGenerateService {
                 continue;
             }
             reductionAmount = reductionAmount.add(currentReductionAmount);
-            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillSourceTypeEnum.OWNER_LEASE_FREE_RULE.getCode(), freeRule.getId(),
-                OwnerBillItemTypeEnum.OTHER_FEE.getCode(), "包租免租", FinanceFlowDirectionEnum.OUT.getCode(), currentReductionAmount,
+            lineList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_LEASE_FREE_RULE.getCode(), freeRule.getId(),
+                OwnerBillingItemTypeEnum.OTHER_FEE.getCode(), "包租免租", FinanceFlowDirectionEnum.OUT.getCode(), currentReductionAmount,
                 freeRule.getRemark(), "calcMode=" + freeRule.getCalcMode()));
         }
 
@@ -743,13 +743,13 @@ public class OwnerBillGenerateService {
 
     private OwnerSettlementBillLine buildRentLine(OwnerContractSubject contractSubject, OwnerSettlementRule settlementRule, Date billDate, BigDecimal amount) {
         OwnerSettlementBillLine line = new OwnerSettlementBillLine();
-        line.setSourceType(OwnerBillSourceTypeEnum.OWNER_CONTRACT_SUBJECT.getCode());
+        line.setSourceType(OwnerBillingSourceTypeEnum.OWNER_CONTRACT_SUBJECT.getCode());
         line.setSourceId(contractSubject.getId());
         line.setCompanyId(null);
         line.setSubjectType(contractSubject.getSubjectType());
         line.setSubjectId(contractSubject.getSubjectId());
         line.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
-        line.setItemType(OwnerBillItemTypeEnum.RENT.getCode());
+        line.setItemType(OwnerBillingItemTypeEnum.RENT.getCode());
         line.setItemName(buildRentLineName(settlementRule));
         line.setDirection(FinanceFlowDirectionEnum.IN.getCode());
         line.setAmount(amount);
@@ -761,13 +761,13 @@ public class OwnerBillGenerateService {
 
     private OwnerSettlementBillLine buildManagementFeeLine(OwnerContractSubject contractSubject, Date billDate, BigDecimal amount) {
         OwnerSettlementBillLine line = new OwnerSettlementBillLine();
-        line.setSourceType(OwnerBillSourceTypeEnum.OWNER_CONTRACT_SUBJECT.getCode());
+        line.setSourceType(OwnerBillingSourceTypeEnum.OWNER_CONTRACT_SUBJECT.getCode());
         line.setSourceId(contractSubject.getId());
         line.setCompanyId(null);
         line.setSubjectType(contractSubject.getSubjectType());
         line.setSubjectId(contractSubject.getSubjectId());
         line.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
-        line.setItemType(OwnerBillItemTypeEnum.MANAGEMENT_FEE.getCode());
+        line.setItemType(OwnerBillingItemTypeEnum.MANAGEMENT_FEE.getCode());
         line.setItemName("管理费");
         line.setDirection(FinanceFlowDirectionEnum.OUT.getCode());
         line.setAmount(amount);

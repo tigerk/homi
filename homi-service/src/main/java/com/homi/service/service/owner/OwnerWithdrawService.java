@@ -1,0 +1,337 @@
+package com.homi.service.service.owner;
+
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
+import com.homi.common.lib.enums.owner.OwnerWithdrawOperateEnum;
+import com.homi.common.lib.vo.PageVO;
+import com.homi.model.dao.entity.Owner;
+import com.homi.model.dao.entity.OwnerAccount;
+import com.homi.model.dao.entity.OwnerAccountFlow;
+import com.homi.model.dao.entity.OwnerWithdrawApply;
+import com.homi.model.dao.repo.OwnerAccountFlowRepo;
+import com.homi.model.dao.repo.OwnerAccountRepo;
+import com.homi.model.dao.repo.OwnerRepo;
+import com.homi.model.dao.repo.OwnerWithdrawApplyRepo;
+import com.homi.model.owner.dto.OwnerWithdrawApplyIdDTO;
+import com.homi.model.owner.dto.OwnerWithdrawApplyQueryDTO;
+import com.homi.model.owner.dto.OwnerWithdrawCreateDTO;
+import com.homi.model.owner.dto.OwnerWithdrawOperateDTO;
+import com.homi.model.owner.vo.OwnerAccountFlowVO;
+import com.homi.model.owner.vo.OwnerWithdrawApplyDetailVO;
+import com.homi.model.owner.vo.OwnerWithdrawApplyListVO;
+import com.homi.model.owner.vo.OwnerWithdrawSummaryVO;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class OwnerWithdrawService {
+    private final OwnerWithdrawApplyRepo ownerWithdrawApplyRepo;
+    private final OwnerAccountFlowRepo ownerAccountFlowRepo;
+    private final OwnerAccountRepo ownerAccountRepo;
+    private final OwnerRepo ownerRepo;
+
+    public PageVO<OwnerWithdrawApplyListVO> pageOwnerWithdrawApplies(OwnerWithdrawApplyQueryDTO query) {
+        Page<OwnerWithdrawApply> page = new Page<>(query.getCurrentPage(), query.getPageSize());
+        LambdaQueryWrapper<OwnerWithdrawApply> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(query.getOwnerId() != null, OwnerWithdrawApply::getOwnerId, query.getOwnerId());
+        wrapper.like(StrUtil.isNotBlank(query.getApplyNo()), OwnerWithdrawApply::getApplyNo, query.getApplyNo());
+        wrapper.eq(query.getApprovalStatus() != null, OwnerWithdrawApply::getApprovalStatus, query.getApprovalStatus());
+        wrapper.eq(query.getWithdrawStatus() != null, OwnerWithdrawApply::getWithdrawStatus, query.getWithdrawStatus());
+        List<Long> ownerIds = ownerRepo.getOwnerIdsByOwnerName(query.getOwnerName());
+        if (ownerIds != null && ownerIds.isEmpty()) {
+            return emptyWithdrawPage(query);
+        }
+        wrapper.in(ownerIds != null, OwnerWithdrawApply::getOwnerId, ownerIds);
+        wrapper.orderByDesc(OwnerWithdrawApply::getAppliedAt);
+        wrapper.orderByDesc(OwnerWithdrawApply::getId);
+        Page<OwnerWithdrawApply> result = ownerWithdrawApplyRepo.page(page, wrapper);
+
+        Map<Long, Owner> ownerMap = ownerRepo.listByIds(result.getRecords().stream().map(OwnerWithdrawApply::getOwnerId).filter(Objects::nonNull).distinct().toList())
+            .stream().collect(Collectors.toMap(Owner::getId, item -> item));
+        List<OwnerWithdrawApplyListVO> list = result.getRecords().stream().map(item -> toOwnerWithdrawListVO(item, ownerMap.get(item.getOwnerId()))).toList();
+        return PageVO.<OwnerWithdrawApplyListVO>builder()
+            .currentPage(result.getCurrent())
+            .pageSize(result.getSize())
+            .total(result.getTotal())
+            .pages(result.getPages())
+            .list(list)
+            .build();
+    }
+
+    public OwnerWithdrawApplyDetailVO getOwnerWithdrawApplyDetail(OwnerWithdrawApplyIdDTO dto) {
+        if (dto == null || dto.getApplyId() == null) {
+            throw new IllegalArgumentException("提现申请ID不能为空");
+        }
+        OwnerWithdrawApply apply = ownerWithdrawApplyRepo.getById(dto.getApplyId());
+        if (apply == null) {
+            throw new IllegalArgumentException("提现申请不存在");
+        }
+        Owner owner = ownerRepo.getById(apply.getOwnerId());
+        OwnerWithdrawApplyDetailVO vo = new OwnerWithdrawApplyDetailVO();
+        vo.setApplyId(apply.getId());
+        vo.setApplyNo(apply.getApplyNo());
+        vo.setOwnerId(apply.getOwnerId());
+        vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
+        vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
+        vo.setApplyAmount(apply.getApplyAmount());
+        vo.setFeeAmount(apply.getFeeAmount());
+        vo.setActualAmount(apply.getActualAmount());
+        vo.setApprovalStatus(apply.getApprovalStatus());
+        vo.setWithdrawStatus(apply.getWithdrawStatus());
+        vo.setPayeeName(apply.getPayeeName());
+        vo.setPayeeAccountNo(apply.getPayeeAccountNo());
+        vo.setPayeeBankName(apply.getPayeeBankName());
+        vo.setChannel(apply.getChannel());
+        vo.setThirdTradeNo(apply.getThirdTradeNo());
+        vo.setFailureReason(apply.getFailureReason());
+        vo.setRemark(apply.getRemark());
+        vo.setAppliedAt(apply.getAppliedAt());
+        vo.setApprovedAt(apply.getApprovedAt());
+        vo.setPaidAt(apply.getPaidAt());
+        vo.setCreateTime(apply.getCreateTime());
+        vo.setUpdateTime(apply.getUpdateTime());
+        vo.setFlowList(ownerAccountFlowRepo.list(new LambdaQueryWrapper<OwnerAccountFlow>()
+                .eq(OwnerAccountFlow::getOwnerId, apply.getOwnerId())
+                .eq(OwnerAccountFlow::getBizId, apply.getId())
+                .orderByDesc(OwnerAccountFlow::getId))
+            .stream().map(this::toOwnerAccountFlowVO).toList());
+        return vo;
+    }
+
+    public OwnerWithdrawSummaryVO summaryOwnerWithdrawApplies(OwnerWithdrawApplyQueryDTO query) {
+        OwnerWithdrawSummaryVO vo = new OwnerWithdrawSummaryVO();
+        List<Long> ownerIds = ownerRepo.getOwnerIdsByOwnerName(query.getOwnerName());
+        if (ownerIds != null && ownerIds.isEmpty()) {
+            fillEmptyWithdrawSummary(vo);
+            return vo;
+        }
+        List<OwnerWithdrawApply> list = ownerWithdrawApplyRepo.list(buildOwnerWithdrawWrapper(query, ownerIds));
+        vo.setApplyCount((long) list.size());
+        vo.setPendingApprovalCount(list.stream().filter(item -> BizApprovalStatusEnum.PENDING.getCode().equals(item.getApprovalStatus())).count());
+        vo.setProcessingCount(list.stream().filter(item -> Integer.valueOf(1).equals(item.getWithdrawStatus())).count());
+        vo.setSuccessCount(list.stream().filter(item -> Integer.valueOf(2).equals(item.getWithdrawStatus())).count());
+        vo.setTotalApplyAmount(list.stream().map(OwnerWithdrawApply::getApplyAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add));
+        vo.setTotalActualAmount(list.stream().map(OwnerWithdrawApply::getActualAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add));
+        OwnerAccount account = query.getOwnerId() == null ? null : ownerAccountRepo.getByOwnerId(query.getOwnerId());
+        vo.setAvailableAmount(account != null ? account.getAvailableAmount() : BigDecimal.ZERO);
+        vo.setFrozenAmount(account != null ? account.getFrozenAmount() : BigDecimal.ZERO);
+        return vo;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Long createOwnerWithdrawApply(OwnerWithdrawCreateDTO dto, Long operatorId) {
+        if (dto == null || dto.getOwnerId() == null || dto.getApplyAmount() == null || dto.getApplyAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("提现申请参数不正确");
+        }
+        OwnerAccount account = ownerAccountRepo.getByOwnerId(dto.getOwnerId());
+        if (account == null) {
+            throw new IllegalArgumentException("业主账户不存在");
+        }
+        BigDecimal feeAmount = dto.getFeeAmount() == null ? BigDecimal.ZERO : dto.getFeeAmount();
+        if (defaultZero(account.getAvailableAmount()).compareTo(dto.getApplyAmount()) < 0) {
+            throw new IllegalArgumentException("可提现余额不足");
+        }
+        Date now = DateUtil.date();
+        OwnerWithdrawApply apply = new OwnerWithdrawApply();
+        apply.setCompanyId(account.getCompanyId());
+        apply.setOwnerId(dto.getOwnerId());
+        apply.setApplyNo("OWA" + System.currentTimeMillis());
+        apply.setApplyAmount(dto.getApplyAmount());
+        apply.setFeeAmount(feeAmount);
+        apply.setActualAmount(dto.getApplyAmount().subtract(feeAmount));
+        apply.setApprovalStatus(BizApprovalStatusEnum.PENDING.getCode());
+        apply.setWithdrawStatus(0);
+        apply.setPayeeName(dto.getPayeeName());
+        apply.setPayeeAccountNo(dto.getPayeeAccountNo());
+        apply.setPayeeBankName(dto.getPayeeBankName());
+        apply.setRemark(dto.getRemark());
+        apply.setAppliedAt(now);
+        apply.setCreateBy(operatorId);
+        apply.setCreateTime(now);
+        apply.setUpdateBy(operatorId);
+        apply.setUpdateTime(now);
+        ownerWithdrawApplyRepo.save(apply);
+
+        BigDecimal availableBefore = defaultZero(account.getAvailableAmount());
+        BigDecimal frozenBefore = defaultZero(account.getFrozenAmount());
+        account.setAvailableAmount(availableBefore.subtract(dto.getApplyAmount()));
+        account.setFrozenAmount(frozenBefore.add(dto.getApplyAmount()));
+        ownerAccountRepo.updateById(account);
+        saveOwnerAccountFlow(account.getCompanyId(), dto.getOwnerId(), "OWNER_WITHDRAW_APPLY", apply.getId(), "OUT", "WITHDRAW_FREEZE",
+            dto.getApplyAmount(), availableBefore, account.getAvailableAmount(), frozenBefore, account.getFrozenAmount(), "发起提现冻结", operatorId, now);
+        return apply.getId();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Long operateOwnerWithdrawApply(OwnerWithdrawOperateDTO dto, Long operatorId) {
+        if (dto == null || dto.getApplyId() == null || dto.getOperateType() == null) {
+            throw new IllegalArgumentException("提现操作参数不正确");
+        }
+        OwnerWithdrawApply apply = ownerWithdrawApplyRepo.getById(dto.getApplyId());
+        if (apply == null) {
+            throw new IllegalArgumentException("提现申请不存在");
+        }
+        OwnerAccount account = ownerAccountRepo.getByOwnerId(apply.getOwnerId());
+        if (account == null) {
+            throw new IllegalArgumentException("业主账户不存在");
+        }
+        Date now = DateUtil.date();
+        switch (dto.getOperateType()) {
+            case APPROVE -> apply.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
+            case REJECT -> {
+                apply.setApprovalStatus(BizApprovalStatusEnum.REJECTED.getCode());
+                apply.setWithdrawStatus(4);
+                unfreezeWithdrawAmount(account, apply.getApplyAmount(), apply.getOwnerId(), apply.getId(), "WITHDRAW_REJECT", "提现驳回解冻", operatorId, now);
+            }
+            case PAYING -> apply.setWithdrawStatus(1);
+            case SUCCESS -> {
+                apply.setWithdrawStatus(2);
+                BigDecimal availableBefore = defaultZero(account.getAvailableAmount());
+                BigDecimal frozenBefore = defaultZero(account.getFrozenAmount());
+                account.setFrozenAmount(frozenBefore.subtract(apply.getApplyAmount()));
+                account.setTotalWithdrawAmount(defaultZero(account.getTotalWithdrawAmount()).add(apply.getApplyAmount()));
+                ownerAccountRepo.updateById(account);
+                saveOwnerAccountFlow(account.getCompanyId(), apply.getOwnerId(), "OWNER_WITHDRAW_APPLY", apply.getId(), "OUT", "WITHDRAW_SUCCESS",
+                    apply.getApplyAmount(), availableBefore, account.getAvailableAmount(), frozenBefore, account.getFrozenAmount(), "提现成功扣减冻结", operatorId, now);
+                apply.setPaidAt(now);
+                apply.setThirdTradeNo(dto.getThirdTradeNo());
+                apply.setChannel(dto.getChannel());
+            }
+            case FAIL -> {
+                apply.setWithdrawStatus(3);
+                apply.setFailureReason(dto.getFailureReason());
+                unfreezeWithdrawAmount(account, apply.getApplyAmount(), apply.getOwnerId(), apply.getId(), "WITHDRAW_FAIL", "提现失败解冻", operatorId, now);
+            }
+            case CANCEL -> {
+                apply.setApprovalStatus(BizApprovalStatusEnum.WITHDRAWN.getCode());
+                apply.setWithdrawStatus(4);
+                unfreezeWithdrawAmount(account, apply.getApplyAmount(), apply.getOwnerId(), apply.getId(), "WITHDRAW_CANCEL", "提现取消解冻", operatorId, now);
+            }
+            default -> throw new IllegalArgumentException("不支持的提现操作");
+        }
+        apply.setUpdateBy(operatorId);
+        apply.setUpdateTime(now);
+        if (dto.getOperateType() == OwnerWithdrawOperateEnum.APPROVE) {
+            apply.setApprovedAt(now);
+        }
+        ownerWithdrawApplyRepo.updateById(apply);
+        return apply.getId();
+    }
+
+    private PageVO<OwnerWithdrawApplyListVO> emptyWithdrawPage(OwnerWithdrawApplyQueryDTO query) {
+        return PageVO.<OwnerWithdrawApplyListVO>builder()
+            .currentPage(query.getCurrentPage())
+            .pageSize(query.getPageSize())
+            .total(0L)
+            .pages(0L)
+            .list(java.util.Collections.emptyList())
+            .build();
+    }
+
+    private LambdaQueryWrapper<OwnerWithdrawApply> buildOwnerWithdrawWrapper(OwnerWithdrawApplyQueryDTO query, List<Long> ownerIds) {
+        LambdaQueryWrapper<OwnerWithdrawApply> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(query.getOwnerId() != null, OwnerWithdrawApply::getOwnerId, query.getOwnerId());
+        wrapper.like(StrUtil.isNotBlank(query.getApplyNo()), OwnerWithdrawApply::getApplyNo, query.getApplyNo());
+        wrapper.eq(query.getApprovalStatus() != null, OwnerWithdrawApply::getApprovalStatus, query.getApprovalStatus());
+        wrapper.eq(query.getWithdrawStatus() != null, OwnerWithdrawApply::getWithdrawStatus, query.getWithdrawStatus());
+        wrapper.in(ownerIds != null, OwnerWithdrawApply::getOwnerId, ownerIds);
+        return wrapper;
+    }
+
+    private void fillEmptyWithdrawSummary(OwnerWithdrawSummaryVO vo) {
+        vo.setApplyCount(0L);
+        vo.setPendingApprovalCount(0L);
+        vo.setProcessingCount(0L);
+        vo.setSuccessCount(0L);
+        vo.setTotalApplyAmount(BigDecimal.ZERO);
+        vo.setTotalActualAmount(BigDecimal.ZERO);
+        vo.setAvailableAmount(BigDecimal.ZERO);
+        vo.setFrozenAmount(BigDecimal.ZERO);
+    }
+
+    private void unfreezeWithdrawAmount(OwnerAccount account, BigDecimal amount, Long ownerId, Long applyId, String changeType, String remark, Long operatorId, Date now) {
+        BigDecimal availableBefore = defaultZero(account.getAvailableAmount());
+        BigDecimal frozenBefore = defaultZero(account.getFrozenAmount());
+        account.setAvailableAmount(availableBefore.add(amount));
+        account.setFrozenAmount(frozenBefore.subtract(amount));
+        ownerAccountRepo.updateById(account);
+        saveOwnerAccountFlow(account.getCompanyId(), ownerId, "OWNER_WITHDRAW_APPLY", applyId, "IN", changeType,
+            amount, availableBefore, account.getAvailableAmount(), frozenBefore, account.getFrozenAmount(), remark, operatorId, now);
+    }
+
+    private void saveOwnerAccountFlow(Long companyId, Long ownerId, String bizType, Long bizId, String flowDirection, String changeType,
+                                      BigDecimal amount, BigDecimal availableBefore, BigDecimal availableAfter,
+                                      BigDecimal frozenBefore, BigDecimal frozenAfter, String remark, Long operatorId, Date now) {
+        OwnerAccountFlow flow = new OwnerAccountFlow();
+        flow.setCompanyId(companyId);
+        flow.setOwnerId(ownerId);
+        flow.setBizType(bizType);
+        flow.setBizId(bizId);
+        flow.setFlowDirection(flowDirection);
+        flow.setChangeType(changeType);
+        flow.setAmount(amount);
+        flow.setAvailableBefore(availableBefore);
+        flow.setAvailableAfter(availableAfter);
+        flow.setFrozenBefore(frozenBefore);
+        flow.setFrozenAfter(frozenAfter);
+        flow.setRemark(remark);
+        flow.setCreateBy(operatorId);
+        flow.setCreateTime(now);
+        ownerAccountFlowRepo.save(flow);
+    }
+
+    private OwnerWithdrawApplyListVO toOwnerWithdrawListVO(OwnerWithdrawApply item, Owner owner) {
+        OwnerWithdrawApplyListVO vo = new OwnerWithdrawApplyListVO();
+        vo.setApplyId(item.getId());
+        vo.setApplyNo(item.getApplyNo());
+        vo.setOwnerId(item.getOwnerId());
+        vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
+        vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
+        vo.setApplyAmount(item.getApplyAmount());
+        vo.setFeeAmount(item.getFeeAmount());
+        vo.setActualAmount(item.getActualAmount());
+        vo.setApprovalStatus(item.getApprovalStatus());
+        vo.setWithdrawStatus(item.getWithdrawStatus());
+        vo.setPayeeName(item.getPayeeName());
+        vo.setPayeeBankName(item.getPayeeBankName());
+        vo.setChannel(item.getChannel());
+        vo.setAppliedAt(item.getAppliedAt());
+        vo.setApprovedAt(item.getApprovedAt());
+        vo.setPaidAt(item.getPaidAt());
+        vo.setCreateTime(item.getCreateTime());
+        return vo;
+    }
+
+    private OwnerAccountFlowVO toOwnerAccountFlowVO(OwnerAccountFlow item) {
+        OwnerAccountFlowVO vo = new OwnerAccountFlowVO();
+        vo.setId(item.getId());
+        vo.setBizType(item.getBizType());
+        vo.setBizId(item.getBizId());
+        vo.setFlowDirection(item.getFlowDirection());
+        vo.setChangeType(item.getChangeType());
+        vo.setAmount(item.getAmount());
+        vo.setAvailableBefore(item.getAvailableBefore());
+        vo.setAvailableAfter(item.getAvailableAfter());
+        vo.setFrozenBefore(item.getFrozenBefore());
+        vo.setFrozenAfter(item.getFrozenAfter());
+        vo.setRemark(item.getRemark());
+        vo.setCreateTime(item.getCreateTime());
+        return vo;
+    }
+
+    private BigDecimal defaultZero(BigDecimal amount) {
+        return amount == null ? BigDecimal.ZERO : amount;
+    }
+}
