@@ -88,7 +88,7 @@ public class OwnerAccountFlow implements Serializable {
     private Long createBy;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 }

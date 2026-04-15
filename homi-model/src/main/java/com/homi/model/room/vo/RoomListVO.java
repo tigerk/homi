@@ -95,7 +95,7 @@ public class RoomListVO {
     private String availableDate;
 
     @Schema(description = "空置开始时间")
-    private String vacancyStartTime;
+    private String vacancyStartAt;
 
     @Schema(description = "面积")
     private BigDecimal area;

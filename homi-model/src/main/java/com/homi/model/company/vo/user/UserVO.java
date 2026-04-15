@@ -82,7 +82,7 @@ public class UserVO {
     /**
      * 创建时间
      */
-    private LocalDateTime createTime;
+    private LocalDateTime createAt;
 
     /**
      * 创建人
@@ -93,7 +93,7 @@ public class UserVO {
     /**
      * 上次登录时间
      */
-    private LocalDateTime lastLoginTime;
+    private LocalDateTime lastLoginAt;
 
     /**
      * 最后登录IP地址

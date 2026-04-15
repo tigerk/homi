@@ -52,7 +52,7 @@ public class ApprovalActionVO {
      * 操作时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date operateTime;
+    private Date operateAt;
 
     /**
      * 状态：0=待审批，1=已审批，2=已跳过

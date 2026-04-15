@@ -61,7 +61,7 @@ public class CompanyPackageVO {
     /**
      * 创建时间
      */
-    private Date createTime;
+    private Date createAt;
 
     /**
      * 创建人
@@ -71,7 +71,7 @@ public class CompanyPackageVO {
     /**
      * 更新时间
      */
-    private Date updateTime;
+    private Date updateAt;
 
     /**
      * 更新人

@@ -140,7 +140,7 @@ public class ScatterService {
             house.setSalesmanId(scatterCreateDTO.getSalesmanId());
 
             house.setUpdateBy(scatterCreateDTO.getCreateBy());
-            house.setUpdateTime(scatterCreateDTO.getCreateTime());
+            house.setUpdateAt(scatterCreateDTO.getCreateAt());
 
             if (Objects.nonNull(house.getId())) {
                 houseRepo.updateById(house);
@@ -150,7 +150,7 @@ public class ScatterService {
                 house.setHouseCode(houseCode);
 
                 house.setCreateBy(scatterCreateDTO.getCreateBy());
-                house.setCreateTime(scatterCreateDTO.getCreateTime());
+                house.setCreateAt(scatterCreateDTO.getCreateAt());
 
                 houseRepo.save(house);
                 houseDTO.setId(house.getId());
@@ -247,14 +247,14 @@ public class ScatterService {
 
         if (Objects.nonNull(roomCreateDTO.getId())) {
             room.setUpdateBy(house.getUpdateBy());
-            room.setUpdateTime(DateUtil.date());
+            room.setUpdateAt(DateUtil.date());
 
             roomRepo.updateById(room);
         } else {
             room.setOccupancyStatus(OccupancyStatusEnum.AVAILABLE.getCode());
             room.setCreateBy(house.getCreateBy());
-            room.setCreateTime(house.getCreateTime());
-            room.setVacancyStartTime(DateUtil.date());
+            room.setCreateAt(house.getCreateAt());
+            room.setVacancyStartAt(DateUtil.date());
             roomRepo.save(room);
         }
 

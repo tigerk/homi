@@ -33,16 +33,16 @@ public class FocusController {
         focusCreateDTO.setCompanyId(currentUser.getCurCompanyId());
 
         focusCreateDTO.setCreateBy(currentUser.getId());
-        focusCreateDTO.setCreateTime(DateUtil.date());
+        focusCreateDTO.setCreateAt(DateUtil.date());
         focusCreateDTO.setUpdateBy(currentUser.getId());
-        focusCreateDTO.setUpdateTime(DateUtil.date());
+        focusCreateDTO.setUpdateAt(DateUtil.date());
 
         Long focusId;
         if (Objects.nonNull(focusCreateDTO.getId())) {
             focusId = focusService.updateHouseFocus(focusCreateDTO);
         } else {
             focusCreateDTO.setCreateBy(currentUser.getId());
-            focusCreateDTO.setCreateTime(DateUtil.date());
+            focusCreateDTO.setCreateAt(DateUtil.date());
             focusId = focusService.createHouseFocus(focusCreateDTO);
         }
 

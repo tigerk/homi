@@ -72,7 +72,7 @@ public class LeaseBillFinanceService {
         Page<LeaseBillFee> page = new Page<>(query.getCurrentPage(), query.getPageSize());
         LambdaQueryWrapper<LeaseBillFee> wrapper = new LambdaQueryWrapper<>();
         wrapper.in(LeaseBillFee::getBillId, allBillIds);
-        wrapper.orderByDesc(LeaseBillFee::getCreateTime);
+        wrapper.orderByDesc(LeaseBillFee::getCreateAt);
         wrapper.orderByDesc(LeaseBillFee::getId);
         IPage<LeaseBillFee> feePage = leaseBillFeeRepo.page(page, wrapper);
 
@@ -146,7 +146,7 @@ public class LeaseBillFinanceService {
             .reduce(BigDecimal.ZERO, BigDecimal::add));
         vo.setPaidAmount(sumBills(bills, LeaseBill::getPaidAmount));
         vo.setTodayPaidAmount(paymentFlows.stream()
-            .filter(item -> TimeUtils.isSameDay(item.getPayTime(), today))
+            .filter(item -> TimeUtils.isSameDay(item.getPayAt(), today))
             .map(item -> ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO))
             .reduce(BigDecimal.ZERO, BigDecimal::add));
 
@@ -282,7 +282,7 @@ public class LeaseBillFinanceService {
             item.setStatus(bill.getStatus());
             item.setDueDate(bill.getDueDate());
             item.setRemark(bill.getRemark());
-            item.setCreateTime(bill.getCreateTime());
+            item.setCreateAt(bill.getCreateAt());
             return item;
         }).toList();
     }

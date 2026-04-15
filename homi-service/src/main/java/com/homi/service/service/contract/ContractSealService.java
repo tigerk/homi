@@ -47,7 +47,7 @@ public class ContractSealService {
             wrapper.eq(ContractSeal::getStatus, queryDTO.getStatus());
         }
 
-        wrapper.orderByDesc(ContractSeal::getUpdateTime, ContractSeal::getCreateTime, ContractSeal::getId);
+        wrapper.orderByDesc(ContractSeal::getUpdateAt, ContractSeal::getCreateAt, ContractSeal::getId);
 
         List<ContractSeal> list = contractSealRepo.list(wrapper);
         if (list.isEmpty()) {
@@ -78,8 +78,8 @@ public class ContractSealService {
                 vo.setProviderAccountId(provider.getAccountId());
                 vo.setProviderSealId(provider.getProviderSealId());
                 vo.setAuthStatus(provider.getAuthStatus());
-                vo.setAuthTime(provider.getAuthTime());
-                vo.setExpireTime(provider.getExpireTime());
+                vo.setAuthAt(provider.getAuthAt());
+                vo.setExpireAt(provider.getExpireAt());
                 vo.setProviderExtra(provider.getExtra());
             }
 
@@ -114,11 +114,11 @@ public class ContractSealService {
         entity.setStatus(ObjectUtil.defaultIfNull(dto.getStatus(), 1));
         entity.setRemark(dto.getRemark());
         entity.setUpdateBy(userId);
-        entity.setUpdateTime(DateUtil.date());
+        entity.setUpdateAt(DateUtil.date());
 
         if (ObjectUtil.defaultIfNull(dto.getId(), 0L) <= 0) {
             entity.setCreateBy(userId);
-            entity.setCreateTime(DateUtil.date());
+            entity.setCreateAt(DateUtil.date());
             contractSealRepo.save(entity);
         } else {
             contractSealRepo.updateById(entity);
@@ -190,7 +190,7 @@ public class ContractSealService {
     }
 
     private void handleProviderInfo(ContractSealCreateDTO dto, Long sealId, Long userId) {
-        if (StringUtils.isAnyBlank(dto.getProviderAccountId(), dto.getProviderSealId(), dto.getProviderExtra()) && dto.getAuthStatus() == null && dto.getAuthTime() == null && dto.getExpireTime() == null) {
+        if (StringUtils.isAnyBlank(dto.getProviderAccountId(), dto.getProviderSealId(), dto.getProviderExtra()) && dto.getAuthStatus() == null && dto.getAuthAt() == null && dto.getExpireAt() == null) {
             return;
         }
 
@@ -203,17 +203,17 @@ public class ContractSealService {
             provider = new ContractSealProvider();
             provider.setSealId(sealId);
             provider.setCreateBy(userId);
-            provider.setCreateTime(DateUtil.date());
+            provider.setCreateAt(DateUtil.date());
         }
 
         provider.setAccountId(dto.getProviderAccountId());
         provider.setProviderSealId(dto.getProviderSealId());
         provider.setAuthStatus(dto.getAuthStatus());
-        provider.setAuthTime(dto.getAuthTime());
-        provider.setExpireTime(dto.getExpireTime());
+        provider.setAuthAt(dto.getAuthAt());
+        provider.setExpireAt(dto.getExpireAt());
         provider.setExtra(dto.getProviderExtra());
         provider.setUpdateBy(userId);
-        provider.setUpdateTime(DateUtil.date());
+        provider.setUpdateAt(DateUtil.date());
 
         if (provider.getId() == null) {
             contractSealProviderRepo.save(provider);

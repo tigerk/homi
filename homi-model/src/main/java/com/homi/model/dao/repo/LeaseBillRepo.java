@@ -96,7 +96,7 @@ public class LeaseBillRepo extends ServiceImpl<LeaseBillMapper, LeaseBill> {
                 com.homi.common.lib.enums.lease.LeaseBillTypeEnum.DEPOSIT_CARRY_OUT.getCode())
             .eq(LeaseBill::getHistorical, false)
             .eq(LeaseBill::getStatus, LeaseBillStatusEnum.NORMAL.getCode())
-            .orderByAsc(LeaseBill::getCreateTime)
+            .orderByAsc(LeaseBill::getCreateAt)
             .list();
     }
 

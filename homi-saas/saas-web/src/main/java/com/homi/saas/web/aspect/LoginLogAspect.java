@@ -87,7 +87,7 @@ public class LoginLogAspect {
                 loginInfoEvent.setUsername(currentUser.getUsername());
             }
 
-            loginInfoEvent.setLoginTime(DateUtil.date());
+            loginInfoEvent.setLoginAt(DateUtil.date());
             // 发布事件保存数据库
             SpringUtils.context().publishEvent(loginInfoEvent);
         } catch (Exception exp) {

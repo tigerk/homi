@@ -162,8 +162,8 @@ public class ApprovalQueryService {
         vo.setCurrentNodeOrder(instance.getCurrentNodeOrder());
         vo.setStatus(instance.getStatus());
         vo.setResultRemark(instance.getResultRemark());
-        vo.setCreateTime(instance.getCreateTime());
-        vo.setFinishTime(instance.getFinishTime());
+        vo.setCreateAt(instance.getCreateAt());
+        vo.setFinishAt(instance.getFinishAt());
 
         // 获取申请人姓名
         Optional.ofNullable(userRepo.getById(instance.getApplicantId()))
@@ -208,7 +208,7 @@ public class ApprovalQueryService {
 
         vo.setAction(action.getAction());
         vo.setRemark(action.getRemark());
-        vo.setOperateTime(action.getOperateTime());
+        vo.setOperateAt(action.getOperateAt());
         vo.setStatus(action.getStatus());
 
         // 使用枚举获取操作名称
@@ -232,7 +232,7 @@ public class ApprovalQueryService {
         vo.setNodeOrder(action.getNodeOrder());
         vo.setAction(action.getAction());
         vo.setRemark(action.getRemark());
-        vo.setOperateTime(action.getOperateTime());
+        vo.setOperateAt(action.getOperateAt());
 
         // 使用枚举获取操作名称
         vo.setActionName(ApprovalActionTypeEnum.getNameByCode(action.getAction()));
@@ -249,7 +249,7 @@ public class ApprovalQueryService {
         vo.setBizId(instance.getBizId());
         vo.setBizCode(instance.getBizCode());
         vo.setTitle(instance.getTitle());
-        vo.setApplyTime(instance.getCreateTime());
+        vo.setApplyAt(instance.getCreateAt());
         vo.setInstanceStatus(instance.getStatus());
 
         // 使用枚举获取业务类型名称

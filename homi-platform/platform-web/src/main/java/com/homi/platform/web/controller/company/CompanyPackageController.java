@@ -39,9 +39,9 @@ public class CompanyPackageController {
     public ResponseResult<Boolean> list(@RequestBody CompanyPackageCreateDTO createDTO) {
         PlatformUserLoginVO currentUser = PlatformLoginManager.getCurrentUser();
         createDTO.setCreateBy(currentUser.getId());
-        createDTO.setCreateTime(DateUtil.date());
+        createDTO.setCreateAt(DateUtil.date());
         createDTO.setUpdateBy(currentUser.getId());
-        createDTO.setUpdateTime(DateUtil.date());
+        createDTO.setUpdateAt(DateUtil.date());
         createDTO.setStatus(StatusEnum.ACTIVE.getValue());
 
         if (Objects.isNull(createDTO.getId())) {
@@ -59,7 +59,7 @@ public class CompanyPackageController {
 
         PlatformUserLoginVO currentUser = PlatformLoginManager.getCurrentUser();
         createDTO.setUpdateBy(currentUser.getId());
-        createDTO.setUpdateTime(DateUtil.date());
+        createDTO.setUpdateAt(DateUtil.date());
 
         return ResponseResult.ok(companyPackageService.changeStatus(createDTO));
     }

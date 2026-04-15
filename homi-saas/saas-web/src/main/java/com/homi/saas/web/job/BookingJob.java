@@ -44,7 +44,7 @@ public class BookingJob {
         DateTime now = DateUtil.date();
         LambdaQueryWrapper<Booking> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Booking::getBookingStatus, BookingStatusEnum.BOOKING.getCode());
-        queryWrapper.le(Booking::getExpiryTime, now);
+        queryWrapper.le(Booking::getExpiryAt, now);
         List<Booking> bookings = bookingRepo.list(queryWrapper);
         bookings.forEach(booking -> {
             try {

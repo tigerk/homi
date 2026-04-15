@@ -135,7 +135,7 @@ public class PaymentFlowFinanceService {
     private BigDecimal sumByStatus(List<PaymentFlow> paymentFlows, Integer status, boolean onlyToday, Date today) {
         return paymentFlows.stream()
             .filter(item -> Objects.equals(item.getStatus(), status))
-            .filter(item -> !onlyToday || DateUtil.isSameDay(item.getCreateTime(), today))
+            .filter(item -> !onlyToday || DateUtil.isSameDay(item.getCreateAt(), today))
             .map(item -> ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO))
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -193,7 +193,7 @@ public class PaymentFlowFinanceService {
             wrapper.in(PaymentFlow::getBizId, filterContext.billIds());
         }
         wrapper.orderByAsc(PaymentFlow::getStatus);
-        wrapper.orderByDesc(PaymentFlow::getCreateTime);
+        wrapper.orderByDesc(PaymentFlow::getCreateAt);
         wrapper.orderByDesc(PaymentFlow::getId);
         return wrapper;
     }

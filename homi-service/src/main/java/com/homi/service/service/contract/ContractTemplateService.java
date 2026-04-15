@@ -256,8 +256,8 @@ public class ContractTemplateService {
 
         tenantDetailVO.setLeaseStart(start);
         tenantDetailVO.setLeaseEnd(end);
-        tenantDetailVO.setCheckInTime(start);
-        tenantDetailVO.setCheckOutTime(end);
+        tenantDetailVO.setCheckInAt(start);
+        tenantDetailVO.setCheckOutAt(end);
         tenantDetailVO.setLeaseDurationDays(365);
         tenantDetailVO.setRentDueType(2); // 2=固定
         tenantDetailVO.setRentDueDay(15);
@@ -361,8 +361,8 @@ public class ContractTemplateService {
         tenantDetailVO.setTenantMateList(tenantMateList);
 
         // 创建时间和修改时间
-        tenantDetailVO.setCreateTime(new Date());
-        tenantDetailVO.setUpdateTime(new Date());
+        tenantDetailVO.setCreateAt(new Date());
+        tenantDetailVO.setUpdateAt(new Date());
 
         String renderedContent = leaseContractService.replaceContractVariables(contractTemplate.getTemplateContent(), tenantDetailVO, contractTemplate.getSealId());
 

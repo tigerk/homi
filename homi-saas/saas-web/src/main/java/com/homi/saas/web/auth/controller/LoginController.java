@@ -280,7 +280,7 @@ public class LoginController {
         if (CharSequenceUtil.isNotBlank(errorMsg)) {
             operationLog.setErrorMsg(CharSequenceUtil.sub(errorMsg, 0, 2000));
         }
-        operationLog.setRequestTime(DateUtil.date());
+        operationLog.setRequestAt(DateUtil.date());
         operationLog.setCostTime(0L);
 
         SpringUtils.context().publishEvent(operationLog);

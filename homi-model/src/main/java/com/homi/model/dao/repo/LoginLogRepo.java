@@ -66,11 +66,11 @@ public class LoginLogRepo extends ServiceImpl<LoginLogMapper, LoginLog> {
             lambdaQueryWrapper.eq(LoginLog::getStatus, dto.getStatus());
         }
 
-        if (Objects.nonNull(dto.getLoginTime()) && dto.getLoginTime().size() == 2) {
-            lambdaQueryWrapper.ge(LoginLog::getLoginTime, dto.getLoginTime().get(0));
-            lambdaQueryWrapper.le(LoginLog::getLoginTime, dto.getLoginTime().get(1));
+        if (Objects.nonNull(dto.getLoginAt()) && dto.getLoginAt().size() == 2) {
+            lambdaQueryWrapper.ge(LoginLog::getLoginAt, dto.getLoginAt().get(0));
+            lambdaQueryWrapper.le(LoginLog::getLoginAt, dto.getLoginAt().get(1));
         }
-        lambdaQueryWrapper.orderByDesc(LoginLog::getLoginTime);
+        lambdaQueryWrapper.orderByDesc(LoginLog::getLoginAt);
 
         IPage<LoginLog> sysLoginLogIPage = getBaseMapper().selectPage(page, lambdaQueryWrapper);
 

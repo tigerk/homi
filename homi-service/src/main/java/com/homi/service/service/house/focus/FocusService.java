@@ -112,9 +112,9 @@ public class FocusService {
             houseLayout.setLeaseModeId(houseCreateDto.getId());
             houseLayout.setCompanyId(houseCreateDto.getCompanyId());
             houseLayout.setCreateBy(houseCreateDto.getCreateBy());
-            houseLayout.setCreateTime(houseCreateDto.getCreateTime());
+            houseLayout.setCreateAt(houseCreateDto.getCreateAt());
             houseLayout.setUpdateBy(houseCreateDto.getUpdateBy());
-            houseLayout.setUpdateTime(houseCreateDto.getUpdateTime());
+            houseLayout.setUpdateAt(houseCreateDto.getUpdateAt());
 
             // 冗余信息
             houseLayout.setFacilities(JSONUtil.toJsonStr(houseLayoutDTO.getFacilities()));
@@ -238,11 +238,11 @@ public class FocusService {
             updateRoomPriceConfig(room.getId(), price, house.getUpdateBy());
         } else {
             room.setCreateBy(house.getCreateBy());
-            room.setCreateTime(house.getCreateTime());
+            room.setCreateAt(house.getCreateAt());
 
             room.setOccupancyStatus(OccupancyStatusEnum.AVAILABLE.getCode());
 
-            room.setVacancyStartTime(DateUtil.date());
+            room.setVacancyStartAt(DateUtil.date());
             roomRepo.getBaseMapper().insert(room);
         }
     }

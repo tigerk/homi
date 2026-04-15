@@ -107,9 +107,9 @@ public class Company implements Serializable {
     private Integer dictVer;
 
     @Schema(description = "字典最后同步时间")
-    @TableField("dict_sync_time")
+    @TableField("dict_sync_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date dictSyncTime;
+    private Date dictSyncAt;
 
     @Schema(description = "备注")
     @TableField("remark")
@@ -121,18 +121,18 @@ public class Company implements Serializable {
     private Boolean deleted;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "创建人")
     @TableField("create_by")
     private Long createBy;
 
     @Schema(description = "更新时间")
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 
     @Schema(description = "更新人")
     @TableField("update_by")

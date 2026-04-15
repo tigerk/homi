@@ -126,7 +126,7 @@ public class HouseService {
                 .or()
                 .like(House::getDoorNumber, query.getKeywords()))
             .notIn(!CollectionUtils.isEmpty(occupiedHouseIds), House::getId, occupiedHouseIds)
-            .orderByDesc(House::getUpdateTime)
+            .orderByDesc(House::getUpdateAt)
             .page(page);
 
         List<HouseListVO> list = housePage.getRecords().stream()

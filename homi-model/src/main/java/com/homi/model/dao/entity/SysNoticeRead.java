@@ -42,7 +42,7 @@ public class SysNoticeRead implements Serializable {
     private Long userId;
 
     @Schema(description = "阅读时间")
-    @TableField("read_time")
+    @TableField("read_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date readTime;
+    private Date readAt;
 }

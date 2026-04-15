@@ -89,14 +89,14 @@ public class PaymentFlow implements Serializable {
     private Integer approvalStatus;
 
     @Schema(description = "实际支付完成时间")
-    @TableField("pay_time")
+    @TableField("pay_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date payTime;
+    private Date payAt;
 
     @Schema(description = "支付超时时间")
-    @TableField("expire_time")
+    @TableField("expire_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date expireTime;
+    private Date expireAt;
 
     @Schema(description = "付款方姓名")
     @TableField("payer_name")
@@ -140,18 +140,18 @@ public class PaymentFlow implements Serializable {
     private Integer deleted;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "创建人")
     @TableField("create_by")
     private Long createBy;
 
     @Schema(description = "更新时间")
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 
     @Schema(description = "更新人")
     @TableField("update_by")

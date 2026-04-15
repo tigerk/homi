@@ -73,9 +73,9 @@ public class OwnerSettlementBillLine implements Serializable {
     private BigDecimal amount;
 
     @Schema(description = "业务时间")
-    @TableField("biz_time")
+    @TableField("biz_date")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date bizTime;
+    private Date bizDate;
 
     @Schema(description = "备注")
     @TableField("remark")
@@ -86,7 +86,7 @@ public class OwnerSettlementBillLine implements Serializable {
     private String formulaSnapshot;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 }

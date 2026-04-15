@@ -67,11 +67,11 @@ public class OperationLogRepo extends ServiceImpl<OperationLogMapper, OperationL
             lambdaQueryWrapper.eq(OperationLog::getStatus, dto.getStatus());
         }
 
-        if (Objects.nonNull(dto.getRequestTime()) && dto.getRequestTime().size() == 2) {
-            lambdaQueryWrapper.ge(OperationLog::getRequestTime, dto.getRequestTime().get(0));
-            lambdaQueryWrapper.le(OperationLog::getRequestTime, dto.getRequestTime().get(1));
+        if (Objects.nonNull(dto.getRequestAt()) && dto.getRequestAt().size() == 2) {
+            lambdaQueryWrapper.ge(OperationLog::getRequestAt, dto.getRequestAt().get(0));
+            lambdaQueryWrapper.le(OperationLog::getRequestAt, dto.getRequestAt().get(1));
         }
-        lambdaQueryWrapper.orderByDesc(OperationLog::getRequestTime);
+        lambdaQueryWrapper.orderByDesc(OperationLog::getRequestAt);
 
         return getOperationLogPageVO(page, lambdaQueryWrapper);
     }
@@ -87,7 +87,7 @@ public class OperationLogRepo extends ServiceImpl<OperationLogMapper, OperationL
         lambdaQueryWrapper.eq(OperationLog::getCompanyId, companyId)
             .eq(OperationLog::getUserId, userId)
             .in(OperationLog::getTitle, titles)
-            .orderByDesc(OperationLog::getRequestTime);
+            .orderByDesc(OperationLog::getRequestAt);
 
         return getOperationLogPageVO(page, lambdaQueryWrapper);
     }

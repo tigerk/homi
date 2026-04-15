@@ -72,11 +72,11 @@ public class PaymentFlowFinanceItemVO {
 
     @Schema(description = "支付时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date payTime;
+    private Date payAt;
 
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "账单应收日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

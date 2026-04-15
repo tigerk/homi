@@ -26,5 +26,5 @@ public class LoginLogDTO extends PageDTO {
     private Integer status;
 
     @Schema(description = "登录时间")
-    private List<OffsetDateTime> loginTime;
+    private List<OffsetDateTime> loginAt;
 }

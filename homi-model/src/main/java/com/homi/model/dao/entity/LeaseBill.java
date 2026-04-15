@@ -112,9 +112,9 @@ public class LeaseBill implements Serializable {
     private String voidReason;
 
     @Schema(description = "作废时间")
-    @TableField("void_time")
+    @TableField("void_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date voidTime;
+    private Date voidAt;
 
     @Schema(description = "作废人")
     @TableField("void_by")
@@ -130,16 +130,16 @@ public class LeaseBill implements Serializable {
     private Long createBy;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "修改人ID")
     @TableField("update_by")
     private Long updateBy;
 
     @Schema(description = "修改时间")
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 }

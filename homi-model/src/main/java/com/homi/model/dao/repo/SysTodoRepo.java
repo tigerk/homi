@@ -41,7 +41,7 @@ public class SysTodoRepo extends ServiceImpl<SysTodoMapper, SysTodo> {
                 .like(SysTodo::getContent, dto.getKeyword()));
         }
 
-        wrapper.orderByDesc(SysTodo::getCreateTime);
+        wrapper.orderByDesc(SysTodo::getCreateAt);
         IPage<SysTodo> pageResult = getBaseMapper().selectPage(page, wrapper);
 
         PageVO<SysTodo> pageVO = new PageVO<>();
@@ -68,7 +68,7 @@ public class SysTodoRepo extends ServiceImpl<SysTodoMapper, SysTodo> {
         LambdaQueryWrapper<SysTodo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysTodo::getCompanyId, companyId)
             .eq(SysTodo::getUserId, userId)
-            .orderByDesc(SysTodo::getCreateTime);
+            .orderByDesc(SysTodo::getCreateAt);
         return page(page, wrapper).getRecords();
     }
 

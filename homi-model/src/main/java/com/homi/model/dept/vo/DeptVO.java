@@ -83,7 +83,7 @@ public class DeptVO implements Serializable {
      * 创建时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     /**
      * 创建人
@@ -94,7 +94,7 @@ public class DeptVO implements Serializable {
      * 更新时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 
     /**
      * 更新人

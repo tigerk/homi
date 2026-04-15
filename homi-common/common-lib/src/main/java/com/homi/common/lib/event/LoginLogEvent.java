@@ -67,6 +67,6 @@ public class LoginLogEvent implements Serializable {
     /**
      * 登录时间
      */
-    private Date loginTime;
+    private Date loginAt;
 
 }

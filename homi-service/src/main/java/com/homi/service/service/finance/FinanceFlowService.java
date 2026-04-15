@@ -64,16 +64,16 @@ public class FinanceFlowService {
         financeFlow.setAmount(item.getAmount() == null ? BigDecimal.ZERO : item.getAmount());
         financeFlow.setCurrency("CNY");
         financeFlow.setStatus(FinanceFlowStatusEnum.SUCCESS.getCode());
-        financeFlow.setFlowTime(command.payTime());
+        financeFlow.setFlowAt(command.payAt());
         financeFlow.setPayerName(command.payerName());
         financeFlow.setPayerPhone(command.payerPhone());
         financeFlow.setOperatorId(command.operatorId());
         financeFlow.setOperatorName(command.operatorName());
         financeFlow.setRemark(command.remark());
         financeFlow.setCreateBy(command.operatorId());
-        financeFlow.setCreateTime(command.now());
+        financeFlow.setCreateAt(command.now());
         financeFlow.setUpdateBy(command.operatorId());
-        financeFlow.setUpdateTime(command.now());
+        financeFlow.setUpdateAt(command.now());
         return financeFlow;
     }
 
@@ -86,7 +86,7 @@ public class FinanceFlowService {
         PaymentFlow paymentFlow,
         Map<Long, LeaseBillFee> feeMap,
         List<LeaseBillCollectDTO.Item> items,
-        java.util.Date payTime,
+        java.util.Date payAt,
         Long operatorId,
         String operatorName,
         String payerName,

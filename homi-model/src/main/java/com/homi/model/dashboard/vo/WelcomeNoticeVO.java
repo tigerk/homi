@@ -20,7 +20,7 @@ public class WelcomeNoticeVO {
 
     @Schema(description = "发布时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date publishTime;
+    private Date publishAt;
 
     @Schema(description = "创建人名称")
     private String createByName;

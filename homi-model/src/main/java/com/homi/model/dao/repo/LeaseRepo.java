@@ -58,8 +58,8 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
                 vo.setPaymentMonths(lease.getPaymentMonths());
                 vo.setLeaseStart(lease.getLeaseStart());
                 vo.setLeaseEnd(lease.getLeaseEnd());
-                vo.setCheckInTime(lease.getCheckInTime());
-                vo.setCheckOutTime(lease.getCheckOutTime());
+                vo.setCheckInAt(lease.getCheckInAt());
+                vo.setCheckOutAt(lease.getCheckOutAt());
                 vo.setOriginalLeaseStart(lease.getOriginalLeaseStart());
                 vo.setOriginalLeaseEnd(lease.getOriginalLeaseEnd());
                 vo.setLeaseDurationDays(lease.getLeaseDurationDays());
@@ -76,9 +76,9 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
                 vo.setRemark(lease.getRemark());
                 vo.setDeleted(lease.getDeleted());
                 vo.setCreateBy(lease.getCreateBy());
-                vo.setCreateTime(lease.getCreateTime());
+                vo.setCreateAt(lease.getCreateAt());
                 vo.setUpdateBy(lease.getUpdateBy());
-                vo.setUpdateTime(lease.getUpdateTime());
+                vo.setUpdateAt(lease.getUpdateAt());
                 return vo;
             })
             .toList());

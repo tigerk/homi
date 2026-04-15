@@ -80,7 +80,7 @@ public class LeaseBillListVO implements Serializable {
 
     @Schema(description = "作废时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date voidTime;
+    private Date voidAt;
 
     @Schema(description = "作废人")
     private Long voidBy;
@@ -120,5 +120,5 @@ public class LeaseBillListVO implements Serializable {
 
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 }

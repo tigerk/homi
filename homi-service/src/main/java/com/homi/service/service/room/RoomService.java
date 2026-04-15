@@ -379,7 +379,7 @@ public class RoomService {
 
         List<RoomLock> lockList = roomLockRepo.list(new LambdaQueryWrapper<RoomLock>()
             .eq(RoomLock::getRoomId, roomId)
-            .orderByDesc(RoomLock::getCreateTime)
+            .orderByDesc(RoomLock::getCreateAt)
             .orderByDesc(RoomLock::getId));
 
         if (CollUtil.isEmpty(lockList)) {

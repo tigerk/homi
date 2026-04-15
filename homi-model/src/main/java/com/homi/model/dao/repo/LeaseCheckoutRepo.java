@@ -23,7 +23,7 @@ public class LeaseCheckoutRepo extends ServiceImpl<LeaseCheckoutMapper, LeaseChe
         LeaseCheckout tenantCheckout = new LeaseCheckout();
         tenantCheckout.setId(checkoutId);
         tenantCheckout.setStatus(status);
-        tenantCheckout.setUpdateTime(DateUtil.date());
+        tenantCheckout.setUpdateAt(DateUtil.date());
         updateById(tenantCheckout);
     }
 
@@ -34,7 +34,7 @@ public class LeaseCheckoutRepo extends ServiceImpl<LeaseCheckoutMapper, LeaseChe
         LeaseCheckout tenantCheckout = new LeaseCheckout();
         tenantCheckout.setId(checkoutId);
         tenantCheckout.setApprovalStatus(bizApprovalStatus);
-        tenantCheckout.setUpdateTime(DateUtil.date());
+        tenantCheckout.setUpdateAt(DateUtil.date());
         updateById(tenantCheckout);
     }
 

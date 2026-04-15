@@ -213,7 +213,7 @@ public class DictTemplateService {
                 successCount++;
 
                 company.setDictVer(toVer);
-                company.setDictSyncTime(DateUtil.date());
+                company.setDictSyncAt(DateUtil.date());
                 companyRepo.updateById(company);
             } catch (Exception e) {
                 syncLog.setStatus(-1);
@@ -245,7 +245,7 @@ public class DictTemplateService {
 
         syncCompanyDictByTemplate(companyId, toVer);
         company.setDictVer(toVer);
-        company.setDictSyncTime(DateUtil.date());
+        company.setDictSyncAt(DateUtil.date());
         companyRepo.updateById(company);
     }
 
@@ -384,7 +384,7 @@ public class DictTemplateService {
                 .le(DictTemplate::getVer, toVer)
                 .eq(DictTemplate::getEnabled, true)
                 .orderByAsc(DictTemplate::getVer)
-                .orderByAsc(DictTemplate::getUpdateTime))
+                .orderByAsc(DictTemplate::getUpdateAt))
             .forEach(item -> templateMap.put(item.getDictCode(), item));
         return templateMap;
     }
@@ -395,7 +395,7 @@ public class DictTemplateService {
                 .le(DictDataTemplate::getVer, toVer)
                 .eq(DictDataTemplate::getEnabled, true)
                 .orderByAsc(DictDataTemplate::getVer)
-                .orderByAsc(DictDataTemplate::getUpdateTime))
+                .orderByAsc(DictDataTemplate::getUpdateAt))
             .forEach(item -> templateMap.put(item.getDictCode() + "#" + item.getValue(), item));
         return templateMap;
     }
@@ -430,7 +430,7 @@ public class DictTemplateService {
         dict.setFromTemplate(Boolean.TRUE);
         dict.setLocked(Boolean.FALSE);
         dict.setTemplateVer(template.getVer());
-        dict.setSyncTime(now);
+        dict.setSyncAt(now);
         boolean saved = dictRepo.save(dict);
         if (saved) {
             dictByCode.put(dict.getDictCode(), dict);
@@ -459,7 +459,7 @@ public class DictTemplateService {
         exist.setHidden(template.getHidden());
         exist.setRemark(template.getRemark());
         exist.setTemplateVer(template.getVer());
-        exist.setSyncTime(now);
+        exist.setSyncAt(now);
         boolean updated = dictRepo.updateById(exist);
         if (updated) {
             dictByCode.put(exist.getDictCode(), exist);
@@ -497,7 +497,7 @@ public class DictTemplateService {
         dictData.setFromTemplate(Boolean.TRUE);
         dictData.setLocked(Boolean.FALSE);
         dictData.setTemplateVer(template.getVer());
-        dictData.setSyncTime(now);
+        dictData.setSyncAt(now);
         return dictDataRepo.save(dictData);
     }
 
@@ -509,7 +509,7 @@ public class DictTemplateService {
         exist.setDeletable(template.getDeletable());
         exist.setRemark(template.getRemark());
         exist.setTemplateVer(template.getVer());
-        exist.setSyncTime(now);
+        exist.setSyncAt(now);
         return dictDataRepo.updateById(exist);
     }
 

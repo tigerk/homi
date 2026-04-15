@@ -48,16 +48,16 @@ public class TrialApplication implements Serializable {
     @TableLogic
     private Boolean deleted;
 
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @TableField("create_by")
     private Long createBy;
 
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 
     @TableField("update_by")
     private Long updateBy;

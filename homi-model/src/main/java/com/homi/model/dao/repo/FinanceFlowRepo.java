@@ -14,8 +14,8 @@ public class FinanceFlowRepo extends ServiceImpl<FinanceFlowMapper, FinanceFlow>
         LambdaQueryWrapper<FinanceFlow> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(FinanceFlow::getBizType, bizType);
         wrapper.eq(FinanceFlow::getBizId, bizId);
-        wrapper.orderByDesc(FinanceFlow::getFlowTime);
-        wrapper.orderByDesc(FinanceFlow::getCreateTime);
+        wrapper.orderByDesc(FinanceFlow::getFlowAt);
+        wrapper.orderByDesc(FinanceFlow::getCreateAt);
         return list(wrapper);
     }
 
@@ -26,8 +26,8 @@ public class FinanceFlowRepo extends ServiceImpl<FinanceFlowMapper, FinanceFlow>
         LambdaQueryWrapper<FinanceFlow> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(FinanceFlow::getBizType, bizType);
         wrapper.in(FinanceFlow::getBizId, bizIds);
-        wrapper.orderByDesc(FinanceFlow::getFlowTime);
-        wrapper.orderByDesc(FinanceFlow::getCreateTime);
+        wrapper.orderByDesc(FinanceFlow::getFlowAt);
+        wrapper.orderByDesc(FinanceFlow::getCreateAt);
         return list(wrapper);
     }
 
@@ -37,8 +37,8 @@ public class FinanceFlowRepo extends ServiceImpl<FinanceFlowMapper, FinanceFlow>
         }
         LambdaQueryWrapper<FinanceFlow> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(FinanceFlow::getPaymentFlowId, paymentFlowId);
-        wrapper.orderByDesc(FinanceFlow::getFlowTime);
-        wrapper.orderByDesc(FinanceFlow::getCreateTime);
+        wrapper.orderByDesc(FinanceFlow::getFlowAt);
+        wrapper.orderByDesc(FinanceFlow::getCreateAt);
         return list(wrapper);
     }
 

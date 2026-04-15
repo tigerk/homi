@@ -61,16 +61,16 @@ public class PlatformRole implements Serializable {
     private Long createBy;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "更新者")
     @TableField("update_by")
     private Long updateBy;
 
     @Schema(description = "更新时间")
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 }

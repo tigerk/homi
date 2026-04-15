@@ -62,7 +62,7 @@ public class UserService {
 
         validateUserUniqueness(null, user.getUsername(), user.getEmail(), user.getPhone());
         user.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        user.setUpdateTime(DateUtil.date());
+        user.setUpdateAt(DateUtil.date());
 
         if (Objects.nonNull(user.getPassword())) {
             // 密码加密

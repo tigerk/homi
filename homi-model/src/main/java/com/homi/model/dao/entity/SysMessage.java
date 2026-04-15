@@ -70,9 +70,9 @@ public class SysMessage implements Serializable {
     private Boolean isRead;
 
     @Schema(description = "阅读时间")
-    @TableField("read_time")
+    @TableField("read_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date readTime;
+    private Date readAt;
 
     @Schema(description = "发送方删除：0=否 1=是")
     @TableField("deleted_by_sender")
@@ -83,9 +83,9 @@ public class SysMessage implements Serializable {
     private Boolean deletedByReceiver;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "接收人昵称")
     @TableField(exist = false)

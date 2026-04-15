@@ -8,6 +8,6 @@
              user u
         where rt.update_by = u.id
           and room_id = #{roomId}
-        order by update_time desc
+        order by update_at desc
     </select>
 </mapper>

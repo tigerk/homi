@@ -21,7 +21,7 @@
         <result property="imageList" column="image_list" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
         <result property="videoList" column="video_list" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
         <result property="availableDate" column="available_date"/>
-        <result property="vacancyStartTime" column="vacancy_start_time"/>
+        <result property="vacancyStartAt" column="vacancy_start_at"/>
         <result property="salesmanId" column="salesman_id"/>
         <result property="salesmanName" column="nickname"/>
         <result property="salesmanPhone" column="phone"/>
@@ -77,7 +77,7 @@
                r.area,
                r.direction,
                r.available_date,
-               r.vacancy_start_time,
+               r.vacancy_start_at,
                h.salesman_id,
                u.nickname,
                u.phone,
@@ -145,13 +145,13 @@
         </if>
 
         <if test="query.vacancyDaysMin != null">
-            and r.vacancy_start_time is not null
-            and DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) <![CDATA[ >= ]]> #{query.vacancyDaysMin,jdbcType=INTEGER}
+            and r.vacancy_start_at is not null
+            and DATEDIFF(CURDATE(), DATE(r.vacancy_start_at)) <![CDATA[ >= ]]> #{query.vacancyDaysMin,jdbcType=INTEGER}
         </if>
 
         <if test="query.vacancyDaysMax != null">
-            and r.vacancy_start_time is not null
-            and DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) <![CDATA[ <= ]]> #{query.vacancyDaysMax,jdbcType=INTEGER}
+            and r.vacancy_start_at is not null
+            and DATEDIFF(CURDATE(), DATE(r.vacancy_start_at)) <![CDATA[ <= ]]> #{query.vacancyDaysMax,jdbcType=INTEGER}
         </if>
 
         <if test="query.spatialQuery != null and query.spatialQuery.size > 0">
@@ -212,8 +212,8 @@
 
     <select id="selectWelcomeVacancyBuckets" resultType="com.homi.model.dashboard.vo.WelcomeCountBucketVO">
         SELECT CASE
-                   WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) BETWEEN 0 AND 7 THEN 'vacancy_1_7'
-                   WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) BETWEEN 8 AND 15 THEN 'vacancy_8_15'
+                   WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_at)) BETWEEN 0 AND 7 THEN 'vacancy_1_7'
+                   WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_at)) BETWEEN 8 AND 15 THEN 'vacancy_8_15'
                    ELSE 'vacancy_gt_15'
                    END                                                 AS `key`,
                COUNT(*)                                                 AS `count`
@@ -223,13 +223,13 @@
           AND r.occupancy_status = 0
           AND IFNULL(r.closed, 0) = 0
           AND IFNULL(r.locked, 0) = 0
-          AND r.vacancy_start_time IS NOT NULL
+          AND r.vacancy_start_at IS NOT NULL
           <if test="leaseMode != null">
               AND h.lease_mode = #{leaseMode}
           </if>
         GROUP BY CASE
-                     WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) BETWEEN 0 AND 7 THEN 'vacancy_1_7'
-                     WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_time)) BETWEEN 8 AND 15 THEN 'vacancy_8_15'
+                     WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_at)) BETWEEN 0 AND 7 THEN 'vacancy_1_7'
+                     WHEN DATEDIFF(CURDATE(), DATE(r.vacancy_start_at)) BETWEEN 8 AND 15 THEN 'vacancy_8_15'
                      ELSE 'vacancy_gt_15'
             END
     </select>

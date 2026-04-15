@@ -80,11 +80,11 @@ public class LeaseDetailVO {
 
     @Schema(description = "实际入住时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date checkInTime;
+    private Date checkInAt;
 
     @Schema(description = "实际搬离时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date checkOutTime;
+    private Date checkOutAt;
 
     @Schema(description = "初始录入租赁开始时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
@@ -141,14 +141,14 @@ public class LeaseDetailVO {
 
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "修改人ID")
     private Long updateBy;
 
     @Schema(description = "修改时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 
     @Schema(description = "租客合同")
     private LeaseContractVO leaseContract;

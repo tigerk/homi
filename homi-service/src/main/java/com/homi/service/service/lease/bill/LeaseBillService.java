@@ -197,11 +197,11 @@ public class LeaseBillService {
         Tenant tenant = tenantService.getTenant(bill.getTenantId());
         LeaseBillPayerResolver.BillPayerInfo payerInfo = leaseBillPayerResolver.resolve(tenant);
         String operatorName = userRepo.getUserNicknameById(dto.getUpdateBy());
-        Date payTime = ObjectUtil.defaultIfNull(dto.getPayTime(), now);
+        Date payAt = ObjectUtil.defaultIfNull(dto.getPayAt(), now);
         String billSummary = billCalculator.buildBillSummary(bill);
 
         PaymentFlow paymentFlow = createPendingApprovalPaymentFlow(
-            dto, bill, payerInfo, operatorName, payTime, billSummary, now);
+            dto, bill, payerInfo, operatorName, payAt, billSummary, now);
         submitPaymentApproval(dto, bill, payerInfo, paymentFlow, billSummary, now);
         return true;
     }
@@ -227,10 +227,10 @@ public class LeaseBillService {
         DateTime now = DateUtil.date();
         bill.setStatus(LeaseBillStatusEnum.VOIDED.getCode());
         bill.setVoidReason(dto.getVoidReason().trim());
-        bill.setVoidTime(now);
+        bill.setVoidAt(now);
         bill.setVoidBy(dto.getUpdateBy());
         bill.setUpdateBy(dto.getUpdateBy());
-        bill.setUpdateTime(now);
+        bill.setUpdateAt(now);
         leaseBillRepo.updateById(bill);
         return true;
     }
@@ -299,7 +299,7 @@ public class LeaseBillService {
 
     private void updateBillBaseInfo(LeaseBill bill, Long operatorId, DateTime now) {
         bill.setUpdateBy(operatorId);
-        bill.setUpdateTime(now);
+        bill.setUpdateAt(now);
         leaseBillRepo.updateById(bill);
     }
 
@@ -391,10 +391,10 @@ public class LeaseBillService {
         entity.setFeeEnd(fee.getFeeEnd());
         entity.setRemark(fee.getRemark());
         entity.setUpdateBy(operatorId);
-        entity.setUpdateTime(now);
+        entity.setUpdateAt(now);
         if (entity.getId() == null) {
             entity.setCreateBy(operatorId);
-            entity.setCreateTime(now);
+            entity.setCreateAt(now);
         }
         return entity;
     }
@@ -427,7 +427,7 @@ public class LeaseBillService {
                                                          LeaseBill bill,
                                                          LeaseBillPayerResolver.BillPayerInfo payerInfo,
                                                          String operatorName,
-                                                         Date payTime,
+                                                         Date payAt,
                                                          String billSummary,
                                                          DateTime now) {
         return paymentFlowService.createLeaseBillPaymentFlow(
@@ -437,7 +437,7 @@ public class LeaseBillService {
                 .payChannel(dto.getPayChannel())
                 .thirdTradeNo(dto.getThirdTradeNo())
                 .paymentVoucherUrl(dto.getPaymentVoucherUrl())
-                .payTime(payTime)
+                .payAt(payAt)
                 .operatorId(dto.getUpdateBy())
                 .operatorName(operatorName)
                 .payerName(payerInfo.payerName())

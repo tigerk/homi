@@ -31,8 +31,8 @@ public class BizOperateLogService {
         log.setSourceId(sourceId);
         log.setOperatorId(operatorId);
         log.setOperatorName(operatorName);
-        log.setCreateTime(new Date());
-        log.setUpdateTime(log.getCreateTime());
+        log.setCreateAt(new Date());
+        log.setUpdateAt(log.getCreateAt());
         bizOperateLogRepo.save(log);
     }
 

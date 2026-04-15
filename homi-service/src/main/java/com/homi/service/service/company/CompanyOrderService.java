@@ -84,8 +84,8 @@ public class CompanyOrderService {
         Page<CompanyOrder> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
         LambdaQueryWrapper<CompanyOrder> wrapper = new LambdaQueryWrapper<CompanyOrder>()
             .eq(CompanyOrder::getCompanyId, companyId)
-            .orderByDesc(CompanyOrder::getPayTime)
-            .orderByDesc(CompanyOrder::getCreateTime)
+            .orderByDesc(CompanyOrder::getPayAt)
+            .orderByDesc(CompanyOrder::getCreateAt)
             .orderByDesc(CompanyOrder::getId);
 
         if (CharSequenceUtil.isNotBlank(dto.getProductCode())) {
@@ -110,9 +110,9 @@ public class CompanyOrderService {
             vo.setPayMethodName(getPayMethodName(order.getPayMethod()));
             vo.setPayChannel(order.getPayChannel());
             vo.setTransactionNo(order.getTransactionNo());
-            vo.setPurchaseTime(Objects.nonNull(order.getPayTime()) ? order.getPayTime() : order.getCreateTime());
-            vo.setPayTime(order.getPayTime());
-            vo.setNotifyTime(order.getNotifyTime());
+            vo.setPurchaseAt(Objects.nonNull(order.getPayAt()) ? order.getPayAt() : order.getCreateAt());
+            vo.setPayAt(order.getPayAt());
+            vo.setNotifyAt(order.getNotifyAt());
             vo.setRemark(order.getRemark());
             return vo;
         }).collect(Collectors.toList());
@@ -130,7 +130,7 @@ public class CompanyOrderService {
         Page<CompanyConsume> page = new Page<>(dto.getCurrentPage(), dto.getPageSize());
         LambdaQueryWrapper<CompanyConsume> wrapper = new LambdaQueryWrapper<CompanyConsume>()
             .eq(CompanyConsume::getCompanyId, companyId)
-            .orderByDesc(CompanyConsume::getCreateTime)
+            .orderByDesc(CompanyConsume::getCreateAt)
             .orderByDesc(CompanyConsume::getId);
 
         if (StrUtil.isNotBlank(dto.getProductCode())) {
@@ -156,7 +156,7 @@ public class CompanyOrderService {
             vo.setStatus(consume.getStatus());
             vo.setStatusName(getConsumeStatusName(consume.getStatus()));
             vo.setRemark(consume.getRemark());
-            vo.setCreateTime(consume.getCreateTime());
+            vo.setCreateAt(consume.getCreateAt());
             return vo;
         }).collect(Collectors.toList());
 

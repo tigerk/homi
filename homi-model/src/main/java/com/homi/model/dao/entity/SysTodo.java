@@ -76,9 +76,9 @@ public class SysTodo implements Serializable {
     private Date deadline;
 
     @Schema(description = "处理时间")
-    @TableField("handle_time")
+    @TableField("handle_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date handleTime;
+    private Date handleAt;
 
     @Schema(description = "处理备注")
     @TableField("handle_remark")
@@ -89,9 +89,9 @@ public class SysTodo implements Serializable {
     private Boolean isRead;
 
     @Schema(description = "已读时间")
-    @TableField("read_time")
+    @TableField("read_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date readTime;
+    private Date readAt;
 
     @Schema(description = "是否删除：0=否 1=是")
     @TableField("deleted")
@@ -103,18 +103,18 @@ public class SysTodo implements Serializable {
     private Long createBy;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "更新人")
     @TableField("update_by")
     private Long updateBy;
 
     @Schema(description = "更新时间")
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 
     @Schema(description = "执行人昵称")
     @TableField(exist = false)

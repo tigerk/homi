@@ -69,9 +69,9 @@ public class Room implements Serializable {
     private String direction;
 
     @Schema(description = "空置开始时间")
-    @TableField("vacancy_start_time")
+    @TableField("vacancy_start_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date vacancyStartTime;
+    private Date vacancyStartAt;
 
     @Schema(description = "可出租日期")
     @TableField("available_date")
@@ -118,15 +118,15 @@ public class Room implements Serializable {
     private Long createBy;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @TableField("update_by")
     private Long updateBy;
 
     @Schema(description = "更新时间")
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 }

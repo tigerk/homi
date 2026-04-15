@@ -50,7 +50,7 @@ public class RoomCreateDTO {
 
     @Schema(description = "空置开始时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date vacancyStartTime;
+    private Date vacancyStartAt;
 
     @Schema(description = "房间状态")
     private Integer occupancyStatus;

@@ -73,11 +73,11 @@ public class TenantDTO {
 
     @Schema(description = "实际入住时间", example = "2025-01-05")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date checkInTime;
+    private Date checkInAt;
 
     @Schema(description = "实际搬离时间", example = "2026-01-05")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date checkOutTime;
+    private Date checkOutAt;
 
     @Schema(description = "初始录入租赁开始时间", example = "2025-01-01")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

@@ -31,7 +31,7 @@ public class LeaseBillCollectDTO {
 
     @Schema(description = "实际支付日期")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date payTime;
+    private Date payAt;
 
     @Schema(description = "本次收款分配明细")
     private List<Item> items;

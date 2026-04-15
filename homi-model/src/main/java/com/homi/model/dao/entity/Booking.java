@@ -54,14 +54,14 @@ public class Booking implements Serializable {
     private BigDecimal bookingAmount;
 
     @Schema(description = "预定时间")
-    @TableField("booking_time")
+    @TableField("booking_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date bookingTime;
+    private Date bookingAt;
 
     @Schema(description = "预定到期时间（超过此时间未签合同可视为违约/过期）")
-    @TableField("expiry_time")
+    @TableField("expiry_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date expiryTime;
+    private Date expiryAt;
 
     @Schema(description = "预计租赁开始时间")
     @TableField("expected_lease_start")
@@ -102,9 +102,9 @@ public class Booking implements Serializable {
     private String cancelReason;
 
     @Schema(description = "实际操作取消的时间")
-    @TableField("cancel_time")
+    @TableField("cancel_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date cancelTime;
+    private Date cancelAt;
 
     @Schema(description = "是否删除")
     @TableField("deleted")
@@ -116,16 +116,16 @@ public class Booking implements Serializable {
     private Long createBy;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "修改人ID")
     @TableField("update_by")
     private Long updateBy;
 
     @Schema(description = "修改时间")
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 }

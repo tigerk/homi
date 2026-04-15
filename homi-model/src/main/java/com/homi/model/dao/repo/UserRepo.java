@@ -56,9 +56,9 @@ public class UserRepo extends ServiceImpl<UserMapper, User> {
 
         user.setPassword(PasswordUtils.encryptPassword(createDTO.getAdminPassword()));
         user.setCreateBy(createDTO.getCreateBy());
-        user.setCreateTime(createDTO.getCreateTime());
+        user.setCreateAt(createDTO.getCreateAt());
         user.setUpdateBy(createDTO.getUpdateBy());
-        user.setUpdateTime(createDTO.getUpdateTime());
+        user.setUpdateAt(createDTO.getUpdateAt());
         getBaseMapper().insert(user);
         return Pair.of(user.getId(), ResponseCodeEnum.SUCCESS);
     }

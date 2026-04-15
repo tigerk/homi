@@ -83,14 +83,14 @@ public class Lease implements Serializable {
     private Date leaseEnd;
 
     @Schema(description = "实际入住时间")
-    @TableField("check_in_time")
+    @TableField("check_in_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date checkInTime;
+    private Date checkInAt;
 
     @Schema(description = "实际搬离时间")
-    @TableField("check_out_time")
+    @TableField("check_out_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date checkOutTime;
+    private Date checkOutAt;
 
     @Schema(description = "初始录入租赁开始时间")
     @TableField("original_lease_start")
@@ -164,16 +164,16 @@ public class Lease implements Serializable {
     private Long createBy;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "修改人ID")
     @TableField("update_by")
     private Long updateBy;
 
     @Schema(description = "修改时间")
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 }

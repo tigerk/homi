@@ -93,7 +93,7 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
                 .in(Room::getId, toRelease)
                 .set(Room::getOccupancyStatus, OccupancyStatusEnum.AVAILABLE.getCode())
                 // 关键点：重置空置开始时间为当前时间
-                .set(Room::getVacancyStartTime, DateUtil.date())
+                .set(Room::getVacancyStartAt, DateUtil.date())
                 .update();
 
             if (!releaseResult) {
@@ -110,7 +110,7 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
                 .eq(Room::getOccupancyStatus, OccupancyStatusEnum.AVAILABLE.getCode())
                 .set(Room::getOccupancyStatus, OccupancyStatusEnum.BOOKED.getCode())
                 // 预定后，空置开始时间可以清空，也可以保持，取决于你是否需要在预定时也计算空置时长
-                // .set(Room::getVacancyStartTime, null)
+                // .set(Room::getVacancyStartAt, null)
                 .update();
 
             if (!bookResult) {

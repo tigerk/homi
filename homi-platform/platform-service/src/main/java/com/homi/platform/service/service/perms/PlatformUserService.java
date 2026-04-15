@@ -78,7 +78,7 @@ public class PlatformUserService {
         validateUserUniqueness(platformUser.getId(), platformUser.getUsername(), platformUser.getEmail(), platformUser.getPhone());
 
         platformUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        platformUser.setUpdateTime(DateUtil.date());
+        platformUser.setUpdateAt(DateUtil.date());
 
         platformUserMapper.updateById(platformUser);
         return platformUser.getId();
@@ -201,7 +201,7 @@ public class PlatformUserService {
             queryWrapper.eq(PlatformUser::getStatus, query.getStatus());
         }
 
-        queryWrapper.orderByDesc(PlatformUser::getCreateTime);
+        queryWrapper.orderByDesc(PlatformUser::getCreateAt);
 
         IPage<PlatformUser> userVOPage = platformUserRepo.page(page, queryWrapper);
 

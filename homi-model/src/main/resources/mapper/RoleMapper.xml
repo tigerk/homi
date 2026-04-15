@@ -8,9 +8,9 @@
         <result property="status" column="status" jdbcType="INTEGER"/>
         <result property="deleted" column="del_flag" jdbcType="INTEGER"/>
         <result property="createBy" column="create_by" jdbcType="INTEGER"/>
-        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createAt" column="create_at" jdbcType="TIMESTAMP"/>
         <result property="updateBy" column="update_by" jdbcType="INTEGER"/>
-        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateAt" column="update_at" jdbcType="TIMESTAMP"/>
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
     </resultMap>
 
@@ -20,7 +20,7 @@
         r.code,
         r.status,
         r.create_by,
-        r.create_time,
+        r.create_at,
         r.remark
         FROM role r
         <where>

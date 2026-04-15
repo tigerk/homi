@@ -54,7 +54,7 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
                 .like(SysNotice::getContent, dto.getKeyword()));
         }
 
-        wrapper.orderByDesc(SysNotice::getPublishTime);
+        wrapper.orderByDesc(SysNotice::getPublishAt);
         IPage<SysNotice> pageResult = getBaseMapper().selectPage(page, wrapper);
 
         List<SysNotice> records = pageResult.getRecords();
@@ -77,7 +77,7 @@ public class SysNoticeRepo extends ServiceImpl<SysNoticeMapper, SysNotice> {
         wrapper.eq(SysNotice::getCompanyId, companyId)
             .eq(SysNotice::getStatus, StatusEnum.ACTIVE.getValue())
             .notIn(SysNotice::getTargetScope, SysNoticeTargetScopeEnum.OWNER.getCode(), SysNoticeTargetScopeEnum.TENANT.getCode())
-            .orderByDesc(SysNotice::getPublishTime);
+            .orderByDesc(SysNotice::getPublishAt);
         applyRoleScopeFilter(wrapper, roleIds);
         List<SysNotice> list = page(page, wrapper).getRecords();
 

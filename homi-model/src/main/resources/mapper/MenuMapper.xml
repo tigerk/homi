@@ -14,9 +14,9 @@
         <result property="visible" column="visible" jdbcType="INTEGER"/>
         <result property="icon" column="icon" jdbcType="VARCHAR"/>
         <result property="createBy" column="create_by" jdbcType="INTEGER"/>
-        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="createAt" column="create_at" jdbcType="TIMESTAMP"/>
         <result property="updateBy" column="update_by" jdbcType="INTEGER"/>
-        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="updateAt" column="update_at" jdbcType="TIMESTAMP"/>
         <result property="platformType" column="platform_type" jdbcType="INTEGER"/>
         <result property="remark" column="remark" jdbcType="VARCHAR"/>
         <result property="redirect" column="redirect" jdbcType="VARCHAR"/>
@@ -41,9 +41,9 @@
         m.auths,
         m.icon,
         m.create_by,
-        m.create_time,
+        m.create_at,
         m.update_by,
-        m.update_time,
+        m.update_at,
         m.remark,
         m.platform_type,
         m.redirect,

@@ -53,13 +53,13 @@ public class CompanyOrderRecordVO {
     private String transactionNo;
 
     @Schema(description = "购买时间（已支付取支付时间，否则取创建时间）")
-    private Date purchaseTime;
+    private Date purchaseAt;
 
     @Schema(description = "支付完成时间")
-    private Date payTime;
+    private Date payAt;
 
     @Schema(description = "支付回调通知时间")
-    private Date notifyTime;
+    private Date notifyAt;
 
     @Schema(description = "备注")
     private String remark;

@@ -43,7 +43,7 @@ public class SysMessageRepo extends ServiceImpl<SysMessageMapper, SysMessage> {
                 .like(SysMessage::getContent, dto.getKeyword()));
         }
 
-        wrapper.orderByDesc(SysMessage::getCreateTime);
+        wrapper.orderByDesc(SysMessage::getCreateAt);
         IPage<SysMessage> pageResult = getBaseMapper().selectPage(page, wrapper);
 
         PageVO<SysMessage> pageVO = new PageVO<>();
@@ -71,7 +71,7 @@ public class SysMessageRepo extends ServiceImpl<SysMessageMapper, SysMessage> {
         wrapper.eq(SysMessage::getCompanyId, companyId)
             .eq(SysMessage::getReceiverId, userId)
             .eq(SysMessage::getDeletedByReceiver, false)
-            .orderByDesc(SysMessage::getCreateTime);
+            .orderByDesc(SysMessage::getCreateAt);
 
         return page(page, wrapper).getRecords();
     }

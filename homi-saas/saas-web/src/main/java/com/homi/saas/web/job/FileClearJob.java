@@ -34,7 +34,7 @@ public class FileClearJob {
         DateTime beforeYesterdayZero = DateUtil.beginOfDay(DateUtil.offsetDay(DateUtil.date(), -2));
 
         LambdaQueryWrapper<FileMeta> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.le(FileMeta::getCreateTime, beforeYesterdayZero);
+        queryWrapper.le(FileMeta::getCreateAt, beforeYesterdayZero);
         queryWrapper.eq(FileMeta::getIsUsed, StatusEnum.DISABLED.getValue());
         List<FileMeta> fileMetas = fileMetaRepo.list(queryWrapper);
         fileMetas.forEach(fileMeta -> {

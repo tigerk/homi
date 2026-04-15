@@ -29,9 +29,9 @@ public class ScatterController {
         scatterCreateDTO.setCompanyId(currentUser.getCurCompanyId());
 
         scatterCreateDTO.setCreateBy(currentUser.getId());
-        scatterCreateDTO.setCreateTime(DateUtil.date());
+        scatterCreateDTO.setCreateAt(DateUtil.date());
         scatterCreateDTO.setUpdateBy(currentUser.getId());
-        scatterCreateDTO.setUpdateTime(DateUtil.date());
+        scatterCreateDTO.setUpdateAt(DateUtil.date());
 
         Boolean success = scatterService.createOrUpdateHouse(scatterCreateDTO);
         return ResponseResult.ok(success);

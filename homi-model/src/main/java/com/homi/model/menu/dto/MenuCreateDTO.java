@@ -156,7 +156,7 @@ public class MenuCreateDTO {
     /**
      * 创建时间
      */
-    private Date createTime;
+    private Date createAt;
 
     /**
      * 更新者
@@ -166,5 +166,5 @@ public class MenuCreateDTO {
     /**
      * 更新时间
      */
-    private Date updateTime;
+    private Date updateAt;
 }

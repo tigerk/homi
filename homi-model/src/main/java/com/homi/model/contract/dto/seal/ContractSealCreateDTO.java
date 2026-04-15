@@ -66,11 +66,11 @@ public class ContractSealCreateDTO {
 
     @Schema(description = "认证完成时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date authTime;
+    private Date authAt;
 
     @Schema(description = "授权到期时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date expireTime;
+    private Date expireAt;
 
     @Schema(description = "各服务商差异化字段,JSON存储")
     private String providerExtra;
@@ -80,12 +80,12 @@ public class ContractSealCreateDTO {
 
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "修改人ID")
     private Long updateBy;
 
     @Schema(description = "修改时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 }

@@ -240,7 +240,7 @@ public class LeaseService {
         tenant.setTenantPhone(addedTenant.getRight());
         tenant.setStatus(1);
         tenant.setCreateBy(createBy);
-        tenant.setCreateTime(DateUtil.date());
+        tenant.setCreateAt(DateUtil.date());
         tenantRepo.save(tenant);
         return tenant;
     }
@@ -252,7 +252,7 @@ public class LeaseService {
         lease.setRoomIds(JSONUtil.toJsonStr(leaseDTO.getRoomIds()));
         lease.setStatus(LeaseStatusEnum.PENDING_APPROVAL.getCode());
         lease.setCreateBy(leaseDTO.getCreateBy());
-        lease.setCreateTime(DateUtil.date());
+        lease.setCreateAt(DateUtil.date());
         leaseRepo.save(lease);
 
         leaseRoomRepo.saveLeaseRoomBatch(lease.getId(), leaseDTO.getRoomIds());
@@ -285,7 +285,7 @@ public class LeaseService {
         tenantCompanyEntity.setTags(JSONUtil.toJsonStr(tenantCompany.getTags()));
 
         tenantCompanyEntity.setStatus(StatusEnum.ACTIVE.getValue());
-        tenantCompanyEntity.setCreateTime(DateUtil.date());
+        tenantCompanyEntity.setCreateAt(DateUtil.date());
         tenantCompanyRepo.save(tenantCompanyEntity);
 
         return Triple.of(tenantCompanyEntity.getId(), tenantCompanyEntity.getCompanyName(), tenantCompanyEntity.getContactPhone());
@@ -303,7 +303,7 @@ public class LeaseService {
     private Triple<Long, String, String> addTenantPersonal(TenantPersonalDTO tenantPersonalDTO) {
         TenantPersonal tenantPersonal = new TenantPersonal();
         tenantPersonal.setCreateBy(tenantPersonalDTO.getCreateBy());
-        tenantPersonal.setCreateTime(DateUtil.date());
+        tenantPersonal.setCreateAt(DateUtil.date());
 
         BeanUtils.copyProperties(tenantPersonalDTO, tenantPersonal);
         tenantPersonal.setTags(JSONUtil.toJsonStr(tenantPersonalDTO.getTags()));
@@ -729,9 +729,9 @@ public class LeaseService {
         }
 
         // 更新基本信息
-        BeanUtils.copyProperties(tenantPersonalDTO, tenantPersonal, "id", "createBy", "createTime");
+        BeanUtils.copyProperties(tenantPersonalDTO, tenantPersonal, "id", "createBy", "createAt");
         tenantPersonal.setTags(JSONUtil.toJsonStr(tenantPersonalDTO.getTags()));
-        tenantPersonal.setUpdateTime(DateUtil.date());
+        tenantPersonal.setUpdateAt(DateUtil.date());
         tenantPersonalRepo.updateById(tenantPersonal);
 
         // 更新附件信息（先删除旧的，再添加新的）
@@ -791,9 +791,9 @@ public class LeaseService {
         }
 
         // 更新基本信息
-        BeanUtils.copyProperties(tenantCompanyDTO, tenantCompany, "id", "createBy", "createTime");
+        BeanUtils.copyProperties(tenantCompanyDTO, tenantCompany, "id", "createBy", "createAt");
         tenantCompany.setTags(JSONUtil.toJsonStr(tenantCompanyDTO.getTags()));
-        tenantCompany.setUpdateTime(DateUtil.date());
+        tenantCompany.setUpdateAt(DateUtil.date());
         tenantCompanyRepo.updateById(tenantCompany);
 
         return Triple.of(tenantCompany.getId(), tenantCompany.getCompanyName(), tenantCompany.getContactPhone());
@@ -809,7 +809,7 @@ public class LeaseService {
         tenant.setTenantTypeId(tenantTypeInfo.getLeft());
         tenant.setTenantName(tenantTypeInfo.getMiddle());
         tenant.setTenantPhone(tenantTypeInfo.getRight());
-        tenant.setUpdateTime(DateUtil.date());
+        tenant.setUpdateAt(DateUtil.date());
         tenantRepo.updateById(tenant);
     }
 
@@ -838,7 +838,7 @@ public class LeaseService {
         lease.setDealChannel(leaseDTO.getDealChannel());
         lease.setTenantSource(leaseDTO.getTenantSource());
         lease.setRemark(leaseDTO.getRemark());
-        lease.setUpdateTime(DateUtil.date());
+        lease.setUpdateAt(DateUtil.date());
 
         leaseRepo.updateById(lease);
 

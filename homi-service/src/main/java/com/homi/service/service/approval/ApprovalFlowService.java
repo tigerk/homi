@@ -100,7 +100,7 @@ public class ApprovalFlowService {
             flow.setEnabled(dto.getEnabled());
             flow.setRemark(dto.getRemark());
             flow.setUpdateBy(dto.getCreateBy());
-            flow.setUpdateTime(new Date());
+            flow.setUpdateAt(new Date());
             approvalFlowRepo.updateById(flow);
 
             // 删除旧节点
@@ -116,7 +116,7 @@ public class ApprovalFlowService {
             flow.setRemark(dto.getRemark());
             flow.setDeleted(false);
             flow.setCreateBy(dto.getCreateBy());
-            flow.setCreateTime(new Date());
+            flow.setCreateAt(new Date());
             approvalFlowRepo.save(flow);
         }
 
@@ -132,7 +132,7 @@ public class ApprovalFlowService {
                 node.setApproverType(nodeDto.getApproverType());
                 node.setApproverIds(JSONUtil.toJsonStr(nodeDto.getApproverIds()));
                 node.setMultiApproveType(nodeDto.getMultiApproveType() != null ? nodeDto.getMultiApproveType() : 1);
-                node.setCreateTime(new Date());
+                node.setCreateAt(new Date());
                 nodes.add(node);
             }
             approvalNodeRepo.saveBatch(nodes);

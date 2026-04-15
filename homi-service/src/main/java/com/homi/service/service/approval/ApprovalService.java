@@ -146,8 +146,8 @@ public class ApprovalService {
 
         // 更新实例状态
         instance.setStatus(ApprovalInstanceStatusEnum.WITHDRAWN.getCode());
-        instance.setFinishTime(DateUtil.date());
-        instance.setUpdateTime(DateUtil.date());
+        instance.setFinishAt(DateUtil.date());
+        instance.setUpdateAt(DateUtil.date());
         approvalInstanceRepo.updateById(instance);
 
         // 将待审批动作标记为已跳过
@@ -181,7 +181,7 @@ public class ApprovalService {
         instance.setCurrentNodeOrder(1);
         instance.setCurrentNodeId(nodes.get(0).getId());
         instance.setCreateBy(dto.getApplicantId());
-        instance.setCreateTime(DateUtil.date());
+        instance.setCreateAt(DateUtil.date());
         return instance;
     }
 
@@ -191,7 +191,7 @@ public class ApprovalService {
     private void updateApprovalAction(ApprovalAction action, ApprovalHandleDTO dto) {
         action.setAction(dto.getAction());
         action.setRemark(dto.getRemark());
-        action.setOperateTime(DateUtil.date());
+        action.setOperateAt(DateUtil.date());
         action.setStatus(ApprovalActionStatusEnum.APPROVED.getCode());
         approvalActionRepo.updateById(action);
     }
@@ -235,9 +235,9 @@ public class ApprovalService {
      */
     private void completeApproval(ApprovalInstance instance) {
         instance.setStatus(ApprovalInstanceStatusEnum.APPROVED.getCode());
-        instance.setFinishTime(DateUtil.date());
+        instance.setFinishAt(DateUtil.date());
         instance.setResultRemark("审批通过");
-        instance.setUpdateTime(DateUtil.date());
+        instance.setUpdateAt(DateUtil.date());
         approvalInstanceRepo.updateById(instance);
 
         publishStatusChangeEvent(
@@ -255,7 +255,7 @@ public class ApprovalService {
     private void moveToNextNode(ApprovalInstance instance, ApprovalNode nextNode) {
         instance.setCurrentNodeId(nextNode.getId());
         instance.setCurrentNodeOrder(nextNode.getNodeOrder());
-        instance.setUpdateTime(DateUtil.date());
+        instance.setUpdateAt(DateUtil.date());
         approvalInstanceRepo.updateById(instance);
 
         createApprovalActions(instance, nextNode);
@@ -269,9 +269,9 @@ public class ApprovalService {
      */
     private void handleReject(ApprovalInstance instance, ApprovalAction action, String remark) {
         instance.setStatus(ApprovalInstanceStatusEnum.REJECTED.getCode());
-        instance.setFinishTime(DateUtil.date());
+        instance.setFinishAt(DateUtil.date());
         instance.setResultRemark(remark);
-        instance.setUpdateTime(DateUtil.date());
+        instance.setUpdateAt(DateUtil.date());
         approvalInstanceRepo.updateById(instance);
 
         // 跳过所有待审批动作
@@ -298,7 +298,7 @@ public class ApprovalService {
         newAction.setNodeName(action.getNodeName());
         newAction.setApproverId(transferToId);
         newAction.setStatus(ApprovalActionStatusEnum.PENDING.getCode());
-        newAction.setCreateTime(DateUtil.date());
+        newAction.setCreateAt(DateUtil.date());
         approvalActionRepo.save(newAction);
 
         log.info("审批转交成功: instanceId={}, fromUserId={}, toUserId={}", instance.getId(), action.getApproverId(), transferToId);
@@ -323,7 +323,7 @@ public class ApprovalService {
             action.setNodeName(node.getNodeName());
             action.setApproverId(approverId);
             action.setStatus(ApprovalActionStatusEnum.PENDING.getCode());
-            action.setCreateTime(DateUtil.date());
+            action.setCreateAt(DateUtil.date());
             approvalActionRepo.save(action);
         }
 

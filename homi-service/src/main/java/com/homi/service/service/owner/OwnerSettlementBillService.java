@@ -122,8 +122,8 @@ public class OwnerSettlementBillService {
         vo.setGeneratedAt(bill.getGeneratedAt());
         vo.setApprovedAt(bill.getApprovedAt());
         vo.setRemark(bill.getRemark());
-        vo.setCreateTime(bill.getCreateTime());
-        vo.setUpdateTime(bill.getUpdateTime());
+        vo.setCreateAt(bill.getCreateAt());
+        vo.setUpdateAt(bill.getUpdateAt());
         vo.setLineList(ownerSettlementBillLineRepo.lambdaQuery()
             .eq(OwnerSettlementBillLine::getBillId, bill.getId())
             .orderByAsc(OwnerSettlementBillLine::getId)
@@ -206,10 +206,10 @@ public class OwnerSettlementBillService {
         vo.setItemName(item.getItemName());
         vo.setDirection(item.getDirection());
         vo.setAmount(item.getAmount());
-        vo.setBizTime(item.getBizTime());
+        vo.setBizDate(item.getBizDate());
         vo.setRemark(item.getRemark());
         vo.setFormulaSnapshot(item.getFormulaSnapshot());
-        vo.setCreateTime(item.getCreateTime());
+        vo.setCreateAt(item.getCreateAt());
         return vo;
     }
 
@@ -221,7 +221,7 @@ public class OwnerSettlementBillService {
         vo.setReductionType(item.getReductionType());
         vo.setReductionName(item.getReductionName());
         vo.setAmount(item.getAmount());
-        vo.setBizTime(item.getBizTime());
+        vo.setBizDate(item.getBizDate());
         vo.setRemark(item.getRemark());
         vo.setRuleSnapshot(item.getRuleSnapshot());
         return vo;

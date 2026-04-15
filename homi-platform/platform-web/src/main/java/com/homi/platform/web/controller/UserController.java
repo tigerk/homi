@@ -94,7 +94,7 @@ public class UserController {
         PlatformUser platformUser = BeanCopyUtils.copyBean(createDTO, PlatformUser.class);
         assert platformUser != null;
         platformUser.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        platformUser.setCreateTime(DateUtil.date());
+        platformUser.setCreateAt(DateUtil.date());
         platformUser.setUsername(createDTO.getPhone());
         return ResponseResult.ok(platformUserService.createUser(platformUser));
     }
@@ -167,7 +167,7 @@ public class UserController {
         PlatformUser platformUser = BeanCopyUtils.copyBean(updateDTO, PlatformUser.class);
         assert platformUser != null;
         platformUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        platformUser.setUpdateTime(DateUtil.date());
+        platformUser.setUpdateAt(DateUtil.date());
         platformUserService.resetPassword(platformUser);
         return ResponseResult.ok(true);
     }
@@ -192,7 +192,7 @@ public class UserController {
         PlatformUser platformUser = BeanCopyUtils.copyBean(updateDTO, PlatformUser.class);
         assert platformUser != null;
         platformUser.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        platformUser.setUpdateTime(DateUtil.date());
+        platformUser.setUpdateAt(DateUtil.date());
         platformUserService.updateAvatar(platformUser);
         return ResponseResult.ok(true);
     }

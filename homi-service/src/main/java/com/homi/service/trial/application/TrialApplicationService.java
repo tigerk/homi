@@ -46,8 +46,8 @@ public class TrialApplicationService {
         trialApplication.setCityName(region.getName());
         trialApplication.setUsageRemark(dto.getUsageRemark());
         trialApplication.setStatus(TrialApplicationStatusEnum.PENDING.getCode());
-        trialApplication.setCreateTime(DateUtil.date());
-        trialApplication.setUpdateTime(DateUtil.date());
+        trialApplication.setCreateAt(DateUtil.date());
+        trialApplication.setUpdateAt(DateUtil.date());
         trialApplicationRepo.save(trialApplication);
         return trialApplication.getId();
     }
@@ -58,7 +58,7 @@ public class TrialApplicationService {
         queryWrapper.like(CharSequenceUtil.isNotBlank(dto.getPhone()), TrialApplication::getPhone, dto.getPhone());
         queryWrapper.like(CharSequenceUtil.isNotBlank(dto.getCityName()), TrialApplication::getCityName, dto.getCityName());
         queryWrapper.eq(Objects.nonNull(dto.getStatus()), TrialApplication::getStatus, dto.getStatus());
-        queryWrapper.orderByDesc(TrialApplication::getCreateTime);
+        queryWrapper.orderByDesc(TrialApplication::getCreateAt);
         var result = trialApplicationRepo.page(page, queryWrapper);
 
         PageVO<TrialApplicationVO> pageVO = new PageVO<>();
@@ -84,7 +84,7 @@ public class TrialApplicationService {
         trialApplication.setStatus(dto.getStatus());
         trialApplication.setHandleRemark(dto.getHandleRemark());
         trialApplication.setUpdateBy(operatorId);
-        trialApplication.setUpdateTime(DateUtil.date());
+        trialApplication.setUpdateAt(DateUtil.date());
         return trialApplicationRepo.updateById(trialApplication);
     }
 
@@ -97,8 +97,8 @@ public class TrialApplicationService {
         vo.setUsageRemark(trialApplication.getUsageRemark());
         vo.setStatus(trialApplication.getStatus());
         vo.setHandleRemark(trialApplication.getHandleRemark());
-        vo.setCreateTime(trialApplication.getCreateTime());
-        vo.setUpdateTime(trialApplication.getUpdateTime());
+        vo.setCreateAt(trialApplication.getCreateAt());
+        vo.setUpdateAt(trialApplication.getUpdateAt());
         return vo;
     }
 }

@@ -51,14 +51,14 @@ public class ContractSealProvider implements Serializable {
     private Integer authStatus;
 
     @Schema(description = "认证完成时间")
-    @TableField("auth_time")
+    @TableField("auth_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date authTime;
+    private Date authAt;
 
     @Schema(description = "授权到期时间")
-    @TableField("expire_time")
+    @TableField("expire_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date expireTime;
+    private Date expireAt;
 
     @Schema(description = "各服务商差异化字段,JSON存储")
     @TableField("extra")
@@ -71,14 +71,14 @@ public class ContractSealProvider implements Serializable {
     @TableField("create_by")
     private Long createBy;
 
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @TableField("update_by")
     private Long updateBy;
 
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 }

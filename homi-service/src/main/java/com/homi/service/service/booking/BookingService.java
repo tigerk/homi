@@ -206,7 +206,7 @@ public class BookingService {
         booking.setBookingStatus(BookingStatusEnum.CANCELLED_EXPIRED.getCode());
         booking.setUpdateBy(query.getUpdateBy());
         booking.setCancelReason(query.getCancelReason());
-        booking.setCancelTime(DateUtil.date());
+        booking.setCancelAt(DateUtil.date());
 
         // 把房间修改为已出租状态，但是没有租客信息；
         Boolean updateOccupancyStatusByRoomIds = roomRepo.updateOccupancyStatusByRoomIds(JSONUtil.toList(booking.getRoomIds(), Long.class), OccupancyStatusEnum.AVAILABLE.getCode());

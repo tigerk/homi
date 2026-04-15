@@ -30,7 +30,7 @@ public class OwnerSettlementBillReductionVO {
 
     @Schema(description = "业务时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date bizTime;
+    private Date bizDate;
 
     @Schema(description = "备注")
     private String remark;

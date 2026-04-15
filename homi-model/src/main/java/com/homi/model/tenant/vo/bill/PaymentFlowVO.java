@@ -47,5 +47,5 @@ public class PaymentFlowVO implements Serializable {
 
     @Schema(description = "支付完成时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date payTime;
+    private Date payAt;
 }

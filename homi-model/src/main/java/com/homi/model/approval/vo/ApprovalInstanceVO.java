@@ -97,14 +97,14 @@ public class ApprovalInstanceVO {
      */
     @Schema(description = "完成时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date finishTime;
+    private Date finishAt;
 
     /**
      * 创建时间
      */
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     /**
      * 审批动作列表（审批流程时间线）

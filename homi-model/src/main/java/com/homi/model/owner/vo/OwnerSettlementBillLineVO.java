@@ -33,7 +33,7 @@ public class OwnerSettlementBillLineVO {
 
     @Schema(description = "业务时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date bizTime;
+    private Date bizDate;
 
     @Schema(description = "备注")
     private String remark;
@@ -43,5 +43,5 @@ public class OwnerSettlementBillLineVO {
 
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 }

@@ -277,7 +277,7 @@ public class LeaseCheckoutService {
         checkout.setLeaseEnd(lease.getLeaseEnd());
         checkout.setStatus(CheckoutStatusEnum.DRAFT.getCode());
         checkout.setCreateBy(dto.getOperatorId());
-        checkout.setCreateTime(DateUtil.date());
+        checkout.setCreateAt(DateUtil.date());
         return checkout;
     }
 
@@ -298,7 +298,7 @@ public class LeaseCheckoutService {
         }
 
         checkout.setUpdateBy(dto.getOperatorId());
-        checkout.setUpdateTime(DateUtil.date());
+        checkout.setUpdateAt(DateUtil.date());
         return checkout;
     }
 
@@ -355,7 +355,7 @@ public class LeaseCheckoutService {
                 fee.setRemark(feeDTO.getRemark());
                 fee.setBillId(feeDTO.getBillId());
                 fee.setCreateBy(operatorId);
-                fee.setCreateTime(DateUtil.date());
+                fee.setCreateAt(DateUtil.date());
                 fees.add(fee);
             }
             leaseCheckoutFeeRepo.saveBatch(fees);
@@ -415,9 +415,9 @@ public class LeaseCheckoutService {
 
         // 更新退租单状态
         checkout.setStatus(CheckoutStatusEnum.COMPLETED.getCode());
-        checkout.setSettlementTime(DateUtil.date());
+        checkout.setSettlementAt(DateUtil.date());
         checkout.setUpdateBy(operatorId);
-        checkout.setUpdateTime(DateUtil.date());
+        checkout.setUpdateAt(DateUtil.date());
         leaseCheckoutRepo.updateById(checkout);
 
         // 更新租客状态为已退租
@@ -451,7 +451,7 @@ public class LeaseCheckoutService {
 
         checkout.setStatus(CheckoutStatusEnum.CANCELLED.getCode());
         checkout.setUpdateBy(operatorDTO.getOperatorId());
-        checkout.setUpdateTime(DateUtil.date());
+        checkout.setUpdateAt(DateUtil.date());
         leaseCheckoutRepo.updateById(checkout);
 
         log.info("退租单已取消: checkoutId={}", checkoutId);

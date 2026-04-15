@@ -373,8 +373,8 @@ public class AuthService {
         createDTO.setPackageId(defaultRegisterPackage.getId());
         createDTO.setHouseCount(defaultRegisterPackage.getHouseCount());
         createDTO.setStatus(StatusEnum.ACTIVE.getValue());
-        createDTO.setCreateTime(DateUtil.date());
-        createDTO.setUpdateTime(DateUtil.date());
+        createDTO.setCreateAt(DateUtil.date());
+        createDTO.setUpdateAt(DateUtil.date());
 
         companyService.createCompany(createDTO);
         return true;

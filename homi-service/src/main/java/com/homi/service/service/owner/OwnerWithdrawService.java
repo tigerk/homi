@@ -100,8 +100,8 @@ public class OwnerWithdrawService {
         vo.setAppliedAt(apply.getAppliedAt());
         vo.setApprovedAt(apply.getApprovedAt());
         vo.setPaidAt(apply.getPaidAt());
-        vo.setCreateTime(apply.getCreateTime());
-        vo.setUpdateTime(apply.getUpdateTime());
+        vo.setCreateAt(apply.getCreateAt());
+        vo.setUpdateAt(apply.getUpdateAt());
         vo.setFlowList(ownerAccountFlowRepo.list(new LambdaQueryWrapper<OwnerAccountFlow>()
                 .eq(OwnerAccountFlow::getOwnerId, apply.getOwnerId())
                 .eq(OwnerAccountFlow::getBizId, apply.getId())
@@ -159,9 +159,9 @@ public class OwnerWithdrawService {
         apply.setRemark(dto.getRemark());
         apply.setAppliedAt(now);
         apply.setCreateBy(operatorId);
-        apply.setCreateTime(now);
+        apply.setCreateAt(now);
         apply.setUpdateBy(operatorId);
-        apply.setUpdateTime(now);
+        apply.setUpdateAt(now);
         ownerWithdrawApplyRepo.save(apply);
 
         BigDecimal availableBefore = defaultZero(account.getAvailableAmount());
@@ -222,7 +222,7 @@ public class OwnerWithdrawService {
             default -> throw new IllegalArgumentException("不支持的提现操作");
         }
         apply.setUpdateBy(operatorId);
-        apply.setUpdateTime(now);
+        apply.setUpdateAt(now);
         if (dto.getOperateType() == OwnerWithdrawOperateEnum.APPROVE) {
             apply.setApprovedAt(now);
         }
@@ -288,7 +288,7 @@ public class OwnerWithdrawService {
         flow.setFrozenAfter(frozenAfter);
         flow.setRemark(remark);
         flow.setCreateBy(operatorId);
-        flow.setCreateTime(now);
+        flow.setCreateAt(now);
         ownerAccountFlowRepo.save(flow);
     }
 
@@ -310,7 +310,7 @@ public class OwnerWithdrawService {
         vo.setAppliedAt(item.getAppliedAt());
         vo.setApprovedAt(item.getApprovedAt());
         vo.setPaidAt(item.getPaidAt());
-        vo.setCreateTime(item.getCreateTime());
+        vo.setCreateAt(item.getCreateAt());
         return vo;
     }
 
@@ -327,7 +327,7 @@ public class OwnerWithdrawService {
         vo.setFrozenBefore(item.getFrozenBefore());
         vo.setFrozenAfter(item.getFrozenAfter());
         vo.setRemark(item.getRemark());
-        vo.setCreateTime(item.getCreateTime());
+        vo.setCreateAt(item.getCreateAt());
         return vo;
     }
 

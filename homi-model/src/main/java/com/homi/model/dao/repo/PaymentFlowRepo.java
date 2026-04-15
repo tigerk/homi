@@ -14,8 +14,8 @@ public class PaymentFlowRepo extends ServiceImpl<PaymentFlowMapper, PaymentFlow>
         LambdaQueryWrapper<PaymentFlow> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PaymentFlow::getBizType, bizType);
         wrapper.eq(PaymentFlow::getBizId, bizId);
-        wrapper.orderByDesc(PaymentFlow::getPayTime);
-        wrapper.orderByDesc(PaymentFlow::getCreateTime);
+        wrapper.orderByDesc(PaymentFlow::getPayAt);
+        wrapper.orderByDesc(PaymentFlow::getCreateAt);
         wrapper.last("limit 1");
         return getOne(wrapper);
     }
@@ -24,8 +24,8 @@ public class PaymentFlowRepo extends ServiceImpl<PaymentFlowMapper, PaymentFlow>
         LambdaQueryWrapper<PaymentFlow> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PaymentFlow::getBizType, bizType);
         wrapper.eq(PaymentFlow::getBizId, bizId);
-        wrapper.orderByDesc(PaymentFlow::getPayTime);
-        wrapper.orderByDesc(PaymentFlow::getCreateTime);
+        wrapper.orderByDesc(PaymentFlow::getPayAt);
+        wrapper.orderByDesc(PaymentFlow::getCreateAt);
         return list(wrapper);
     }
 
@@ -36,8 +36,8 @@ public class PaymentFlowRepo extends ServiceImpl<PaymentFlowMapper, PaymentFlow>
         LambdaQueryWrapper<PaymentFlow> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(PaymentFlow::getBizType, bizType);
         wrapper.in(PaymentFlow::getBizId, bizIds);
-        wrapper.orderByDesc(PaymentFlow::getPayTime);
-        wrapper.orderByDesc(PaymentFlow::getCreateTime);
+        wrapper.orderByDesc(PaymentFlow::getPayAt);
+        wrapper.orderByDesc(PaymentFlow::getCreateAt);
         return list(wrapper);
     }
 }

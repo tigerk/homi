@@ -70,7 +70,7 @@ public class LoginLog implements Serializable {
     private String message;
 
     @Schema(description = "登录时间")
-    @TableField("login_time")
+    @TableField("login_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date loginTime;
+    private Date loginAt;
 }

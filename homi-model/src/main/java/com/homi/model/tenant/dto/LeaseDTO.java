@@ -56,10 +56,10 @@ public class LeaseDTO {
     private Date leaseEnd;
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date checkInTime;
+    private Date checkInAt;
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date checkOutTime;
+    private Date checkOutAt;
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date originalLeaseStart;

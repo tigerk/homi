@@ -51,7 +51,7 @@ public class CompanyPackageCreateDTO {
      * 创建时间
      */
     @Schema(description = "创建时间", hidden = true)
-    private Date createTime;
+    private Date createAt;
 
     /**
      * 创建人
@@ -63,7 +63,7 @@ public class CompanyPackageCreateDTO {
      * 更新时间
      */
     @Schema(description = "更新时间", hidden = true)
-    private Date updateTime;
+    private Date updateAt;
 
     /**
      * 更新人

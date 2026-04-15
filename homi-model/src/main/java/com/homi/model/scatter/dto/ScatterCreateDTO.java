@@ -46,14 +46,14 @@ public class ScatterCreateDTO {
 
     @Schema(description = "创建时间", hidden = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "更新人", hidden = true)
     private Long updateBy;
 
     @Schema(description = "更新时间", hidden = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 
     @Schema(description = "创建人", hidden = true)
     private Long createBy;

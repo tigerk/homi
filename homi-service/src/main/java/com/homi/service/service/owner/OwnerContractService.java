@@ -74,9 +74,9 @@ public class OwnerContractService {
         contract.setStatus(Objects.requireNonNullElse(dto.getOwnerContract().getStatus(), StatusEnum.ACTIVE).getValue());
         contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
         contract.setCreateBy(dto.getCreateBy());
-        contract.setCreateTime(now);
+        contract.setCreateAt(now);
         contract.setUpdateBy(dto.getCreateBy());
-        contract.setUpdateTime(now);
+        contract.setUpdateAt(now);
         contract.setContractContent(buildContractContent(contract, ownerId, dto.getContractSubjectList()));
         ownerContractRepo.save(contract);
 
@@ -98,7 +98,7 @@ public class OwnerContractService {
         if (ownerIds != null && ownerIds.isEmpty()) {
             return emptyPage(query);
         }
-        wrapper.orderByDesc(OwnerContract::getCreateTime);
+        wrapper.orderByDesc(OwnerContract::getCreateAt);
         Page<OwnerContract> result = ownerContractRepo.page(page, wrapper);
 
         List<OwnerListVO> list = result.getRecords().stream().map(contract -> toListVO(contract)).filter(Objects::nonNull).toList();
@@ -218,9 +218,9 @@ public class OwnerContractService {
         vo.setTotalArea(summary.totalArea());
         vo.setConfiguredSubjectCount(summary.configuredSubjectCount());
         vo.setCreateBy(contract.getCreateBy());
-        vo.setCreateTime(contract.getCreateTime());
+        vo.setCreateAt(contract.getCreateAt());
         vo.setUpdateBy(contract.getUpdateBy());
-        vo.setUpdateTime(contract.getUpdateTime());
+        vo.setUpdateAt(contract.getUpdateAt());
         Map<Long, String> userNameMap = getUserNameMap(contract.getCreateBy(), contract.getUpdateBy());
         vo.setCreateByName(userNameMap.get(contract.getCreateBy()));
         vo.setUpdateByName(userNameMap.get(contract.getUpdateBy()));
@@ -279,7 +279,7 @@ public class OwnerContractService {
         contract.setStatus(Objects.requireNonNullElse(dto.getOwnerContract().getStatus(), StatusEnum.ACTIVE).getValue());
         contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
         contract.setUpdateBy(dto.getUpdateBy());
-        contract.setUpdateTime(now);
+        contract.setUpdateAt(now);
         contract.setContractContent(buildContractContent(contract, owner.getId(), dto.getContractSubjectList()));
         ownerContractRepo.updateById(contract);
 
@@ -308,13 +308,13 @@ public class OwnerContractService {
         Date now = DateUtil.date();
         contract.setStatus(dto.getStatus().getValue());
         contract.setUpdateBy(updateBy);
-        contract.setUpdateTime(now);
+        contract.setUpdateAt(now);
         ownerContractRepo.updateById(contract);
 
         ownerContractSubjectRepo.listByContractId(contract.getId()).forEach(item -> {
             item.setStatus(dto.getStatus().getValue());
             item.setUpdateBy(updateBy);
-            item.setUpdateTime(now);
+            item.setUpdateAt(now);
             ownerContractSubjectRepo.updateById(item);
         });
         return contract.getId();
@@ -333,7 +333,7 @@ public class OwnerContractService {
             ownerBillingGenerateService.clearMasterLeasePayableBillsByContract(contract.getId());
         }
         contract.setUpdateBy(updateBy);
-        contract.setUpdateTime(DateUtil.date());
+        contract.setUpdateAt(DateUtil.date());
         ownerContractRepo.updateById(contract);
         clearContractRelations(contract.getId());
         ownerContractRepo.removeById(contract.getId());
@@ -387,9 +387,9 @@ public class OwnerContractService {
             record.setRemark(item.getRemark());
             record.setStatus(1);
             record.setCreateBy(dto.getCreateBy());
-            record.setCreateTime(now);
+            record.setCreateAt(now);
             record.setUpdateBy(dto.getCreateBy());
-            record.setUpdateTime(now);
+            record.setUpdateAt(now);
             return record;
         }).collect(Collectors.toList());
         ownerContractSubjectRepo.saveBatch(records);
@@ -423,9 +423,9 @@ public class OwnerContractService {
                 rule.setStatus(Objects.requireNonNullElse(settlementRuleDTO.getStatus(), StatusEnum.ACTIVE).getValue());
                 rule.setRuleSnapshot(JSONUtil.toJsonStr(settlementRuleDTO));
                 rule.setCreateBy(dto.getCreateBy());
-                rule.setCreateTime(now);
+                rule.setCreateAt(now);
                 rule.setUpdateBy(dto.getCreateBy());
-                rule.setUpdateTime(now);
+                rule.setUpdateAt(now);
                 ownerSettlementRuleRepo.save(rule);
                 saveSettlementItems(dto, contract, subject, settlementRuleDTO.getSettlementItemList(), now);
             }
@@ -442,9 +442,9 @@ public class OwnerContractService {
                 rule.setCalcMode(enumName(rentFreeRuleDTO.getCalcMode()));
                 rule.setStatus(Objects.requireNonNullElse(rentFreeRuleDTO.getStatus(), StatusEnum.ACTIVE).getValue());
                 rule.setCreateBy(dto.getCreateBy());
-                rule.setCreateTime(now);
+                rule.setCreateAt(now);
                 rule.setUpdateBy(dto.getCreateBy());
-                rule.setUpdateTime(now);
+                rule.setUpdateAt(now);
                 ownerRentFreeRuleRepo.save(rule);
             }
         }
@@ -460,9 +460,9 @@ public class OwnerContractService {
         leaseRule.setProrateType(enumName(leaseRuleDTO.getProrateType()));
         leaseRule.setStatus(Objects.requireNonNullElse(leaseRuleDTO.getStatus(), StatusEnum.ACTIVE).getValue());
         leaseRule.setCreateBy(dto.getCreateBy());
-        leaseRule.setCreateTime(now);
+        leaseRule.setCreateAt(now);
         leaseRule.setUpdateBy(dto.getCreateBy());
-        leaseRule.setUpdateTime(now);
+        leaseRule.setUpdateAt(now);
         ownerLeaseRuleRepo.save(leaseRule);
         saveLeaseFees(dto, contractId, now);
 
@@ -478,9 +478,9 @@ public class OwnerContractService {
             rule.setCalcMode(enumName(item.getCalcMode()));
             rule.setStatus(Objects.requireNonNullElse(item.getStatus(), StatusEnum.ACTIVE).getValue());
             rule.setCreateBy(dto.getCreateBy());
-            rule.setCreateTime(now);
+            rule.setCreateAt(now);
             rule.setUpdateBy(dto.getCreateBy());
-            rule.setUpdateTime(now);
+            rule.setUpdateAt(now);
             return rule;
         }).toList();
         ownerLeaseFreeRuleRepo.saveBatch(freeRules);
@@ -510,9 +510,9 @@ public class OwnerContractService {
             personal.setTags(JSONUtil.toJsonStr(personalDTO.getTags()));
             personal.setStatus(Objects.requireNonNullElse(personalDTO.getStatus(), StatusEnum.ACTIVE).getValue());
             personal.setCreateBy(dto.getCreateBy());
-            personal.setCreateTime(now);
+            personal.setCreateAt(now);
             personal.setUpdateBy(dto.getCreateBy());
-            personal.setUpdateTime(now);
+            personal.setUpdateAt(now);
             ownerPersonalRepo.save(personal);
             syncOwnerPersonalFiles(personal.getId(), personalDTO);
             ownerTypeId = personal.getId();
@@ -531,9 +531,9 @@ public class OwnerContractService {
             company.setTags(JSONUtil.toJsonStr(companyDTO.getTags()));
             company.setStatus(Objects.requireNonNullElse(companyDTO.getStatus(), StatusEnum.ACTIVE).getValue());
             company.setCreateBy(dto.getCreateBy());
-            company.setCreateTime(now);
+            company.setCreateAt(now);
             company.setUpdateBy(dto.getCreateBy());
-            company.setUpdateTime(now);
+            company.setUpdateAt(now);
             ownerCompanyRepo.save(company);
             syncOwnerCompanyFiles(company.getId(), companyDTO);
             ownerTypeId = company.getId();
@@ -549,9 +549,9 @@ public class OwnerContractService {
         owner.setOwnerPhone(ownerPhone);
         owner.setStatus(StatusEnum.ACTIVE.getValue());
         owner.setCreateBy(dto.getCreateBy());
-        owner.setCreateTime(now);
+        owner.setCreateAt(now);
         owner.setUpdateBy(dto.getCreateBy());
-        owner.setUpdateTime(now);
+        owner.setUpdateAt(now);
         ownerRepo.save(owner);
         return owner.getId();
     }
@@ -574,7 +574,7 @@ public class OwnerContractService {
                 personal = new OwnerPersonal();
                 personal.setCompanyId(dto.getOwnerContract().getCompanyId());
                 personal.setCreateBy(dto.getUpdateBy());
-                personal.setCreateTime(now);
+                personal.setCreateAt(now);
             }
             OwnerPersonalDTO personalDTO = dto.getOwnerPersonal();
             if (personalDTO == null) {
@@ -588,7 +588,7 @@ public class OwnerContractService {
             personal.setTags(JSONUtil.toJsonStr(personalDTO.getTags()));
             personal.setStatus(Objects.requireNonNullElse(personalDTO.getStatus(), StatusEnum.ACTIVE).getValue());
             personal.setUpdateBy(dto.getUpdateBy());
-            personal.setUpdateTime(now);
+            personal.setUpdateAt(now);
             if (personal.getId() == null) {
                 ownerPersonalRepo.save(personal);
             } else {
@@ -610,7 +610,7 @@ public class OwnerContractService {
                 company = new OwnerCompany();
                 company.setCompanyId(dto.getOwnerContract().getCompanyId());
                 company.setCreateBy(dto.getUpdateBy());
-                company.setCreateTime(now);
+                company.setCreateAt(now);
             }
             OwnerCompanyDTO companyDTO = dto.getOwnerCompany();
             if (companyDTO == null) {
@@ -623,7 +623,7 @@ public class OwnerContractService {
             company.setTags(JSONUtil.toJsonStr(companyDTO.getTags()));
             company.setStatus(Objects.requireNonNullElse(companyDTO.getStatus(), StatusEnum.ACTIVE).getValue());
             company.setUpdateBy(dto.getUpdateBy());
-            company.setUpdateTime(now);
+            company.setUpdateAt(now);
             if (company.getId() == null) {
                 ownerCompanyRepo.save(company);
             } else {
@@ -636,7 +636,7 @@ public class OwnerContractService {
             owner.setOwnerPhone(company.getContactPhone());
         }
         owner.setUpdateBy(dto.getUpdateBy());
-        owner.setUpdateTime(now);
+        owner.setUpdateAt(now);
         ownerRepo.updateById(owner);
     }
 
@@ -666,8 +666,8 @@ public class OwnerContractService {
         account.setTotalReductionAmount(BigDecimal.ZERO);
         account.setTotalWithdrawAmount(BigDecimal.ZERO);
         account.setVersion(0L);
-        account.setCreateTime(now);
-        account.setUpdateTime(now);
+        account.setCreateAt(now);
+        account.setUpdateAt(now);
         ownerAccountRepo.save(account);
     }
 
@@ -725,8 +725,8 @@ public class OwnerContractService {
         vo.setCooperationMode(contract.getCooperationMode() == null ? null : OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()));
         vo.setSignStatus(signStatusOf(contract.getSignStatus()));
         vo.setStatus(statusOf(contract.getStatus()));
-        vo.setCreateTime(contract.getCreateTime());
-        vo.setUpdateTime(contract.getUpdateTime());
+        vo.setCreateAt(contract.getCreateAt());
+        vo.setUpdateAt(contract.getUpdateAt());
 
         ContractTemplate template = contractTemplateRepo.getById(contract.getContractTemplateId());
         if (template != null) {
@@ -1018,9 +1018,9 @@ public class OwnerContractService {
         dto.setApprovalStatus(BizApprovalStatusEnum.getByCode(contract.getApprovalStatus()));
         dto.setRemark(contract.getRemark());
         dto.setCreateBy(contract.getCreateBy());
-        dto.setCreateTime(contract.getCreateTime());
+        dto.setCreateAt(contract.getCreateAt());
         dto.setUpdateBy(contract.getUpdateBy());
-        dto.setUpdateTime(contract.getUpdateTime());
+        dto.setUpdateAt(contract.getUpdateAt());
         return dto;
     }
 
@@ -1231,9 +1231,9 @@ public class OwnerContractService {
             record.setRemark(item.getRemark());
             record.setStatus(StatusEnum.ACTIVE.getValue());
             record.setCreateBy(dto.getCreateBy());
-            record.setCreateTime(now);
+            record.setCreateAt(now);
             record.setUpdateBy(dto.getCreateBy());
-            record.setUpdateTime(now);
+            record.setUpdateAt(now);
             return record;
         }).toList();
         ownerSettlementItemRepo.saveBatch(records);
@@ -1309,9 +1309,9 @@ public class OwnerContractService {
             fee.setRemark(item.getRemark());
             fee.setStatus(StatusEnum.ACTIVE.getValue());
             fee.setCreateBy(dto.getCreateBy());
-            fee.setCreateTime(now);
+            fee.setCreateAt(now);
             fee.setUpdateBy(dto.getCreateBy());
-            fee.setUpdateTime(now);
+            fee.setUpdateAt(now);
             return fee;
         }).toList();
         ownerLeaseFeeRepo.saveBatch(records);

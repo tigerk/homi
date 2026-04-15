@@ -52,7 +52,7 @@ public class ApprovalFlowRepo extends ServiceImpl<ApprovalFlowMapper, ApprovalFl
     public java.util.List<ApprovalFlow> listFlowByQuery(ApprovalFlowQueryDTO query) {
         LambdaQueryChainWrapper<ApprovalFlow> approvalFlowLambdaQueryChainWrapper = lambdaQuery()
             .eq(ApprovalFlow::getCompanyId, query.getCompanyId())
-            .orderByDesc(ApprovalFlow::getCreateTime);
+            .orderByDesc(ApprovalFlow::getCreateAt);
 
         if (query.getBizType() != null) {
             approvalFlowLambdaQueryChainWrapper.eq(ApprovalFlow::getBizType, query.getBizType());

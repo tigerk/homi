@@ -56,8 +56,8 @@ public class PlatformRoleController {
         assert platformRole != null;
         platformRole.setCreateBy(PlatformLoginManager.getUserId());
         platformRole.setUpdateBy(PlatformLoginManager.getUserId());
-        platformRole.setCreateTime(DateUtil.date());
-        platformRole.setUpdateTime(DateUtil.date());
+        platformRole.setCreateAt(DateUtil.date());
+        platformRole.setUpdateAt(DateUtil.date());
         platformRole.setStatus(StatusEnum.ACTIVE.getValue());
 
         return ResponseResult.ok(platformRoleService.createRole(platformRole));
@@ -76,7 +76,7 @@ public class PlatformRoleController {
 
         assert platformRole != null;
         platformRole.setUpdateBy(PlatformLoginManager.getUserId());
-        platformRole.setUpdateTime(DateUtil.date());
+        platformRole.setUpdateAt(DateUtil.date());
 
         return ResponseResult.ok(platformRoleService.updateRole(platformRole));
     }
@@ -133,7 +133,7 @@ public class PlatformRoleController {
 
         assert platformRole != null;
         platformRole.setUpdateBy(PlatformLoginManager.getUserId());
-        platformRole.setUpdateTime(DateUtil.date());
+        platformRole.setUpdateAt(DateUtil.date());
 
         return ResponseResult.ok(platformRoleService.updateRoleStatus(platformRole));
     }

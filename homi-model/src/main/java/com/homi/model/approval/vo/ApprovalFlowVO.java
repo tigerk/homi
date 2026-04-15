@@ -45,7 +45,7 @@ public class ApprovalFlowVO {
     /**
      * 创建时间
      */
-    private Date createTime;
+    private Date createAt;
 
     /**
      * 审批节点列表

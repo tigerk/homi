@@ -46,5 +46,5 @@ public class CompanyConsumeRecordVO {
     private String remark;
 
     @Schema(description = "记录时间")
-    private Date createTime;
+    private Date createAt;
 }

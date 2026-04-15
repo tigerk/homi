@@ -62,7 +62,7 @@ public class WechatAuthService {
                 userWechat.setOpenId(session.getOpenid());
                 userWechat.setUnionId(session.getUnionid());
                 userWechat.setAppId(appId);
-                userWechat.setCreateTime(new Date());
+                userWechat.setCreateAt(new Date());
                 userWechatRepo.save(userWechat);
             } else {
                 byUser.setOpenId(session.getOpenid());

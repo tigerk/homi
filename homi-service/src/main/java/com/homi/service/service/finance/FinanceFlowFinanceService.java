@@ -105,7 +105,7 @@ public class FinanceFlowFinanceService {
     private BigDecimal sumTodayAmountByStatus(List<FinanceFlow> financeFlows, Integer status, Date today) {
         return financeFlows.stream()
             .filter(item -> Objects.equals(item.getStatus(), status))
-            .filter(item -> TimeUtils.isSameDay(item.getFlowTime(), today) || TimeUtils.isSameDay(item.getCreateTime(), today))
+            .filter(item -> TimeUtils.isSameDay(item.getFlowAt(), today) || TimeUtils.isSameDay(item.getCreateAt(), today))
             .map(item -> ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO))
             .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
@@ -155,7 +155,7 @@ public class FinanceFlowFinanceService {
         wrapper.eq(CharSequenceUtil.isNotBlank(query.getFlowType()), FinanceFlow::getFlowType, query.getFlowType());
         wrapper.in(CollUtil.isNotEmpty(filterContext.feeIds()), FinanceFlow::getBizId, filterContext.feeIds());
         wrapper.orderByAsc(FinanceFlow::getStatus);
-        wrapper.orderByDesc(FinanceFlow::getFlowTime);
+        wrapper.orderByDesc(FinanceFlow::getFlowAt);
         wrapper.orderByDesc(FinanceFlow::getId);
         return wrapper;
     }
@@ -223,7 +223,7 @@ public class FinanceFlowFinanceService {
                 vo.setThirdTradeNo(paymentFlow.getThirdTradeNo());
                 vo.setPaymentVoucherUrl(paymentFlow.getPaymentVoucherUrl());
                 vo.setPaymentRemark(paymentFlow.getRemark());
-                vo.setPayTime(paymentFlow.getPayTime());
+                vo.setPayAt(paymentFlow.getPayAt());
             }
             return vo;
         }).toList();

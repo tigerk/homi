@@ -25,7 +25,7 @@ public class ApprovalActionRepo extends ServiceImpl<ApprovalActionMapper, Approv
         return lambdaQuery()
             .eq(ApprovalAction::getInstanceId, instanceId)
             .orderByAsc(ApprovalAction::getNodeOrder)
-            .orderByAsc(ApprovalAction::getCreateTime)
+            .orderByAsc(ApprovalAction::getCreateAt)
             .list();
     }
 
@@ -84,7 +84,7 @@ public class ApprovalActionRepo extends ServiceImpl<ApprovalActionMapper, Approv
         return lambdaQuery()
             .eq(ApprovalAction::getApproverId, approverId)
             .eq(ApprovalAction::getStatus, 0) // 待审批
-            .orderByDesc(ApprovalAction::getCreateTime)
+            .orderByDesc(ApprovalAction::getCreateAt)
             .page(page);
     }
 
@@ -99,7 +99,7 @@ public class ApprovalActionRepo extends ServiceImpl<ApprovalActionMapper, Approv
         return lambdaQuery()
             .eq(ApprovalAction::getApproverId, approverId)
             .eq(ApprovalAction::getStatus, 1) // 已审批
-            .orderByDesc(ApprovalAction::getOperateTime)
+            .orderByDesc(ApprovalAction::getOperateAt)
             .page(page);
     }
 
@@ -142,7 +142,7 @@ public class ApprovalActionRepo extends ServiceImpl<ApprovalActionMapper, Approv
         return lambdaQuery()
             .eq(ApprovalAction::getInstanceId, instanceId)
             .eq(ApprovalAction::getNodeId, nodeId)
-            .orderByAsc(ApprovalAction::getCreateTime)
+            .orderByAsc(ApprovalAction::getCreateAt)
             .list();
     }
 }

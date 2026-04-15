@@ -47,7 +47,7 @@ public class BookingController {
         createDTO.setCompanyId(loginUser.getCurCompanyId());
 
         if (Objects.nonNull(createDTO.getId())) {
-            createDTO.setBookingTime(DateUtil.date());
+            createDTO.setBookingAt(DateUtil.date());
             createDTO.setUpdateBy(loginUser.getId());
             return ResponseResult.ok(bookingService.updateBooking(createDTO));
         } else {

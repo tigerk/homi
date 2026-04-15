@@ -83,7 +83,7 @@ public class ApprovalTodoVO {
      * 申请时间
      */
     @Schema(description = "申请时间")
-    private Date applyTime;
+    private Date applyAt;
 
     /**
      * 操作：1=通过，2=驳回（已办时显示）
@@ -107,7 +107,7 @@ public class ApprovalTodoVO {
      * 操作时间（已办时显示）
      */
     @Schema(description = "操作时间（已办时显示）")
-    private Date operateTime;
+    private Date operateAt;
 
     /**
      * 实例状态

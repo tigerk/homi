@@ -158,7 +158,7 @@ public class LeaseBillGenService {
             rentFee.setRemark(bill.getRemark());
             rentFee.setDeleted(false);
             rentFee.setCreateBy(lease.getCreateBy());
-            rentFee.setCreateTime(new Date());
+            rentFee.setCreateAt(new Date());
             feeDetails.add(rentFee);
 
             if (!rentRelatedFees.isEmpty()) {
@@ -211,7 +211,7 @@ public class LeaseBillGenService {
                 detail.setRemark(buildFeeRemark(fee, actualMonths));
                 detail.setDeleted(false);
                 detail.setCreateBy(lease.getCreateBy());
-                detail.setCreateTime(new Date());
+                detail.setCreateAt(new Date());
 
                 details.add(detail);
             }
@@ -367,7 +367,7 @@ public class LeaseBillGenService {
         bill.setPayStatus(PayStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
         bill.setCreateBy(context.lease.getCreateBy());
-        bill.setCreateTime(DateUtil.date());
+        bill.setCreateAt(DateUtil.date());
         return bill;
     }
 
@@ -451,7 +451,7 @@ public class LeaseBillGenService {
                     detail.setRemark(bill.getRemark());
                     detail.setDeleted(false);
                     detail.setCreateBy(lease.getCreateBy());
-                    detail.setCreateTime(new Date());
+                    detail.setCreateAt(new Date());
 
                     feeDetails.add(detail);
                 }
@@ -567,7 +567,7 @@ public class LeaseBillGenService {
         bill.setPayStatus(PayStatusEnum.UNPAID.getCode());
         bill.setDeleted(false);
         bill.setCreateBy(context.lease.getCreateBy());
-        bill.setCreateTime(new Date());
+        bill.setCreateAt(new Date());
 
         return bill;
     }
@@ -724,7 +724,7 @@ public class LeaseBillGenService {
         depositBill.setRemark("押金账单");
         depositBill.setDeleted(false);
         depositBill.setCreateBy(lease.getCreateBy());
-        depositBill.setCreateTime(new Date());
+        depositBill.setCreateAt(new Date());
 
         leaseBillRepo.save(depositBill);
 
@@ -741,7 +741,7 @@ public class LeaseBillGenService {
         fee.setRemark(depositBill.getRemark());
         fee.setDeleted(false);
         fee.setCreateBy(lease.getCreateBy());
-        fee.setCreateTime(new Date());
+        fee.setCreateAt(new Date());
         leaseBillFeeRepo.save(fee);
     }
 

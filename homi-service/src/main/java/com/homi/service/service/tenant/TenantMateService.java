@@ -145,7 +145,7 @@ public class TenantMateService {
                 TenantMate newMate = BeanCopyUtils.copyBean(mateDTO, TenantMate.class);
                 assert newMate != null;
                 newMate.setTenantId(tenantId);
-                newMate.setCreateTime(DateUtil.date());
+                newMate.setCreateAt(DateUtil.date());
                 tenantMateRepo.save(newMate);
 
                 // 保存附件
@@ -155,8 +155,8 @@ public class TenantMateService {
                 // 更新
                 TenantMate existingMate = tenantMateRepo.getById(mateDTO.getId());
                 if (existingMate != null) {
-                    BeanUtils.copyProperties(mateDTO, existingMate, "id", "leaseId", "createTime");
-                    existingMate.setUpdateTime(DateUtil.date());
+                    BeanUtils.copyProperties(mateDTO, existingMate, "id", "leaseId", "createAt");
+                    existingMate.setUpdateAt(DateUtil.date());
                     tenantMateRepo.updateById(existingMate);
 
                     // 更新附件（先删除后添加）

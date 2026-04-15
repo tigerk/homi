@@ -54,7 +54,7 @@ public class ApprovalInstanceRepo extends ServiceImpl<ApprovalInstanceMapper, Ap
             .eq(ApprovalInstance::getApplicantId, applicantId)
             .eq(status != null, ApprovalInstance::getStatus, status)
             .eq(ApprovalInstance::getDeleted, false)
-            .orderByDesc(ApprovalInstance::getCreateTime)
+            .orderByDesc(ApprovalInstance::getCreateAt)
             .page(page);
     }
 
@@ -73,7 +73,7 @@ public class ApprovalInstanceRepo extends ServiceImpl<ApprovalInstanceMapper, Ap
             .eq(bizType != null, ApprovalInstance::getBizType, bizType)
             .eq(status != null, ApprovalInstance::getStatus, status)
             .eq(ApprovalInstance::getDeleted, false)
-            .orderByDesc(ApprovalInstance::getCreateTime)
+            .orderByDesc(ApprovalInstance::getCreateAt)
             .page(page);
     }
 

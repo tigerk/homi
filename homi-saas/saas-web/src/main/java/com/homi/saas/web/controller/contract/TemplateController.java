@@ -61,10 +61,10 @@ public class TemplateController {
         createDTO.setCompanyId(currentUser.getCurCompanyId());
 
         createDTO.setUpdateBy(currentUser.getId());
-        createDTO.setUpdateTime(DateUtil.date());
+        createDTO.setUpdateAt(DateUtil.date());
         if (Objects.isNull(createDTO.getId())) {
             createDTO.setCreateBy(currentUser.getId());
-            createDTO.setCreateTime(DateUtil.date());
+            createDTO.setCreateAt(DateUtil.date());
 
             return ResponseResult.ok(contractTemplateService.createContractTemplate(createDTO));
         } else {
@@ -126,7 +126,7 @@ public class TemplateController {
     public ResponseResult<Boolean> updateContractTemplateStatus(@RequestBody ContractTemplateStatusDTO updateDTO) {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         updateDTO.setUpdateBy(currentUser.getId());
-        updateDTO.setUpdateTime(DateUtil.date());
+        updateDTO.setUpdateAt(DateUtil.date());
         return ResponseResult.ok(contractTemplateService.updateContractTemplateStatus(updateDTO));
     }
 

@@ -141,7 +141,7 @@ public class SysNoticeController {
         message.setIsRead(false);
         message.setDeletedBySender(false);
         message.setDeletedByReceiver(false);
-        message.setCreateTime(DateUtil.date());
+        message.setCreateAt(DateUtil.date());
         return ResponseResult.ok(sysMessageRepo.save(message));
     }
 
@@ -172,7 +172,7 @@ public class SysNoticeController {
             throw new BizException(ResponseCodeEnum.AUTHORIZED);
         }
         message.setIsRead(true);
-        message.setReadTime(DateUtil.date());
+        message.setReadAt(DateUtil.date());
         return ResponseResult.ok(sysMessageRepo.updateById(message));
     }
 
@@ -186,7 +186,7 @@ public class SysNoticeController {
         Date now = DateUtil.date();
         boolean updated = sysMessageRepo.update(new LambdaUpdateWrapper<SysMessage>()
             .set(SysMessage::getIsRead, true)
-            .set(SysMessage::getReadTime, now)
+            .set(SysMessage::getReadAt, now)
             .eq(SysMessage::getReceiverId, currentUser.getId())
             .in(SysMessage::getId, dto.getIds()));
         return ResponseResult.ok(updated);
@@ -210,7 +210,7 @@ public class SysNoticeController {
         read.setId(com.baomidou.mybatisplus.core.toolkit.IdWorker.getId(read));
         read.setNoticeId(dto.getId());
         read.setUserId(currentUser.getId());
-        read.setReadTime(DateUtil.date());
+        read.setReadAt(DateUtil.date());
         sysNoticeReadRepo.save(read);
         return ResponseResult.ok(true);
     }
@@ -236,7 +236,7 @@ public class SysNoticeController {
             read.setId(com.baomidou.mybatisplus.core.toolkit.IdWorker.getId(read));
             read.setNoticeId(id);
             read.setUserId(currentUser.getId());
-            read.setReadTime(now);
+            read.setReadAt(now);
             records.add(read);
         });
         sysNoticeReadRepo.saveBatch(records);
@@ -255,9 +255,9 @@ public class SysNoticeController {
             throw new BizException(ResponseCodeEnum.AUTHORIZED);
         }
         todo.setIsRead(true);
-        todo.setReadTime(DateUtil.date());
+        todo.setReadAt(DateUtil.date());
         todo.setUpdateBy(currentUser.getId());
-        todo.setUpdateTime(DateUtil.date());
+        todo.setUpdateAt(DateUtil.date());
         return ResponseResult.ok(sysTodoRepo.updateById(todo));
     }
 
@@ -271,9 +271,9 @@ public class SysNoticeController {
         Date now = DateUtil.date();
         boolean updated = sysTodoRepo.update(new LambdaUpdateWrapper<SysTodo>()
             .set(SysTodo::getIsRead, true)
-            .set(SysTodo::getReadTime, now)
+            .set(SysTodo::getReadAt, now)
             .set(SysTodo::getUpdateBy, currentUser.getId())
-            .set(SysTodo::getUpdateTime, now)
+            .set(SysTodo::getUpdateAt, now)
             .eq(SysTodo::getUserId, currentUser.getId())
             .in(SysTodo::getId, dto.getIds()));
         return ResponseResult.ok(updated);
@@ -293,9 +293,9 @@ public class SysNoticeController {
         Date now = DateUtil.date();
         todo.setStatus(1);
         todo.setHandleRemark(dto.getHandleRemark());
-        todo.setHandleTime(now);
+        todo.setHandleAt(now);
         todo.setUpdateBy(currentUser.getId());
-        todo.setUpdateTime(now);
+        todo.setUpdateAt(now);
         return ResponseResult.ok(sysTodoRepo.updateById(todo));
     }
 
@@ -333,7 +333,7 @@ public class SysNoticeController {
             existing.setTargetScope(targetScope);
             existing.setRemark(dto.getRemark());
             existing.setUpdateBy(currentUser.getId());
-            existing.setUpdateTime(now);
+            existing.setUpdateAt(now);
             boolean updated = sysNoticeRepo.updateById(existing);
             syncNoticeRoles(existing.getId(), targetScope, dto.getRoleIds());
             return ResponseResult.ok(updated);
@@ -358,12 +358,12 @@ public class SysNoticeController {
         notice.setNoticeType(dto.getNoticeType());
         notice.setTargetScope(targetScope);
         notice.setStatus(dto.getStatus() == null ? 1 : dto.getStatus());
-        notice.setPublishTime(dto.getPublishTime() == null ? now : dto.getPublishTime());
+        notice.setPublishAt(dto.getPublishAt() == null ? now : dto.getPublishAt());
         notice.setRemark(dto.getRemark());
         notice.setCreateBy(currentUser.getId());
-        notice.setCreateTime(now);
+        notice.setCreateAt(now);
         notice.setUpdateBy(currentUser.getId());
-        notice.setUpdateTime(now);
+        notice.setUpdateAt(now);
         return notice;
     }
 

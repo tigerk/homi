@@ -117,13 +117,13 @@ public class FinanceFlowFinanceItemVO {
 
     @Schema(description = "财务流水时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date flowTime;
+    private Date flowAt;
 
     @Schema(description = "支付时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date payTime;
+    private Date payAt;
 
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 }

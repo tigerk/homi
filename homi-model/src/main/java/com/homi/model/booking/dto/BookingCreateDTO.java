@@ -45,11 +45,11 @@ public class BookingCreateDTO implements Serializable {
 
     @Schema(description = "预定时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date bookingTime;
+    private Date bookingAt;
 
     @Schema(description = "预定到期时间（超过此时间未签合同可视为违约/过期）")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date expiryTime;
+    private Date expiryAt;
 
     @Schema(description = "预计租赁开始时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
@@ -79,12 +79,12 @@ public class BookingCreateDTO implements Serializable {
 
     @Schema(description = "创建时间", hidden = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "修改人ID", hidden = true)
     private Long updateBy;
 
     @Schema(description = "修改时间", hidden = true)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 }

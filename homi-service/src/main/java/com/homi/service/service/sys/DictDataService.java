@@ -56,7 +56,7 @@ public class DictDataService {
 
         validateDictDataUniqueness(null, dictData.getName(), dictData.getValue(), dictData.getDictId());
         dictData.setCreateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        dictData.setCreateTime(DateUtil.date());
+        dictData.setCreateAt(DateUtil.date());
         dictDataMapper.insert(dictData);
         return dictData.getId();
     }
@@ -74,7 +74,7 @@ public class DictDataService {
         }
         validateDictDataUniqueness(dictData.getId(), dictData.getName(), dictData.getValue(), dictData.getDictId());
         dictData.setUpdateBy(Long.valueOf(StpUtil.getLoginId().toString()));
-        dictData.setUpdateTime(DateUtil.date());
+        dictData.setUpdateAt(DateUtil.date());
         dictDataMapper.updateById(dictData);
 
         return dictData.getId();
@@ -162,7 +162,7 @@ public class DictDataService {
         update.setId(dictData.getId());
         update.setStatus(dictData.getStatus());
         update.setUpdateBy(dictData.getUpdateBy());
-        update.setUpdateTime(DateUtil.date());
+        update.setUpdateAt(DateUtil.date());
 
         return dictDataRepo.updateById(update);
     }

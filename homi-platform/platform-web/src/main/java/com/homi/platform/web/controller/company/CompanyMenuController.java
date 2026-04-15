@@ -87,7 +87,7 @@ public class CompanyMenuController {
 
         if (Objects.isNull(createDTO.getId())) {
             createDTO.setCreateBy(currentUser.getId());
-            createDTO.setCreateTime(DateUtil.date());
+            createDTO.setCreateAt(DateUtil.date());
         } else {
             if (Objects.nonNull(createDTO.getParentId()) && createDTO.getParentId().equals(createDTO.getId())) {
                 throw new BizException(ResponseCodeEnum.VALID_ERROR.getCode(), "父菜单不能为本身");
@@ -95,7 +95,7 @@ public class CompanyMenuController {
         }
 
         createDTO.setUpdateBy(currentUser.getId());
-        createDTO.setUpdateTime(DateUtil.date());
+        createDTO.setUpdateAt(DateUtil.date());
 
         menuService.createMenu(createDTO);
         return ResponseResult.ok();

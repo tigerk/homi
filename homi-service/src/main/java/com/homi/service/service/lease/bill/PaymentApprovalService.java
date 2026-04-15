@@ -116,7 +116,7 @@ public class PaymentApprovalService {
         Tenant tenant = tenantRepo.getById(bill.getTenantId());
         LeaseBillPayerResolver.BillPayerInfo payerInfo = leaseBillPayerResolver.resolve(tenant);
         String operatorName = userRepo.getUserNicknameById(dto.getUpdateBy());
-        Date payTime = ObjectUtil.defaultIfNull(dto.getPayTime(), paymentFlow.getPayTime());
+        Date payAt = ObjectUtil.defaultIfNull(dto.getPayAt(), paymentFlow.getPayAt());
 
         // 生成财务流水
         financeFlowService.createLeaseBillReceiveFlows(
@@ -124,7 +124,7 @@ public class PaymentApprovalService {
                 .paymentFlow(paymentFlow)
                 .feeMap(feeMap)
                 .items(dto.getItems())
-                .payTime(payTime)
+                .payAt(payAt)
                 .operatorId(dto.getUpdateBy())
                 .operatorName(operatorName)
                 .payerName(payerInfo.payerName())

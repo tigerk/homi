@@ -53,7 +53,7 @@ public class FinanceFlowVO implements Serializable {
 
     @Schema(description = "流水发生时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date flowTime;
+    private Date flowAt;
 
     @Schema(description = "付款方姓名")
     private String payerName;

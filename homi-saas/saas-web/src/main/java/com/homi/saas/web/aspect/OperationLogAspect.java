@@ -131,7 +131,7 @@ public class OperationLogAspect {
             StopWatch stopWatch = KEY_CACHE.get();
             stopWatch.stop();
             operationLog.setCostTime(stopWatch.getTime());
-            operationLog.setRequestTime(DateUtil.date());
+            operationLog.setRequestAt(DateUtil.date());
             // 发布事件保存数据库
             SpringUtils.context().publishEvent(operationLog);
         } catch (Exception exp) {

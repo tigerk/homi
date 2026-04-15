@@ -102,9 +102,9 @@ public class OperationLog implements Serializable {
     private String errorMsg;
 
     @Schema(description = "操作时间")
-    @TableField("request_time")
+    @TableField("request_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date requestTime;
+    private Date requestAt;
 
     @Schema(description = "消耗时间")
     @TableField("cost_time")

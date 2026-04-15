@@ -20,7 +20,7 @@
         u.birthday,
         cu.status,
         u.remark,
-        u.create_time,
+        u.create_at,
         u.create_by,
         u.register_source
         FROM company_user cu left join user u ON cu.user_id = u.id

@@ -51,7 +51,7 @@ public class LeaseBillUpdater {
         bill.setUnpaidAmount(totalAmount.subtract(paidAmount));
         bill.setPayStatus(billCalculator.resolvePayStatus(paidAmount, totalAmount));
         bill.setUpdateBy(operatorId);
-        bill.setUpdateTime(now);
+        bill.setUpdateAt(now);
         leaseBillRepo.updateById(bill);
     }
 
@@ -80,7 +80,7 @@ public class LeaseBillUpdater {
             fee.setUnpaidAmount(totalAmount.subtract(nextPaidAmount));
             fee.setPayStatus(billCalculator.resolvePayStatus(nextPaidAmount, totalAmount));
             fee.setUpdateBy(operatorId);
-            fee.setUpdateTime(now);
+            fee.setUpdateAt(now);
         }
         leaseBillFeeRepo.updateBatchById(feeMap.values().stream().toList());
     }

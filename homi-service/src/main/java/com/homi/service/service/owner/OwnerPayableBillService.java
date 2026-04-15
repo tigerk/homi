@@ -141,8 +141,8 @@ public class OwnerPayableBillService {
         vo.setCancelAt(bill.getCancelAt());
         vo.setGeneratedAt(bill.getGeneratedAt());
         vo.setRemark(bill.getRemark());
-        vo.setCreateTime(bill.getCreateTime());
-        vo.setUpdateTime(bill.getUpdateTime());
+        vo.setCreateAt(bill.getCreateAt());
+        vo.setUpdateAt(bill.getUpdateAt());
         vo.setLineList(ownerPayableBillLineRepo.lambdaQuery().eq(OwnerPayableBillLine::getBillId, bill.getId()).orderByAsc(OwnerPayableBillLine::getId).list()
             .stream().map(this::toLineVO).toList());
         vo.setPaymentList(buildPaymentList(bill.getId()));
@@ -191,7 +191,7 @@ public class OwnerPayableBillService {
         existed.setPaidAmount(BigDecimal.ZERO);
         existed.setUnpaidAmount(payableAmount);
         existed.setUpdateBy(operatorId);
-        existed.setUpdateTime(new Date());
+        existed.setUpdateAt(new Date());
         ownerPayableBillRepo.updateById(existed);
         ownerPayableBillLineRepo.remove(new LambdaQueryWrapper<OwnerPayableBillLine>().eq(OwnerPayableBillLine::getBillId, existed.getId()));
         saveBillLines(existed, dto.getLineList());
@@ -215,7 +215,7 @@ public class OwnerPayableBillService {
         bill.setCancelByName(operatorName);
         bill.setCancelAt(now);
         bill.setUpdateBy(operatorId);
-        bill.setUpdateTime(now);
+        bill.setUpdateAt(now);
         ownerPayableBillRepo.updateById(bill);
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("cancelReason", dto.getCancelReason());
@@ -256,9 +256,9 @@ public class OwnerPayableBillService {
         payment.setThirdTradeNo(dto.getThirdTradeNo());
         payment.setRemark(dto.getRemark());
         payment.setCreateBy(operatorId);
-        payment.setCreateTime(now);
+        payment.setCreateAt(now);
         payment.setUpdateBy(operatorId);
-        payment.setUpdateTime(now);
+        payment.setUpdateAt(now);
         ownerPayableBillPaymentRepo.save(payment);
         if (dto.getVoucherUrls() != null && !dto.getVoucherUrls().isEmpty()) {
             fileAttachRepo.recreateFileAttachList(payment.getId(), FileAttachBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT_VOUCHER.getBizType(), dto.getVoucherUrls());
@@ -267,7 +267,7 @@ public class OwnerPayableBillService {
         bill.setUnpaidAmount(defaultZero(bill.getPayableAmount()).subtract(defaultZero(bill.getPaidAmount())).max(BigDecimal.ZERO));
         bill.setPaymentStatus(resolvePaymentStatus(bill));
         bill.setUpdateBy(operatorId);
-        bill.setUpdateTime(now);
+        bill.setUpdateAt(now);
         ownerPayableBillRepo.updateById(bill);
         Map<String, Object> extraData = new HashMap<>();
         extraData.put("payAmount", dto.getPayAmount());
@@ -383,9 +383,9 @@ public class OwnerPayableBillService {
         bill.setGeneratedAt(now);
         bill.setRemark(dto.getRemark());
         bill.setCreateBy(operatorId);
-        bill.setCreateTime(now);
+        bill.setCreateAt(now);
         bill.setUpdateBy(operatorId);
-        bill.setUpdateTime(now);
+        bill.setUpdateAt(now);
         return bill;
     }
 
@@ -404,10 +404,10 @@ public class OwnerPayableBillService {
             line.setItemName(item.getItemName());
             line.setDirection(item.getDirection());
             line.setAmount(defaultZero(item.getAmount()));
-            line.setBizTime(item.getBizTime());
+            line.setBizDate(item.getBizDate());
             line.setRemark(item.getRemark());
             line.setFormulaSnapshot(item.getFormulaSnapshot());
-            line.setCreateTime(now);
+            line.setCreateAt(now);
             return line;
         }).toList();
         ownerPayableBillLineRepo.saveBatch(entities);
@@ -481,7 +481,7 @@ public class OwnerPayableBillService {
         vo.setItemName(item.getItemName());
         vo.setDirection(item.getDirection());
         vo.setAmount(item.getAmount());
-        vo.setBizTime(item.getBizTime());
+        vo.setBizDate(item.getBizDate());
         vo.setRemark(item.getRemark());
         vo.setFormulaSnapshot(item.getFormulaSnapshot());
         return vo;
@@ -497,7 +497,7 @@ public class OwnerPayableBillService {
         vo.setThirdTradeNo(item.getThirdTradeNo());
         vo.setRemark(item.getRemark());
         vo.setVoucherUrls(voucherUrls == null ? Collections.emptyList() : voucherUrls);
-        vo.setCreateTime(item.getCreateTime());
+        vo.setCreateAt(item.getCreateAt());
         return vo;
     }
 
@@ -514,7 +514,7 @@ public class OwnerPayableBillService {
         vo.setSourceId(item.getSourceId());
         vo.setOperatorId(item.getOperatorId());
         vo.setOperatorName(item.getOperatorName());
-        vo.setCreateTime(item.getCreateTime());
+        vo.setCreateAt(item.getCreateAt());
         return vo;
     }
 

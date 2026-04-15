@@ -78,18 +78,18 @@ public class CompanyOrder implements Serializable {
     private Integer status;
 
     @Schema(description = "取消时间")
-    @TableField("cancel_time")
+    @TableField("cancel_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date cancelTime;
+    private Date cancelAt;
 
     @Schema(description = "退款金额（元）")
     @TableField("refund_amount")
     private BigDecimal refundAmount;
 
     @Schema(description = "退款时间")
-    @TableField("refund_time")
+    @TableField("refund_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date refundTime;
+    private Date refundAt;
 
     @Schema(description = "支付方式：1线上支付，2线下转账，3后台代付")
     @TableField("pay_method")
@@ -104,14 +104,14 @@ public class CompanyOrder implements Serializable {
     private String transactionNo;
 
     @Schema(description = "支付完成时间")
-    @TableField("pay_time")
+    @TableField("pay_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date payTime;
+    private Date payAt;
 
     @Schema(description = "支付回调通知时间")
-    @TableField("notify_time")
+    @TableField("notify_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date notifyTime;
+    private Date notifyAt;
 
     @Schema(description = "操作人ID（后台代购时填写）")
     @TableField("operator_id")
@@ -128,14 +128,14 @@ public class CompanyOrder implements Serializable {
     @TableField("create_by")
     private Long createBy;
 
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @TableField("update_by")
     private Long updateBy;
 
-    @TableField("update_time")
+    @TableField("update_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 }

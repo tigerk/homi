@@ -233,7 +233,7 @@ public class LeaseCheckoutVO {
      * 结算完成时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date settlementTime;
+    private Date settlementAt;
 
     /**
      * 创建人ID
@@ -249,5 +249,5 @@ public class LeaseCheckoutVO {
      * 创建时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 }

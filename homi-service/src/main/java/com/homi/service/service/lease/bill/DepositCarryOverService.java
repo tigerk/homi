@@ -71,7 +71,7 @@ public class DepositCarryOverService {
         carryOutBill.setHistorical(false);
         carryOutBill.setDeleted(false);
         carryOutBill.setCreateBy(newLease.getCreateBy());
-        carryOutBill.setCreateTime(new Date());
+        carryOutBill.setCreateAt(new Date());
         tenantBillRepo.save(carryOutBill);
         saveDepositFee(carryOutBill, oldDepositTotal.negate(), newLease.getCreateBy());
 
@@ -94,7 +94,7 @@ public class DepositCarryOverService {
         carryInBill.setHistorical(false);
         carryInBill.setDeleted(false);
         carryInBill.setCreateBy(newLease.getCreateBy());
-        carryInBill.setCreateTime(new Date());
+        carryInBill.setCreateAt(new Date());
         tenantBillRepo.save(carryInBill);
         saveDepositFee(carryInBill, oldDepositTotal, newLease.getCreateBy());
 
@@ -123,7 +123,7 @@ public class DepositCarryOverService {
             supplementBill.setHistorical(false);
             supplementBill.setDeleted(false);
             supplementBill.setCreateBy(newLease.getCreateBy());
-            supplementBill.setCreateTime(new Date());
+            supplementBill.setCreateAt(new Date());
             tenantBillRepo.save(supplementBill);
             saveDepositFee(supplementBill, diff, newLease.getCreateBy());
 
@@ -153,9 +153,9 @@ public class DepositCarryOverService {
         fee.setRemark(bill.getRemark());
         fee.setDeleted(false);
         fee.setCreateBy(operatorId);
-        fee.setCreateTime(new Date());
+        fee.setCreateAt(new Date());
         fee.setUpdateBy(operatorId);
-        fee.setUpdateTime(new Date());
+        fee.setUpdateAt(new Date());
         leaseBillFeeRepo.save(fee);
     }
 

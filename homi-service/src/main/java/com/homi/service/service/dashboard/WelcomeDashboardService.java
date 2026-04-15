@@ -88,13 +88,13 @@ public class WelcomeDashboardService {
     private WelcomePeriodAmountVO buildFinanceSummary() {
         List<FinanceFlow> financeFlows = financeFlowRepo.list(new LambdaQueryWrapper<FinanceFlow>()
             .eq(FinanceFlow::getStatus, FinanceFlowStatusEnum.SUCCESS.getCode()));
-        return buildPeriodAmount(financeFlows, item -> ObjectUtil.defaultIfNull(item.getFlowTime(), item.getCreateTime()), FinanceFlow::getAmount);
+        return buildPeriodAmount(financeFlows, item -> ObjectUtil.defaultIfNull(item.getFlowAt(), item.getCreateAt()), FinanceFlow::getAmount);
     }
 
     private WelcomePeriodAmountVO buildPaymentSummary() {
         List<PaymentFlow> paymentFlows = paymentFlowRepo.list(new LambdaQueryWrapper<PaymentFlow>()
             .eq(PaymentFlow::getStatus, PaymentFlowStatusEnum.SUCCESS.getCode()));
-        return buildPeriodAmount(paymentFlows, item -> ObjectUtil.defaultIfNull(item.getPayTime(), item.getCreateTime()), PaymentFlow::getAmount);
+        return buildPeriodAmount(paymentFlows, item -> ObjectUtil.defaultIfNull(item.getPayAt(), item.getCreateAt()), PaymentFlow::getAmount);
     }
 
     private <T> WelcomePeriodAmountVO buildPeriodAmount(List<T> source, Function<T, Date> timeGetter, Function<T, BigDecimal> amountGetter) {
@@ -151,7 +151,7 @@ public class WelcomeDashboardService {
         vo.setId(notice.getId());
         vo.setTitle(notice.getTitle());
         vo.setNoticeType(notice.getNoticeType());
-        vo.setPublishTime(notice.getPublishTime());
+        vo.setPublishAt(notice.getPublishAt());
         vo.setCreateByName(notice.getCreateByName());
         return vo;
     }
@@ -202,7 +202,7 @@ public class WelcomeDashboardService {
         Date nextThirtyDay = DateUtil.endOfDay(DateUtil.offsetDay(today, 30));
         overview.setUpcomingCheckInCount((int) leases.stream()
             .filter(item -> LeaseStatusEnum.getValidStatus().contains(item.getStatus()))
-            .filter(item -> isInRange(ObjectUtil.defaultIfNull(item.getCheckInTime(), item.getLeaseStart()), today, nextThirtyDay))
+            .filter(item -> isInRange(ObjectUtil.defaultIfNull(item.getCheckInAt(), item.getLeaseStart()), today, nextThirtyDay))
             .count());
         overview.setUpcomingCheckOutCount((int) leases.stream()
             .filter(item -> Objects.equals(item.getStatus(), LeaseStatusEnum.EFFECTIVE.getCode()))
@@ -302,26 +302,26 @@ public class WelcomeDashboardService {
 
         WelcomeTenantStatsVO stats = new WelcomeTenantStatsVO();
         stats.setTodayDepositCount((int) bookings.stream()
-            .filter(item -> isInRange(ObjectUtil.defaultIfNull(item.getBookingTime(), item.getCreateTime()), todayStart, todayEnd))
+            .filter(item -> isInRange(ObjectUtil.defaultIfNull(item.getBookingAt(), item.getCreateAt()), todayStart, todayEnd))
             .count());
         stats.setMonthDepositCount((int) bookings.stream()
-            .filter(item -> isInRange(ObjectUtil.defaultIfNull(item.getBookingTime(), item.getCreateTime()), monthStart, monthEnd))
+            .filter(item -> isInRange(ObjectUtil.defaultIfNull(item.getBookingAt(), item.getCreateAt()), monthStart, monthEnd))
             .count());
         stats.setTodayNewSignCount((int) leases.stream()
             .filter(item -> Objects.equals(item.getContractNature(), 1))
-            .filter(item -> isInRange(item.getCreateTime(), todayStart, todayEnd))
+            .filter(item -> isInRange(item.getCreateAt(), todayStart, todayEnd))
             .count());
         stats.setMonthNewSignCount((int) leases.stream()
             .filter(item -> Objects.equals(item.getContractNature(), 1))
-            .filter(item -> isInRange(item.getCreateTime(), monthStart, monthEnd))
+            .filter(item -> isInRange(item.getCreateAt(), monthStart, monthEnd))
             .count());
         stats.setTodayRenewCount((int) leases.stream()
             .filter(item -> Objects.equals(item.getContractNature(), 2))
-            .filter(item -> isInRange(item.getCreateTime(), todayStart, todayEnd))
+            .filter(item -> isInRange(item.getCreateAt(), todayStart, todayEnd))
             .count());
         stats.setMonthRenewCount((int) leases.stream()
             .filter(item -> Objects.equals(item.getContractNature(), 2))
-            .filter(item -> isInRange(item.getCreateTime(), monthStart, monthEnd))
+            .filter(item -> isInRange(item.getCreateAt(), monthStart, monthEnd))
             .count());
         return stats;
     }

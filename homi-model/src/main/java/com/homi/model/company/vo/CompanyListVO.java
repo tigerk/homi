@@ -110,14 +110,14 @@ public class CompanyListVO {
 
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 
     @Schema(description = "创建人")
     private Long createBy;
 
     @Schema(description = "更新时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date updateTime;
+    private Date updateAt;
 
     @Schema(description = "更新人")
     private Long updateBy;

@@ -50,7 +50,7 @@ public class DeptController {
         UserLoginVO currentUser = LoginManager.getCurrentUser();
         createDTO.setCompanyId(currentUser.getCurCompanyId());
         createDTO.setUpdateBy(currentUser.getId());
-        createDTO.setUpdateTime(DateUtil.date());
+        createDTO.setUpdateAt(DateUtil.date());
         if (Objects.nonNull(createDTO.getSupervisorId())
             && !companyUserService.userHasCompany(createDTO.getSupervisorId(), currentUser.getCurCompanyId())) {
             throw new BizException("部门负责人不属于当前公司");
@@ -60,7 +60,7 @@ public class DeptController {
             return ResponseResult.ok(deptService.updateDept(createDTO));
         } else {
             createDTO.setCreateBy(currentUser.getId());
-            createDTO.setCreateTime(DateUtil.date());
+            createDTO.setCreateAt(DateUtil.date());
             return ResponseResult.ok(deptService.createDept(createDTO));
         }
     }

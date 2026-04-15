@@ -50,7 +50,7 @@ public class PaymentFlowService {
         paymentFlow.setFlowDirection(PaymentFlowDirectionEnum.IN.getCode());
         paymentFlow.setStatus(command.status());
         paymentFlow.setApprovalStatus(command.approvalStatus());
-        paymentFlow.setPayTime(command.payTime());
+        paymentFlow.setPayAt(command.payAt());
         paymentFlow.setPayerName(command.payerName());
         paymentFlow.setPayerPhone(command.payerPhone());
         paymentFlow.setOperatorId(command.operatorId());
@@ -58,9 +58,9 @@ public class PaymentFlowService {
         paymentFlow.setRemark(command.remark());
         paymentFlow.setExtJson(command.extJson());
         paymentFlow.setCreateBy(command.operatorId());
-        paymentFlow.setCreateTime(command.now());
+        paymentFlow.setCreateAt(command.now());
         paymentFlow.setUpdateBy(command.operatorId());
-        paymentFlow.setUpdateTime(command.now());
+        paymentFlow.setUpdateAt(command.now());
         paymentFlowRepo.save(paymentFlow);
         return paymentFlow;
     }
@@ -72,7 +72,7 @@ public class PaymentFlowService {
         }
         paymentFlow.setStatus(status);
         paymentFlow.setUpdateBy(operatorId);
-        paymentFlow.setUpdateTime(now);
+        paymentFlow.setUpdateAt(now);
         paymentFlowRepo.updateById(paymentFlow);
     }
 
@@ -83,7 +83,7 @@ public class PaymentFlowService {
         }
         paymentFlow.setApprovalStatus(approvalStatus);
         paymentFlow.setUpdateBy(operatorId);
-        paymentFlow.setUpdateTime(now);
+        paymentFlow.setUpdateAt(now);
         paymentFlowRepo.updateById(paymentFlow);
     }
 
@@ -95,7 +95,7 @@ public class PaymentFlowService {
         paymentFlow.setApprovalStatus(approvalStatus);
         paymentFlow.setStatus(status);
         paymentFlow.setUpdateBy(operatorId);
-        paymentFlow.setUpdateTime(now);
+        paymentFlow.setUpdateAt(now);
         paymentFlowRepo.updateById(paymentFlow);
     }
 
@@ -123,7 +123,7 @@ public class PaymentFlowService {
         Integer payChannel,
         String thirdTradeNo,
         String paymentVoucherUrl,
-        Date payTime,
+        Date payAt,
         Long operatorId,
         String operatorName,
         String payerName,

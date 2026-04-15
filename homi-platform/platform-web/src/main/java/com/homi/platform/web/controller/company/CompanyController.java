@@ -38,13 +38,13 @@ public class CompanyController {
     public ResponseResult<CompanyCreateVO> createCompany(@RequestBody CompanyCreateDTO createDTO) {
         PlatformUserLoginVO currentUser = PlatformLoginManager.getCurrentUser();
         createDTO.setUpdateBy(currentUser.getId());
-        createDTO.setUpdateTime(DateUtil.date());
+        createDTO.setUpdateAt(DateUtil.date());
 
         if (Objects.nonNull(createDTO.getId())) {
             return ResponseResult.ok(companyService.updateCompany(createDTO));
         } else {
             createDTO.setCreateBy(currentUser.getId());
-            createDTO.setCreateTime(DateUtil.date());
+            createDTO.setCreateAt(DateUtil.date());
             createDTO.setStatus(StatusEnum.ACTIVE.getValue());
             return ResponseResult.ok(companyService.createCompany(createDTO));
         }
@@ -55,7 +55,7 @@ public class CompanyController {
     public ResponseResult<Boolean> changeStatus(@RequestBody CompanyCreateDTO createDTO) {
         PlatformUserLoginVO currentUser = PlatformLoginManager.getCurrentUser();
         createDTO.setUpdateBy(currentUser.getId());
-        createDTO.setUpdateTime(DateUtil.date());
+        createDTO.setUpdateAt(DateUtil.date());
 
         companyService.changeStatus(createDTO);
 

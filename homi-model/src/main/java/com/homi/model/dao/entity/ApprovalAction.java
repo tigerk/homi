@@ -71,16 +71,16 @@ public class ApprovalAction implements Serializable {
     private Long transferToId;
 
     @Schema(description = "操作时间")
-    @TableField("operate_time")
+    @TableField("operate_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date operateTime;
+    private Date operateAt;
 
     @Schema(description = "状态：0=待审批，1=已审批，2=已跳过")
     @TableField("status")
     private Integer status;
 
     @Schema(description = "创建时间")
-    @TableField("create_time")
+    @TableField("create_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date createTime;
+    private Date createAt;
 }

@@ -109,7 +109,7 @@ public class CompanyPackageService {
         companyPackage.setRegisterDefault(Objects.equals(createDTO.getRegisterDefault(), 1) ? 1 : 0);
         companyPackage.setRemark(createDTO.getRemark());
         companyPackage.setUpdateBy(createDTO.getUpdateBy());
-        companyPackage.setUpdateTime(createDTO.getUpdateTime());
+        companyPackage.setUpdateAt(createDTO.getUpdateAt());
 
         companyPackageRepo.updateById(companyPackage);
 

@@ -251,14 +251,14 @@ public class OwnerBillingGenerateService {
             ownerBill.setGeneratedAt(now);
             ownerBill.setApprovedAt(now);
             ownerBill.setRemark(remarkList.isEmpty() ? "起租日自动生成账单" : String.join("；", remarkList));
-            ownerBill.setCreateTime(now);
-            ownerBill.setUpdateTime(now);
+            ownerBill.setCreateAt(now);
+            ownerBill.setUpdateAt(now);
             ownerSettlementBillRepo.save(ownerBill);
 
             lineList.forEach(item -> {
                 item.setBillId(ownerBill.getId());
                 item.setCompanyId(contract.getCompanyId());
-                item.setCreateTime(now);
+                item.setCreateAt(now);
             });
             ownerSettlementBillLineRepo.saveBatch(lineList);
 
@@ -487,15 +487,15 @@ public class OwnerBillingGenerateService {
         ownerBill.setPaymentStatus(OwnerPayableBillPaymentStatusEnum.UNPAID.getCode());
         ownerBill.setGeneratedAt(now);
         ownerBill.setRemark("包租应付账单自动生成");
-        ownerBill.setCreateTime(now);
-        ownerBill.setUpdateTime(now);
+        ownerBill.setCreateAt(now);
+        ownerBill.setUpdateAt(now);
         ownerPayableBillRepo.save(ownerBill);
 
         lineList.forEach(item -> {
             item.setBillId(ownerBill.getId());
             item.setCompanyId(contract.getCompanyId());
             item.setSubjectNameSnapshot(subjectSummary);
-            item.setCreateTime(now);
+            item.setCreateAt(now);
         });
         if (!lineList.isEmpty()) {
             ownerPayableBillLineRepo.saveBatch(lineList);
@@ -685,7 +685,7 @@ public class OwnerBillingGenerateService {
         line.setItemName(itemName);
         line.setDirection(direction);
         line.setAmount(amount);
-        line.setBizTime(bizDate);
+        line.setBizDate(bizDate);
         line.setRemark(remark);
         line.setFormulaSnapshot(formulaSnapshot);
         return line;
@@ -753,7 +753,7 @@ public class OwnerBillingGenerateService {
         line.setItemName(buildRentLineName(settlementRule));
         line.setDirection(FinanceFlowDirectionEnum.IN.getCode());
         line.setAmount(amount);
-        line.setBizTime(billDate);
+        line.setBizDate(billDate);
         line.setRemark(contractSubject.getSubjectNameSnapshot());
         line.setFormulaSnapshot("leaseStartBill");
         return line;
@@ -771,7 +771,7 @@ public class OwnerBillingGenerateService {
         line.setItemName("管理费");
         line.setDirection(FinanceFlowDirectionEnum.OUT.getCode());
         line.setAmount(amount);
-        line.setBizTime(billDate);
+        line.setBizDate(billDate);
         line.setRemark(contractSubject.getSubjectNameSnapshot());
         line.setFormulaSnapshot("managementFee");
         return line;
@@ -812,7 +812,7 @@ public class OwnerBillingGenerateService {
         BigDecimal frozenBefore = ObjectUtil.defaultIfNull(account.getFrozenAmount(), BigDecimal.ZERO);
         account.setAvailableAmount(availableBefore.add(amount));
         account.setTotalIncomeAmount(ObjectUtil.defaultIfNull(account.getTotalIncomeAmount(), BigDecimal.ZERO).add(amount));
-        account.setUpdateTime(now);
+        account.setUpdateAt(now);
         ownerAccountRepo.updateById(account);
 
         OwnerAccountFlow flow = new OwnerAccountFlow();
@@ -829,7 +829,7 @@ public class OwnerBillingGenerateService {
         flow.setFrozenAfter(account.getFrozenAmount());
         flow.setRemark("起租日账单入账");
         flow.setCreateBy(contract.getCreateBy());
-        flow.setCreateTime(now);
+        flow.setCreateAt(now);
         ownerAccountFlowRepo.save(flow);
     }
 

@@ -68,7 +68,7 @@ public class PlatformRoleService {
             queryWrapper.eq(PlatformRole::getStatus, query.getStatus());
         }
 
-        queryWrapper.orderByDesc(PlatformRole::getCreateTime);
+        queryWrapper.orderByDesc(PlatformRole::getCreateAt);
 
         IPage<PlatformRole> userVOPage = platformRoleRepo.page(page, queryWrapper);
 
@@ -176,7 +176,7 @@ public class PlatformRoleService {
 
         exists.setStatus(platformRole.getStatus());
         exists.setUpdateBy(platformRole.getUpdateBy());
-        exists.setUpdateTime(platformRole.getUpdateTime());
+        exists.setUpdateAt(platformRole.getUpdateAt());
         platformRoleRepo.getBaseMapper().updateById(exists);
 
         return true;
@@ -247,7 +247,7 @@ public class PlatformRoleService {
 
     public List<PlatformRoleVO> listRoleOptions() {
         LambdaQueryWrapper<PlatformRole> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.orderByDesc(PlatformRole::getCreateTime);
+        queryWrapper.orderByDesc(PlatformRole::getCreateAt);
 
         return platformRoleRepo.list(queryWrapper)
             .stream().map(role -> BeanCopyUtils.copyBean(role, PlatformRoleVO.class)).collect(Collectors.toList());
