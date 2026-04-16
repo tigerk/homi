@@ -143,8 +143,12 @@ public class OwnerPayableBillService {
         OwnerPayableBill bill = buildBill(dto, contract, operatorId, null);
         ownerPayableBillRepo.save(bill);
         saveBillLines(bill, dto.getLineList());
-        bizOperateLogService.saveLog(contract.getCompanyId(), BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(), bill.getId(),
-            BizOperateTypeEnum.CREATE.getCode(), "新增包租应付单", dto.getRemark(), null, bill, null, null, null, operatorId, operatorName);
+        bizOperateLogService.saveLog(contract.getCompanyId(),
+            BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(),
+            bill.getId(),
+            BizOperateTypeEnum.CREATE.getCode(),
+            "新增包租应付单",
+            dto.getRemark(), null, bill, null, null, null, operatorId, operatorName);
         return bill.getId();
     }
 
