@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.collect.Lists;
 import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
@@ -13,44 +14,17 @@ import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillPaymentStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillStatusEnum;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dao.entity.BizOperateLog;
-import com.homi.model.dao.entity.FileAttach;
-import com.homi.model.dao.entity.Owner;
-import com.homi.model.dao.entity.OwnerContract;
-import com.homi.model.dao.entity.OwnerPayableBill;
-import com.homi.model.dao.entity.OwnerPayableBillLine;
-import com.homi.model.dao.entity.OwnerPayableBillPayment;
-import com.homi.model.dao.repo.BizOperateLogRepo;
-import com.homi.model.dao.repo.FileAttachRepo;
-import com.homi.model.dao.repo.OwnerContractRepo;
-import com.homi.model.dao.repo.OwnerPayableBillLineRepo;
-import com.homi.model.dao.repo.OwnerPayableBillPaymentRepo;
-import com.homi.model.dao.repo.OwnerPayableBillRepo;
-import com.homi.model.dao.repo.OwnerRepo;
-import com.homi.model.owner.dto.OwnerPayableBillCancelDTO;
-import com.homi.model.owner.dto.OwnerPayableBillCreateDTO;
-import com.homi.model.owner.dto.OwnerPayableBillIdDTO;
-import com.homi.model.owner.dto.OwnerPayableBillLineDTO;
-import com.homi.model.owner.dto.OwnerPayableBillPaymentCreateDTO;
-import com.homi.model.owner.dto.OwnerPayableBillQueryDTO;
-import com.homi.model.owner.dto.OwnerPayableBillUpdateDTO;
-import com.homi.model.owner.vo.BizOperateLogVO;
-import com.homi.model.owner.vo.OwnerPayableBillDetailVO;
-import com.homi.model.owner.vo.OwnerPayableBillLineVO;
-import com.homi.model.owner.vo.OwnerPayableBillListVO;
-import com.homi.model.owner.vo.OwnerPayableBillPaymentVO;
-import com.homi.model.owner.vo.OwnerPayableBillSummaryVO;
+import com.homi.model.dao.entity.*;
+import com.homi.model.dao.repo.*;
+import com.homi.model.owner.dto.*;
+import com.homi.model.owner.vo.*;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -75,11 +49,21 @@ public class OwnerPayableBillService {
         LambdaQueryWrapper<OwnerPayableBill> wrapper = buildWrapper(query, ownerIds);
         wrapper.orderByDesc(OwnerPayableBill::getGeneratedAt).orderByDesc(OwnerPayableBill::getId);
         Page<OwnerPayableBill> result = ownerPayableBillRepo.page(page, wrapper);
-        Map<Long, Owner> ownerMap = ownerRepo.listByIds(result.getRecords().stream().map(OwnerPayableBill::getOwnerId).filter(Objects::nonNull).distinct().toList())
-            .stream().collect(Collectors.toMap(Owner::getId, Function.identity()));
-        Map<Long, OwnerContract> contractMap = ownerContractRepo.listByIds(result.getRecords().stream().map(OwnerPayableBill::getContractId).filter(Objects::nonNull).distinct().toList())
-            .stream().collect(Collectors.toMap(OwnerContract::getId, Function.identity()));
-        List<OwnerPayableBillListVO> list = result.getRecords().stream().map(item -> toListVO(item, ownerMap.get(item.getOwnerId()), contractMap.get(item.getContractId()))).toList();
+
+        List<OwnerPayableBillListVO> list = Lists.newArrayList();
+
+        if (CollectionUtils.isNotEmpty(result.getRecords())) {
+            // 获取业主 ID 列表
+            List<Long> OwnerIds = result.getRecords().stream().map(OwnerPayableBill::getOwnerId).filter(Objects::nonNull).distinct().toList();
+            Map<Long, Owner> ownerMap = ownerRepo.listByIds(OwnerIds).stream().collect(Collectors.toMap(Owner::getId, Function.identity()));
+
+            // 获取合同 ID 列表
+            List<Long> contractIds = result.getRecords().stream().map(OwnerPayableBill::getContractId).filter(Objects::nonNull).distinct().toList();
+            Map<Long, OwnerContract> contractMap = ownerContractRepo.listByIds(contractIds).stream().collect(Collectors.toMap(OwnerContract::getId, Function.identity()));
+
+            list = result.getRecords().stream().map(item -> toListVO(item, ownerMap.get(item.getOwnerId()), contractMap.get(item.getContractId()))).toList();
+        }
+
         return PageVO.<OwnerPayableBillListVO>builder()
             .currentPage(result.getCurrent())
             .pageSize(result.getSize())
@@ -447,6 +431,17 @@ public class OwnerPayableBillService {
         return list.stream().map(item -> toPaymentVO(item, voucherMap.get(item.getId()))).toList();
     }
 
+    /**
+     * 业主应付账单列表VO
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/4/16 16:45
+     *
+     * @param item     应付账单
+     * @param owner    业主
+     * @param contract 合同
+     * @return com.homi.model.owner.vo.OwnerPayableBillListVO
+     */
     private OwnerPayableBillListVO toListVO(OwnerPayableBill item, Owner owner, OwnerContract contract) {
         OwnerPayableBillListVO vo = new OwnerPayableBillListVO();
         vo.setBillId(item.getId());
