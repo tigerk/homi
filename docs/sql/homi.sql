@@ -1624,8 +1624,6 @@ CREATE TABLE `owner_payable_bill` (
   `bill_no` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '应付单号',
   `owner_id` bigint NOT NULL COMMENT '业主ID',
   `contract_id` bigint NOT NULL COMMENT '业主合同ID',
-  `subject_type` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '合同房源类型: HOUSE/FOCUS/FOCUS_BUILDING',
-  `subject_id` bigint NOT NULL COMMENT '合同房源ID',
   `subject_name_snapshot` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '合同房源名称快照',
   `bill_start_date` date NOT NULL COMMENT '账期开始日期',
   `bill_end_date` date NOT NULL COMMENT '账期结束日期',
@@ -1649,10 +1647,9 @@ CREATE TABLE `owner_payable_bill` (
   `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_owner_payable_bill_no` (`company_id`,`bill_no`,`deleted`),
-  UNIQUE KEY `uk_owner_payable_bill_period` (`company_id`,`contract_id`,`subject_type`,`subject_id`,`bill_start_date`,`bill_end_date`,`deleted`),
+  UNIQUE KEY `uk_owner_payable_bill_period` (`company_id`,`contract_id`,`bill_start_date`,`bill_end_date`,`deleted`),
   KEY `idx_owner_payable_bill_owner` (`company_id`,`owner_id`),
   KEY `idx_owner_payable_bill_contract` (`company_id`,`contract_id`),
-  KEY `idx_owner_payable_bill_subject` (`company_id`,`subject_type`,`subject_id`),
   KEY `idx_owner_payable_bill_status` (`company_id`,`payment_status`,`bill_status`),
   KEY `idx_owner_payable_bill_due_date` (`company_id`,`due_date`),
   KEY `idx_owner_payable_bill_generated_at` (`company_id`,`generated_at`)
@@ -1668,8 +1665,6 @@ CREATE TABLE `owner_payable_bill_line` (
   `bill_id` bigint NOT NULL COMMENT '应付单ID',
   `source_type` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '来源类型',
   `source_id` bigint DEFAULT NULL COMMENT '来源ID',
-  `subject_type` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '合同房源类型',
-  `subject_id` bigint DEFAULT NULL COMMENT '合同房源ID',
   `subject_name_snapshot` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '合同房源名称快照',
   `item_name` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '项目名称',
   `item_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '项目类型',
@@ -1685,8 +1680,7 @@ CREATE TABLE `owner_payable_bill_line` (
   `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_owner_payable_bill_line_bill` (`company_id`,`bill_id`),
-  KEY `idx_owner_payable_bill_line_source` (`company_id`,`source_type`,`source_id`),
-  KEY `idx_owner_payable_bill_line_subject` (`company_id`,`subject_type`,`subject_id`)
+  KEY `idx_owner_payable_bill_line_source` (`company_id`,`source_type`,`source_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='包租业主应付单明细';
 
 -- ----------------------------

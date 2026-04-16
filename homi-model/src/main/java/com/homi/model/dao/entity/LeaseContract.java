@@ -27,13 +27,13 @@ public class LeaseContract implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "租客合同ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @Schema(description = "租约ID")
     @TableField("lease_id")
     private Long leaseId;
-    
+
     @Schema(description = "合同编号")
     @TableField("contract_code")
     private String contractCode;

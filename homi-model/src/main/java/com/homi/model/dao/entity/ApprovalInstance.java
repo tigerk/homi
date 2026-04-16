@@ -32,7 +32,7 @@ public class ApprovalInstance implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "实例ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @Schema(description = "审批单号")

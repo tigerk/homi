@@ -1,7 +1,6 @@
 package com.homi.model.owner.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -32,12 +31,6 @@ public class OwnerPayableBillDetailVO {
 
     @Schema(description = "合同编号")
     private String contractNo;
-
-    @Schema(description = "合同房源类型")
-    private OwnerContractSubjectTypeEnum subjectType;
-
-    @Schema(description = "合同房源ID")
-    private Long subjectId;
 
     @Schema(description = "合同房源名称")
     private String subjectName;

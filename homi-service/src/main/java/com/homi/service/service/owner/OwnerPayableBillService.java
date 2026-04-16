@@ -10,7 +10,6 @@ import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
-import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillPaymentStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillStatusEnum;
 import com.homi.common.lib.vo.PageVO;
@@ -36,6 +35,7 @@ public class OwnerPayableBillService {
     private final OwnerPayableBillPaymentRepo ownerPayableBillPaymentRepo;
     private final OwnerRepo ownerRepo;
     private final OwnerContractRepo ownerContractRepo;
+    private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final FileAttachRepo fileAttachRepo;
     private final BizOperateLogRepo bizOperateLogRepo;
     private final BizOperateLogService bizOperateLogService;
@@ -107,8 +107,6 @@ public class OwnerPayableBillService {
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
         vo.setContractId(bill.getContractId());
         vo.setContractNo(contract != null ? contract.getContractNo() : null);
-        vo.setSubjectType(OwnerContractSubjectTypeEnum.fromCode(bill.getSubjectType()));
-        vo.setSubjectId(bill.getSubjectId());
         vo.setSubjectName(bill.getSubjectNameSnapshot());
         vo.setBillStartDate(bill.getBillStartDate());
         vo.setBillEndDate(bill.getBillEndDate());
@@ -160,11 +158,9 @@ public class OwnerPayableBillService {
         ensureEditable(existed);
         OwnerPayableBill before = copyBillSnapshot(existed);
         OwnerContract contract = mustGetContract(dto.getContractId());
-        existed.setOwnerId(dto.getOwnerId());
+        existed.setOwnerId(contract.getOwnerId());
         existed.setContractId(dto.getContractId());
-        existed.setSubjectType(dto.getSubjectType() == null ? null : dto.getSubjectType().getCode());
-        existed.setSubjectId(dto.getSubjectId());
-        existed.setSubjectNameSnapshot(dto.getSubjectName());
+        existed.setSubjectNameSnapshot(buildContractSubjectSummary(contract.getId()));
         existed.setBillStartDate(dto.getBillStartDate());
         existed.setBillEndDate(dto.getBillEndDate());
         existed.setDueDate(dto.getDueDate());
@@ -348,11 +344,9 @@ public class OwnerPayableBillService {
         OwnerPayableBill bill = new OwnerPayableBill();
         bill.setId(billId);
         bill.setCompanyId(contract.getCompanyId());
-        bill.setOwnerId(dto.getOwnerId());
+        bill.setOwnerId(contract.getOwnerId());
         bill.setContractId(dto.getContractId());
-        bill.setSubjectType(dto.getSubjectType() == null ? null : dto.getSubjectType().getCode());
-        bill.setSubjectId(dto.getSubjectId());
-        bill.setSubjectNameSnapshot(dto.getSubjectName());
+        bill.setSubjectNameSnapshot(buildContractSubjectSummary(contract.getId()));
         bill.setBillNo(generateBillNo());
         bill.setBillStartDate(dto.getBillStartDate());
         bill.setBillEndDate(dto.getBillEndDate());
@@ -381,8 +375,6 @@ public class OwnerPayableBillService {
             line.setBillId(bill.getId());
             line.setSourceType(item.getSourceType());
             line.setSourceId(item.getSourceId());
-            line.setSubjectType(bill.getSubjectType());
-            line.setSubjectId(bill.getSubjectId());
             line.setSubjectNameSnapshot(bill.getSubjectNameSnapshot());
             line.setItemType(item.getItemType());
             line.setItemName(item.getItemName());
@@ -451,7 +443,6 @@ public class OwnerPayableBillService {
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
         vo.setContractId(item.getContractId());
         vo.setContractNo(contract != null ? contract.getContractNo() : null);
-        vo.setSubjectType(OwnerContractSubjectTypeEnum.fromCode(item.getSubjectType()));
         vo.setSubjectName(item.getSubjectNameSnapshot());
         vo.setBillStartDate(item.getBillStartDate());
         vo.setBillEndDate(item.getBillEndDate());
@@ -519,8 +510,6 @@ public class OwnerPayableBillService {
         copy.setCompanyId(bill.getCompanyId());
         copy.setOwnerId(bill.getOwnerId());
         copy.setContractId(bill.getContractId());
-        copy.setSubjectType(bill.getSubjectType());
-        copy.setSubjectId(bill.getSubjectId());
         copy.setSubjectNameSnapshot(bill.getSubjectNameSnapshot());
         copy.setBillNo(bill.getBillNo());
         copy.setBillStartDate(bill.getBillStartDate());
@@ -547,6 +536,22 @@ public class OwnerPayableBillService {
 
     private String generatePaymentNo() {
         return "OPP" + DateUtil.format(new Date(), "yyyyMMddHHmmss") + IdUtil.fastSimpleUUID().substring(0, 6).toUpperCase();
+    }
+
+    private String buildContractSubjectSummary(Long contractId) {
+        List<OwnerContractSubject> subjectList = ownerContractSubjectRepo.listByContractId(contractId);
+        if (CollectionUtils.isEmpty(subjectList)) {
+            return "包租合同房源";
+        }
+        if (subjectList.size() == 1) {
+            return StrUtil.blankToDefault(subjectList.get(0).getSubjectNameSnapshot(), "包租合同房源");
+        }
+        String joined = subjectList.stream()
+            .map(OwnerContractSubject::getSubjectNameSnapshot)
+            .filter(StrUtil::isNotBlank)
+            .limit(2)
+            .collect(Collectors.joining("、"));
+        return StrUtil.isBlank(joined) ? "包租合同房源" : joined + " 等" + subjectList.size() + "项";
     }
 
     private BigDecimal defaultZero(BigDecimal amount) {

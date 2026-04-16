@@ -25,7 +25,7 @@ public class BizOperateLog implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "主键ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @Schema(description = "SaaS企业ID")

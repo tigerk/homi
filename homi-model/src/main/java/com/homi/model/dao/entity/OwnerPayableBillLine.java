@@ -25,7 +25,7 @@ public class OwnerPayableBillLine implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "主键ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @Schema(description = "SaaS企业ID")
@@ -43,14 +43,6 @@ public class OwnerPayableBillLine implements Serializable {
     @Schema(description = "来源ID")
     @TableField("source_id")
     private Long sourceId;
-
-    @Schema(description = "合同房源类型")
-    @TableField("subject_type")
-    private String subjectType;
-
-    @Schema(description = "合同房源ID")
-    @TableField("subject_id")
-    private Long subjectId;
 
     @Schema(description = "合同房源名称快照")
     @TableField("subject_name_snapshot")

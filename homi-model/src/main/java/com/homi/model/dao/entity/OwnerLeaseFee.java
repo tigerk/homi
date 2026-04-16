@@ -25,7 +25,7 @@ public class OwnerLeaseFee implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @TableField("company_id")

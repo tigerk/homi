@@ -30,7 +30,7 @@ public class Booking implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "预定 ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @Schema(description = "预定房间 ids")

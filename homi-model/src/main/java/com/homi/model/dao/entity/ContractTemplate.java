@@ -32,7 +32,7 @@ public class ContractTemplate implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "合同模板ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @Schema(description = "公司ID")

@@ -32,7 +32,7 @@ public class Dict implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "主键id")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @Schema(description = "公司id")

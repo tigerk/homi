@@ -33,7 +33,7 @@ public class CompanyProduct implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "主键ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @Schema(description = "商品编码：HOUSE/CONTRACT/SMS/ID_AUTH/ZHIMA_HOUSE/YUMENG_HOUSE/ALIPAY_HOUSE/ZHIMA_CREDIT")

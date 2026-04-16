@@ -472,8 +472,6 @@ public class OwnerBillingGenerateService {
         ownerBill.setCompanyId(contract.getCompanyId());
         ownerBill.setOwnerId(contract.getOwnerId());
         ownerBill.setContractId(contract.getId());
-        ownerBill.setSubjectType(null);
-        ownerBill.setSubjectId(null);
         ownerBill.setSubjectNameSnapshot(subjectSummary);
         ownerBill.setBillNo(generateOwnerPayableBillNo());
         ownerBill.setBillStartDate(periodStart);
@@ -679,8 +677,6 @@ public class OwnerBillingGenerateService {
         OwnerPayableBillLine line = new OwnerPayableBillLine();
         line.setSourceType(sourceType);
         line.setSourceId(sourceId);
-        line.setSubjectType(null);
-        line.setSubjectId(null);
         line.setItemType(itemType);
         line.setItemName(itemName);
         line.setDirection(direction);

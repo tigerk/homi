@@ -29,7 +29,7 @@ public class RentalOrderItem implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id")
     private Long id;
 
     @TableField("order_id")
