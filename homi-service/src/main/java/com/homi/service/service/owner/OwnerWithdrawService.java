@@ -4,6 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.collect.Lists;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerWithdrawOperateEnum;
 import com.homi.common.lib.vo.PageVO;
@@ -58,9 +59,14 @@ public class OwnerWithdrawService {
         wrapper.orderByDesc(OwnerWithdrawApply::getId);
         Page<OwnerWithdrawApply> result = ownerWithdrawApplyRepo.page(page, wrapper);
 
-        Map<Long, Owner> ownerMap = ownerRepo.listByIds(result.getRecords().stream().map(OwnerWithdrawApply::getOwnerId).filter(Objects::nonNull).distinct().toList())
-            .stream().collect(Collectors.toMap(Owner::getId, item -> item));
-        List<OwnerWithdrawApplyListVO> list = result.getRecords().stream().map(item -> toOwnerWithdrawListVO(item, ownerMap.get(item.getOwnerId()))).toList();
+        List<OwnerWithdrawApplyListVO> list = Lists.newArrayList();
+
+        if (result.getRecords() != null && !result.getRecords().isEmpty()) {
+            List<Long> withDrawOwnerIds = result.getRecords().stream().map(OwnerWithdrawApply::getOwnerId).filter(Objects::nonNull).distinct().toList();
+            Map<Long, Owner> ownerMap = ownerRepo.listByIds(withDrawOwnerIds).stream().collect(Collectors.toMap(Owner::getId, item -> item));
+            result.getRecords().stream().map(item -> toOwnerWithdrawListVO(item, ownerMap.get(item.getOwnerId()))).toList();
+        }
+
         return PageVO.<OwnerWithdrawApplyListVO>builder()
             .currentPage(result.getCurrent())
             .pageSize(result.getSize())

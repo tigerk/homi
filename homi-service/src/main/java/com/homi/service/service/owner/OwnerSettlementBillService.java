@@ -3,24 +3,13 @@ package com.homi.service.service.owner;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.collect.Lists;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.dao.entity.Owner;
-import com.homi.model.dao.entity.OwnerContract;
-import com.homi.model.dao.entity.OwnerSettlementBill;
-import com.homi.model.dao.entity.OwnerSettlementBillLine;
-import com.homi.model.dao.entity.OwnerSettlementBillReduction;
-import com.homi.model.dao.repo.OwnerContractRepo;
-import com.homi.model.dao.repo.OwnerRepo;
-import com.homi.model.dao.repo.OwnerSettlementBillLineRepo;
-import com.homi.model.dao.repo.OwnerSettlementBillReductionRepo;
-import com.homi.model.dao.repo.OwnerSettlementBillRepo;
+import com.homi.model.dao.entity.*;
+import com.homi.model.dao.repo.*;
 import com.homi.model.owner.dto.OwnerSettlementBillIdDTO;
 import com.homi.model.owner.dto.OwnerSettlementBillQueryDTO;
-import com.homi.model.owner.vo.OwnerSettlementBillDetailVO;
-import com.homi.model.owner.vo.OwnerSettlementBillLineVO;
-import com.homi.model.owner.vo.OwnerSettlementBillListVO;
-import com.homi.model.owner.vo.OwnerSettlementBillReductionVO;
-import com.homi.model.owner.vo.OwnerSettlementBillSummaryVO;
+import com.homi.model.owner.vo.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -50,11 +39,18 @@ public class OwnerSettlementBillService {
         LambdaQueryWrapper<OwnerSettlementBill> wrapper = buildWrapper(query, ownerIds);
         wrapper.orderByDesc(OwnerSettlementBill::getGeneratedAt).orderByDesc(OwnerSettlementBill::getId);
         Page<OwnerSettlementBill> result = ownerSettlementBillRepo.page(page, wrapper);
-        Map<Long, Owner> ownerMap = ownerRepo.listByIds(result.getRecords().stream().map(OwnerSettlementBill::getOwnerId).filter(Objects::nonNull).distinct().toList())
-            .stream().collect(Collectors.toMap(Owner::getId, Function.identity()));
-        Map<Long, OwnerContract> contractMap = ownerContractRepo.listByIds(result.getRecords().stream().map(OwnerSettlementBill::getContractId).filter(Objects::nonNull).distinct().toList())
-            .stream().collect(Collectors.toMap(OwnerContract::getId, Function.identity()));
-        List<OwnerSettlementBillListVO> list = result.getRecords().stream().map(item -> toListVO(item, ownerMap.get(item.getOwnerId()), contractMap.get(item.getContractId()))).toList();
+
+        List<OwnerSettlementBillListVO> list = Lists.newArrayList();
+        if (result.getRecords() != null && !result.getRecords().isEmpty()) {
+            List<Long> settlementOwnerIds = result.getRecords().stream().map(OwnerSettlementBill::getOwnerId).filter(Objects::nonNull).distinct().toList();
+            Map<Long, Owner> ownerMap = ownerRepo.listByIds(settlementOwnerIds).stream().collect(Collectors.toMap(Owner::getId, Function.identity()));
+
+            List<Long> settlementContractIds = result.getRecords().stream().map(OwnerSettlementBill::getContractId).filter(Objects::nonNull).distinct().toList();
+            Map<Long, OwnerContract> contractMap = ownerContractRepo.listByIds(settlementContractIds).stream().collect(Collectors.toMap(OwnerContract::getId, Function.identity()));
+
+            list = result.getRecords().stream().map(item -> toListVO(item, ownerMap.get(item.getOwnerId()), contractMap.get(item.getContractId()))).toList();
+        }
+
         return PageVO.<OwnerSettlementBillListVO>builder()
             .currentPage(result.getCurrent())
             .pageSize(result.getSize())
@@ -172,6 +168,17 @@ public class OwnerSettlementBillService {
         return amount == null ? BigDecimal.ZERO : amount;
     }
 
+    /**
+     * 生成结算单列表VO
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/4/16 16:51
+     *
+     * @param item     参数说明
+     * @param owner    参数说明
+     * @param contract 参数说明
+     * @return com.homi.model.owner.vo.OwnerSettlementBillListVO
+     */
     private OwnerSettlementBillListVO toListVO(OwnerSettlementBill item, Owner owner, OwnerContract contract) {
         OwnerSettlementBillListVO vo = new OwnerSettlementBillListVO();
         vo.setBillId(item.getId());
