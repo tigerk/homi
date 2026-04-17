@@ -163,8 +163,8 @@ public class LeaseCheckoutService {
                 .feeType(CheckoutFeeTypeEnum.DEPOSIT_REFUND.getCode())
                 .feeSubName("房屋押金")
                 .feeAmount(depositAmount)
-                .feeStart(lease.getLeaseStart())
-                .feeEnd(lease.getLeaseEnd())
+                .feeStartDate(lease.getLeaseStart())
+                .feeEndDate(lease.getLeaseEnd())
                 .remark(DateUtil.formatDate(today) + "退租清算\"预退押金" + depositAmount + "元\"")
                 .build());
         }
@@ -180,8 +180,8 @@ public class LeaseCheckoutService {
                     .feeType(mapBillTypeToFeeType(bill.getBillType()))
                     .feeSubName(typeName)
                     .feeAmount(unpaid)
-                    .feeStart(bill.getBillStart())
-                    .feeEnd(bill.getBillEnd())
+                    .feeStartDate(bill.getBillStart())
+                    .feeEndDate(bill.getBillEnd())
                     .remark(DateUtil.formatDate(today) + "退租清算\"应退" + unpaid + "元\"")
                     .billId(bill.getId())
                     .build());
@@ -350,8 +350,8 @@ public class LeaseCheckoutService {
                 fee.setFeeType(feeDTO.getFeeType());
                 fee.setFeeSubName(feeDTO.getFeeSubName());
                 fee.setFeeAmount(feeDTO.getFeeAmount());
-                fee.setFeeStart(feeDTO.getFeeStart());
-                fee.setFeeEnd(feeDTO.getFeeEnd());
+                fee.setFeeStartDate(feeDTO.getFeeStartDate());
+                fee.setFeeEndDate(feeDTO.getFeeEndDate());
                 fee.setRemark(feeDTO.getRemark());
                 fee.setBillId(feeDTO.getBillId());
                 fee.setCreateBy(operatorId);

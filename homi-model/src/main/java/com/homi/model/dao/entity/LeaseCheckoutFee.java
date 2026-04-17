@@ -54,12 +54,12 @@ public class LeaseCheckoutFee implements Serializable {
     @Schema(description = "费用周期开始")
     @TableField("fee_period_start")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date feeStart;
+    private Date feeStartDate;
 
     @Schema(description = "费用周期结束")
     @TableField("fee_period_end")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date feeEnd;
+    private Date feeEndDate;
 
     @Schema(description = "费用备注")
     @TableField("remark")

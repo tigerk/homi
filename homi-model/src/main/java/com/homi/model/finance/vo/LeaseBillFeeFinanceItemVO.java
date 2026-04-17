@@ -57,11 +57,11 @@ public class LeaseBillFeeFinanceItemVO {
 
     @Schema(description = "费用周期开始")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date feeStart;
+    private Date feeStartDate;
 
     @Schema(description = "费用周期结束")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date feeEnd;
+    private Date feeEndDate;
 
     @Schema(description = "账单应收日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

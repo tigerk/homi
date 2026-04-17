@@ -101,8 +101,8 @@ public class LeaseBillFinanceService {
             item.setUnpaidAmount(ObjectUtil.defaultIfNull(fee.getUnpaidAmount(), BigDecimal.ZERO));
             item.setPayStatus(fee.getPayStatus());
             item.setOverdue(isOverdueBill(bill));
-            item.setFeeStart(fee.getFeeStart());
-            item.setFeeEnd(fee.getFeeEnd());
+            item.setFeeStartDate(fee.getFeeStartDate());
+            item.setFeeEndDate(fee.getFeeEndDate());
             item.setDueDate(bill != null ? bill.getDueDate() : null);
             item.setRemark(fee.getRemark());
             return item;

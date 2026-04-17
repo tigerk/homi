@@ -43,8 +43,8 @@ public class OwnerSettlementItem implements Serializable {
     @TableField("fee_type")
     private String feeType;
 
-    @TableField("item_name")
-    private String itemName;
+    @TableField("fee_name")
+    private String feeName;
 
     @TableField("transfer_enabled")
     private Boolean transferEnabled;

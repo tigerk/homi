@@ -387,8 +387,8 @@ public class LeaseBillService {
         entity.setPaidAmount(currentPaidAmount);
         entity.setUnpaidAmount(amount.subtract(currentPaidAmount));
         entity.setPayStatus(billCalculator.resolvePayStatus(currentPaidAmount, amount));
-        entity.setFeeStart(fee.getFeeStart());
-        entity.setFeeEnd(fee.getFeeEnd());
+        entity.setFeeStartDate(fee.getFeeStartDate());
+        entity.setFeeEndDate(fee.getFeeEndDate());
         entity.setRemark(fee.getRemark());
         entity.setUpdateBy(operatorId);
         entity.setUpdateAt(now);

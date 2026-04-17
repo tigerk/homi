@@ -148,8 +148,8 @@ public class DepositCarryOverService {
         fee.setPaidAmount(Objects.equals(bill.getPayStatus(), PayStatusEnum.PAID.getCode()) ? amount : BigDecimal.ZERO);
         fee.setUnpaidAmount(Objects.equals(bill.getPayStatus(), PayStatusEnum.PAID.getCode()) ? BigDecimal.ZERO : amount);
         fee.setPayStatus(bill.getPayStatus());
-        fee.setFeeStart(bill.getBillStart());
-        fee.setFeeEnd(bill.getBillEnd());
+        fee.setFeeStartDate(bill.getBillStart());
+        fee.setFeeEndDate(bill.getBillEnd());
         fee.setRemark(bill.getRemark());
         fee.setDeleted(false);
         fee.setCreateBy(operatorId);

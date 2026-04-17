@@ -94,7 +94,7 @@ public class OwnerPayableBillDetailVO {
     private Date updateAt;
 
     @Schema(description = "明细列表")
-    private List<OwnerPayableBillLineVO> lineList;
+    private List<OwnerPayableBillFeeVO> feeList;
 
     @Schema(description = "付款记录")
     private List<OwnerPayableBillPaymentVO> paymentList;

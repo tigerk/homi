@@ -1165,7 +1165,7 @@ public class OwnerContractService {
         OwnerSettlementItemDTO dto = new OwnerSettlementItemDTO();
         dto.setFeeDirection(item.getFeeDirection());
         dto.setFeeType(item.getFeeType());
-        dto.setItemName(item.getItemName());
+        dto.setFeeName(item.getFeeName());
         dto.setTransferEnabled(Objects.requireNonNullElse(item.getTransferEnabled(), Boolean.FALSE));
         dto.setTransferRatio(item.getTransferRatio());
         dto.setSortOrder(item.getSortOrder());
@@ -1224,7 +1224,7 @@ public class OwnerContractService {
             record.setContractSubjectId(subject.getId());
             record.setFeeDirection(item.getFeeDirection());
             record.setFeeType(item.getFeeType());
-            record.setItemName(item.getItemName());
+            record.setFeeName(item.getFeeName());
             record.setTransferEnabled(Objects.requireNonNullElse(item.getTransferEnabled(), Boolean.FALSE));
             record.setTransferRatio(item.getTransferRatio());
             record.setSortOrder(Objects.requireNonNullElse(item.getSortOrder(), 0));

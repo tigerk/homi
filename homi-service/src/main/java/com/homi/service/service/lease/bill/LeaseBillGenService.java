@@ -137,9 +137,9 @@ public class LeaseBillGenService {
         List<LeaseBillFee> feeDetails = new ArrayList<>();
 
         for (LeaseBill bill : billList) {
-            LocalDate feeStartDate = LocalDateTimeUtil.of(bill.getBillStart()).toLocalDate();
-            LocalDate feeEndDate = LocalDateTimeUtil.of(bill.getBillEnd()).toLocalDate();
-            int actualMonths = calculateMonths(feeStartDate, feeEndDate);
+            LocalDate feeStartDateDate = LocalDateTimeUtil.of(bill.getBillStart()).toLocalDate();
+            LocalDate feeEndDateDate = LocalDateTimeUtil.of(bill.getBillEnd()).toLocalDate();
+            int actualMonths = calculateMonths(feeStartDateDate, feeEndDateDate);
 
             BigDecimal periodRentAmount = lease.getRentPrice()
                 .multiply(BigDecimal.valueOf(actualMonths))
@@ -153,8 +153,8 @@ public class LeaseBillGenService {
             rentFee.setPaidAmount(BigDecimal.ZERO);
             rentFee.setUnpaidAmount(periodRentAmount);
             rentFee.setPayStatus(PayStatusEnum.UNPAID.getCode());
-            rentFee.setFeeStart(bill.getBillStart());
-            rentFee.setFeeEnd(bill.getBillEnd());
+            rentFee.setFeeStartDate(bill.getBillStart());
+            rentFee.setFeeEndDate(bill.getBillEnd());
             rentFee.setRemark(bill.getRemark());
             rentFee.setDeleted(false);
             rentFee.setCreateBy(lease.getCreateBy());
@@ -206,8 +206,8 @@ public class LeaseBillGenService {
                 detail.setPaidAmount(BigDecimal.ZERO);
                 detail.setUnpaidAmount(feeAmount);
                 detail.setPayStatus(PayStatusEnum.UNPAID.getCode());
-                detail.setFeeStart(bill.getBillStart());
-                detail.setFeeEnd(bill.getBillEnd());
+                detail.setFeeStartDate(bill.getBillStart());
+                detail.setFeeEndDate(bill.getBillEnd());
                 detail.setRemark(buildFeeRemark(fee, actualMonths));
                 detail.setDeleted(false);
                 detail.setCreateBy(lease.getCreateBy());
@@ -446,8 +446,8 @@ public class LeaseBillGenService {
                     detail.setDictDataId(fee.getDictDataId());
                     detail.setFeeName(fee.getName());
                     detail.setAmount(feeAmount);
-                    detail.setFeeStart(bill.getBillStart());
-                    detail.setFeeEnd(bill.getBillEnd());
+                    detail.setFeeStartDate(bill.getBillStart());
+                    detail.setFeeEndDate(bill.getBillEnd());
                     detail.setRemark(bill.getRemark());
                     detail.setDeleted(false);
                     detail.setCreateBy(lease.getCreateBy());
@@ -736,8 +736,8 @@ public class LeaseBillGenService {
         fee.setPaidAmount(BigDecimal.ZERO);
         fee.setUnpaidAmount(depositAmount);
         fee.setPayStatus(PayStatusEnum.UNPAID.getCode());
-        fee.setFeeStart(depositBill.getBillStart());
-        fee.setFeeEnd(depositBill.getBillEnd());
+        fee.setFeeStartDate(depositBill.getBillStart());
+        fee.setFeeEndDate(depositBill.getBillEnd());
         fee.setRemark(depositBill.getRemark());
         fee.setDeleted(false);
         fee.setCreateBy(lease.getCreateBy());

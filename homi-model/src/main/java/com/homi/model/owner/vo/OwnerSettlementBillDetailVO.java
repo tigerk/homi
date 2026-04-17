@@ -109,7 +109,7 @@ public class OwnerSettlementBillDetailVO {
     private Date updateAt;
 
     @Schema(description = "结算单明细")
-    private List<OwnerSettlementBillLineVO> lineList;
+    private List<OwnerSettlementBillFeeVO> feeList;
 
     @Schema(description = "减免明细")
     private List<OwnerSettlementBillReductionVO> reductionList;

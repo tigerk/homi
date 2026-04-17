@@ -21,7 +21,7 @@ public class DeliveryItemVO {
     private String itemCode;
 
     @Schema(description = "物品名称")
-    private String itemName;
+    private String feeName;
 
     @Schema(description = "项目分类")
     private String itemCategory;

@@ -15,7 +15,7 @@ public class OwnerSettlementItemDTO {
     private String feeType;
 
     @Schema(description = "费用科目名称")
-    private String itemName;
+    private String feeName;
 
     @Schema(description = "是否转给业主")
     private Boolean transferEnabled;

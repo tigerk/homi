@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OwnerSettlementBillService {
     private final OwnerSettlementBillRepo ownerSettlementBillRepo;
-    private final OwnerSettlementBillLineRepo ownerSettlementBillLineRepo;
+    private final OwnerSettlementBillFeeRepo ownerSettlementBillFeeRepo;
     private final OwnerSettlementBillReductionRepo ownerSettlementBillReductionRepo;
     private final OwnerRepo ownerRepo;
     private final OwnerContractRepo ownerContractRepo;
@@ -120,10 +120,10 @@ public class OwnerSettlementBillService {
         vo.setRemark(bill.getRemark());
         vo.setCreateAt(bill.getCreateAt());
         vo.setUpdateAt(bill.getUpdateAt());
-        vo.setLineList(ownerSettlementBillLineRepo.lambdaQuery()
-            .eq(OwnerSettlementBillLine::getBillId, bill.getId())
-            .orderByAsc(OwnerSettlementBillLine::getId)
-            .list().stream().map(this::toLineVO).toList());
+        vo.setFeeList(ownerSettlementBillFeeRepo.lambdaQuery()
+            .eq(OwnerSettlementBillFee::getBillId, bill.getId())
+            .orderByAsc(OwnerSettlementBillFee::getId)
+            .list().stream().map(this::toFeeVO).toList());
         vo.setReductionList(ownerSettlementBillReductionRepo.lambdaQuery()
             .eq(OwnerSettlementBillReduction::getBillId, bill.getId())
             .orderByAsc(OwnerSettlementBillReduction::getId)
@@ -204,13 +204,14 @@ public class OwnerSettlementBillService {
         return vo;
     }
 
-    private OwnerSettlementBillLineVO toLineVO(OwnerSettlementBillLine item) {
-        OwnerSettlementBillLineVO vo = new OwnerSettlementBillLineVO();
+    private OwnerSettlementBillFeeVO toFeeVO(OwnerSettlementBillFee item) {
+        OwnerSettlementBillFeeVO vo = new OwnerSettlementBillFeeVO();
         vo.setId(item.getId());
         vo.setSourceType(item.getSourceType());
         vo.setSourceId(item.getSourceId());
-        vo.setItemType(item.getItemType());
-        vo.setItemName(item.getItemName());
+        vo.setFeeType(item.getFeeType());
+        vo.setDictDataId(item.getDictDataId());
+        vo.setFeeName(item.getFeeName());
         vo.setDirection(item.getDirection());
         vo.setAmount(item.getAmount());
         vo.setBizDate(item.getBizDate());

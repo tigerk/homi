@@ -44,8 +44,8 @@ public class DeliveryItem implements Serializable {
     private String itemCode;
 
     @Schema(description = "交割项名称")
-    @TableField("item_name")
-    private String itemName;
+    @TableField("fee_name")
+    private String feeName;
 
     @Schema(description = "项目分类: UTILITY-水电气,FACILITY-设施")
     @TableField("item_category")

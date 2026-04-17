@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OwnerPayableBillService {
     private final OwnerPayableBillRepo ownerPayableBillRepo;
-    private final OwnerPayableBillLineRepo ownerPayableBillLineRepo;
+    private final OwnerPayableBillFeeRepo ownerPayableBillFeeRepo;
     private final OwnerPayableBillPaymentRepo ownerPayableBillPaymentRepo;
     private final OwnerRepo ownerRepo;
     private final OwnerContractRepo ownerContractRepo;
@@ -125,8 +125,8 @@ public class OwnerPayableBillService {
         vo.setRemark(bill.getRemark());
         vo.setCreateAt(bill.getCreateAt());
         vo.setUpdateAt(bill.getUpdateAt());
-        vo.setLineList(ownerPayableBillLineRepo.lambdaQuery().eq(OwnerPayableBillLine::getBillId, bill.getId()).orderByAsc(OwnerPayableBillLine::getId).list()
-            .stream().map(this::toLineVO).toList());
+        vo.setFeeList(ownerPayableBillFeeRepo.lambdaQuery().eq(OwnerPayableBillFee::getBillId, bill.getId()).orderByAsc(OwnerPayableBillFee::getId).list()
+            .stream().map(this::toFeeVO).toList());
         vo.setPaymentList(buildPaymentList(bill.getId()));
         vo.setOperateLogList(bizOperateLogRepo.lambdaQuery()
             .eq(BizOperateLog::getBizType, BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode())
@@ -142,7 +142,7 @@ public class OwnerPayableBillService {
         OwnerContract contract = mustGetContract(dto.getContractId());
         OwnerPayableBill bill = buildBill(dto, contract, operatorId, null);
         ownerPayableBillRepo.save(bill);
-        saveBillLines(bill, dto.getLineList());
+        saveBillFees(bill, dto.getFeeList());
         bizOperateLogService.saveLog(contract.getCompanyId(),
             BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(),
             bill.getId(),
@@ -169,7 +169,7 @@ public class OwnerPayableBillService {
         existed.setBillEndDate(dto.getBillEndDate());
         existed.setDueDate(dto.getDueDate());
         existed.setRemark(dto.getRemark());
-        BigDecimal payableAmount = calcLineTotal(dto.getLineList());
+        BigDecimal payableAmount = calcFeeTotal(dto.getFeeList());
         existed.setPayableAmount(payableAmount);
         existed.setAdjustAmount(BigDecimal.ZERO);
         existed.setPaidAmount(BigDecimal.ZERO);
@@ -177,8 +177,8 @@ public class OwnerPayableBillService {
         existed.setUpdateBy(operatorId);
         existed.setUpdateAt(new Date());
         ownerPayableBillRepo.updateById(existed);
-        ownerPayableBillLineRepo.remove(new LambdaQueryWrapper<OwnerPayableBillLine>().eq(OwnerPayableBillLine::getBillId, existed.getId()));
-        saveBillLines(existed, dto.getLineList());
+        ownerPayableBillFeeRepo.remove(new LambdaQueryWrapper<OwnerPayableBillFee>().eq(OwnerPayableBillFee::getBillId, existed.getId()));
+        saveBillFees(existed, dto.getFeeList());
         bizOperateLogService.saveLog(contract.getCompanyId(), BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(), existed.getId(),
             BizOperateTypeEnum.UPDATE.getCode(), "修改包租应付单", dto.getRemark(), before, existed, null, null, null, operatorId, operatorName);
         return existed.getId();
@@ -268,8 +268,8 @@ public class OwnerPayableBillService {
         if (dto.getBillStartDate() == null || dto.getBillEndDate() == null || dto.getDueDate() == null) {
             throw new IllegalArgumentException("账期和应付日期不能为空");
         }
-        if (dto.getLineList() == null || dto.getLineList().isEmpty()) {
-            throw new IllegalArgumentException("应付单明细不能为空");
+        if (dto.getFeeList() == null || dto.getFeeList().isEmpty()) {
+            throw new IllegalArgumentException("应付单费用不能为空");
         }
     }
 
@@ -355,7 +355,7 @@ public class OwnerPayableBillService {
         bill.setBillStartDate(dto.getBillStartDate());
         bill.setBillEndDate(dto.getBillEndDate());
         bill.setDueDate(dto.getDueDate());
-        BigDecimal payableAmount = calcLineTotal(dto.getLineList());
+        BigDecimal payableAmount = calcFeeTotal(dto.getFeeList());
         bill.setPayableAmount(payableAmount);
         bill.setPaidAmount(BigDecimal.ZERO);
         bill.setUnpaidAmount(payableAmount);
@@ -371,30 +371,31 @@ public class OwnerPayableBillService {
         return bill;
     }
 
-    private void saveBillLines(OwnerPayableBill bill, List<OwnerPayableBillLineDTO> lineList) {
+    private void saveBillFees(OwnerPayableBill bill, List<OwnerPayableBillFeeDTO> feeList) {
         Date now = new Date();
-        List<OwnerPayableBillLine> entities = lineList.stream().map(item -> {
-            OwnerPayableBillLine line = new OwnerPayableBillLine();
-            line.setCompanyId(bill.getCompanyId());
-            line.setBillId(bill.getId());
-            line.setSourceType(item.getSourceType());
-            line.setSourceId(item.getSourceId());
-            line.setSubjectNameSnapshot(bill.getSubjectNameSnapshot());
-            line.setItemType(item.getItemType());
-            line.setItemName(item.getItemName());
-            line.setDirection(item.getDirection());
-            line.setAmount(defaultZero(item.getAmount()));
-            line.setBizDate(item.getBizDate());
-            line.setRemark(item.getRemark());
-            line.setFormulaSnapshot(item.getFormulaSnapshot());
-            line.setCreateAt(now);
-            return line;
+        List<OwnerPayableBillFee> entities = feeList.stream().map(item -> {
+            OwnerPayableBillFee fee = new OwnerPayableBillFee();
+            fee.setCompanyId(bill.getCompanyId());
+            fee.setBillId(bill.getId());
+            fee.setSourceType(item.getSourceType());
+            fee.setSourceId(item.getSourceId());
+            fee.setSubjectNameSnapshot(bill.getSubjectNameSnapshot());
+            fee.setFeeType(item.getFeeType());
+            fee.setDictDataId(item.getDictDataId());
+            fee.setFeeName(item.getFeeName());
+            fee.setDirection(item.getDirection());
+            fee.setAmount(defaultZero(item.getAmount()));
+            fee.setBizDate(item.getBizDate());
+            fee.setRemark(item.getRemark());
+            fee.setFormulaSnapshot(item.getFormulaSnapshot());
+            fee.setCreateAt(now);
+            return fee;
         }).toList();
-        ownerPayableBillLineRepo.saveBatch(entities);
+        ownerPayableBillFeeRepo.saveBatch(entities);
     }
 
-    private BigDecimal calcLineTotal(List<OwnerPayableBillLineDTO> lineList) {
-        return lineList.stream().map(OwnerPayableBillLineDTO::getAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+    private BigDecimal calcFeeTotal(List<OwnerPayableBillFeeDTO> feeList) {
+        return feeList.stream().map(OwnerPayableBillFeeDTO::getAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private Integer resolvePaymentStatus(OwnerPayableBill bill) {
@@ -462,13 +463,14 @@ public class OwnerPayableBillService {
         return vo;
     }
 
-    private OwnerPayableBillLineVO toLineVO(OwnerPayableBillLine item) {
-        OwnerPayableBillLineVO vo = new OwnerPayableBillLineVO();
+    private OwnerPayableBillFeeVO toFeeVO(OwnerPayableBillFee item) {
+        OwnerPayableBillFeeVO vo = new OwnerPayableBillFeeVO();
         vo.setId(item.getId());
         vo.setSourceType(item.getSourceType());
         vo.setSourceId(item.getSourceId());
-        vo.setItemType(item.getItemType());
-        vo.setItemName(item.getItemName());
+        vo.setFeeType(item.getFeeType());
+        vo.setDictDataId(item.getDictDataId());
+        vo.setFeeName(item.getFeeName());
         vo.setDirection(item.getDirection());
         vo.setAmount(item.getAmount());
         vo.setBizDate(item.getBizDate());

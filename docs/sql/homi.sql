@@ -646,7 +646,7 @@ CREATE TABLE `delivery_item` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `delivery_id` bigint unsigned NOT NULL COMMENT '关联交割主表ID',
   `item_code` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '交割项编码(字典数据项value)',
-  `item_name` varchar(64) NOT NULL COMMENT '交割项名称',
+  `fee_name` varchar(64) NOT NULL COMMENT '交割项名称',
   `item_category` enum('FACILITY','UTILITY') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT 'FACILITY' COMMENT '项目分类: UTILITY-水电气,FACILITY-设施',
   `pre_value` varchar(100) DEFAULT NULL COMMENT '交割前数值/状态(对比参考)',
   `current_value` varchar(100) NOT NULL COMMENT '当前交付数值/状态',
@@ -1130,8 +1130,8 @@ CREATE TABLE `lease_bill_fee` (
   `paid_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '已收金额',
   `unpaid_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '待收金额 = amount - paid_amount',
   `pay_status` tinyint NOT NULL DEFAULT '0' COMMENT '支付状态：0=未支付，1=部分支付，2=已支付',
-  `fee_start` date DEFAULT NULL COMMENT '费用周期开始',
-  `fee_end` date DEFAULT NULL COMMENT '费用周期结束',
+  `fee_start_date` date DEFAULT NULL COMMENT '费用周期开始',
+  `fee_end_date` date DEFAULT NULL COMMENT '费用周期结束',
   `remark` varchar(255) DEFAULT NULL COMMENT '备注信息',
   `deleted` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否删除：0=否，1=是',
   `create_by` bigint DEFAULT NULL COMMENT '创建人ID',
@@ -1656,18 +1656,19 @@ CREATE TABLE `owner_payable_bill` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='包租业主应付单';
 
 -- ----------------------------
--- Table structure for owner_payable_bill_line
+-- Table structure for owner_payable_bill_fee
 -- ----------------------------
-DROP TABLE IF EXISTS `owner_payable_bill_line`;
-CREATE TABLE `owner_payable_bill_line` (
+DROP TABLE IF EXISTS `owner_payable_bill_fee`;
+CREATE TABLE `owner_payable_bill_fee` (
   `id` bigint NOT NULL COMMENT '主键ID',
   `company_id` bigint NOT NULL COMMENT 'SaaS企业ID',
   `bill_id` bigint NOT NULL COMMENT '应付单ID',
   `source_type` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '来源类型',
   `source_id` bigint DEFAULT NULL COMMENT '来源ID',
   `subject_name_snapshot` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '合同房源名称快照',
-  `item_name` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '项目名称',
-  `item_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '项目类型',
+  `fee_name` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '费用名称快照',
+  `fee_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '费用业务类型',
+  `dict_data_id` bigint DEFAULT NULL COMMENT '费用字典ID',
   `direction` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'OUT' COMMENT '方向: IN/OUT',
   `amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '金额',
   `biz_date` date DEFAULT NULL COMMENT '业务日期',
@@ -1679,9 +1680,10 @@ CREATE TABLE `owner_payable_bill_line` (
   `create_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  KEY `idx_owner_payable_bill_line_bill` (`company_id`,`bill_id`),
-  KEY `idx_owner_payable_bill_line_source` (`company_id`,`source_type`,`source_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='包租业主应付单明细';
+  KEY `idx_owner_payable_bill_fee_bill` (`company_id`,`bill_id`),
+  KEY `idx_owner_payable_bill_fee_source` (`company_id`,`source_type`,`source_id`),
+  KEY `idx_owner_payable_bill_fee_dict` (`company_id`,`dict_data_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='包租业主应付单费用表';
 
 -- ----------------------------
 -- Table structure for owner_payable_bill_payment
@@ -1819,10 +1821,10 @@ CREATE TABLE `owner_settlement_bill` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='轻托管业主结算单';
 
 -- ----------------------------
--- Table structure for owner_settlement_bill_line
+-- Table structure for owner_settlement_bill_fee
 -- ----------------------------
-DROP TABLE IF EXISTS `owner_settlement_bill_line`;
-CREATE TABLE `owner_settlement_bill_line` (
+DROP TABLE IF EXISTS `owner_settlement_bill_fee`;
+CREATE TABLE `owner_settlement_bill_fee` (
   `id` bigint NOT NULL COMMENT '主键ID',
   `company_id` bigint NOT NULL COMMENT 'SaaS企业ID',
   `bill_id` bigint NOT NULL COMMENT '结算单ID',
@@ -1831,8 +1833,9 @@ CREATE TABLE `owner_settlement_bill_line` (
   `subject_type` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '合同房源类型',
   `subject_id` bigint DEFAULT NULL COMMENT '合同房源ID',
   `subject_name_snapshot` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '合同房源名称快照',
-  `item_name` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '项目名称',
-  `item_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '项目类型',
+  `fee_name` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '费用名称快照',
+  `fee_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '费用业务类型',
+  `dict_data_id` bigint DEFAULT NULL COMMENT '费用字典ID',
   `direction` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '方向: IN/OUT',
   `amount` decimal(12,2) NOT NULL DEFAULT '0.00' COMMENT '金额',
   `biz_date` date DEFAULT NULL COMMENT '业务日期',
@@ -1844,10 +1847,11 @@ CREATE TABLE `owner_settlement_bill_line` (
   `create_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  KEY `idx_owner_settlement_bill_line_bill` (`company_id`,`bill_id`),
-  KEY `idx_owner_settlement_bill_line_source` (`company_id`,`source_type`,`source_id`),
-  KEY `idx_owner_settlement_bill_line_subject` (`company_id`,`subject_type`,`subject_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='轻托管业主结算单明细';
+  KEY `idx_owner_settlement_bill_fee_bill` (`company_id`,`bill_id`),
+  KEY `idx_owner_settlement_bill_fee_source` (`company_id`,`source_type`,`source_id`),
+  KEY `idx_owner_settlement_bill_fee_subject` (`company_id`,`subject_type`,`subject_id`),
+  KEY `idx_owner_settlement_bill_fee_dict` (`company_id`,`dict_data_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='轻托管业主结算单费用表';
 
 -- ----------------------------
 -- Table structure for owner_settlement_bill_reduction
@@ -1886,7 +1890,7 @@ CREATE TABLE `owner_settlement_item` (
   `contract_subject_id` bigint NOT NULL COMMENT '合同签约标的ID',
   `fee_direction` varchar(16) NOT NULL DEFAULT 'IN' COMMENT '收支方向: IN/OUT',
   `fee_type` varchar(64) NOT NULL COMMENT '费用科目类型',
-  `item_name` varchar(64) NOT NULL COMMENT '费用科目名称',
+  `fee_name` varchar(64) NOT NULL COMMENT '费用科目名称',
   `transfer_enabled` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否转给业主',
   `transfer_ratio` decimal(5,2) DEFAULT NULL COMMENT '转给业主比例(0-100)',
   `sort_order` int NOT NULL DEFAULT '0' COMMENT '排序',

@@ -67,14 +67,14 @@ public class LeaseBillFee implements Serializable {
     private Integer payStatus;
 
     @Schema(description = "费用周期开始日期")
-    @TableField("fee_start")
+    @TableField("fee_start_date")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date feeStart;
+    private Date feeStartDate;
 
     @Schema(description = "费用周期结束日期")
-    @TableField("fee_end")
+    @TableField("fee_end_date")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date feeEnd;
+    private Date feeEndDate;
 
     @Schema(description = "备注信息")
     @TableField("remark")

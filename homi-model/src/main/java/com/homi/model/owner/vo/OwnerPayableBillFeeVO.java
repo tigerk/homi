@@ -8,9 +8,9 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
-@Schema(description = "包租业主应付单明细VO")
-public class OwnerPayableBillLineVO {
-    @Schema(description = "明细ID")
+@Schema(description = "包租业主应付单费用VO")
+public class OwnerPayableBillFeeVO {
+    @Schema(description = "费用ID")
     private Long id;
 
     @Schema(description = "来源类型")
@@ -19,11 +19,14 @@ public class OwnerPayableBillLineVO {
     @Schema(description = "来源ID")
     private Long sourceId;
 
-    @Schema(description = "项目类型")
-    private String itemType;
+    @Schema(description = "费用类型")
+    private String feeType;
 
-    @Schema(description = "项目名称")
-    private String itemName;
+    @Schema(description = "费用字典ID")
+    private Long dictDataId;
+
+    @Schema(description = "费用名称")
+    private String feeName;
 
     @Schema(description = "方向")
     private String direction;

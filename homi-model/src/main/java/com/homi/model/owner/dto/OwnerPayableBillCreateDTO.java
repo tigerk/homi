@@ -32,5 +32,5 @@ public class OwnerPayableBillCreateDTO {
     private String remark;
 
     @Schema(description = "明细列表")
-    private List<OwnerPayableBillLineDTO> lineList;
+    private List<OwnerPayableBillFeeDTO> feeList;
 }
