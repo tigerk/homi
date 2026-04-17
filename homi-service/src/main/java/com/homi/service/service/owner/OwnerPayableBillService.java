@@ -48,7 +48,7 @@ public class OwnerPayableBillService {
         }
         LambdaQueryWrapper<OwnerPayableBill> wrapper = buildWrapper(query, ownerIds);
         wrapper
-            .orderByAsc(OwnerPayableBill::getPaymentStatus)
+            .orderByDesc(OwnerPayableBill::getPaymentStatus)
             .orderByAsc(OwnerPayableBill::getId);
         Page<OwnerPayableBill> result = ownerPayableBillRepo.page(page, wrapper);
 
