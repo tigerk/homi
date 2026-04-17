@@ -19,9 +19,9 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @ToString(callSuper = true)
-@TableName("owner_settlement_item")
-@Schema(name = "OwnerSettlementItem", description = "轻托管分账费用科目规则表")
-public class OwnerSettlementItem implements Serializable {
+@TableName("owner_settlement_fee")
+@Schema(name = "OwnerSettlementFee", description = "轻托管分账费用科目规则表")
+public class OwnerSettlementFee implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -42,6 +42,9 @@ public class OwnerSettlementItem implements Serializable {
 
     @TableField("fee_type")
     private String feeType;
+
+    @TableField("dict_data_id")
+    private Long dictDataId;
 
     @TableField("fee_name")
     private String feeName;

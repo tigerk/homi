@@ -7,12 +7,15 @@ import java.math.BigDecimal;
 
 @Data
 @Schema(description = "轻托管分账费用科目DTO")
-public class OwnerSettlementItemDTO {
+public class OwnerSettlementFeeDTO {
     @Schema(description = "收支方向: IN/OUT")
     private String feeDirection;
 
     @Schema(description = "费用科目类型")
     private String feeType;
+
+    @Schema(description = "费用字典ID")
+    private Long dictDataId;
 
     @Schema(description = "费用科目名称")
     private String feeName;

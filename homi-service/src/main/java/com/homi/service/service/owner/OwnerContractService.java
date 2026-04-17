@@ -42,7 +42,7 @@ public class OwnerContractService {
     private final OwnerContractRepo ownerContractRepo;
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final OwnerSettlementRuleRepo ownerSettlementRuleRepo;
-    private final OwnerSettlementItemRepo ownerSettlementItemRepo;
+    private final OwnerSettlementFeeRepo ownerSettlementFeeRepo;
     private final OwnerRentFreeRuleRepo ownerRentFreeRuleRepo;
     private final OwnerLeaseRuleRepo ownerLeaseRuleRepo;
     private final OwnerLeaseFeeRepo ownerLeaseFeeRepo;
@@ -642,7 +642,7 @@ public class OwnerContractService {
 
     private void clearContractRelations(Long contractId) {
         ownerSettlementRuleRepo.deleteByContractIdForce(contractId);
-        ownerSettlementItemRepo.deleteByContractIdForce(contractId);
+        ownerSettlementFeeRepo.deleteByContractIdForce(contractId);
         ownerRentFreeRuleRepo.deleteByContractIdForce(contractId);
         ownerLeaseRuleRepo.deleteByContractIdForce(contractId);
         ownerLeaseFeeRepo.deleteByContractIdForce(contractId);
@@ -1096,11 +1096,11 @@ public class OwnerContractService {
         dto.setPaymentFeeBearType(rule.getPaymentFeeBearType() == null ? null : OwnerPaymentFeeBearTypeEnum.valueOf(rule.getPaymentFeeBearType()));
         dto.setSettlementTiming(rule.getSettlementTiming() == null ? null : OwnerSettlementTimingEnum.valueOf(rule.getSettlementTiming()));
         dto.setRentFreeEnabled(Objects.requireNonNullElse(rule.getRentFreeEnabled(), Boolean.FALSE));
-        dto.setSettlementItemList(ownerSettlementItemRepo.list(new LambdaQueryWrapper<OwnerSettlementItem>()
-                .eq(OwnerSettlementItem::getContractId, rule.getContractId())
-                .eq(OwnerSettlementItem::getContractSubjectId, rule.getContractSubjectId()))
+        dto.setSettlementItemList(ownerSettlementFeeRepo.list(new LambdaQueryWrapper<OwnerSettlementFee>()
+                .eq(OwnerSettlementFee::getContractId, rule.getContractId())
+                .eq(OwnerSettlementFee::getContractSubjectId, rule.getContractSubjectId()))
             .stream()
-            .map(this::toOwnerSettlementItemDTO)
+            .map(this::toOwnerSettlementFeeDTO)
             .toList());
         dto.setEffectiveStart(rule.getEffectiveStart());
         dto.setEffectiveEnd(rule.getEffectiveEnd());
@@ -1162,10 +1162,11 @@ public class OwnerContractService {
         return dto;
     }
 
-    private OwnerSettlementItemDTO toOwnerSettlementItemDTO(OwnerSettlementItem item) {
-        OwnerSettlementItemDTO dto = new OwnerSettlementItemDTO();
+    private OwnerSettlementFeeDTO toOwnerSettlementFeeDTO(OwnerSettlementFee item) {
+        OwnerSettlementFeeDTO dto = new OwnerSettlementFeeDTO();
         dto.setFeeDirection(item.getFeeDirection());
         dto.setFeeType(item.getFeeType());
+        dto.setDictDataId(item.getDictDataId());
         dto.setFeeName(item.getFeeName());
         dto.setTransferEnabled(Objects.requireNonNullElse(item.getTransferEnabled(), Boolean.FALSE));
         dto.setTransferRatio(item.getTransferRatio());
@@ -1215,17 +1216,18 @@ public class OwnerContractService {
         return JSONUtil.toList(tags, String.class);
     }
 
-    private void saveSettlementItems(OwnerCreateDTO dto, OwnerContract contract, OwnerContractSubject subject, List<OwnerSettlementItemDTO> items, Date now) {
+    private void saveSettlementItems(OwnerCreateDTO dto, OwnerContract contract, OwnerContractSubject subject, List<OwnerSettlementFeeDTO> items, Date now) {
         if (items == null || items.isEmpty()) {
             return;
         }
-        List<OwnerSettlementItem> records = items.stream().map(item -> {
-            OwnerSettlementItem record = new OwnerSettlementItem();
+        List<OwnerSettlementFee> records = items.stream().map(item -> {
+            OwnerSettlementFee record = new OwnerSettlementFee();
             record.setCompanyId(contract.getCompanyId());
             record.setContractId(contract.getId());
             record.setContractSubjectId(subject.getId());
             record.setFeeDirection(item.getFeeDirection());
             record.setFeeType(item.getFeeType());
+            record.setDictDataId(item.getDictDataId());
             record.setFeeName(item.getFeeName());
             record.setTransferEnabled(Objects.requireNonNullElse(item.getTransferEnabled(), Boolean.FALSE));
             record.setTransferRatio(item.getTransferRatio());
@@ -1238,7 +1240,7 @@ public class OwnerContractService {
             record.setUpdateAt(now);
             return record;
         }).toList();
-        ownerSettlementItemRepo.saveBatch(records);
+        ownerSettlementFeeRepo.saveBatch(records);
     }
 
     private String resolveSubjectName(OwnerContractSubjectTypeEnum subjectType, Long subjectId, String fallbackName) {

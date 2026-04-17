@@ -64,7 +64,7 @@ public class OwnerSettlementRuleDTO {
     private Boolean rentFreeEnabled;
 
     @Schema(description = "分账费用科目列表")
-    private List<OwnerSettlementItemDTO> settlementItemList;
+    private List<OwnerSettlementFeeDTO> settlementItemList;
 
     @Schema(description = "生效开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
