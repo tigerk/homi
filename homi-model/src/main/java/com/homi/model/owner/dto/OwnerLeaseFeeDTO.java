@@ -9,6 +9,9 @@ import java.math.BigDecimal;
 @Data
 @Schema(description = "包租其他费用DTO")
 public class OwnerLeaseFeeDTO {
+    @Schema(description = "费用字典ID")
+    private Long dictDataId;
+
     @Schema(description = "费用科目类型")
     private String feeType;
 

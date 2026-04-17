@@ -34,6 +34,9 @@ public class OwnerLeaseFee implements Serializable {
     @TableField("contract_id")
     private Long contractId;
 
+    @TableField("dict_data_id")
+    private Long dictDataId;
+
     @TableField("fee_type")
     private String feeType;
 

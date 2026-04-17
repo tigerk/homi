@@ -357,7 +357,7 @@ public class OwnerBillingGenerateService {
 
         List<Long> billIds = billList.stream().map(OwnerPayableBill::getId).toList();
         ownerPayableBillFeeRepo.remove(new LambdaQueryWrapper<OwnerPayableBillFee>().in(OwnerPayableBillFee::getBillId, billIds));
-        ownerPayableBillRepo.removeByIds(billIds);
+        ownerPayableBillRepo.physicalDeleteByIds(billIds);
     }
 
     private boolean isMasterLeaseBillContract(OwnerContract contract) {
@@ -426,16 +426,16 @@ public class OwnerBillingGenerateService {
         BigDecimal rentAmount = calcMasterLeaseRentAmount(leaseRule, periodStart, periodEnd);
         if (rentAmount.compareTo(BigDecimal.ZERO) > 0) {
             incomeAmount = incomeAmount.add(rentAmount);
-            feeList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
-                OwnerBillingItemTypeEnum.RENT.getCode(), OwnerBillingItemTypeEnum.RENT.getName(), FinanceFlowDirectionEnum.IN.getCode(), rentAmount,
+            feeList.add(buildMasterLeaseBillFee(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
+                OwnerBillingItemTypeEnum.RENT.getCode(), null, OwnerBillingItemTypeEnum.RENT.getName(), FinanceFlowDirectionEnum.IN.getCode(), rentAmount,
                 "包租周期租金", "月租金 " + ObjectUtil.defaultIfNull(leaseRule.getRentAmount(), BigDecimal.ZERO) + "，按账期自动生成"));
         }
 
         if (firstPeriod && ObjectUtil.defaultIfNull(leaseRule.getDepositAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0) {
             BigDecimal depositAmount = ObjectUtil.defaultIfNull(leaseRule.getDepositAmount(), BigDecimal.ZERO);
             incomeAmount = incomeAmount.add(depositAmount);
-            feeList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
-                OwnerBillingItemTypeEnum.DEPOSIT.getCode(), OwnerBillingItemTypeEnum.DEPOSIT.getName(), FinanceFlowDirectionEnum.IN.getCode(), depositAmount,
+            feeList.add(buildMasterLeaseBillFee(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_CONTRACT.getCode(), contract.getId(),
+                OwnerBillingItemTypeEnum.DEPOSIT.getCode(), null, OwnerBillingItemTypeEnum.DEPOSIT.getName(), FinanceFlowDirectionEnum.IN.getCode(), depositAmount,
                 "首期押金", "包租首期押金"));
         }
 
@@ -450,8 +450,8 @@ public class OwnerBillingGenerateService {
             } else {
                 incomeAmount = incomeAmount.add(feeAmount);
             }
-            feeList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_LEASE_FEE.getCode(), leaseFee.getId(),
-                OwnerBillingItemTypeEnum.OTHER_FEE.getCode(), ObjectUtil.defaultIfNull(leaseFee.getFeeName(), "其他费用"), direction, feeAmount,
+            feeList.add(buildMasterLeaseBillFee(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_LEASE_FEE.getCode(), leaseFee.getId(),
+                OwnerBillingItemTypeEnum.OTHER_FEE.getCode(), leaseFee.getDictDataId(), ObjectUtil.defaultIfNull(leaseFee.getFeeName(), "其他费用"), direction, feeAmount,
                 leaseFee.getRemark(), buildMasterLeaseFeeFormula(leaseRule, leaseFee, periodStart, periodEnd)));
         }
 
@@ -461,8 +461,8 @@ public class OwnerBillingGenerateService {
                 continue;
             }
             reductionAmount = reductionAmount.add(currentReductionAmount);
-            feeList.add(buildMasterLeaseLine(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_LEASE_FREE_RULE.getCode(), freeRule.getId(),
-                OwnerBillingItemTypeEnum.OTHER_FEE.getCode(), "包租免租", FinanceFlowDirectionEnum.OUT.getCode(), currentReductionAmount,
+            feeList.add(buildMasterLeaseBillFee(contract, periodStart, OwnerBillingSourceTypeEnum.OWNER_LEASE_FREE_RULE.getCode(), freeRule.getId(),
+                OwnerBillingItemTypeEnum.OTHER_FEE.getCode(), null, "包租免租", FinanceFlowDirectionEnum.OUT.getCode(), currentReductionAmount,
                 freeRule.getRemark(), "calcMode=" + freeRule.getCalcMode()));
         }
 
@@ -662,12 +662,13 @@ public class OwnerBillingGenerateService {
         return ObjectUtil.defaultIfNull(freeRule.getFreeAmount(), BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
     }
 
-    private OwnerPayableBillFee buildMasterLeaseLine(
+    private OwnerPayableBillFee buildMasterLeaseBillFee(
         OwnerContract contract,
         Date bizDate,
         String sourceType,
         Long sourceId,
         String feeType,
+        Long dictDataId,
         String feeName,
         String direction,
         BigDecimal amount,
@@ -678,6 +679,7 @@ public class OwnerBillingGenerateService {
         line.setSourceType(sourceType);
         line.setSourceId(sourceId);
         line.setFeeType(feeType);
+        line.setDictDataId(dictDataId);
         line.setFeeName(feeName);
         line.setDirection(direction);
         line.setAmount(amount);

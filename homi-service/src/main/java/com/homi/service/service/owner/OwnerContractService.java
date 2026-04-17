@@ -906,6 +906,7 @@ public class OwnerContractService {
             .stream()
             .map(item -> {
                 Map<String, Object> map = new LinkedHashMap<>();
+                map.put("dictDataId", item.getDictDataId());
                 map.put("feeType", item.getFeeType());
                 map.put("feeName", item.getFeeName());
                 map.put("feeDirection", item.getFeeDirection() == null ? null : item.getFeeDirection().name());
@@ -1175,6 +1176,7 @@ public class OwnerContractService {
 
     private OwnerLeaseFeeDTO toOwnerLeaseFeeDTO(OwnerLeaseFee fee) {
         OwnerLeaseFeeDTO dto = new OwnerLeaseFeeDTO();
+        dto.setDictDataId(fee.getDictDataId());
         dto.setFeeType(fee.getFeeType());
         dto.setFeeName(fee.getFeeName());
         dto.setFeeDirection(fee.getFeeDirection() == null ? null : FinanceFlowDirectionEnum.valueOf(fee.getFeeDirection()));
@@ -1299,6 +1301,7 @@ public class OwnerContractService {
             OwnerLeaseFee fee = new OwnerLeaseFee();
             fee.setCompanyId(dto.getOwnerContract().getCompanyId());
             fee.setContractId(contractId);
+            fee.setDictDataId(item.getDictDataId());
             fee.setFeeType(item.getFeeType());
             fee.setFeeName(item.getFeeName());
             fee.setFeeDirection(enumName(item.getFeeDirection()));
