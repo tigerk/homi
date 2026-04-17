@@ -38,7 +38,6 @@ public class OwnerPayableBillService {
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final FileAttachRepo fileAttachRepo;
     private final BizOperateLogRepo bizOperateLogRepo;
-    private final BizOperateLogService bizOperateLogService;
 
     public PageVO<OwnerPayableBillListVO> page(OwnerPayableBillQueryDTO query) {
         Page<OwnerPayableBill> page = new Page<>(query.getCurrentPage(), query.getPageSize());
@@ -138,6 +137,15 @@ public class OwnerPayableBillService {
         return vo;
     }
 
+    @com.homi.common.lib.annotation.BizOperateLog(
+        bizType = BizOperateBizTypeEnum.OWNER_PAYABLE_BILL,
+        operateType = BizOperateTypeEnum.CREATE,
+        operateDesc = "新增包租应付单",
+        bizIdExpr = "#result",
+        remarkExpr = "#p0.remark",
+        saveAfterSnapshot = true,
+        snapshotProvider = "ownerPayableBillSnapshotProvider"
+    )
     @Transactional(rollbackFor = Exception.class)
     public Long create(OwnerPayableBillCreateDTO dto, Long operatorId, String operatorName) {
         validateSaveDto(dto);
@@ -145,15 +153,19 @@ public class OwnerPayableBillService {
         OwnerPayableBill bill = buildBill(dto, contract, operatorId, null);
         ownerPayableBillRepo.save(bill);
         saveBillFees(bill, dto.getFeeList());
-        bizOperateLogService.saveLog(contract.getCompanyId(),
-            BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(),
-            bill.getId(),
-            BizOperateTypeEnum.CREATE.getCode(),
-            "新增包租应付单",
-            dto.getRemark(), null, bill, null, null, null, operatorId, operatorName);
         return bill.getId();
     }
 
+    @com.homi.common.lib.annotation.BizOperateLog(
+        bizType = BizOperateBizTypeEnum.OWNER_PAYABLE_BILL,
+        operateType = BizOperateTypeEnum.UPDATE,
+        operateDesc = "修改包租应付单",
+        bizIdExpr = "#p0.billId",
+        remarkExpr = "#p0.remark",
+        saveBeforeSnapshot = true,
+        saveAfterSnapshot = true,
+        snapshotProvider = "ownerPayableBillSnapshotProvider"
+    )
     @Transactional(rollbackFor = Exception.class)
     public Long update(OwnerPayableBillUpdateDTO dto, Long operatorId, String operatorName) {
         if (dto == null || dto.getBillId() == null) {
@@ -162,7 +174,6 @@ public class OwnerPayableBillService {
         validateSaveDto(dto);
         OwnerPayableBill existed = mustGetBill(dto.getBillId());
         ensureEditable(existed);
-        OwnerPayableBill before = copyBillSnapshot(existed);
         OwnerContract contract = mustGetContract(dto.getContractId());
         existed.setOwnerId(contract.getOwnerId());
         existed.setContractId(dto.getContractId());
@@ -181,11 +192,20 @@ public class OwnerPayableBillService {
         ownerPayableBillRepo.updateById(existed);
         ownerPayableBillFeeRepo.remove(new LambdaQueryWrapper<OwnerPayableBillFee>().eq(OwnerPayableBillFee::getBillId, existed.getId()));
         saveBillFees(existed, dto.getFeeList());
-        bizOperateLogService.saveLog(contract.getCompanyId(), BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(), existed.getId(),
-            BizOperateTypeEnum.UPDATE.getCode(), "修改包租应付单", dto.getRemark(), before, existed, null, null, null, operatorId, operatorName);
         return existed.getId();
     }
 
+    @com.homi.common.lib.annotation.BizOperateLog(
+        bizType = BizOperateBizTypeEnum.OWNER_PAYABLE_BILL,
+        operateType = BizOperateTypeEnum.CANCEL,
+        operateDesc = "作废包租应付单",
+        bizIdExpr = "#p0.billId",
+        remarkExpr = "#p0.cancelReason",
+        extraDataExpr = "{'cancelReason': #p0.cancelReason}",
+        saveBeforeSnapshot = true,
+        saveAfterSnapshot = true,
+        snapshotProvider = "ownerPayableBillSnapshotProvider"
+    )
     @Transactional(rollbackFor = Exception.class)
     public Long cancel(OwnerPayableBillCancelDTO dto, Long operatorId, String operatorName) {
         if (dto == null || dto.getBillId() == null || StrUtil.isBlank(dto.getCancelReason())) {
@@ -193,7 +213,6 @@ public class OwnerPayableBillService {
         }
         OwnerPayableBill bill = mustGetBill(dto.getBillId());
         ensureCancelable(bill);
-        OwnerPayableBill before = copyBillSnapshot(bill);
         Date now = new Date();
         bill.setBillStatus(OwnerPayableBillStatusEnum.CANCELED.getCode());
         bill.setCancelReason(dto.getCancelReason());
@@ -203,13 +222,22 @@ public class OwnerPayableBillService {
         bill.setUpdateBy(operatorId);
         bill.setUpdateAt(now);
         ownerPayableBillRepo.updateById(bill);
-        Map<String, Object> extraData = new HashMap<>();
-        extraData.put("cancelReason", dto.getCancelReason());
-        bizOperateLogService.saveLog(bill.getCompanyId(), BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(), bill.getId(),
-            BizOperateTypeEnum.CANCEL.getCode(), "作废包租应付单", dto.getCancelReason(), before, bill, extraData, null, null, operatorId, operatorName);
         return bill.getId();
     }
 
+    @com.homi.common.lib.annotation.BizOperateLog(
+        bizType = BizOperateBizTypeEnum.OWNER_PAYABLE_BILL,
+        operateType = BizOperateTypeEnum.PAY,
+        operateDesc = "登记付款",
+        bizIdExpr = "#p0.billId",
+        remarkExpr = "#p0.remark",
+        extraDataExpr = "{'payAmount': #p0.payAmount, 'payChannel': #p0.payChannel != null ? #p0.payChannel.code : null}",
+        sourceType = "OWNER_PAYABLE_BILL_PAYMENT",
+        sourceIdExpr = "#result",
+        saveBeforeSnapshot = true,
+        saveAfterSnapshot = true,
+        snapshotProvider = "ownerPayableBillSnapshotProvider"
+    )
     @Transactional(rollbackFor = Exception.class)
     public Long createPayment(OwnerPayableBillPaymentCreateDTO dto, Long operatorId, String operatorName) {
         if (dto == null || dto.getBillId() == null) {
@@ -255,11 +283,6 @@ public class OwnerPayableBillService {
         bill.setUpdateBy(operatorId);
         bill.setUpdateAt(now);
         ownerPayableBillRepo.updateById(bill);
-        Map<String, Object> extraData = new HashMap<>();
-        extraData.put("payAmount", dto.getPayAmount());
-        extraData.put("payChannel", dto.getPayChannel().getCode());
-        bizOperateLogService.saveLog(bill.getCompanyId(), BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(), bill.getId(),
-            BizOperateTypeEnum.PAY.getCode(), "登记付款", dto.getRemark(), null, payment, extraData, "OWNER_PAYABLE_BILL_PAYMENT", payment.getId(), operatorId, operatorName);
         return payment.getId();
     }
 
@@ -510,32 +533,6 @@ public class OwnerPayableBillService {
         vo.setOperatorName(item.getOperatorName());
         vo.setCreateAt(item.getCreateAt());
         return vo;
-    }
-
-    private OwnerPayableBill copyBillSnapshot(OwnerPayableBill bill) {
-        OwnerPayableBill copy = new OwnerPayableBill();
-        copy.setId(bill.getId());
-        copy.setCompanyId(bill.getCompanyId());
-        copy.setOwnerId(bill.getOwnerId());
-        copy.setContractId(bill.getContractId());
-        copy.setSubjectNameSnapshot(bill.getSubjectNameSnapshot());
-        copy.setBillNo(bill.getBillNo());
-        copy.setBillStartDate(bill.getBillStartDate());
-        copy.setBillEndDate(bill.getBillEndDate());
-        copy.setDueDate(bill.getDueDate());
-        copy.setPayableAmount(bill.getPayableAmount());
-        copy.setPaidAmount(bill.getPaidAmount());
-        copy.setUnpaidAmount(bill.getUnpaidAmount());
-        copy.setAdjustAmount(bill.getAdjustAmount());
-        copy.setPaymentStatus(bill.getPaymentStatus());
-        copy.setBillStatus(bill.getBillStatus());
-        copy.setCancelReason(bill.getCancelReason());
-        copy.setCancelBy(bill.getCancelBy());
-        copy.setCancelByName(bill.getCancelByName());
-        copy.setCancelAt(bill.getCancelAt());
-        copy.setGeneratedAt(bill.getGeneratedAt());
-        copy.setRemark(bill.getRemark());
-        return copy;
     }
 
     private String generateBillNo() {
