@@ -4,6 +4,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
+import com.homi.model.tenant.dto.LeaseBillCreateDTO;
 import com.homi.model.tenant.dto.LeaseBillCollectDTO;
 import com.homi.model.tenant.dto.LeaseBillDetailDTO;
 import com.homi.model.tenant.dto.LeaseBillUpdateDTO;
@@ -48,6 +49,13 @@ public class LeaseBillController {
     @Operation(summary = "根据账单ID查询账单详情")
     public ResponseResult<LeaseBillListVO> getBillDetail(@RequestBody LeaseBillDetailDTO queryDTO) {
         return ResponseResult.ok(leaseBillService.getBillDetailById(queryDTO.getBillId()));
+    }
+
+    @PostMapping("/create")
+    @Operation(summary = "新增租客账单")
+    public ResponseResult<Boolean> createBill(@RequestBody LeaseBillCreateDTO createDTO,
+                                              @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(leaseBillService.createBill(createDTO, loginUser.getId()));
     }
 
     @PostMapping("/update")

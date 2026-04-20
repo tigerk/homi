@@ -68,7 +68,7 @@ public class OwnerPayableBillFee implements Serializable {
     @TableField("amount")
     private BigDecimal amount;
 
-    @Schema(description = "业务时间")
+    @Schema(description = "账单开始时日期")
     @TableField("biz_date")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date bizDate;

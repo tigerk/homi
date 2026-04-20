@@ -10,8 +10,6 @@ import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
 import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerPayableBillPaymentStatusEnum;
-import com.homi.common.lib.enums.owner.OwnerPayableBillStatusEnum;
 import com.homi.common.lib.enums.owner.*;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
@@ -405,15 +403,22 @@ public class OwnerBillingGenerateService {
             .eq(OwnerPayableBill::getBillEndDate, billEnd)) > 0;
     }
 
-    private void createMasterLeaseBill(
-        OwnerContract contract,
-        OwnerLeaseRule leaseRule,
-        List<OwnerLeaseFee> leaseFeeList,
-        List<OwnerLeaseFreeRule> leaseFreeRuleList,
-        Date periodStart,
-        Date periodEnd,
-        boolean firstPeriod
-    ) {
+    /**
+     * 创建包租应付账单
+     * <p>
+     * {@code @author} tk
+     * {@code @date} 2026/4/20 09:24
+     *
+     * @param contract          业主合同信息
+     * @param leaseRule         包租规则
+     * @param leaseFeeList      其他费用列表
+     * @param leaseFreeRuleList 包租优惠规则列表
+     * @param periodStart       本期账单开始日期
+     * @param periodEnd         本期账单结束日期
+     * @param firstPeriod       是否是首期账单
+     */
+    private void createMasterLeaseBill(OwnerContract contract, OwnerLeaseRule leaseRule,
+                                       List<OwnerLeaseFee> leaseFeeList, List<OwnerLeaseFreeRule> leaseFreeRuleList, Date periodStart, Date periodEnd, boolean firstPeriod) {
         Date now = new Date();
         List<OwnerContractSubject> subjectList = ownerContractSubjectRepo.listByContractId(contract.getId());
         String subjectSummary = buildMasterLeaseSubjectSummary(subjectList);

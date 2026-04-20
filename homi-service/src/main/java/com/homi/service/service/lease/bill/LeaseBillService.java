@@ -19,6 +19,7 @@ import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.approval.dto.ApprovalSubmitDTO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
+import com.homi.model.tenant.dto.LeaseBillCreateDTO;
 import com.homi.model.tenant.dto.LeaseBillCollectDTO;
 import com.homi.model.tenant.dto.LeaseBillFeeDTO;
 import com.homi.model.tenant.dto.LeaseBillUpdateDTO;
@@ -128,6 +129,55 @@ public class LeaseBillService {
     // -------------------------------------------------------------------------
     // 编辑
     // -------------------------------------------------------------------------
+
+    /**
+     * 手工新增租客账单。
+     *
+     * <p>用于租客在租期内补录水费、电费等实时费用账单。
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public boolean createBill(LeaseBillCreateDTO dto, Long operatorId) {
+        if (dto == null || dto.getLeaseId() == null || dto.getFeeList() == null || dto.getFeeList().isEmpty()) {
+            return false;
+        }
+        Lease lease = leaseRepo.getById(dto.getLeaseId());
+        if (lease == null || lease.getTenantId() == null) {
+            throw new BizException("租约不存在");
+        }
+
+        DateTime now = DateUtil.date();
+        LeaseBill bill = new LeaseBill();
+        bill.setCompanyId(lease.getCompanyId());
+        bill.setTenantId(lease.getTenantId());
+        bill.setLeaseId(lease.getId());
+        bill.setSortOrder(dto.getSortOrder());
+        bill.setBillType(dto.getBillType());
+        bill.setStatus(LeaseBillStatusEnum.NORMAL.getCode());
+        bill.setBillStart(dto.getBillStart());
+        bill.setBillEnd(dto.getBillEnd());
+        bill.setDueDate(dto.getDueDate());
+        bill.setRemark(dto.getRemark());
+        bill.setHistorical(Boolean.TRUE.equals(dto.getHistorical()));
+        bill.setTotalAmount(BigDecimal.ZERO);
+        bill.setPaidAmount(BigDecimal.ZERO);
+        bill.setUnpaidAmount(BigDecimal.ZERO);
+        bill.setPayStatus(PayStatusEnum.UNPAID.getCode());
+        bill.setCreateBy(operatorId);
+        bill.setCreateAt(now);
+        bill.setUpdateBy(operatorId);
+        bill.setUpdateAt(now);
+        leaseBillRepo.save(bill);
+
+        List<LeaseBillFee> feeEntities = dto.getFeeList().stream()
+            .map(fee -> buildFeeEntity(bill.getId(), fee, null, operatorId, now))
+            .toList();
+        if (feeEntities.stream().anyMatch(Objects::isNull)) {
+            throw new BizException("账单费用明细不合法");
+        }
+        leaseBillFeeRepo.saveBatch(feeEntities);
+        leaseBillUpdater.recalculate(bill, operatorId, now);
+        return true;
+    }
 
     /**
      * 编辑账单及费用项。

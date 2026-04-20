@@ -252,6 +252,7 @@ public class OwnerContractService {
         updateOwnerInfo(dto, owner);
 
         Date now = DateUtil.date();
+        // 是否需要重建包租合同账单的标志
         boolean shouldRebuildMasterLeaseBills = false;
         if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(currentContract.getCooperationMode())) {
             boolean masterLeaseBillLocked = ownerBillingGenerateService.isMasterLeaseBillLocked(currentContract.getId());
