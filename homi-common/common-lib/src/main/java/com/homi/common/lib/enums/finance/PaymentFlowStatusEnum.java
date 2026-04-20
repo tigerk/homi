@@ -12,7 +12,9 @@ public enum PaymentFlowStatusEnum {
     FAILED(3, "支付失败"),
     CLOSED(4, "已关闭"),
     REFUNDING(5, "退款中"),
-    REFUNDED(6, "已退款");
+    REFUNDED(6, "已退款"),
+    VOIDED(7, "已作废"),
+    ;
 
     private final Integer code;
     private final String label;
