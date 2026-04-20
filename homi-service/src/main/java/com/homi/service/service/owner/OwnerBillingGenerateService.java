@@ -64,7 +64,6 @@ public class OwnerBillingGenerateService {
             .eq(OwnerContract::getCooperationMode, OwnerCooperationModeEnum.LIGHT_MANAGED.name())
             .eq(OwnerContract::getStatus, StatusEnum.ACTIVE.getValue())
             .eq(OwnerContract::getApprovalStatus, BizApprovalStatusEnum.APPROVED.getCode())
-            .eq(OwnerContract::getSignStatus, OwnerSignStatusEnum.SIGNED.getCode())
             .le(OwnerContract::getContractStart, todayEnd));
 
         int successCount = 0;
