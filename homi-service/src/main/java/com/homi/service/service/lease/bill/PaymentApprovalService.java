@@ -20,6 +20,7 @@ import com.homi.service.service.finance.PaymentFlowService;
 import com.homi.service.service.lease.bill.component.LeaseBillCalculator;
 import com.homi.service.service.lease.bill.component.LeaseBillPayerResolver;
 import com.homi.service.service.lease.bill.component.LeaseBillUpdater;
+import com.homi.service.service.owner.OwnerBillingGenerateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +65,7 @@ public class PaymentApprovalService {
      * 单向依赖：仅用于回写账单汇总金额，不会被 LeaseBillService 反向注入。
      */
     private final LeaseBillUpdater leaseBillUpdater;
+    private final OwnerBillingGenerateService ownerBillingGenerateService;
 
     // -------------------------------------------------------------------------
     // 审批回调
@@ -146,6 +148,15 @@ public class PaymentApprovalService {
             PaymentFlowStatusEnum.SUCCESS.getCode(),
             dto.getUpdateBy(),
             now);
+
+        ownerBillingGenerateService.generateRealtimeSettlementBillByPaymentFlow(
+            paymentFlow,
+            bill,
+            feeMap,
+            dto,
+            dto.getUpdateBy(),
+            now
+        );
     }
 
     /**

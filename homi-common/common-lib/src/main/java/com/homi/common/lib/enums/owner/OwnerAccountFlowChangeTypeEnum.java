@@ -11,7 +11,8 @@ import lombok.Getter;
 @AllArgsConstructor
 @Schema(enumAsRef = true, description = "业主账户流水变动类型枚举")
 public enum OwnerAccountFlowChangeTypeEnum {
-    BILL_SETTLE_IN("BILL_SETTLE_IN", "账单入账");
+    BILL_SETTLE_IN("BILL_SETTLE_IN", "账单入账"),
+    BILL_SETTLE_OUT("BILL_SETTLE_OUT", "账单冲减");
 
     private final String code;
     private final String name;

@@ -5,14 +5,17 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
+import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
 import com.homi.common.lib.enums.owner.*;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
+import com.homi.model.tenant.dto.LeaseBillCollectDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +40,7 @@ public class OwnerBillingGenerateService {
     private final OwnerContractRepo ownerContractRepo;
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final OwnerSettlementRuleRepo ownerSettlementRuleRepo;
+    private final OwnerSettlementFeeRepo ownerSettlementFeeRepo;
     private final OwnerRentFreeRuleRepo ownerRentFreeRuleRepo;
     private final OwnerLeaseRuleRepo ownerLeaseRuleRepo;
     private final OwnerLeaseFeeRepo ownerLeaseFeeRepo;
@@ -49,6 +53,9 @@ public class OwnerBillingGenerateService {
     private final OwnerPayableBillPaymentRepo ownerPayableBillPaymentRepo;
     private final OwnerAccountRepo ownerAccountRepo;
     private final OwnerAccountFlowRepo ownerAccountFlowRepo;
+    private final LeaseRepo leaseRepo;
+    private final LeaseRoomRepo leaseRoomRepo;
+    private final RoomRepo roomRepo;
 
     /**
      * 自动生成起租日业主结算单
@@ -77,6 +84,135 @@ public class OwnerBillingGenerateService {
             }
         }
         return successCount;
+    }
+
+    /**
+     * 租客支付成功后，按轻托管“租客支付实时分账”规则生成业主结算单。
+     * <p>
+     * 当前按“合同 + 房源 + 支付日期”聚合：
+     * - 同一天同一房源多次收款，合并到同一张实时结算单
+     * - 同一支付流水重复回调，通过支付流水来源明细防重
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void generateRealtimeSettlementBillByPaymentFlow(
+        PaymentFlow paymentFlow,
+        LeaseBill bill,
+        Map<Long, LeaseBillFee> feeMap,
+        LeaseBillCollectDTO dto,
+        Long operatorId,
+        Date now
+    ) {
+        if (paymentFlow == null || bill == null || feeMap == null || feeMap.isEmpty() || dto == null || dto.getItems() == null || dto.getItems().isEmpty()) {
+            return;
+        }
+
+        Long houseId = resolveLeaseHouseId(bill.getLeaseId());
+        if (houseId == null) {
+            return;
+        }
+
+        OwnerContractSubject contractSubject = resolveRealtimeContractSubject(houseId);
+        if (contractSubject == null) {
+            return;
+        }
+
+        OwnerContract contract = ownerContractRepo.getById(contractSubject.getContractId());
+        if (contract == null || !isLeaseStartBillContract(contract)) {
+            return;
+        }
+
+        OwnerSettlementRule settlementRule = ownerSettlementRuleRepo.lambdaQuery()
+            .eq(OwnerSettlementRule::getContractId, contract.getId())
+            .eq(OwnerSettlementRule::getContractSubjectId, contractSubject.getId())
+            .eq(OwnerSettlementRule::getStatus, StatusEnum.ACTIVE.getValue())
+            .eq(OwnerSettlementRule::getSettlementTiming, OwnerSettlementTimingEnum.TENANT_PAYMENT_REALTIME.getCode())
+            .orderByDesc(OwnerSettlementRule::getId)
+            .last("limit 1")
+            .one();
+        if (settlementRule == null) {
+            return;
+        }
+
+        Date billDate = DateUtil.beginOfDay(ObjectUtil.defaultIfNull(dto.getPayAt(), paymentFlow.getPayAt()));
+        OwnerSettlementBill settlementBill = ownerSettlementBillRepo.lambdaQuery()
+            .eq(OwnerSettlementBill::getContractId, contract.getId())
+            .eq(OwnerSettlementBill::getSubjectId, contractSubject.getSubjectId())
+            .eq(OwnerSettlementBill::getBillStartDate, billDate)
+            .eq(OwnerSettlementBill::getBillEndDate, billDate)
+            .orderByDesc(OwnerSettlementBill::getId)
+            .last("limit 1")
+            .one();
+
+        Long existingBillId = settlementBill == null ? null : settlementBill.getId();
+        if (existingBillId != null) {
+            long existsCount = ownerSettlementBillFeeRepo.lambdaQuery()
+                .eq(OwnerSettlementBillFee::getBillId, existingBillId)
+                .eq(OwnerSettlementBillFee::getSourceType, OwnerBillingSourceTypeEnum.PAYMENT_FLOW.getCode())
+                .eq(OwnerSettlementBillFee::getSourceId, paymentFlow.getId())
+                .count();
+            if (existsCount > 0) {
+                return;
+            }
+        }
+
+        List<OwnerSettlementFee> settlementFeeList = ownerSettlementFeeRepo.lambdaQuery()
+            .eq(OwnerSettlementFee::getContractId, contract.getId())
+            .eq(OwnerSettlementFee::getContractSubjectId, contractSubject.getId())
+            .eq(OwnerSettlementFee::getStatus, StatusEnum.ACTIVE.getValue())
+            .orderByAsc(OwnerSettlementFee::getSortOrder)
+            .orderByAsc(OwnerSettlementFee::getId)
+            .list();
+        if (settlementFeeList.isEmpty()) {
+            return;
+        }
+
+        RealtimeSettlementResult result = buildRealtimeSettlementResult(paymentFlow, dto, feeMap, settlementRule, settlementFeeList, contractSubject, billDate);
+        if (result.feeList.isEmpty()) {
+            return;
+        }
+
+        boolean created = settlementBill == null;
+        BigDecimal previousWithdrawable = created
+            ? BigDecimal.ZERO
+            : ObjectUtil.defaultIfNull(settlementBill.getWithdrawableAmount(), BigDecimal.ZERO);
+
+        if (created) {
+            settlementBill = createRealtimeSettlementBill(contract, contractSubject, billDate, now, operatorId);
+        }
+
+        settlementBill.setIncomeAmount(ObjectUtil.defaultIfNull(settlementBill.getIncomeAmount(), BigDecimal.ZERO).add(result.incomeAmount));
+        settlementBill.setExpenseAmount(ObjectUtil.defaultIfNull(settlementBill.getExpenseAmount(), BigDecimal.ZERO).add(result.expenseAmount));
+        settlementBill.setReductionAmount(ObjectUtil.defaultIfNull(settlementBill.getReductionAmount(), BigDecimal.ZERO));
+        settlementBill.setAdjustAmount(ObjectUtil.defaultIfNull(settlementBill.getAdjustAmount(), BigDecimal.ZERO));
+        BigDecimal payableAmount = ObjectUtil.defaultIfNull(settlementBill.getIncomeAmount(), BigDecimal.ZERO)
+            .subtract(ObjectUtil.defaultIfNull(settlementBill.getExpenseAmount(), BigDecimal.ZERO))
+            .subtract(ObjectUtil.defaultIfNull(settlementBill.getReductionAmount(), BigDecimal.ZERO))
+            .add(ObjectUtil.defaultIfNull(settlementBill.getAdjustAmount(), BigDecimal.ZERO));
+        settlementBill.setPayableAmount(payableAmount);
+        settlementBill.setWithdrawableAmount(resolveWithdrawableAmount(settlementBill));
+        settlementBill.setUpdateBy(operatorId);
+        settlementBill.setUpdateAt(now);
+        if (created) {
+            ownerSettlementBillRepo.save(settlementBill);
+        } else {
+            ownerSettlementBillRepo.updateById(settlementBill);
+        }
+
+        Date createAt = ObjectUtil.defaultIfNull(now, new Date());
+        Long settlementBillId = settlementBill.getId();
+        Long companyId = contract.getCompanyId();
+        result.feeList.forEach(item -> {
+            item.setBillId(settlementBillId);
+            item.setCompanyId(companyId);
+            item.setCreateAt(createAt);
+        });
+        ownerSettlementBillFeeRepo.saveBatch(result.feeList);
+
+        BigDecimal currentWithdrawable = ObjectUtil.defaultIfNull(settlementBill.getWithdrawableAmount(), BigDecimal.ZERO);
+        BigDecimal delta = currentWithdrawable.subtract(previousWithdrawable);
+        if (delta.compareTo(BigDecimal.ZERO) != 0) {
+            adjustOwnerAccountAmount(contract, settlementBill, delta, now);
+        }
     }
 
     /**
@@ -693,6 +829,248 @@ public class OwnerBillingGenerateService {
         return line;
     }
 
+    private Long resolveLeaseHouseId(Long leaseId) {
+        if (leaseId == null) {
+            return null;
+        }
+        List<Long> roomIds = leaseRoomRepo.getListByLeaseId(leaseId).stream()
+            .map(LeaseRoom::getRoomId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        if (roomIds.isEmpty()) {
+            Lease lease = leaseRepo.getById(leaseId);
+            if (lease != null && StrUtil.isNotBlank(lease.getRoomIds())) {
+                roomIds = JSONUtil.toList(lease.getRoomIds(), Long.class).stream()
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            }
+        }
+        if (roomIds.isEmpty()) {
+            return null;
+        }
+        Set<Long> houseIds = roomRepo.listByIds(roomIds).stream()
+            .map(Room::getHouseId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (houseIds.isEmpty()) {
+            return null;
+        }
+        if (houseIds.size() > 1) {
+            log.warn("租约关联多个房源，实时分账暂不自动处理, leaseId={}, houseIds={}", leaseId, houseIds);
+            return null;
+        }
+        return houseIds.iterator().next();
+    }
+
+    private OwnerContractSubject resolveRealtimeContractSubject(Long houseId) {
+        List<OwnerContractSubject> subjectList = ownerContractSubjectRepo.lambdaQuery()
+            .eq(OwnerContractSubject::getSubjectType, OwnerContractSubjectTypeEnum.HOUSE.getCode())
+            .eq(OwnerContractSubject::getSubjectId, houseId)
+            .eq(OwnerContractSubject::getStatus, StatusEnum.ACTIVE.getValue())
+            .list();
+        if (subjectList.isEmpty()) {
+            return null;
+        }
+        Set<Long> contractIds = subjectList.stream().map(OwnerContractSubject::getContractId).collect(Collectors.toSet());
+        Map<Long, OwnerContract> contractMap = ownerContractRepo.listByIds(contractIds).stream()
+            .filter(this::isLeaseStartBillContract)
+            .collect(Collectors.toMap(OwnerContract::getId, Function.identity(), (left, right) -> right));
+        return subjectList.stream()
+            .filter(item -> contractMap.containsKey(item.getContractId()))
+            .max(Comparator.comparing(OwnerContractSubject::getId))
+            .orElse(null);
+    }
+
+    private RealtimeSettlementResult buildRealtimeSettlementResult(
+        PaymentFlow paymentFlow,
+        LeaseBillCollectDTO dto,
+        Map<Long, LeaseBillFee> feeMap,
+        OwnerSettlementRule settlementRule,
+        List<OwnerSettlementFee> settlementFeeList,
+        OwnerContractSubject contractSubject,
+        Date billDate
+    ) {
+        List<OwnerSettlementBillFee> feeList = new ArrayList<>();
+        BigDecimal incomeAmount = BigDecimal.ZERO;
+        BigDecimal expenseAmount = BigDecimal.ZERO;
+        BigDecimal managementBaseAmount = BigDecimal.ZERO;
+
+        for (LeaseBillCollectDTO.Item item : dto.getItems()) {
+            LeaseBillFee leaseBillFee = feeMap.get(item.getLeaseBillFeeId());
+            BigDecimal collectAmount = ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO);
+            if (leaseBillFee == null || collectAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+
+            OwnerSettlementFee settlementFee = matchSettlementFeeRule(leaseBillFee, settlementFeeList);
+            if (settlementFee == null || !Boolean.TRUE.equals(settlementFee.getTransferEnabled())) {
+                continue;
+            }
+
+            BigDecimal transferRatio = normalizeTransferRatio(settlementFee.getTransferRatio());
+            BigDecimal ownerAmount = collectAmount.multiply(transferRatio)
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+            if (ownerAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+
+            String direction = normalizeDirection(settlementFee.getFeeDirection());
+            if (FinanceFlowDirectionEnum.OUT.getCode().equals(direction)) {
+                expenseAmount = expenseAmount.add(ownerAmount);
+            } else {
+                incomeAmount = incomeAmount.add(ownerAmount);
+                if (LeaseBillFeeTypeEnum.RENTAL.getCode().equals(leaseBillFee.getFeeType())) {
+                    managementBaseAmount = managementBaseAmount.add(ownerAmount);
+                }
+            }
+
+            OwnerSettlementBillFee billFee = new OwnerSettlementBillFee();
+            billFee.setSourceType(OwnerBillingSourceTypeEnum.PAYMENT_FLOW.getCode());
+            billFee.setSourceId(paymentFlow.getId());
+            billFee.setSubjectType(contractSubject.getSubjectType());
+            billFee.setSubjectId(contractSubject.getSubjectId());
+            billFee.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
+            billFee.setFeeType(ObjectUtil.defaultIfNull(settlementFee.getFeeType(), leaseBillFee.getFeeType()));
+            billFee.setDictDataId(ObjectUtil.defaultIfNull(settlementFee.getDictDataId(), leaseBillFee.getDictDataId()));
+            billFee.setFeeName(resolveRealtimeFeeName(settlementFee, leaseBillFee));
+            billFee.setDirection(direction);
+            billFee.setAmount(ownerAmount);
+            billFee.setBizDate(billDate);
+            billFee.setRemark(settlementFee.getRemark());
+            billFee.setFormulaSnapshot(buildRealtimeFormula(paymentFlow, leaseBillFee, collectAmount, transferRatio));
+            feeList.add(billFee);
+        }
+
+        BigDecimal managementFeeAmount = calcManagementFee(settlementRule, managementBaseAmount);
+        if (managementFeeAmount.compareTo(BigDecimal.ZERO) > 0) {
+            expenseAmount = expenseAmount.add(managementFeeAmount);
+            feeList.add(buildRealtimeManagementFeeLine(contractSubject, paymentFlow, billDate, managementFeeAmount));
+        }
+
+        return new RealtimeSettlementResult(feeList, incomeAmount, expenseAmount);
+    }
+
+    private OwnerSettlementFee matchSettlementFeeRule(LeaseBillFee leaseBillFee, List<OwnerSettlementFee> settlementFeeList) {
+        if (leaseBillFee.getDictDataId() != null) {
+            OwnerSettlementFee matched = settlementFeeList.stream()
+                .filter(item -> Objects.equals(item.getDictDataId(), leaseBillFee.getDictDataId()))
+                .findFirst()
+                .orElse(null);
+            if (matched != null) {
+                return matched;
+            }
+        }
+        return settlementFeeList.stream()
+            .filter(item -> StrUtil.equals(item.getFeeType(), leaseBillFee.getFeeType()))
+            .findFirst()
+            .orElse(null);
+    }
+
+    private BigDecimal normalizeTransferRatio(BigDecimal transferRatio) {
+        BigDecimal ratio = ObjectUtil.defaultIfNull(transferRatio, BigDecimal.valueOf(100));
+        if (ratio.compareTo(BigDecimal.ZERO) < 0) {
+            return BigDecimal.ZERO;
+        }
+        if (ratio.compareTo(BigDecimal.valueOf(100)) > 0) {
+            return BigDecimal.valueOf(100);
+        }
+        return ratio;
+    }
+
+    private String normalizeDirection(String direction) {
+        return FinanceFlowDirectionEnum.OUT.getCode().equals(direction)
+            ? FinanceFlowDirectionEnum.OUT.getCode()
+            : FinanceFlowDirectionEnum.IN.getCode();
+    }
+
+    private String resolveRealtimeFeeName(OwnerSettlementFee settlementFee, LeaseBillFee leaseBillFee) {
+        if (StrUtil.isNotBlank(settlementFee.getFeeName())) {
+            return settlementFee.getFeeName();
+        }
+        if (StrUtil.isNotBlank(leaseBillFee.getFeeName())) {
+            return leaseBillFee.getFeeName();
+        }
+        return LeaseBillFeeTypeEnum.getLabelByCode(leaseBillFee.getFeeType());
+    }
+
+    private String buildRealtimeFormula(PaymentFlow paymentFlow, LeaseBillFee leaseBillFee, BigDecimal collectAmount, BigDecimal transferRatio) {
+        return "paymentNo=" + ObjectUtil.defaultIfNull(paymentFlow.getPaymentNo(), "-")
+            + ", leaseBillFeeId=" + leaseBillFee.getId()
+            + ", collectAmount=" + collectAmount
+            + ", transferRatio=" + transferRatio + "%";
+    }
+
+    private OwnerSettlementBill createRealtimeSettlementBill(
+        OwnerContract contract,
+        OwnerContractSubject contractSubject,
+        Date billDate,
+        Date now,
+        Long operatorId
+    ) {
+        OwnerSettlementBill bill = new OwnerSettlementBill();
+        bill.setCompanyId(contract.getCompanyId());
+        bill.setOwnerId(contract.getOwnerId());
+        bill.setContractId(contract.getId());
+        bill.setSubjectType(contractSubject.getSubjectType());
+        bill.setSubjectId(contractSubject.getSubjectId());
+        bill.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
+        bill.setBillNo(generateOwnerSettlementBillNo());
+        bill.setBillStartDate(billDate);
+        bill.setBillEndDate(billDate);
+        bill.setIncomeAmount(BigDecimal.ZERO);
+        bill.setReductionAmount(BigDecimal.ZERO);
+        bill.setExpenseAmount(BigDecimal.ZERO);
+        bill.setAdjustAmount(BigDecimal.ZERO);
+        bill.setPayableAmount(BigDecimal.ZERO);
+        bill.setSettledAmount(BigDecimal.ZERO);
+        bill.setWithdrawnAmount(BigDecimal.ZERO);
+        bill.setFreezeAmount(BigDecimal.ZERO);
+        bill.setWithdrawableAmount(BigDecimal.ZERO);
+        bill.setBillStatus(OwnerSettlementBillStatusEnum.NORMAL.getCode());
+        bill.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
+        bill.setSettlementStatus(OwnerSettlementStatusEnum.UNSETTLED.getCode());
+        bill.setGeneratedAt(now);
+        bill.setApprovedAt(now);
+        bill.setRemark("租客支付实时分账");
+        bill.setCreateBy(operatorId);
+        bill.setCreateAt(now);
+        bill.setUpdateBy(operatorId);
+        bill.setUpdateAt(now);
+        return bill;
+    }
+
+    private OwnerSettlementBillFee buildRealtimeManagementFeeLine(
+        OwnerContractSubject contractSubject,
+        PaymentFlow paymentFlow,
+        Date billDate,
+        BigDecimal amount
+    ) {
+        OwnerSettlementBillFee line = new OwnerSettlementBillFee();
+        line.setSourceType(OwnerBillingSourceTypeEnum.PAYMENT_FLOW.getCode());
+        line.setSourceId(paymentFlow.getId());
+        line.setSubjectType(contractSubject.getSubjectType());
+        line.setSubjectId(contractSubject.getSubjectId());
+        line.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
+        line.setFeeType(OwnerBillingItemTypeEnum.MANAGEMENT_FEE.getCode());
+        line.setFeeName("管理费");
+        line.setDirection(FinanceFlowDirectionEnum.OUT.getCode());
+        line.setAmount(amount);
+        line.setBizDate(billDate);
+        line.setRemark("租客支付实时分账");
+        line.setFormulaSnapshot("managementFee");
+        return line;
+    }
+
+    private BigDecimal resolveWithdrawableAmount(OwnerSettlementBill bill) {
+        BigDecimal payableAmount = ObjectUtil.defaultIfNull(bill.getPayableAmount(), BigDecimal.ZERO);
+        BigDecimal withdrawnAmount = ObjectUtil.defaultIfNull(bill.getWithdrawnAmount(), BigDecimal.ZERO);
+        BigDecimal freezeAmount = ObjectUtil.defaultIfNull(bill.getFreezeAmount(), BigDecimal.ZERO);
+        BigDecimal withdrawable = payableAmount.subtract(withdrawnAmount).subtract(freezeAmount);
+        return withdrawable.compareTo(BigDecimal.ZERO) > 0 ? withdrawable : BigDecimal.ZERO;
+    }
+
     private boolean existsLeaseStartBill(Long contractId, Long subjectId, Date billDate) {
         return ownerSettlementBillRepo.count(new LambdaQueryWrapper<OwnerSettlementBill>()
             .eq(OwnerSettlementBill::getContractId, contractId)
@@ -804,6 +1182,13 @@ public class OwnerBillingGenerateService {
     }
 
     private void increaseOwnerAccountAmount(OwnerContract contract, OwnerSettlementBill ownerBill, BigDecimal amount, Date now) {
+        adjustOwnerAccountAmount(contract, ownerBill, amount, now);
+    }
+
+    private void adjustOwnerAccountAmount(OwnerContract contract, OwnerSettlementBill ownerBill, BigDecimal amount, Date now) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) == 0) {
+            return;
+        }
         OwnerAccount account = ownerAccountRepo.getByOwnerId(contract.getOwnerId());
         if (account == null) {
             log.warn("业主账户不存在，跳过账户入账, ownerId={}, contractId={}", contract.getOwnerId(), contract.getId());
@@ -813,7 +1198,11 @@ public class OwnerBillingGenerateService {
         BigDecimal availableBefore = ObjectUtil.defaultIfNull(account.getAvailableAmount(), BigDecimal.ZERO);
         BigDecimal frozenBefore = ObjectUtil.defaultIfNull(account.getFrozenAmount(), BigDecimal.ZERO);
         account.setAvailableAmount(availableBefore.add(amount));
-        account.setTotalIncomeAmount(ObjectUtil.defaultIfNull(account.getTotalIncomeAmount(), BigDecimal.ZERO).add(amount));
+        if (amount.compareTo(BigDecimal.ZERO) > 0) {
+            account.setTotalIncomeAmount(ObjectUtil.defaultIfNull(account.getTotalIncomeAmount(), BigDecimal.ZERO).add(amount));
+        } else {
+            account.setTotalReductionAmount(ObjectUtil.defaultIfNull(account.getTotalReductionAmount(), BigDecimal.ZERO).add(amount.abs()));
+        }
         account.setUpdateAt(now);
         ownerAccountRepo.updateById(account);
 
@@ -822,14 +1211,16 @@ public class OwnerBillingGenerateService {
         flow.setOwnerId(contract.getOwnerId());
         flow.setBizType(OwnerAccountFlowBizTypeEnum.OWNER_BILL.getCode());
         flow.setBizId(ownerBill.getId());
-        flow.setFlowDirection(FinanceFlowDirectionEnum.IN.getCode());
-        flow.setChangeType(OwnerAccountFlowChangeTypeEnum.BILL_SETTLE_IN.getCode());
-        flow.setAmount(amount);
+        flow.setFlowDirection(amount.compareTo(BigDecimal.ZERO) > 0 ? FinanceFlowDirectionEnum.IN.getCode() : FinanceFlowDirectionEnum.OUT.getCode());
+        flow.setChangeType(amount.compareTo(BigDecimal.ZERO) > 0
+            ? OwnerAccountFlowChangeTypeEnum.BILL_SETTLE_IN.getCode()
+            : OwnerAccountFlowChangeTypeEnum.BILL_SETTLE_OUT.getCode());
+        flow.setAmount(amount.abs());
         flow.setAvailableBefore(availableBefore);
         flow.setAvailableAfter(account.getAvailableAmount());
         flow.setFrozenBefore(frozenBefore);
         flow.setFrozenAfter(account.getFrozenAmount());
-        flow.setRemark("起租日账单入账");
+        flow.setRemark(amount.compareTo(BigDecimal.ZERO) > 0 ? "业主结算账单入账" : "业主结算账单冲减");
         flow.setCreateBy(contract.getCreateBy());
         flow.setCreateAt(now);
         ownerAccountFlowRepo.save(flow);
@@ -841,5 +1232,12 @@ public class OwnerBillingGenerateService {
 
     private String generateOwnerPayableBillNo() {
         return "OPB" + IdUtil.getSnowflakeNextIdStr();
+    }
+
+    private record RealtimeSettlementResult(
+        List<OwnerSettlementBillFee> feeList,
+        BigDecimal incomeAmount,
+        BigDecimal expenseAmount
+    ) {
     }
 }
