@@ -40,4 +40,14 @@ public class PaymentFlowRepo extends ServiceImpl<PaymentFlowMapper, PaymentFlow>
         wrapper.orderByDesc(PaymentFlow::getCreateAt);
         return list(wrapper);
     }
+
+    public PaymentFlow getByIdForUpdate(Long id) {
+        if (id == null) {
+            return null;
+        }
+        LambdaQueryWrapper<PaymentFlow> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(PaymentFlow::getId, id);
+        wrapper.last("for update");
+        return getOne(wrapper);
+    }
 }
