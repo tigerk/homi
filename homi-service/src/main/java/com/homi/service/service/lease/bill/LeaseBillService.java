@@ -430,6 +430,7 @@ public class LeaseBillService {
             return null;
         }
         entity.setBillId(billId);
+        entity.setRoomId(fee.getRoomId());
         entity.setFeeType(fee.getFeeType());
         entity.setDictDataId(fee.getDictDataId());
         entity.setFeeName(fee.getFeeName());

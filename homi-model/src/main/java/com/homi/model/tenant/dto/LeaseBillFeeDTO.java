@@ -13,6 +13,9 @@ public class LeaseBillFeeDTO {
     @Schema(description = "费用项ID")
     private Long id;
 
+    @Schema(description = "房间ID")
+    private Long roomId;
+
     @Schema(description = "费用类型：RENTAL/DEPOSIT/OTHER_FEE")
     private String feeType;
 

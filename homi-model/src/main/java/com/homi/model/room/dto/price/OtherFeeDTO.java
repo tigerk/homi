@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Schema(description = "其他费用DTO")
 public class OtherFeeDTO implements Serializable {
-    @Schema(description = "房间ID")
+    @Schema(description = "房间ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long roomId;
 
     @Schema(description = "其他费用类型（如：装修/维修/房屋维修、随房租付、按固定金额等）")

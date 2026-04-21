@@ -247,6 +247,8 @@ public class LeaseService {
     }
 
     private Lease saveLease(Long tenantId, LeaseDTO leaseDTO, List<OtherFeeDTO> otherFees) {
+        validateRoomScopedOtherFees(leaseDTO.getRoomIds(), otherFees);
+
         Lease lease = BeanCopyUtils.copyBean(leaseDTO, Lease.class);
         assert lease != null;
         lease.setTenantId(tenantId);
@@ -886,6 +888,12 @@ public class LeaseService {
             originalFees = new ArrayList<>();
         }
 
+        Lease lease = leaseRepo.getById(leaseId);
+        if (lease != null) {
+            List<Long> roomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
+            validateRoomScopedOtherFees(roomIds, newFees);
+        }
+
         // 判断是否有变更
         boolean isChanged = !isOtherFeesEqual(newFees, originalFees);
 
@@ -905,6 +913,31 @@ public class LeaseService {
         });
 
         return true;
+    }
+
+    private void validateRoomScopedOtherFees(List<Long> leaseRoomIds, List<OtherFeeDTO> otherFees) {
+        if (otherFees == null || otherFees.isEmpty()) {
+            return;
+        }
+        Set<Long> validRoomIds = Optional.ofNullable(leaseRoomIds)
+            .orElse(List.of())
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        if (validRoomIds.isEmpty()) {
+            throw new IllegalArgumentException("存在房间级费用时，租约房间不能为空");
+        }
+        for (OtherFeeDTO fee : otherFees) {
+            if (fee == null) {
+                continue;
+            }
+            if (fee.getRoomId() == null) {
+                throw new IllegalArgumentException("其他费用必须指定适用房间");
+            }
+            if (!validRoomIds.contains(fee.getRoomId())) {
+                throw new IllegalArgumentException("其他费用存在无效的适用房间");
+            }
+        }
     }
 
     /**

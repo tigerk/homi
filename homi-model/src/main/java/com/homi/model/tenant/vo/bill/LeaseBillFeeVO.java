@@ -21,6 +21,9 @@ public class LeaseBillFeeVO implements Serializable {
     @Schema(description = "账单ID（关联 lease_bill.id）")
     private Long billId;
 
+    @Schema(description = "房间ID")
+    private Long roomId;
+
     @Schema(description = "费用类型：RENTAL/DEPOSIT/OTHER_FEE")
     private String feeType;
 

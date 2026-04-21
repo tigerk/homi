@@ -38,6 +38,10 @@ public class LeaseBillFee implements Serializable {
     @TableField("bill_id")
     private Long billId;
 
+    @Schema(description = "房间ID")
+    @TableField("room_id")
+    private Long roomId;
+
     @Schema(description = "费用类型：RENTAL/DEPOSIT/OTHER_FEE")
     @TableField("fee_type")
     private String feeType;
