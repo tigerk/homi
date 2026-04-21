@@ -13,8 +13,10 @@ import com.homi.common.lib.enums.lease.LeaseFirstBillDayEnum;
 import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.entity.LeaseBillFee;
+import com.homi.model.dao.entity.LeaseRoom;
 import com.homi.model.dao.repo.LeaseBillFeeRepo;
 import com.homi.model.dao.repo.LeaseBillRepo;
+import com.homi.model.dao.repo.LeaseRoomRepo;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.tenant.dto.LeaseDTO;
 import lombok.Builder;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 public class LeaseBillGenService {
     private final LeaseBillRepo leaseBillRepo;
     private final LeaseBillFeeRepo leaseBillFeeRepo;
+    private final LeaseRoomRepo leaseRoomRepo;
 
     /**
      * 生成租客账单（押金、租金及其他费用）
@@ -78,6 +81,8 @@ public class LeaseBillGenService {
         List<LeaseBill> billList = new ArrayList<>();
         boolean isFirstBill = true;
 
+        BigDecimal monthlyRentPrice = getLeaseMonthlyRentPrice(leaseId, lease);
+
         // 按支付周期循环生成账单
         while (!currentStart.isAfter(endDate)) {
             LocalDate currentEnd = currentStart.plusMonths(paymentMonths).minusDays(1);
@@ -88,7 +93,7 @@ public class LeaseBillGenService {
             int actualMonths = calculateMonths(currentStart, currentEnd);
 
             // 计算租金金额
-            BigDecimal periodRentAmount = calculateRentAmount(lease.getRentPrice(), paymentMonths, actualMonths);
+            BigDecimal periodRentAmount = calculateRentAmount(monthlyRentPrice, paymentMonths, actualMonths);
 
             // 计算其他费用金额
             BigDecimal periodOtherFeeAmount = calculateOtherFeeAmount(rentRelatedFees, periodRentAmount, actualMonths);
@@ -188,7 +193,7 @@ public class LeaseBillGenService {
         int actualMonths = calculateMonths(startDate, endDate);
 
         // 计算本期租金（用于比例计算）
-        BigDecimal periodRentalAmount = lease.getRentPrice().multiply(BigDecimal.valueOf(actualMonths));
+            BigDecimal periodRentalAmount = getLeaseMonthlyRentPrice(bill.getLeaseId(), lease).multiply(BigDecimal.valueOf(actualMonths));
 
         for (OtherFeeDTO fee : rentRelatedFees) {
             // 计算单个费用的金额
@@ -530,10 +535,10 @@ public class LeaseBillGenService {
 
         if (isOneTimePayment) {
             // 一次性全额支付: 直接使用固定金额或租金总额的比例,不乘以月数
-            feeAmount = calculateSingleFeeAmountForOneTime(context.fee, context.lease.getRentPrice()).setScale(2, RoundingMode.HALF_UP);
+            feeAmount = calculateSingleFeeAmountForOneTime(context.fee, getLeaseMonthlyRentPrice(context.leaseId, context.lease)).setScale(2, RoundingMode.HALF_UP);
         } else {
             // 周期性支付: 按月数计算
-            BigDecimal periodRentAmount = context.lease.getRentPrice()
+            BigDecimal periodRentAmount = getLeaseMonthlyRentPrice(context.leaseId, context.lease)
                 .multiply(BigDecimal.valueOf(actualMonths));
             feeAmount = calculateSingleFeeAmount(context.fee, periodRentAmount, actualMonths)
                 .setScale(2, RoundingMode.HALF_UP);
@@ -579,11 +584,23 @@ public class LeaseBillGenService {
 
         boolean isOneTimePayment = PaymentMethodEnum.ALL.getCode().equals(fee.getPaymentMethod());
         if (isOneTimePayment) {
-            return calculateSingleFeeAmountForOneTime(fee, lease.getRentPrice()).setScale(2, RoundingMode.HALF_UP);
+            return calculateSingleFeeAmountForOneTime(fee, getLeaseMonthlyRentPrice(bill.getLeaseId(), lease)).setScale(2, RoundingMode.HALF_UP);
         }
-        BigDecimal periodRentAmount = lease.getRentPrice()
+        BigDecimal periodRentAmount = getLeaseMonthlyRentPrice(bill.getLeaseId(), lease)
             .multiply(BigDecimal.valueOf(actualMonths));
         return calculateSingleFeeAmount(fee, periodRentAmount, actualMonths).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal getLeaseMonthlyRentPrice(Long leaseId, LeaseDTO lease) {
+        List<LeaseRoom> leaseRooms = leaseRoomRepo.getListByLeaseId(leaseId);
+        BigDecimal roomRentTotal = leaseRooms.stream()
+            .map(LeaseRoom::getRentPrice)
+            .filter(Objects::nonNull)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (roomRentTotal.compareTo(BigDecimal.ZERO) > 0) {
+            return roomRentTotal;
+        }
+        return lease.getRentPrice() == null ? BigDecimal.ZERO : lease.getRentPrice();
     }
 
     /**

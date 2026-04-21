@@ -34,6 +34,9 @@ public class LeaseDTO {
     @Schema(description = "房间ID列表")
     private List<Long> roomIds;
 
+    @Schema(description = "租约房间配置")
+    private List<LeaseRoomDTO> roomRentList;
+
     @Schema(description = "租客类型：0=个人，1=企业")
     private Integer tenantType;
 

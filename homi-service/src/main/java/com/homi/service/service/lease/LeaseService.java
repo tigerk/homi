@@ -24,6 +24,7 @@ import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.room.dto.price.OtherFeeDTO;
+import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.tenant.dto.*;
 import com.homi.model.tenant.vo.*;
 import com.homi.service.service.approval.ApprovalResult;
@@ -255,7 +256,7 @@ public class LeaseService {
         lease.setCreateAt(DateUtil.date());
         leaseRepo.save(lease);
 
-        leaseRoomRepo.saveLeaseRoomBatch(lease.getId(), leaseDTO.getRoomIds());
+        leaseRoomRepo.saveLeaseRoomBatch(lease.getId(), leaseDTO.getRoomIds(), leaseDTO.getRoomRentList());
 
         if (otherFees != null) {
             otherFees.forEach(otherFeeDTO -> {
@@ -413,7 +414,18 @@ public class LeaseService {
 
         List<Long> roomIdList = JSONUtil.toList(lease.getRoomIds(), Long.class);
         leaseDetailVO.setRoomIds(roomIdList);
-        leaseDetailVO.setRoomList(roomService.getRoomListByRoomIds(roomIdList));
+        List<LeaseRoom> leaseRooms = leaseRoomRepo.getListByLeaseId(leaseId);
+        Map<Long, LeaseRoom> leaseRoomMap = leaseRooms.stream()
+            .filter(item -> item.getRoomId() != null)
+            .collect(Collectors.toMap(LeaseRoom::getRoomId, item -> item, (a, b) -> a));
+        List<RoomListVO> roomList = roomService.getRoomListByRoomIds(roomIdList);
+        roomList.forEach(room -> {
+            LeaseRoom leaseRoom = leaseRoomMap.get(room.getRoomId());
+            if (leaseRoom != null && leaseRoom.getRentPrice() != null) {
+                room.setPrice(leaseRoom.getRentPrice());
+            }
+        });
+        leaseDetailVO.setRoomList(roomList);
 
         User salesmanUser = userService.getUserById(leaseDetailVO.getSalesmanId());
         leaseDetailVO.setSalesmanName(salesmanUser.getRealName());
@@ -842,7 +854,7 @@ public class LeaseService {
 
         leaseRepo.updateById(lease);
 
-        leaseRoomRepo.saveLeaseRoomBatch(lease.getId(), leaseDTO.getRoomIds());
+        leaseRoomRepo.saveLeaseRoomBatch(lease.getId(), leaseDTO.getRoomIds(), leaseDTO.getRoomRentList());
 
         return lease;
     }
@@ -905,10 +917,14 @@ public class LeaseService {
 
         // 简化比较：将费用列表转换为字符串进行比较
         String json1 = JSONUtil.toJsonStr(fees1.stream()
-            .sorted(Comparator.comparing(OtherFeeDTO::getName))
+            .sorted(Comparator
+                .comparing((OtherFeeDTO fee) -> Optional.ofNullable(fee.getRoomId()).orElse(0L))
+                .thenComparing(fee -> Optional.ofNullable(fee.getName()).orElse("")))
             .collect(Collectors.toList()));
         String json2 = JSONUtil.toJsonStr(fees2.stream()
-            .sorted(Comparator.comparing(OtherFeeDTO::getName))
+            .sorted(Comparator
+                .comparing((OtherFeeDTO fee) -> Optional.ofNullable(fee.getRoomId()).orElse(0L))
+                .thenComparing(fee -> Optional.ofNullable(fee.getName()).orElse("")))
             .collect(Collectors.toList()));
 
         return json1.equals(json2);

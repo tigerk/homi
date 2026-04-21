@@ -4,9 +4,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.homi.model.dao.entity.LeaseRoom;
 import com.homi.model.dao.mapper.LeaseRoomMapper;
+import com.homi.model.tenant.dto.LeaseRoomDTO;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -19,13 +23,22 @@ import java.util.List;
 @Service
 public class LeaseRoomRepo extends ServiceImpl<LeaseRoomMapper, LeaseRoom> {
 
-    public void saveLeaseRoomBatch(Long leaseId, List<Long> roomIds) {
+    public void saveLeaseRoomBatch(Long leaseId, List<Long> roomIds, List<LeaseRoomDTO> roomRentList) {
         remove(new LambdaQueryWrapper<LeaseRoom>().eq(LeaseRoom::getLeaseId, leaseId));
+
+        Map<Long, BigDecimal> roomRentMap = new HashMap<>();
+        if (roomRentList != null) {
+            for (LeaseRoomDTO item : roomRentList) {
+                if (item == null || item.getRoomId() == null) continue;
+                roomRentMap.put(item.getRoomId(), item.getRentPrice());
+            }
+        }
 
         for (Long roomId : roomIds) {
             LeaseRoom leaseRoom = new LeaseRoom();
             leaseRoom.setLeaseId(leaseId);
             leaseRoom.setRoomId(roomId);
+            leaseRoom.setRentPrice(roomRentMap.get(roomId));
 
             save(leaseRoom);
         }

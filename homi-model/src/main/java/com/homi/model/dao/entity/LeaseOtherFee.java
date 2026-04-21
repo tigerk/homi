@@ -35,6 +35,10 @@ public class LeaseOtherFee implements Serializable {
     @TableField("lease_id")
     private Long leaseId;
 
+    @Schema(description = "房间ID")
+    @TableField("room_id")
+    private Long roomId;
+
     @Schema(description = "其他费用 ID")
     @TableField("dict_data_id")
     private Long dictDataId;

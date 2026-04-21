@@ -11,6 +11,7 @@ import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * <p>
@@ -39,4 +40,8 @@ public class LeaseRoom implements Serializable {
     @Schema(description = "房间ID")
     @TableField("room_id")
     private Long roomId;
+
+    @Schema(description = "房间租金")
+    @TableField("rent_price")
+    private BigDecimal rentPrice;
 }

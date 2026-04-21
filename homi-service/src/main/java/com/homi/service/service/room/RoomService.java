@@ -298,10 +298,10 @@ public class RoomService {
         }
 
         if (Objects.equals(lockDTO.getLockReason(), RoomLockReasonEnum.SPECIFIED_TIME.getCode())) {
-            if (Objects.isNull(lockDTO.getStartTime()) || Objects.isNull(lockDTO.getEndTime())) {
+            if (Objects.isNull(lockDTO.getStartAt()) || Objects.isNull(lockDTO.getEndAt())) {
                 throw new BizException("指定时间锁房必须填写开始时间和结束时间");
             }
-            if (lockDTO.getEndTime().before(lockDTO.getStartTime())) {
+            if (lockDTO.getEndAt().before(lockDTO.getStartAt())) {
                 throw new BizException("结束时间不能早于开始时间");
             }
         }
@@ -358,8 +358,8 @@ public class RoomService {
         List<RoomLock> expiredLocks = roomLockRepo.list(new LambdaQueryWrapper<RoomLock>()
             .eq(RoomLock::getLockReason, RoomLockReasonEnum.SPECIFIED_TIME.getCode())
             .eq(RoomLock::getLockStatus, StatusEnum.ACTIVE.getValue())
-            .isNotNull(RoomLock::getEndTime)
-            .le(RoomLock::getEndTime, now));
+            .isNotNull(RoomLock::getEndAt)
+            .le(RoomLock::getEndAt, now));
 
         int count = 0;
         for (RoomLock lock : expiredLocks) {

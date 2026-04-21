@@ -25,11 +25,11 @@ public class RoomLockRecordVO implements Serializable {
 
     @Schema(description = "开始时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date startTime;
+    private Date startAt;
 
     @Schema(description = "结束时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date endTime;
+    private Date endAt;
 
     @Schema(description = "锁房备注")
     private String remark;

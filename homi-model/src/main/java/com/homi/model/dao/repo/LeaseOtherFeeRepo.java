@@ -32,6 +32,7 @@ public class LeaseOtherFeeRepo extends ServiceImpl<LeaseOtherFeeMapper, LeaseOth
             .eq(LeaseOtherFee::getLeaseId, leaseId))
             .stream()
             .map(tenantOtherFee -> new OtherFeeDTO(
+                tenantOtherFee.getRoomId(),
                 tenantOtherFee.getDictDataId(),
                 tenantOtherFee.getName(),
                 tenantOtherFee.getPaymentMethod(),
