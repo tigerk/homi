@@ -149,6 +149,9 @@ public class PaymentApprovalService {
             dto.getUpdateBy(),
             now);
 
+        /*
+         * 生成业主结算账单，只针对轻托管
+         */
         ownerBillingGenerateService.generateRealtimeSettlementBillByPaymentFlow(
             paymentFlow,
             bill,

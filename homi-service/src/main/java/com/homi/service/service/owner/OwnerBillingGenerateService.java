@@ -94,14 +94,8 @@ public class OwnerBillingGenerateService {
      * - 同一支付流水重复回调，通过支付流水来源明细防重
      */
     @Transactional(rollbackFor = Exception.class)
-    public void generateRealtimeSettlementBillByPaymentFlow(
-        PaymentFlow paymentFlow,
-        LeaseBill bill,
-        Map<Long, LeaseBillFee> feeMap,
-        LeaseBillCollectDTO dto,
-        Long operatorId,
-        Date now
-    ) {
+    public void generateRealtimeSettlementBillByPaymentFlow(PaymentFlow paymentFlow, LeaseBill bill,
+                                                            Map<Long, LeaseBillFee> feeMap, LeaseBillCollectDTO dto, Long operatorId, Date now) {
         if (paymentFlow == null || bill == null || feeMap == null || feeMap.isEmpty() || dto == null || dto.getItems() == null || dto.getItems().isEmpty()) {
             return;
         }
