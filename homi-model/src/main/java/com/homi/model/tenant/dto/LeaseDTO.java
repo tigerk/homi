@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@Schema(description = "租约信息")
 public class LeaseDTO {
     @Schema(description = "租约ID")
     private Long id;
@@ -52,35 +53,71 @@ public class LeaseDTO {
     @Schema(description = "首期账单收租日")
     private Integer firstBillDay;
 
+    @Schema(description = "租约开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date leaseStart;
 
+    @Schema(description = "租约结束日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date leaseEnd;
 
+    @Schema(description = "入住日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date checkInAt;
 
+    @Schema(description = "退租日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date checkOutAt;
 
+    @Schema(description = "原租约开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date originalLeaseStart;
 
+    @Schema(description = "原租约结束日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date originalLeaseEnd;
 
+    @Schema(description = "租约时长天数")
     private Integer leaseDurationDays;
+
+    @Schema(description = "租金到期类型")
     private Integer rentDueType;
+
+    @Schema(description = "租金到期日")
     private Integer rentDueDay;
+
+    @Schema(description = "租金到期偏移天数")
     private Integer rentDueOffsetDays;
+
+    @Schema(description = "业务员ID")
     private Long salesmanId;
+
+    @Schema(description = "协助人员ID")
     private Long helperId;
+
+    @Schema(description = "签约状态")
     private Integer signStatus;
+
+    @Schema(description = "退租状态")
     private Integer checkOutStatus;
+
+    @Schema(description = "租约状态")
     private Integer status;
+
+    @Schema(description = "租客来源")
     private Long tenantSource;
+
+    @Schema(description = "成交渠道")
     private Long dealChannel;
+
+    @Schema(description = "备注")
     private String remark;
+
+    @Schema(description = "创建人ID")
     private Long createBy;
+
+    @Schema(description = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date createAt;
+
 }

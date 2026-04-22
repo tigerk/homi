@@ -19,6 +19,7 @@ import com.homi.model.dao.repo.LeaseBillRepo;
 import com.homi.model.dao.repo.LeaseRoomRepo;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.tenant.dto.LeaseDTO;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -105,6 +106,7 @@ public class LeaseBillGenService {
             BillConfig config = BillConfig.builder()
                 .periodStart(currentStart)
                 .leaseStartDate(LocalDateTimeUtil.of(lease.getLeaseStart()).toLocalDate())
+                .contractCreateDate(lease.getCreateAt() == null ? null : LocalDateTimeUtil.of(lease.getCreateAt()).toLocalDate())
                 .isFirstBill(isFirstBill)
                 .firstBillDay(lease.getFirstBillDay())
                 .rentDueType(lease.getRentDueType())
@@ -563,6 +565,7 @@ public class LeaseBillGenService {
         BillConfig config = BillConfig.builder()
             .periodStart(startDate)
             .leaseStartDate(LocalDateTimeUtil.of(context.lease.getLeaseStart()).toLocalDate())
+            .contractCreateDate(context.lease.getCreateAt() == null ? null : LocalDateTimeUtil.of(context.lease.getCreateAt()).toLocalDate())
             .isFirstBill(context.periodNumber == 1)
             .firstBillDay(context.lease.getFirstBillDay())
             .rentDueType(context.lease.getRentDueType())
@@ -635,10 +638,16 @@ public class LeaseBillGenService {
      * @return 应收日期
      */
     private Date calculateDueDate(BillConfig config) {
+        // 首期账单且跟随合同起租日
+        if (config.isFirstBill && config.firstBillDay != null && config.firstBillDay.equals(LeaseFirstBillDayEnum.FOLLOW_CONTRACT_START.getCode())) {
+            LocalDate dueDate = config.leaseStartDate != null ? config.leaseStartDate : config.periodStart;
+            return DateUtil.date(dueDate);
+        }
+
         // 首期账单且跟随合同创建日
-        if (config.isFirstBill && config.firstBillDay != null &&
-            config.firstBillDay.equals(LeaseFirstBillDayEnum.FOLLOW_CONTRACT_CREATE.getCode())) {
-            return new Date();
+        if (config.isFirstBill && config.firstBillDay != null && config.firstBillDay.equals(LeaseFirstBillDayEnum.FOLLOW_CONTRACT_CREATE.getCode())) {
+            LocalDate dueDate = config.contractCreateDate != null ? config.contractCreateDate : LocalDate.now();
+            return DateUtil.date(dueDate);
         }
 
         // 根据收租类型计算应收日期
@@ -833,17 +842,13 @@ public class LeaseBillGenService {
      * @return 应收日期
      */
     private Date calculateDepositDueDate(LeaseDTO lease) {
-        // 如果首期账单跟随合同创建日，则押金立即应收（当天）
-        if (lease.getFirstBillDay() != null && lease.getFirstBillDay().equals(LeaseFirstBillDayEnum.FOLLOW_CONTRACT_CREATE.getCode())) {
-            return new Date();
-        }
-
-        // 否则，根据收租类型和起租日计算押金应收日期
+        // 根据收租类型和起租日计算押金应收日期
         LocalDate leaseStartDate = LocalDateTimeUtil.of(lease.getLeaseStart()).toLocalDate();
 
         BillConfig config = BillConfig.builder()
             .periodStart(leaseStartDate)
             .leaseStartDate(leaseStartDate)
+            .contractCreateDate(lease.getCreateAt() == null ? null : LocalDateTimeUtil.of(lease.getCreateAt()).toLocalDate())
             .isFirstBill(true)
             .firstBillDay(lease.getFirstBillDay())
             .rentDueType(lease.getRentDueType())
@@ -861,10 +866,15 @@ public class LeaseBillGenService {
     private record BillConfig(
         LocalDate periodStart,
         LocalDate leaseStartDate,
+        LocalDate contractCreateDate,
         boolean isFirstBill,
+        @Schema(description = "首次账单日")
         Integer firstBillDay,
+        @Schema(description = "收租类型")
         Integer rentDueType,
+        @Schema(description = "收租日")
         Integer rentDueDay,
+        @Schema(description = "收租偏移天数")
         Integer rentDueOffsetDays
     ) {
     }

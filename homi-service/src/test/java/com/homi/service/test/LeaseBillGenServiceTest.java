@@ -3,8 +3,12 @@ package com.homi.service.test;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
 import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
+import com.homi.common.lib.enums.lease.LeaseFirstBillDayEnum;
+import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
 import com.homi.model.dao.entity.LeaseBill;
+import com.homi.model.dao.repo.LeaseBillFeeRepo;
 import com.homi.model.dao.repo.LeaseBillRepo;
+import com.homi.model.dao.repo.LeaseRoomRepo;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.tenant.dto.LeaseDTO;
 import com.homi.service.service.lease.bill.LeaseBillGenService;
@@ -29,8 +33,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * LeaseBillGenService 单元测试
@@ -40,6 +47,12 @@ class LeaseBillGenServiceTest {
 
     @Mock
     private LeaseBillRepo tenantBillRepo;
+
+    @Mock
+    private LeaseBillFeeRepo leaseBillFeeRepo;
+
+    @Mock
+    private LeaseRoomRepo leaseRoomRepo;
 
     @InjectMocks
     private LeaseBillGenService tenantBillGenService;
@@ -59,6 +72,7 @@ class LeaseBillGenServiceTest {
         testTenant = createTestTenant();
         // 准备测试其他费用数据
         testOtherFees = createTestOtherFees();
+        when(leaseRoomRepo.getListByLeaseId(anyLong())).thenReturn(List.of());
     }
 
     /**
@@ -136,7 +150,7 @@ class LeaseBillGenServiceTest {
         assertEquals(4, rentBills.size(), "季付12个月应生成4期账单");
 
         // 验证第1期账单
-        LeaseBill firstBill = rentBills.get(0);
+        LeaseBill firstBill = rentBills.getFirst();
         assertEquals(1, firstBill.getSortOrder(), "第1期排序号应为1");
         assertEquals(LeaseBillTypeEnum.RENT.getCode(), firstBill.getBillType(),
             "账单类型应为租金");
@@ -217,10 +231,10 @@ class LeaseBillGenServiceTest {
         assertEquals(1, otherFeeBills.size(), "一次性支付应生成1期账单");
 
         LeaseBill bill = otherFeeBills.get(0);
-        // 网络费: 100 × 12个月 = 1200
-        BigDecimal expectedAmount = new BigDecimal("1200.00");
+        // 一次性固定费用：直接取固定金额，不按月数累乘
+        BigDecimal expectedAmount = new BigDecimal("100.00");
         assertEquals(0, expectedAmount.compareTo(bill.getTotalAmount()),
-            "网络费应为1200.00");
+            "网络费应为100.00");
 
         System.out.println("✅ 一次性支付其他费用验证通过");
         printBillDetail("网络费（一次性）", bill);
@@ -308,6 +322,112 @@ class LeaseBillGenServiceTest {
         System.out.println("    * 卫生费（季付）: 4期");
     }
 
+    @Test
+    @DisplayName("测试首期账单跟随合同起租日")
+    void testFirstBillDueDate_FollowContractStart() {
+        // Given
+        clearInvocations(tenantBillRepo);
+        Long tenantId = 1L;
+        Long leaseId = 10L;
+        LeaseDTO lease = createTestTenant();
+        lease.setFirstBillDay(LeaseFirstBillDayEnum.FOLLOW_CONTRACT_START.getCode());
+        lease.setRentDueType(LeaseRentDueTypeEnum.FIXED.getCode());
+        lease.setRentDueDay(20);
+
+        // When
+        tenantBillGenService.addLeaseBill(leaseId, tenantId, lease, null);
+
+        // Then
+        verify(tenantBillRepo, times(1)).save(billCaptor.capture());
+        verify(tenantBillRepo, times(1)).saveBatch(billListCaptor.capture());
+
+        Date expected = toDate(LocalDate.of(2025, 1, 1));
+        LeaseBill depositBill = billCaptor.getValue();
+        LeaseBill firstRentBill = billListCaptor.getValue().getFirst();
+
+        assertEquals(expected, depositBill.getDueDate(), "押金首期应收日应等于合同起租日");
+        assertEquals(expected, firstRentBill.getDueDate(), "租金首期应收日应等于合同起租日");
+    }
+
+    @Test
+    @DisplayName("测试首期账单跟随合同创建日")
+    void testFirstBillDueDate_FollowContractCreate() {
+        // Given
+        clearInvocations(tenantBillRepo);
+        Long tenantId = 1L;
+        Long leaseId = 10L;
+        LeaseDTO lease = createTestTenant();
+        lease.setFirstBillDay(LeaseFirstBillDayEnum.FOLLOW_CONTRACT_CREATE.getCode());
+        lease.setCreateAt(toDate(LocalDate.of(2024, 12, 20)));
+        lease.setRentDueType(LeaseRentDueTypeEnum.FIXED.getCode());
+        lease.setRentDueDay(20);
+
+        // When
+        tenantBillGenService.addLeaseBill(leaseId, tenantId, lease, null);
+
+        // Then
+        verify(tenantBillRepo, times(1)).save(billCaptor.capture());
+        verify(tenantBillRepo, times(1)).saveBatch(billListCaptor.capture());
+
+        Date expected = toDate(LocalDate.of(2024, 12, 20));
+        LeaseBill depositBill = billCaptor.getValue();
+        LeaseBill firstRentBill = billListCaptor.getValue().getFirst();
+
+        assertEquals(expected, depositBill.getDueDate(), "押金首期应收日应等于合同创建日");
+        assertEquals(expected, firstRentBill.getDueDate(), "租金首期应收日应等于合同创建日");
+    }
+
+    @Test
+    @DisplayName("测试提前收租时应收日不能早于合同起租日")
+    void testDueDate_EarlyRentShouldNotBeforeLeaseStart() {
+        // Given
+        clearInvocations(tenantBillRepo);
+        Long tenantId = 1L;
+        Long leaseId = 10L;
+        LeaseDTO lease = createTestTenant();
+        lease.setFirstBillDay(LeaseFirstBillDayEnum.FOLLOW_CONTRACT_START.getCode());
+        lease.setRentDueType(LeaseRentDueTypeEnum.EARLY.getCode());
+        lease.setRentDueOffsetDays(15);
+
+        // When
+        tenantBillGenService.addLeaseBill(leaseId, tenantId, lease, null);
+
+        // Then
+        verify(tenantBillRepo, times(1)).save(billCaptor.capture());
+        verify(tenantBillRepo, times(1)).saveBatch(billListCaptor.capture());
+
+        Date expected = toDate(LocalDate.of(2025, 1, 1));
+        LeaseBill depositBill = billCaptor.getValue();
+        LeaseBill firstRentBill = billListCaptor.getValue().getFirst();
+
+        assertEquals(expected, depositBill.getDueDate(), "提前收租时押金应收日不应早于起租日");
+        assertEquals(expected, firstRentBill.getDueDate(), "提前收租时租金应收日不应早于起租日");
+    }
+
+    @Test
+    @DisplayName("测试非首期账单按正常收租规则计算")
+    void testDueDate_NonFirstBillUsesNormalRule() {
+        // Given
+        clearInvocations(tenantBillRepo);
+        Long tenantId = 1L;
+        Long leaseId = 10L;
+        LeaseDTO lease = createTestTenant();
+        lease.setFirstBillDay(LeaseFirstBillDayEnum.FOLLOW_CONTRACT_START.getCode());
+        lease.setRentDueType(LeaseRentDueTypeEnum.FIXED.getCode());
+        lease.setRentDueDay(5);
+
+        // When
+        tenantBillGenService.addLeaseBill(leaseId, tenantId, lease, null);
+
+        // Then
+        verify(tenantBillRepo, times(1)).saveBatch(billListCaptor.capture());
+        List<LeaseBill> rentBills = billListCaptor.getValue();
+
+        LeaseBill secondRentBill = rentBills.get(1);
+        Date expected = toDate(LocalDate.of(2025, 4, 5));
+        assertEquals(expected, secondRentBill.getDueDate(), "非首期账单应按正常固定收租日计算");
+    }
+
     // ==================== 辅助方法 ====================
 
     /**
@@ -318,6 +438,7 @@ class LeaseBillGenServiceTest {
         tenant.setId(1L);
         tenant.setCompanyId(100L);
         tenant.setDeptId(200L);
+        tenant.setRoomIds(List.of(101L));
 
         // 租金相关
         tenant.setRentPrice(new BigDecimal("3000.00")); // 月租金3000元
@@ -327,6 +448,7 @@ class LeaseBillGenServiceTest {
         // 租期：2025-01-01 到 2025-12-31（整年）
         tenant.setLeaseStart(toDate(LocalDate.of(2025, 1, 1)));
         tenant.setLeaseEnd(toDate(LocalDate.of(2025, 12, 31)));
+        tenant.setCreateAt(toDate(LocalDate.of(2024, 12, 20)));
 
         // 收租配置
         tenant.setFirstBillDay(0); // 跟随合同起租日
@@ -364,6 +486,7 @@ class LeaseBillGenServiceTest {
     private OtherFeeDTO createOtherFee(String name, Integer paymentMethod,
                                        Integer priceMethod, BigDecimal priceInput) {
         OtherFeeDTO fee = new OtherFeeDTO();
+        fee.setRoomId(101L);
         fee.setName(name);
         fee.setPaymentMethod(paymentMethod);
         fee.setPriceMethod(priceMethod);
