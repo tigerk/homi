@@ -104,6 +104,7 @@ public class LeaseBillGenService {
             // 创建账单配置参数对象
             BillConfig config = BillConfig.builder()
                 .periodStart(currentStart)
+                .leaseStartDate(LocalDateTimeUtil.of(lease.getLeaseStart()).toLocalDate())
                 .isFirstBill(isFirstBill)
                 .firstBillDay(lease.getFirstBillDay())
                 .rentDueType(lease.getRentDueType())
@@ -561,6 +562,7 @@ public class LeaseBillGenService {
         // 创建账单配置
         BillConfig config = BillConfig.builder()
             .periodStart(startDate)
+            .leaseStartDate(LocalDateTimeUtil.of(context.lease.getLeaseStart()).toLocalDate())
             .isFirstBill(context.periodNumber == 1)
             .firstBillDay(context.lease.getFirstBillDay())
             .rentDueType(context.lease.getRentDueType())
@@ -654,7 +656,11 @@ public class LeaseBillGenService {
         // 提前收租：账期开始日 - 偏移天数
         if (Objects.equals(config.rentDueType, LeaseRentDueTypeEnum.EARLY.getCode())) {
             int offsetDays = config.rentDueOffsetDays != null ? config.rentDueOffsetDays : 0;
-            return config.periodStart.minusDays(offsetDays);
+            LocalDate dueDate = config.periodStart.minusDays(offsetDays);
+            if (config.leaseStartDate != null && dueDate.isBefore(config.leaseStartDate)) {
+                return config.leaseStartDate;
+            }
+            return dueDate;
         }
 
         // 固定日收租：当月的固定日期
@@ -837,6 +843,7 @@ public class LeaseBillGenService {
 
         BillConfig config = BillConfig.builder()
             .periodStart(leaseStartDate)
+            .leaseStartDate(leaseStartDate)
             .isFirstBill(true)
             .firstBillDay(lease.getFirstBillDay())
             .rentDueType(lease.getRentDueType())
@@ -853,6 +860,7 @@ public class LeaseBillGenService {
     @Builder
     private record BillConfig(
         LocalDate periodStart,
+        LocalDate leaseStartDate,
         boolean isFirstBill,
         Integer firstBillDay,
         Integer rentDueType,
