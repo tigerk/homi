@@ -283,10 +283,10 @@ public class LeaseService {
      */
     private Triple<Long, String, String> addTenantCompany(TenantCompanyDTO tenantCompany) {
         TenantCompany tenantCompanyEntity = new TenantCompany();
-        BeanUtils.copyProperties(tenantCompany, tenantCompanyEntity);
+        BeanUtils.copyProperties(tenantCompany, tenantCompanyEntity, "id", "createBy", "createAt", "updateBy", "updateAt");
 
         tenantCompanyEntity.setTags(JSONUtil.toJsonStr(tenantCompany.getTags()));
-
+        tenantCompanyEntity.setCreateBy(tenantCompany.getCreateBy());
         tenantCompanyEntity.setStatus(StatusEnum.ACTIVE.getValue());
         tenantCompanyEntity.setCreateAt(DateUtil.date());
         tenantCompanyRepo.save(tenantCompanyEntity);
@@ -308,7 +308,7 @@ public class LeaseService {
         tenantPersonal.setCreateBy(tenantPersonalDTO.getCreateBy());
         tenantPersonal.setCreateAt(DateUtil.date());
 
-        BeanUtils.copyProperties(tenantPersonalDTO, tenantPersonal);
+        BeanUtils.copyProperties(tenantPersonalDTO, tenantPersonal, "id", "createBy", "createAt", "updateBy", "updateAt");
         tenantPersonal.setTags(JSONUtil.toJsonStr(tenantPersonalDTO.getTags()));
         tenantPersonal.setStatus(StatusEnum.ACTIVE.getValue());
         tenantPersonalRepo.save(tenantPersonal);

@@ -18,7 +18,7 @@ public class TenantPersonalDTO {
     private Long id;
 
     @Schema(description = "公司ID")
-    private Integer companyId;
+    private Long companyId;
 
     @Schema(description = "租户名称")
     private String name;
