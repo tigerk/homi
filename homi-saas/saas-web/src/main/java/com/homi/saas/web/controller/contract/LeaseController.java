@@ -15,6 +15,7 @@ import com.homi.model.tenant.vo.*;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
 import com.homi.service.service.lease.LeaseContractService;
 import com.homi.service.service.lease.LeaseService;
+import com.homi.service.service.tenant.TenantService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,7 @@ import java.util.List;
 public class LeaseController {
     private final LeaseService leaseService;
     private final LeaseContractService leaseContractService;
+    private final TenantService tenantService;
 
     @PostMapping("/create")
     @Log(title = "创建租客", operationType = OperationTypeEnum.INSERT)
@@ -97,6 +99,12 @@ public class LeaseController {
     @Schema(description = "根据租约ID查询租约详情，不包含租客账单其他费用")
     public ResponseResult<LeaseDetailVO> getTenantDetail(@RequestBody LeaseQueryDTO query) {
         return ResponseResult.ok(leaseService.getLeaseDetailById(query.getLeaseId()));
+    }
+
+    @PostMapping("/tenant/profile/search")
+    @Schema(description = "搜索历史租客资料，用于表单快速回填")
+    public ResponseResult<List<TenantProfileSearchVO>> searchTenantProfiles(@RequestBody TenantProfileSearchDTO query) {
+        return ResponseResult.ok(tenantService.searchTenantProfiles(query.getKeyword(), query.getTenantType(), query.getLimit()));
     }
 
     @PostMapping(value = "/contract/download")

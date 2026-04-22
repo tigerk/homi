@@ -43,4 +43,22 @@ public class TenantRepo extends ServiceImpl<TenantMapper, Tenant> {
 
         return list(query);
     }
+
+    public List<Tenant> searchTenantList(String keyword, Integer tenantType, Integer limit) {
+        LambdaQueryWrapper<Tenant> query = new LambdaQueryWrapper<>();
+        if (CharSequenceUtil.isNotBlank(keyword)) {
+            query.and(wrapper -> wrapper.like(Tenant::getTenantName, keyword)
+                .or()
+                .like(Tenant::getTenantPhone, keyword));
+        }
+        if (Objects.nonNull(tenantType)) {
+            query.eq(Tenant::getTenantType, tenantType);
+        }
+
+        query.orderByDesc(Tenant::getUpdateAt)
+            .orderByDesc(Tenant::getCreateAt)
+            .last("limit " + Math.max(limit == null ? 10 : limit, 1));
+
+        return list(query);
+    }
 }

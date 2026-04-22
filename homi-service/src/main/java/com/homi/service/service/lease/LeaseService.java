@@ -325,7 +325,7 @@ public class LeaseService {
 
         // 保存租客手持照片
         if (CollUtil.isNotEmpty(tenantPersonalDTO.getIdCardInHandList())) {
-            fileAttachRepo.addFileAttachBatch(tenantPersonal.getId(), FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(), tenantPersonalDTO.getIdCardInHandList());
+            fileAttachRepo.addFileAttachBatch(tenantPersonal.getId(), FileAttachBizTypeEnum.TENANT_ID_CARD_IN_HAND.getBizType(), tenantPersonalDTO.getIdCardInHandList());
         }
 
         // 保存租客其他照片
