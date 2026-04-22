@@ -45,12 +45,12 @@ public class RoomLock implements Serializable {
     private Integer lockReason;
 
     @Schema(description = "开始时间")
-    @TableField("start_time")
+    @TableField("start_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date startAt;
 
     @Schema(description = "结束时间")
-    @TableField("end_time")
+    @TableField("end_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date endAt;
 
