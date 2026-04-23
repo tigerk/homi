@@ -31,6 +31,7 @@ public class DeliveryCreateDTO {
     private Long roomId;
 
     @NotNull(message = "交割类型不能为空")
+    @Schema(description = "交割类型编码")
     private String handoverType;
 
     @NotNull(message = "交割日期不能为空")
@@ -41,6 +42,10 @@ public class DeliveryCreateDTO {
 
     @Size(max = 500, message = "备注不能超过500字符")
     private String remark;
+
+    @Size(max = 255, message = "清洁情况不能超过255字符")
+    @Schema(description = "清洁情况编码")
+    private String cleanCondition;
 
     @Valid
     private List<DeliveryItemDTO> items;

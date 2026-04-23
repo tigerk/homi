@@ -71,6 +71,9 @@ public enum FileAttachBizTypeEnum {
     OWNER_PAYABLE_BILL_PAYMENT_VOUCHER("owner_payable_bill_payment_voucher"),
 
     DELIVERY_IMAGE("delivery_image"),
+    DELIVERY_WATER_PROOF_IMAGE("delivery_water_proof_image"),
+    DELIVERY_ELECTRICITY_PROOF_IMAGE("delivery_electricity_proof_image"),
+    DELIVERY_GAS_PROOF_IMAGE("delivery_gas_proof_image"),
     /**
      * 电子印章图片
      */

@@ -71,6 +71,10 @@ public class Delivery implements Serializable {
     @TableField("remark")
     private String remark;
 
+    @Schema(description = "清洁情况")
+    @TableField("clean_condition")
+    private String cleanCondition;
+
     @Schema(description = "是否删除")
     @TableField("deleted")
     @TableLogic

@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 应用于 domix
  *
@@ -40,4 +42,7 @@ public class DeliveryItemDTO {
 
     @Schema(description = "排序顺序")
     private Integer sortOrder;
+
+    @Schema(description = "读数凭证图片")
+    private List<String> proofImageList;
 }

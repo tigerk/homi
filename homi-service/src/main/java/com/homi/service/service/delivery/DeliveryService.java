@@ -27,7 +27,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -87,6 +91,10 @@ public class DeliveryService {
         // 3. 更新文件附件
         fileAttachRepo.recreateFileAttachList(delivery.getId(), FileAttachBizTypeEnum.DELIVERY_IMAGE.getBizType(), dto.getImageList());
 
+        // 删除旧明细对应的读数凭证
+        List<DeliveryItem> oldItems = deliveryItemRepo.list(new LambdaQueryWrapper<DeliveryItem>().eq(DeliveryItem::getDeliveryId, delivery.getId()));
+        oldItems.forEach(this::deleteProofImages);
+
         // 删除旧明细
         deliveryItemRepo.remove(new LambdaQueryWrapper<DeliveryItem>().eq(DeliveryItem::getDeliveryId, delivery.getId()));
 
@@ -105,6 +113,15 @@ public class DeliveryService {
                 }).collect(Collectors.toList());
 
             deliveryItemRepo.saveBatch(items);
+
+            Map<String, DeliveryItemDTO> dtoByItemCode = itemsList.stream()
+                .filter(item -> item.getItemCode() != null)
+                .collect(Collectors.toMap(DeliveryItemDTO::getItemCode, Function.identity(), (left, right) -> right));
+
+            items.forEach(item -> {
+                DeliveryItemDTO sourceDto = dtoByItemCode.get(item.getItemCode());
+                saveProofImages(item, sourceDto == null ? Collections.emptyList() : sourceDto.getProofImageList());
+            });
         }
 
         return getDetail(delivery.getId());
@@ -134,7 +151,7 @@ public class DeliveryService {
         List<DeliveryItem> items = deliveryItemRepo.list(new LambdaQueryWrapper<DeliveryItem>().eq(DeliveryItem::getDeliveryId, id).orderByAsc(DeliveryItem::getSortOrder)
         );
 
-        vo.setItems(items.stream().map(item -> BeanCopyUtils.copyBean(item, DeliveryItemVO.class)).collect(Collectors.toList()));
+        vo.setItems(items.stream().map(this::toDeliveryItemVO).collect(Collectors.toList()));
 
         return vo;
     }
@@ -198,6 +215,53 @@ public class DeliveryService {
         // 逻辑删除
         delivery.setDeleted(true);
         deliveryRepo.updateById(delivery);
+    }
+
+    private DeliveryItemVO toDeliveryItemVO(DeliveryItem item) {
+        DeliveryItemVO vo = BeanCopyUtils.copyBean(item, DeliveryItemVO.class);
+        assert vo != null;
+        vo.setProofImageList(getProofImageList(item));
+        return vo;
+    }
+
+    private void saveProofImages(DeliveryItem item, List<String> proofImageList) {
+        String proofBizType = resolveProofBizType(item.getItemCode());
+        if (proofBizType == null || item.getId() == null) {
+            return;
+        }
+        fileAttachRepo.recreateFileAttachList(item.getId(), proofBizType, proofImageList == null ? Collections.emptyList() : proofImageList);
+    }
+
+    private void deleteProofImages(DeliveryItem item) {
+        String proofBizType = resolveProofBizType(item.getItemCode());
+        if (proofBizType == null || item.getId() == null) {
+            return;
+        }
+        fileAttachRepo.deleteByBizIdAndBizTypes(item.getId(), List.of(proofBizType));
+    }
+
+    private List<String> getProofImageList(DeliveryItem item) {
+        String proofBizType = resolveProofBizType(item.getItemCode());
+        if (proofBizType == null || item.getId() == null) {
+            return Collections.emptyList();
+        }
+        return fileAttachRepo.getFileAttachListByBizIdAndBizTypes(item.getId(), List.of(proofBizType))
+            .stream()
+            .map(FileAttach::getFileUrl)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    }
+
+    private String resolveProofBizType(String itemCode) {
+        if (itemCode == null) {
+            return null;
+        }
+        return switch (itemCode) {
+            case "WATER_METER" -> FileAttachBizTypeEnum.DELIVERY_WATER_PROOF_IMAGE.getBizType();
+            case "ELECTRICITY_METER" -> FileAttachBizTypeEnum.DELIVERY_ELECTRICITY_PROOF_IMAGE.getBizType();
+            case "GAS_METER" -> FileAttachBizTypeEnum.DELIVERY_GAS_PROOF_IMAGE.getBizType();
+            default -> null;
+        };
     }
 
     /**

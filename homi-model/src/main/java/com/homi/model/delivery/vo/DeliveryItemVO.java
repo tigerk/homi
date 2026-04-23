@@ -3,6 +3,8 @@ package com.homi.model.delivery.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 应用于 domix
  *
@@ -21,7 +23,7 @@ public class DeliveryItemVO {
     private String itemCode;
 
     @Schema(description = "物品名称")
-    private String feeName;
+    private String itemName;
 
     @Schema(description = "项目分类")
     private String itemCategory;
@@ -46,4 +48,7 @@ public class DeliveryItemVO {
 
     @Schema(description = "是否自定义项目")
     private boolean customized;
+
+    @Schema(description = "读数凭证图片")
+    private List<String> proofImageList;
 }

@@ -30,6 +30,9 @@ public class DeliveryUpdateDTO {
     @Size(max = 500, message = "备注不能超过500字符")
     private String remark;
 
+    @Size(max = 255, message = "清洁情况不能超过255字符")
+    private String cleanCondition;
+
     @Valid
     private List<DeliveryItemDTO> items;
 

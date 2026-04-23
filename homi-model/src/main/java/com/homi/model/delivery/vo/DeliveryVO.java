@@ -41,6 +41,8 @@ public class DeliveryVO {
 
     private String remark;
 
+    private String cleanCondition;
+
     private List<DeliveryItemVO> items;
 
     private List<String> imageList;
