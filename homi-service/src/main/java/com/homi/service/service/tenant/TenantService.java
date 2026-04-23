@@ -52,7 +52,9 @@ public class TenantService {
 
     private TenantProfileSearchVO buildTenantProfileSearchVO(Tenant tenant) {
         TenantProfileSearchVO vo = new TenantProfileSearchVO();
-        vo.setTenantId(tenant.getId());
+        vo.setProfileId(tenant.getTenantTypeId());
+        vo.setTemplateId(buildTemplateId(tenant.getTenantType(), tenant.getTenantTypeId()));
+        vo.setSourceTenantId(tenant.getId());
         vo.setTenantType(tenant.getTenantType());
         vo.setTenantName(tenant.getTenantName());
         vo.setTenantPhone(tenant.getTenantPhone());
@@ -72,13 +74,15 @@ public class TenantService {
         if (tenantPersonalVO == null) {
             return null;
         }
+        Long profileId = tenantPersonalVO.getId();
 
-        List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(tenantPersonalVO.getId(), ListUtil.of(
+        List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(profileId, ListUtil.of(
             FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType(),
             FileAttachBizTypeEnum.TENANT_ID_CARD_BACK.getBizType(),
             FileAttachBizTypeEnum.TENANT_ID_CARD_FRONT.getBizType(),
             FileAttachBizTypeEnum.TENANT_ID_CARD_IN_HAND.getBizType()
         ));
+        tenantPersonalVO.setId(null);
 
         tenantPersonalVO.setOtherImageList(new ArrayList<>());
         tenantPersonalVO.setIdCardBackList(new ArrayList<>());
@@ -112,11 +116,13 @@ public class TenantService {
         if (tenantCompanyVO == null) {
             return null;
         }
+        Long profileId = tenantCompanyVO.getId();
 
-        List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(tenantCompanyVO.getId(), ListUtil.of(
+        List<FileAttach> fileAttachList = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(profileId, ListUtil.of(
             FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType(),
             FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType()
         ));
+        tenantCompanyVO.setId(null);
 
         tenantCompanyVO.setOtherImageList(new ArrayList<>());
         tenantCompanyVO.setBusinessLicenseList(new ArrayList<>());
@@ -130,5 +136,13 @@ public class TenantService {
         });
 
         return tenantCompanyVO;
+    }
+
+    private String buildTemplateId(Integer tenantType, Long tenantTypeId) {
+        if (tenantType == null || tenantTypeId == null) {
+            return null;
+        }
+        String prefix = Objects.equals(tenantType, TenantTypeEnum.ENTERPRISE.getCode()) ? "COMPANY" : "PERSONAL";
+        return prefix + ":" + tenantTypeId;
     }
 }

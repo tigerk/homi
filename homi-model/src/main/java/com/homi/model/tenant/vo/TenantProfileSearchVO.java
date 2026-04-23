@@ -7,8 +7,14 @@ import java.util.Date;
 
 @Data
 public class TenantProfileSearchVO {
-    @Schema(description = "租客ID")
-    private Long tenantId;
+    @Schema(description = "资料档案ID")
+    private Long profileId;
+
+    @Schema(description = "资料模板ID")
+    private String templateId;
+
+    @Schema(description = "来源租客ID")
+    private Long sourceTenantId;
 
     @Schema(description = "租客类型：0=个人，1=企业")
     private Integer tenantType;
