@@ -430,7 +430,7 @@ public class LeaseService {
         leaseDetailVO.setRoomList(roomList);
 
         User salesmanUser = userService.getUserById(leaseDetailVO.getSalesmanId());
-        leaseDetailVO.setSalesmanName(salesmanUser.getRealName());
+        leaseDetailVO.setSalesmanName(salesmanUser.getNickname());
 
         Dept deptById = deptService.getDeptById(leaseDetailVO.getDeptId());
         leaseDetailVO.setDeptName(deptById.getName());
