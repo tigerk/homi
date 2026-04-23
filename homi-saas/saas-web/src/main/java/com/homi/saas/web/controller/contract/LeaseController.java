@@ -81,6 +81,13 @@ public class LeaseController {
         return ResponseResult.ok(leaseService.updateTenant(createDTO));
     }
 
+    @PostMapping("/tenant/info/update")
+    @Log(title = "修改租客信息", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> updateTenantInfo(@RequestBody TenantInfoUpdateDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        updateDTO.setCreateBy(loginUser.getId());
+        return ResponseResult.ok(leaseService.updateTenantInfo(updateDTO));
+    }
+
     @PostMapping("/total")
     public ResponseResult<TenantTotalVO> getLeaseTotal(@RequestBody LeaseQueryDTO query) {
         List<TenantTotalItemVO> tenantStatusTotal = leaseService.getTenantStatusTotal(query);

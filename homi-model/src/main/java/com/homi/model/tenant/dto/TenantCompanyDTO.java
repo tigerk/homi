@@ -45,6 +45,9 @@ public class TenantCompanyDTO {
     @Schema(description = "营业执照附件")
     private List<String> businessLicenseUrls;
 
+    @Schema(description = "其他附件")
+    private List<String> otherImageList;
+
     @Schema(description = "租客标签 (JSON 格式)", example = "{\"key\":\"value\"}")
     private List<String> tags;
 

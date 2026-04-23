@@ -290,6 +290,7 @@ public class LeaseService {
         tenantCompanyEntity.setStatus(StatusEnum.ACTIVE.getValue());
         tenantCompanyEntity.setCreateAt(DateUtil.date());
         tenantCompanyRepo.save(tenantCompanyEntity);
+        updateTenantCompanyAttachments(tenantCompanyEntity.getId(), tenantCompany);
 
         return Triple.of(tenantCompanyEntity.getId(), tenantCompanyEntity.getCompanyName(), tenantCompanyEntity.getContactPhone());
     }
@@ -663,6 +664,38 @@ public class LeaseService {
         return leaseId;
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public Long updateTenantInfo(TenantInfoUpdateDTO updateDTO) {
+        if (updateDTO.getLeaseId() == null) {
+            throw new IllegalArgumentException("租约ID不能为空");
+        }
+
+        LeaseDetailVO originalLease = getLeaseDetailById(updateDTO.getLeaseId());
+        if (originalLease == null) {
+            throw new IllegalArgumentException("租约不存在");
+        }
+
+        if (Objects.equals(originalLease.getStatus(), LeaseStatusEnum.TERMINATED.getCode()) ||
+            Objects.equals(originalLease.getStatus(), LeaseStatusEnum.EFFECTIVE.getCode())) {
+            throw new IllegalArgumentException("租约在租或退租时，不允许修改");
+        }
+
+        TenantCreateDTO createDTO = new TenantCreateDTO();
+        createDTO.setCreateBy(updateDTO.getCreateBy());
+        createDTO.setTenantPersonal(updateDTO.getTenantPersonal());
+        createDTO.setTenantCompany(updateDTO.getTenantCompany());
+
+        LeaseDTO leaseDTO = new LeaseDTO();
+        leaseDTO.setId(updateDTO.getLeaseId());
+        leaseDTO.setTenantType(updateDTO.getTenantType());
+        createDTO.setLease(leaseDTO);
+
+        Triple<Long, String, String> tenantTypeInfo = handleTenantTypeUpdate(createDTO, originalLease.getTenantType(), originalLease.getTenantTypeId());
+        handleTenantIdentityUpdate(originalLease.getTenantId(), tenantTypeInfo, updateDTO.getTenantType());
+
+        return updateDTO.getLeaseId();
+    }
+
     /**
      * 处理租客类型信息变更（个人/企业）
      */
@@ -809,8 +842,34 @@ public class LeaseService {
         tenantCompany.setTags(JSONUtil.toJsonStr(tenantCompanyDTO.getTags()));
         tenantCompany.setUpdateAt(DateUtil.date());
         tenantCompanyRepo.updateById(tenantCompany);
+        updateTenantCompanyAttachments(originalId, tenantCompanyDTO);
 
         return Triple.of(tenantCompany.getId(), tenantCompany.getCompanyName(), tenantCompany.getContactPhone());
+    }
+
+    private void updateTenantCompanyAttachments(Long tenantCompanyId, TenantCompanyDTO dto) {
+        fileAttachRepo.deleteByBizIdAndBizTypes(
+            tenantCompanyId,
+            ListUtil.of(
+                FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType(),
+                FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType()
+            )
+        );
+
+        if (CollUtil.isNotEmpty(dto.getBusinessLicenseUrls())) {
+            fileAttachRepo.addFileAttachBatch(
+                tenantCompanyId,
+                FileAttachBizTypeEnum.BUSINESS_LICENSE.getBizType(),
+                dto.getBusinessLicenseUrls()
+            );
+        }
+        if (CollUtil.isNotEmpty(dto.getOtherImageList())) {
+            fileAttachRepo.addFileAttachBatch(
+                tenantCompanyId,
+                FileAttachBizTypeEnum.TENANT_OTHER_IMAGE.getBizType(),
+                dto.getOtherImageList()
+            );
+        }
     }
 
     private void handleTenantIdentityUpdate(Long tenantId, Triple<Long, String, String> tenantTypeInfo, Integer tenantType) {
