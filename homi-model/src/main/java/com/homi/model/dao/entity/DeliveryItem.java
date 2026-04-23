@@ -1,6 +1,5 @@
 package com.homi.model.dao.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -44,8 +43,8 @@ public class DeliveryItem implements Serializable {
     private String itemCode;
 
     @Schema(description = "交割项名称")
-    @TableField("fee_name")
-    private String feeName;
+    @TableField("item_name")
+    private String itemName;
 
     @Schema(description = "项目分类: UTILITY-水电气,FACILITY-设施")
     @TableField("item_category")

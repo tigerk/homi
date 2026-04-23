@@ -20,7 +20,7 @@ public class DeliveryItemDTO {
     private String itemCode;
 
     @NotBlank(message = "项目名称不能为空")
-    private String feeName;
+    private String itemName;
 
     @NotBlank(message = "项目分类不能为空")
     private String itemCategory;
