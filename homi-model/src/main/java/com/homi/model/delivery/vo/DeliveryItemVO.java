@@ -1,5 +1,6 @@
 package com.homi.model.delivery.vo;
 
+import com.homi.common.lib.enums.delivery.DeliveryItemCodeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -19,7 +20,7 @@ public class DeliveryItemVO {
     @Schema(description = "交割单项目ID")
     private Long id;
 
-    @Schema(description = "物品编码")
+    @Schema(description = "物品编码", implementation = DeliveryItemCodeEnum.class)
     private String itemCode;
 
     @Schema(description = "物品名称")

@@ -2,6 +2,7 @@ package com.homi.service.service.delivery;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.homi.common.lib.enums.delivery.DeliveryItemCodeEnum;
 import com.homi.common.lib.enums.delivery.DeliveryStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.exception.BizException;
@@ -256,12 +257,16 @@ public class DeliveryService {
         if (itemCode == null) {
             return null;
         }
-        return switch (itemCode) {
-            case "WATER_METER" -> FileAttachBizTypeEnum.DELIVERY_WATER_PROOF_IMAGE.getBizType();
-            case "ELECTRICITY_METER" -> FileAttachBizTypeEnum.DELIVERY_ELECTRICITY_PROOF_IMAGE.getBizType();
-            case "GAS_METER" -> FileAttachBizTypeEnum.DELIVERY_GAS_PROOF_IMAGE.getBizType();
-            default -> null;
-        };
+        if (DeliveryItemCodeEnum.WATER_METER.getCode().equals(itemCode)) {
+            return FileAttachBizTypeEnum.DELIVERY_WATER_PROOF_IMAGE.getBizType();
+        }
+        if (DeliveryItemCodeEnum.ELECTRICITY_METER.getCode().equals(itemCode)) {
+            return FileAttachBizTypeEnum.DELIVERY_ELECTRICITY_PROOF_IMAGE.getBizType();
+        }
+        if (DeliveryItemCodeEnum.GAS_METER.getCode().equals(itemCode)) {
+            return FileAttachBizTypeEnum.DELIVERY_GAS_PROOF_IMAGE.getBizType();
+        }
+        return null;
     }
 
     /**

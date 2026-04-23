@@ -1,5 +1,6 @@
 package com.homi.model.delivery.dto;
 
+import com.homi.common.lib.enums.delivery.DeliveryItemCodeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -18,7 +19,7 @@ import java.util.List;
 @Data
 @Schema(description = "交割单项目DTO")
 public class DeliveryItemDTO {
-    @Schema(description = "项目编码")
+    @Schema(description = "项目编码", implementation = DeliveryItemCodeEnum.class)
     private String itemCode;
 
     @NotBlank(message = "项目名称不能为空")
