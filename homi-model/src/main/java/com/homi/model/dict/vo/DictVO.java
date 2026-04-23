@@ -33,7 +33,7 @@ public class DictVO implements Serializable {
     private String dictName;
 
     @Schema(description = "排序")
-    private Integer sort;
+    private Integer sortOrder;
 
     @Schema(description = "子项列表")
     private List<DictVO> children;

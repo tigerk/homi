@@ -17,10 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -109,8 +106,8 @@ public class DictService {
 
         Map<Long, DictVO> dictMap = list.stream().filter(dict -> dict.getParentId() == 0)
             .map(dict -> {
-                DictVO dictVO = new DictVO();
-                BeanUtils.copyProperties(dict, dictVO);
+                DictVO dictVO = BeanCopyUtils.copyBean(dict, DictVO.class);
+                assert dictVO != null;
                 dictVO.setChildren(new ArrayList<>());
                 return dictVO;
             })
@@ -123,7 +120,11 @@ public class DictService {
             }
         });
 
-        return new ArrayList<>(dictMap.values());
+        Comparator<DictVO> bySortOrder = Comparator.comparingInt(vo -> vo.getSortOrder() == null ? Integer.MAX_VALUE : vo.getSortOrder());
+        List<DictVO> result = new ArrayList<>(dictMap.values());
+        result.sort(bySortOrder);
+        result.forEach(vo -> vo.getChildren().sort(bySortOrder));
+        return result;
     }
 
     public Boolean removeDictById(Long id) {
