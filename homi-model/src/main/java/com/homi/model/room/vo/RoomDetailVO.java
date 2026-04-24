@@ -3,6 +3,7 @@ package com.homi.model.room.vo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.model.booking.vo.BookingListVO;
 import com.homi.model.house.dto.FacilityItemDTO;
+import com.homi.model.house.vo.HouseDetailVO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.tenant.vo.LeaseLiteVO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -32,6 +33,9 @@ public class RoomDetailVO {
 
     @Schema(description = "房源id")
     private Long houseId;
+
+    @Schema(description = "房源信息")
+    private HouseDetailVO house;
 
     @Schema(description = "房间号")
     private String roomNumber;

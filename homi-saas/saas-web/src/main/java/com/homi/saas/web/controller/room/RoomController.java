@@ -10,6 +10,7 @@ import com.homi.model.room.dto.*;
 import com.homi.model.room.dto.grid.RoomGridDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.room.vo.RoomListVO;
+import com.homi.model.room.vo.RoomDetailVO;
 import com.homi.model.room.vo.RoomLockRecordVO;
 import com.homi.model.room.vo.RoomTotalVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -50,6 +51,11 @@ public class RoomController {
         query.setCompanyId(userId);
 
         return ResponseResult.ok(roomService.getRoomList(query));
+    }
+
+    @PostMapping("/detail")
+    public ResponseResult<RoomDetailVO> getRoomDetail(@RequestBody RoomIdDTO dto) {
+        return ResponseResult.ok(roomService.getRoomDetail(dto.getRoomId()));
     }
 
     @PostMapping("/total")

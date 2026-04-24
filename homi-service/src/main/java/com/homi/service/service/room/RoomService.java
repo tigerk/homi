@@ -21,6 +21,8 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.FacilityItemDTO;
+import com.homi.model.house.dto.HouseLayoutDTO;
+import com.homi.model.house.vo.HouseDetailVO;
 import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomLockDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
@@ -62,6 +64,7 @@ public class RoomService {
     private final LeaseRepo leaseRepo;
     private final TenantRepo tenantRepo;
     private final HouseRepo houseRepo;
+    private final HouseLayoutRepo houseLayoutRepo;
     private final LeaseRoomRepo leaseRoomRepo;
     private final RoomLockRepo roomLockRepo;
     private final UserRepo userRepo;
@@ -203,36 +206,59 @@ public class RoomService {
     public List<RoomDetailVO> getRoomDetailByHouseId(Long id) {
         List<Room> roomListByHouseId = roomRepo.getRoomListByHouseId(id);
 
-        return roomListByHouseId.stream().map(room -> {
-            RoomDetailVO roomDetailVO = new RoomDetailVO();
-            BeanUtils.copyProperties(room, roomDetailVO);
+        return roomListByHouseId.stream().map(room -> buildRoomDetailVO(room, false)).toList();
+    }
 
-            RoomDetail roomDetail = roomDetailRepo.getByRoomId(room.getId());
-            if (Objects.nonNull(roomDetail)) {
-                BeanUtils.copyProperties(roomDetail, roomDetailVO);
-            }
+    public RoomDetailVO getRoomDetail(Long roomId) {
+        Room room = getRoomById(roomId);
+        if (Objects.isNull(room)) {
+            throw new BizException("房间不存在");
+        }
+        return buildRoomDetailVO(room, true);
+    }
 
-            if (JsonUtils.isJson(room.getTags())) {
-                roomDetailVO.setTags(JSONUtil.toList(room.getTags(), String.class));
-            }
-            if (JsonUtils.isJson(room.getVideoList())) {
-                roomDetailVO.setVideoList(JSONUtil.toList(room.getVideoList(), String.class));
-            }
-            if (JsonUtils.isJson(room.getImageList())) {
-                roomDetailVO.setImageList(JSONUtil.toList(room.getImageList(), String.class));
-            }
-            if (JsonUtils.isJson(room.getFacilities())) {
-                roomDetailVO.setFacilities(JSONUtil.toList(room.getFacilities(), FacilityItemDTO.class));
-            }
+    private RoomDetailVO buildRoomDetailVO(Room room, boolean includeHouse) {
+        RoomDetailVO roomDetailVO = new RoomDetailVO();
+        BeanUtils.copyProperties(room, roomDetailVO);
 
-            PriceConfigDTO priceConfigByRoomId = priceConfigService.getPriceConfigByRoomId(room.getId());
-            if (Objects.isNull(priceConfigByRoomId.getPrice())) {
-                priceConfigByRoomId.setPrice(room.getPrice());
-            }
-            roomDetailVO.setPriceConfig(priceConfigByRoomId);
+        RoomDetail roomDetail = roomDetailRepo.getByRoomId(room.getId());
+        if (Objects.nonNull(roomDetail)) {
+            BeanUtils.copyProperties(roomDetail, roomDetailVO);
+        }
 
-            return roomDetailVO;
-        }).toList();
+        if (JsonUtils.isJson(room.getTags())) {
+            roomDetailVO.setTags(JSONUtil.toList(room.getTags(), String.class));
+        }
+        if (JsonUtils.isJson(room.getVideoList())) {
+            roomDetailVO.setVideoList(JSONUtil.toList(room.getVideoList(), String.class));
+        }
+        if (JsonUtils.isJson(room.getImageList())) {
+            roomDetailVO.setImageList(JSONUtil.toList(room.getImageList(), String.class));
+        }
+        if (JsonUtils.isJson(room.getFacilities())) {
+            roomDetailVO.setFacilities(JSONUtil.toList(room.getFacilities(), FacilityItemDTO.class));
+        }
+
+        PriceConfigDTO priceConfigByRoomId = priceConfigService.getPriceConfigByRoomId(room.getId());
+        if (Objects.isNull(priceConfigByRoomId.getPrice())) {
+            priceConfigByRoomId.setPrice(room.getPrice());
+        }
+        roomDetailVO.setPriceConfig(priceConfigByRoomId);
+
+        if (includeHouse) {
+            House house = houseRepo.getById(room.getHouseId());
+            if (Objects.nonNull(house)) {
+                HouseDetailVO houseDetailVO = new HouseDetailVO();
+                BeanUtils.copyProperties(house, houseDetailVO);
+                if (Objects.nonNull(house.getHouseLayoutId())) {
+                    HouseLayoutDTO houseLayout = houseLayoutRepo.getHouseLayoutById(house.getHouseLayoutId());
+                    houseDetailVO.setHouseLayout(houseLayout);
+                }
+                roomDetailVO.setHouse(houseDetailVO);
+            }
+        }
+
+        return roomDetailVO;
     }
 
     public List<RoomListVO> getRoomListByRoomIds(List<Long> roomIds) {

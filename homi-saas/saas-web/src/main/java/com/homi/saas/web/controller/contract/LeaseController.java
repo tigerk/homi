@@ -104,7 +104,7 @@ public class LeaseController {
 
     @PostMapping("/detail")
     @Schema(description = "根据租约ID查询租约详情，不包含租客账单其他费用")
-    public ResponseResult<LeaseDetailVO> getTenantDetail(@RequestBody LeaseQueryDTO query) {
+    public ResponseResult<LeaseDetailVO> getLeaseDetail(@RequestBody LeaseQueryDTO query) {
         return ResponseResult.ok(leaseService.getLeaseDetailById(query.getLeaseId()));
     }
 
