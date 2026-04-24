@@ -1,5 +1,6 @@
 package com.homi.model.delivery.dto;
 
+import com.homi.common.lib.enums.delivery.DeliveryItemCategoryEnum;
 import com.homi.common.lib.enums.delivery.DeliveryItemCodeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -26,6 +27,7 @@ public class DeliveryItemDTO {
     private String itemName;
 
     @NotBlank(message = "项目分类不能为空")
+    @Schema(description = "项目分类", implementation = DeliveryItemCategoryEnum.class)
     private String itemCategory;
 
     @Schema(description = "项目单位")

@@ -3,6 +3,7 @@ package com.homi.model.dao.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.homi.common.lib.enums.delivery.DeliveryItemCategoryEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -46,7 +47,7 @@ public class DeliveryItem implements Serializable {
     @TableField("item_name")
     private String itemName;
 
-    @Schema(description = "项目分类: UTILITY-水电气,FACILITY-设施")
+    @Schema(description = "项目分类", implementation = DeliveryItemCategoryEnum.class)
     @TableField("item_category")
     private String itemCategory;
 

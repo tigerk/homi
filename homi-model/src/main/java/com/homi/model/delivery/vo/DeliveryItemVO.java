@@ -1,5 +1,6 @@
 package com.homi.model.delivery.vo;
 
+import com.homi.common.lib.enums.delivery.DeliveryItemCategoryEnum;
 import com.homi.common.lib.enums.delivery.DeliveryItemCodeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class DeliveryItemVO {
     @Schema(description = "物品名称")
     private String itemName;
 
-    @Schema(description = "项目分类")
+    @Schema(description = "项目分类", implementation = DeliveryItemCategoryEnum.class)
     private String itemCategory;
 
     @Schema(description = "前值")
