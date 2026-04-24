@@ -68,7 +68,7 @@ public class LeaseBillPayerResolver {
     }
 
     private BillPayerInfo resolveEnterprise(Tenant tenant) {
-        TenantCompany company = tenantService.getCompanyDetail(tenant);
+        TenantCompany company = tenantService.getTenantCompanyDetail(tenant);
         if (company == null) {
             return BillPayerInfo.basic(tenant.getTenantName(), tenant.getTenantPhone());
         }

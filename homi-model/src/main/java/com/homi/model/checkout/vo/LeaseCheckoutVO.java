@@ -175,7 +175,7 @@ public class LeaseCheckoutVO {
     /**
      * 收款人证件类型
      */
-    private String payeeIdType;
+    private Integer payeeIdType;
 
     /**
      * 收款人证件号

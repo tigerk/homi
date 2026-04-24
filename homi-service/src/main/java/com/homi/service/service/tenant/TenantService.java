@@ -4,6 +4,7 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.FileAttach;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.TenantCompany;
@@ -13,6 +14,7 @@ import com.homi.model.dao.repo.TenantCompanyRepo;
 import com.homi.model.dao.repo.TenantPersonalRepo;
 import com.homi.model.dao.repo.TenantRepo;
 import com.homi.model.tenant.vo.TenantCompanyVO;
+import com.homi.model.tenant.vo.TenantDetailVO;
 import com.homi.model.tenant.vo.TenantPersonalVO;
 import com.homi.model.tenant.vo.TenantProfileSearchVO;
 import lombok.RequiredArgsConstructor;
@@ -34,11 +36,35 @@ public class TenantService {
         return tenantId == null ? null : tenantRepo.getById(tenantId);
     }
 
+    public TenantDetailVO getTenantDetail(Long tenantId) {
+        Tenant tenant = getTenant(tenantId);
+
+        if (Objects.isNull(tenant)) {
+            return null;
+        }
+
+        TenantDetailVO tenantDetailVO = BeanCopyUtils.copyBean(tenant, TenantDetailVO.class);
+
+        if (tenant.getTenantType().equals(TenantTypeEnum.PERSONAL.getCode())) {
+            TenantPersonal personalDetail = getPersonalDetail(tenant);
+            TenantPersonalVO tenantPersonalVO = BeanCopyUtils.copyBean(personalDetail, TenantPersonalVO.class);
+            assert tenantDetailVO != null;
+            tenantDetailVO.setTenantPersonal(tenantPersonalVO);
+        } else if (tenant.getTenantType().equals(TenantTypeEnum.ENTERPRISE.getCode())) {
+            TenantCompany companyDetail = getTenantCompanyDetail(tenant);
+            TenantCompanyVO tenantCompanyVO = BeanCopyUtils.copyBean(companyDetail, TenantCompanyVO.class);
+            assert tenantDetailVO != null;
+            tenantDetailVO.setTenantCompany(tenantCompanyVO);
+        }
+
+        return tenantDetailVO;
+    }
+
     public TenantPersonal getPersonalDetail(Tenant tenant) {
         return tenant.getTenantTypeId() == null ? null : tenantPersonalRepo.getById(tenant.getTenantTypeId());
     }
 
-    public TenantCompany getCompanyDetail(Tenant tenant) {
+    public TenantCompany getTenantCompanyDetail(Tenant tenant) {
         return tenant.getTenantTypeId() == null ? null : tenantCompanyRepo.getById(tenant.getTenantTypeId());
     }
 

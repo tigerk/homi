@@ -6,7 +6,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -19,6 +18,7 @@ import com.homi.common.lib.enums.checkout.CheckoutStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.room.OccupancyStatusEnum;
+import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -32,9 +32,11 @@ import com.homi.model.checkout.vo.LeaseCheckoutVO;
 import com.homi.model.common.dto.OperatorDTO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
+import com.homi.model.tenant.vo.TenantDetailVO;
 import com.homi.service.service.approval.ApprovalTemplate;
 import com.homi.service.service.room.RoomService;
 import com.homi.service.service.sys.UserService;
+import com.homi.service.service.tenant.TenantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -64,6 +66,8 @@ public class LeaseCheckoutService {
     private final ApprovalTemplate approvalTemplate;
     private final RoomRepo roomRepo;
     private final UserRepo userRepo;
+
+    private final TenantService tenantService;
 
     /**
      * 获取退租初始化数据
@@ -546,7 +550,8 @@ public class LeaseCheckoutService {
         vo.setBreachReason(checkout.getBreachReason());
 
         // 租客信息 & 房间信息
-        Tenant tenant = tenantRepo.getById(checkout.getTenantId());
+        TenantDetailVO tenant = tenantService.getTenantDetail(checkout.getTenantId());
+
         if (tenant != null) {
             vo.setTenantName(tenant.getTenantName());
             vo.setTenantPhone(tenant.getTenantPhone());
@@ -556,6 +561,11 @@ public class LeaseCheckoutService {
                 vo.setRentPrice(lease.getRentPrice());
                 List<Long> roomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
                 vo.setRoomAddress(roomService.getRoomAddressByIds(roomIds));
+            }
+
+            if (tenant.getTenantType().equals(TenantTypeEnum.PERSONAL.getCode())) {
+                vo.setPayeeIdType(tenant.getTenantPersonal().getIdType());
+                vo.setPayeeIdNumber(tenant.getTenantPersonal().getIdNo());
             }
         }
 
@@ -572,7 +582,7 @@ public class LeaseCheckoutService {
         }
 
         // 附件
-        if (StrUtil.isNotBlank(checkout.getAttachmentIds())) {
+        if (CharSequenceUtil.isNotBlank(checkout.getAttachmentIds())) {
             vo.setAttachmentUrls(JSONUtil.toList(checkout.getAttachmentIds(), String.class));
         }
 
