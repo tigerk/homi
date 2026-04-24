@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
+import com.homi.common.lib.enums.FeeDirectionEnum;
 import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutSettlementMethodEnum;
 import com.homi.common.lib.enums.checkout.CheckoutStatusEnum;
@@ -169,7 +170,7 @@ public class LeaseCheckoutService {
         // 1. 押金退还（支出方向）- 默认正常退时预填
         if (depositAmount != null && depositAmount.compareTo(BigDecimal.ZERO) > 0) {
             LeaseCheckoutFeeVO presetFee = new LeaseCheckoutFeeVO();
-            presetFee.setFeeDirection(2);
+            presetFee.setFeeDirection(FeeDirectionEnum.OUT.getCode());
             presetFee.setFeeType(LeaseBillTypeEnum.DEPOSIT.getCode());
             presetFee.setFeeTypeName(LeaseBillTypeEnum.DEPOSIT.getName());
             presetFee.setFeeName("房屋押金");
@@ -187,7 +188,7 @@ public class LeaseCheckoutService {
             if (unpaid.compareTo(BigDecimal.ZERO) > 0) {
                 String typeName = getBillTypeName(bill.getBillType());
                 LeaseCheckoutFeeVO presetFee = new LeaseCheckoutFeeVO();
-                presetFee.setFeeDirection(1);
+                presetFee.setFeeDirection(FeeDirectionEnum.IN.getCode());
                 presetFee.setFeeType(mapBillTypeToFeeType(bill.getBillType()));
                 presetFee.setFeeName(typeName);
                 presetFee.setFeeTypeName(LeaseBillTypeEnum.getNameByCode(presetFee.getFeeType()));
@@ -342,9 +343,9 @@ public class LeaseCheckoutService {
         if (CollUtil.isNotEmpty(feeList)) {
             for (LeaseCheckoutFeeDTO fee : feeList) {
                 BigDecimal amount = ObjectUtil.defaultIfNull(fee.getFeeAmount(), BigDecimal.ZERO);
-                if (fee.getFeeDirection() != null && fee.getFeeDirection() == 1) {
+                if (FeeDirectionEnum.IN.getCode().equals(fee.getFeeDirection())) {
                     incomeAmount = incomeAmount.add(amount);
-                } else if (fee.getFeeDirection() != null && fee.getFeeDirection() == 2) {
+                } else if (FeeDirectionEnum.OUT.getCode().equals(fee.getFeeDirection())) {
                     expenseAmount = expenseAmount.add(amount);
                 }
             }
@@ -654,7 +655,7 @@ public class LeaseCheckoutService {
             BeanUtil.copyProperties(fee, vo);
             String feeTypeName = LeaseBillTypeEnum.getNameByCode(fee.getFeeType());
             vo.setFeeTypeName(CharSequenceUtil.isNotBlank(feeTypeName) ? feeTypeName : "其他费用");
-            vo.setFeeDirectionName(fee.getFeeDirection() == 1 ? "收" : "支");
+            vo.setFeeDirectionName(FeeDirectionEnum.getLabelByCode(fee.getFeeDirection()));
             voList.add(vo);
         }
         return voList;

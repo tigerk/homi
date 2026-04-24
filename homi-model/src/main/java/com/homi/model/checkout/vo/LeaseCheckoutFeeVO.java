@@ -1,6 +1,7 @@
 package com.homi.model.checkout.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.common.lib.enums.FeeDirectionEnum;
 import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -26,9 +27,10 @@ public class LeaseCheckoutFeeVO {
     private Long checkoutId;
 
     /**
-     * 收支类型：1=收，2=支
+     * 收支类型
      */
-    private Integer feeDirection;
+    @Schema(description = "收支类型", implementation = FeeDirectionEnum.class)
+    private String feeDirection;
 
     /**
      * 收支类型名称

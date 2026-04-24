@@ -1,6 +1,7 @@
 package com.homi.model.checkout.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.common.lib.enums.FeeDirectionEnum;
 import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -22,10 +23,11 @@ public class LeaseCheckoutFeeDTO {
     private Long id;
 
     /**
-     * 收支类型：1=收（租客应付），2=支（退还租客）
+     * 收支类型：IN=收入（租客应付），OUT=支出（退还租客）
      */
     @NotNull(message = "收支类型不能为空")
-    private Integer feeDirection;
+    @Schema(description = "收支类型", implementation = FeeDirectionEnum.class)
+    private String feeDirection;
 
     /**
      * 费用类型（租金/押金/其他费用）

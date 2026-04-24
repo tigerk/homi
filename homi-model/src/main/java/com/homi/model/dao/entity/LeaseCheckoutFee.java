@@ -2,6 +2,7 @@ package com.homi.model.dao.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.common.lib.enums.FeeDirectionEnum;
 import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -36,9 +37,9 @@ public class LeaseCheckoutFee implements Serializable {
     @TableField("checkout_id")
     private Long checkoutId;
 
-    @Schema(description = "收支类型：1=收（租客应付），2=支（退还租客）")
+    @Schema(description = "收支类型", implementation = FeeDirectionEnum.class)
     @TableField("fee_direction")
-    private Integer feeDirection;
+    private String feeDirection;
 
     @Schema(description = "费用类型", implementation = LeaseBillTypeEnum.class)
     @TableField("fee_type")
