@@ -3,6 +3,8 @@ package com.homi.common.lib.enums.lease;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 @Getter
 @AllArgsConstructor
 public enum LeaseBillTypeEnum {
@@ -15,4 +17,19 @@ public enum LeaseBillTypeEnum {
 
     private final Integer code;
     private final String name;
+
+    public static LeaseBillTypeEnum getByCode(Integer code) {
+        if (code == null) {
+            return null;
+        }
+        return Arrays.stream(values())
+            .filter(item -> item.code.equals(code))
+            .findFirst()
+            .orElse(null);
+    }
+
+    public static String getNameByCode(Integer code) {
+        LeaseBillTypeEnum item = getByCode(code);
+        return item != null ? item.getName() : "";
+    }
 }

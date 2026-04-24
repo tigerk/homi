@@ -131,6 +131,16 @@ public class LeaseCheckoutVO {
     private BigDecimal finalAmount;
 
     /**
+     * 是否加收房屋清洁费
+     */
+    private Boolean addCleaningFee;
+
+    /**
+     * 房屋清洁费金额
+     */
+    private BigDecimal cleaningFeeAmount;
+
+    /**
      * 退租结算应完成日期
      */
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

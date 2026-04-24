@@ -13,10 +13,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
-import com.homi.common.lib.enums.checkout.CheckoutFeeTypeEnum;
 import com.homi.common.lib.enums.checkout.CheckoutSettlementMethodEnum;
 import com.homi.common.lib.enums.checkout.CheckoutStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutTypeEnum;
+import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
@@ -170,8 +170,8 @@ public class LeaseCheckoutService {
         if (depositAmount != null && depositAmount.compareTo(BigDecimal.ZERO) > 0) {
             LeaseCheckoutFeeVO presetFee = new LeaseCheckoutFeeVO();
             presetFee.setFeeDirection(2);
-            presetFee.setFeeType(CheckoutFeeTypeEnum.DEPOSIT_REFUND.getCode());
-            presetFee.setFeeTypeName(CheckoutFeeTypeEnum.DEPOSIT_REFUND.getName());
+            presetFee.setFeeType(LeaseBillTypeEnum.DEPOSIT.getCode());
+            presetFee.setFeeTypeName(LeaseBillTypeEnum.DEPOSIT.getName());
             presetFee.setFeeName("房屋押金");
             presetFee.setFeeAmount(depositAmount);
             presetFee.setFeeStartDate(lease.getLeaseStart());
@@ -190,7 +190,7 @@ public class LeaseCheckoutService {
                 presetFee.setFeeDirection(1);
                 presetFee.setFeeType(mapBillTypeToFeeType(bill.getBillType()));
                 presetFee.setFeeName(typeName);
-                presetFee.setFeeTypeName(typeName);
+                presetFee.setFeeTypeName(LeaseBillTypeEnum.getNameByCode(presetFee.getFeeType()));
                 presetFee.setFeeAmount(unpaid);
                 presetFee.setFeeStartDate(bill.getBillStart());
                 presetFee.setFeeEndDate(bill.getBillEnd());
@@ -221,6 +221,12 @@ public class LeaseCheckoutService {
         checkout.setActualCheckoutDate(dto.getActualCheckoutDate());
         BigDecimal depositAmount = lease.getRentPrice().multiply(BigDecimal.valueOf(ObjectUtil.defaultIfNull(lease.getDepositMonths(), 0)));
         checkout.setDepositAmount(depositAmount);
+        if (Boolean.TRUE.equals(dto.getAddCleaningFee())
+            && ObjectUtil.defaultIfNull(dto.getCleaningFeeAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BizException("加收房屋清洁费时，金额必须大于0");
+        }
+        checkout.setAddCleaningFee(Boolean.TRUE.equals(dto.getAddCleaningFee()));
+        checkout.setCleaningFeeAmount(Boolean.TRUE.equals(dto.getAddCleaningFee()) ? dto.getCleaningFeeAmount() : null);
         checkout.setDueDate(dto.getDueDate());
         checkout.setSettlementMethod(dto.getSettlementMethod());
         // 坏账原因（标记坏账时必填）
@@ -333,6 +339,13 @@ public class LeaseCheckoutService {
                 } else if (fee.getFeeDirection() != null && fee.getFeeDirection() == 2) {
                     expenseAmount = expenseAmount.add(amount);
                 }
+            }
+        }
+
+        if (Boolean.TRUE.equals(checkout.getAddCleaningFee())) {
+            BigDecimal cleaningFeeAmount = ObjectUtil.defaultIfNull(checkout.getCleaningFeeAmount(), BigDecimal.ZERO);
+            if (cleaningFeeAmount.compareTo(BigDecimal.ZERO) > 0) {
+                incomeAmount = incomeAmount.add(cleaningFeeAmount);
             }
         }
 
@@ -632,7 +645,8 @@ public class LeaseCheckoutService {
         for (LeaseCheckoutFee fee : feeList) {
             LeaseCheckoutFeeVO vo = new LeaseCheckoutFeeVO();
             BeanUtil.copyProperties(fee, vo);
-            vo.setFeeTypeName(CheckoutFeeTypeEnum.getNameByCode(fee.getFeeType()));
+            String feeTypeName = LeaseBillTypeEnum.getNameByCode(fee.getFeeType());
+            vo.setFeeTypeName(CharSequenceUtil.isNotBlank(feeTypeName) ? feeTypeName : "其他费用");
             vo.setFeeDirectionName(fee.getFeeDirection() == 1 ? "收" : "支");
             voList.add(vo);
         }
@@ -643,15 +657,11 @@ public class LeaseCheckoutService {
      * 账单类型转费用类型
      */
     private Integer mapBillTypeToFeeType(Integer billType) {
-        if (billType == null) return CheckoutFeeTypeEnum.OTHER.getCode();
+        if (billType == null) return LeaseBillTypeEnum.OTHER_FEE.getCode();
         return switch (billType) {
-            case 1 -> CheckoutFeeTypeEnum.RENT.getCode();           // 租金
-            case 2 -> CheckoutFeeTypeEnum.DEPOSIT.getCode();        // 押金
-            case 4 -> CheckoutFeeTypeEnum.WATER.getCode();          // 水费
-            case 5 -> CheckoutFeeTypeEnum.ELECTRIC.getCode();       // 电费
-            case 6 -> CheckoutFeeTypeEnum.GAS.getCode();            // 燃气费
-            case 7 -> CheckoutFeeTypeEnum.PROPERTY_FEE.getCode();   // 物业费
-            default -> CheckoutFeeTypeEnum.OTHER.getCode();         // 其他
+            case 1 -> LeaseBillTypeEnum.RENT.getCode();
+            case 2 -> LeaseBillTypeEnum.DEPOSIT.getCode();
+            default -> LeaseBillTypeEnum.OTHER_FEE.getCode();
         };
     }
 
@@ -675,7 +685,7 @@ public class LeaseCheckoutService {
         return switch (billType) {
             case 1 -> "租金";
             case 2 -> "押金";
-            case 3 -> "优惠减免";
+            case 3 -> "其他费用";
             case 4 -> "水费";
             case 5 -> "电费";
             case 6 -> "燃气费";

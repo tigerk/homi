@@ -90,6 +90,14 @@ public class LeaseCheckout implements Serializable {
     @TableField("final_amount")
     private BigDecimal finalAmount;
 
+    @Schema(description = "是否加收房屋清洁费")
+    @TableField("add_cleaning_fee")
+    private Boolean addCleaningFee;
+
+    @Schema(description = "房屋清洁费金额")
+    @TableField("cleaning_fee_amount")
+    private BigDecimal cleaningFeeAmount;
+
     @Schema(description = "退租结算应完成日期")
     @TableField("due_date")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

@@ -1,6 +1,8 @@
 package com.homi.model.checkout.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -36,6 +38,7 @@ public class LeaseCheckoutFeeVO {
     /**
      * 费用类型
      */
+    @Schema(description = "费用类型", implementation = LeaseBillTypeEnum.class)
     private Integer feeType;
 
     /**

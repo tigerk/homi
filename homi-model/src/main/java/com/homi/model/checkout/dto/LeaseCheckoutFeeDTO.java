@@ -1,6 +1,8 @@
 package com.homi.model.checkout.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.common.lib.enums.lease.LeaseBillTypeEnum;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -26,8 +28,9 @@ public class LeaseCheckoutFeeDTO {
     private Integer feeDirection;
 
     /**
-     * 费用类型（枚举code）
+     * 费用类型（租金/押金/其他费用）
      */
+    @Schema(description = "费用类型", implementation = LeaseBillTypeEnum.class)
     @NotNull(message = "费用类型不能为空")
     private Integer feeType;
 
