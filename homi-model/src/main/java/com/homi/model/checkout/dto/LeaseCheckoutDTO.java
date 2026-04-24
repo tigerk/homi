@@ -157,4 +157,7 @@ public class LeaseCheckoutDTO {
      * 操作人ID
      */
     private Long operatorId;
+
+    @Schema(description = "操作人姓名", hidden = true)
+    private String operatorName;
 }

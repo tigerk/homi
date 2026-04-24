@@ -44,6 +44,7 @@ public class LeaseCheckoutController {
     public ResponseResult<Long> saveCheckout(@RequestBody @Validated LeaseCheckoutDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
         dto.setCompanyId(loginUser.getCurCompanyId());
         dto.setOperatorId(loginUser.getId());
+        dto.setOperatorName(loginUser.getNickname());
         Long checkoutId = leaseCheckoutService.saveCheckout(dto);
         return ResponseResult.ok(checkoutId);
     }

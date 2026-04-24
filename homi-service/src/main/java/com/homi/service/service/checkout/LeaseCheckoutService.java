@@ -274,6 +274,14 @@ public class LeaseCheckoutService {
         // 保存退租单和费用明细
         saveCheckoutAndFees(checkout, isNew, dto.getFeeList(), dto.getOperatorId());
 
+        submitCheckout(
+            checkout.getId(),
+            OperatorDTO.builder()
+                .operatorId(dto.getOperatorId())
+                .operatorName(dto.getOperatorName())
+                .build()
+        );
+
         log.info("退租单保存成功: checkoutId={}, leaseId={}, type={}",
             checkout.getId(), dto.getTenantId(),
             CheckoutTypeEnum.getNameByCode(dto.getCheckoutType()));
@@ -404,7 +412,6 @@ public class LeaseCheckoutService {
     /**
      * 提交退租审批
      */
-    @Transactional(rollbackFor = Exception.class)
     public void submitCheckout(Long checkoutId, OperatorDTO operatorDTO) {
         LeaseCheckout checkout = leaseCheckoutRepo.getById(checkoutId);
         if (checkout == null) {
