@@ -175,7 +175,7 @@ public class LeaseCheckoutInitVO {
     public static class PayeeInfoVO {
         private String payeeName;
         private String payeePhone;
-        private String payeeIdType;
-        private String payeeIdNumber;
+        private Integer payeeIdType;
+        private String payeeIdNo;
     }
 }

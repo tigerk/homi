@@ -119,7 +119,7 @@ public class LeaseCheckoutService {
         // 构建预填费用行（根据未付账单自动生成）
         List<LeaseCheckoutInitVO.PresetFeeVO> presetFees = buildPresetFees(lease, unpaidBills, depositAmount);
 
-        Tenant tenant = tenantRepo.getById(lease.getTenantId());
+        TenantDetailVO tenant = tenantService.getTenantDetail(lease.getTenantId());
         if (tenant == null) {
             throw new BizException("租客不存在");
         }
@@ -129,6 +129,11 @@ public class LeaseCheckoutService {
             .payeeName(tenant.getTenantName())
             .payeePhone(tenant.getTenantPhone())
             .build();
+
+        if (tenant.getTenantType().equals(TenantTypeEnum.PERSONAL.getCode())) {
+            payeeInfo.setPayeeIdType(tenant.getTenantPersonal().getIdType());
+            payeeInfo.setPayeeIdNo(tenant.getTenantPersonal().getIdNo());
+        }
 
         return LeaseCheckoutInitVO.builder()
             .tenantId(lease.getTenantId())
@@ -242,7 +247,7 @@ public class LeaseCheckoutService {
         checkout.setPayeeName(dto.getPayeeName());
         checkout.setPayeePhone(dto.getPayeePhone());
         checkout.setPayeeIdType(dto.getPayeeIdType());
-        checkout.setPayeeIdNumber(dto.getPayeeIdNumber());
+        checkout.setPayeeIdNo(dto.getPayeeIdNo());
         checkout.setBankType(dto.getBankType());
         checkout.setBankCardType(dto.getBankCardType());
         checkout.setBankAccount(dto.getBankAccount());
@@ -550,8 +555,7 @@ public class LeaseCheckoutService {
         vo.setBreachReason(checkout.getBreachReason());
 
         // 租客信息 & 房间信息
-        TenantDetailVO tenant = tenantService.getTenantDetail(checkout.getTenantId());
-
+        Tenant tenant = tenantRepo.getById(checkout.getTenantId());
         if (tenant != null) {
             vo.setTenantName(tenant.getTenantName());
             vo.setTenantPhone(tenant.getTenantPhone());
@@ -561,11 +565,6 @@ public class LeaseCheckoutService {
                 vo.setRentPrice(lease.getRentPrice());
                 List<Long> roomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
                 vo.setRoomAddress(roomService.getRoomAddressByIds(roomIds));
-            }
-
-            if (tenant.getTenantType().equals(TenantTypeEnum.PERSONAL.getCode())) {
-                vo.setPayeeIdType(tenant.getTenantPersonal().getIdType());
-                vo.setPayeeIdNumber(tenant.getTenantPersonal().getIdNo());
             }
         }
 

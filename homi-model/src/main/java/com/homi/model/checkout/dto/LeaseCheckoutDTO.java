@@ -107,12 +107,12 @@ public class LeaseCheckoutDTO {
     /**
      * 收款人证件类型
      */
-    private String payeeIdType;
+    private Integer payeeIdType;
 
     /**
      * 收款人证件号
      */
-    private String payeeIdNumber;
+    private String payeeIdNo;
 
     /**
      * 收款银行类型（银联等）

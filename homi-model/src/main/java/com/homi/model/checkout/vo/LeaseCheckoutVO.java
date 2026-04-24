@@ -180,7 +180,7 @@ public class LeaseCheckoutVO {
     /**
      * 收款人证件号
      */
-    private String payeeIdNumber;
+    private String payeeIdNo;
 
     /**
      * 银行类型

@@ -1,6 +1,5 @@
 package com.homi.model.dao.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
@@ -134,11 +133,11 @@ public class LeaseCheckout implements Serializable {
 
     @Schema(description = "收款人证件类型")
     @TableField("payee_id_type")
-    private String payeeIdType;
+    private Integer payeeIdType;
 
     @Schema(description = "收款人证件号")
     @TableField("payee_id_number")
-    private String payeeIdNumber;
+    private String payeeIdNo;
 
     @Schema(description = "银行类型（银联等）")
     @TableField("bank_type")
