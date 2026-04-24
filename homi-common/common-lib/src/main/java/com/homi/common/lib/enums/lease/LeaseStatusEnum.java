@@ -24,7 +24,7 @@ public enum LeaseStatusEnum {
     TO_SIGN(1, "待签字", "#FF2800", 1),
     EFFECTIVE(2, "在租中", "#52C41A", 2),
     TERMINATED(3, "已退租", "#EAA212", 3),
-    CANCELLED(-1, "已作废", "#DBDBDB", 4);
+    VOIDED(-1, "已作废", "#DBDBDB", 4);
 
     private final Integer code;
     private final String name;

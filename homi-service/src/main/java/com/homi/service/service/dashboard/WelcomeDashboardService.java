@@ -298,7 +298,7 @@ public class WelcomeDashboardService {
         List<Booking> bookings = bookingRepo.list(new LambdaQueryWrapper<Booking>()
             .eq(Booking::getBookingStatus, BookingStatusEnum.BOOKING.getCode()));
         List<Lease> leases = leaseRepo.list(new LambdaQueryWrapper<Lease>()
-            .ne(Lease::getStatus, LeaseStatusEnum.CANCELLED.getCode()));
+            .ne(Lease::getStatus, LeaseStatusEnum.VOIDED.getCode()));
 
         WelcomeTenantStatsVO stats = new WelcomeTenantStatsVO();
         stats.setTodayDepositCount((int) bookings.stream()

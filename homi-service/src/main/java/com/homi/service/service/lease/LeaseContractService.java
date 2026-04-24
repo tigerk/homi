@@ -212,7 +212,7 @@ public class LeaseContractService {
             throw new IllegalArgumentException("未找到租约！");
         }
 
-        if (Objects.equals(lease.getStatus(), LeaseStatusEnum.CANCELLED.getCode()) || Objects.equals(lease.getStatus(), LeaseStatusEnum.TERMINATED.getCode())) {
+        if (Objects.equals(lease.getStatus(), LeaseStatusEnum.VOIDED.getCode()) || Objects.equals(lease.getStatus(), LeaseStatusEnum.TERMINATED.getCode())) {
             throw new IllegalArgumentException("租约已取消或已终止，无法签署合同！");
         }
 
@@ -245,11 +245,11 @@ public class LeaseContractService {
             throw new IllegalArgumentException("未找到指定的租约");
         }
 
-        leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.CANCELLED.getCode());
+        leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.VOIDED.getCode());
 
         // 房间设置为"空置"
         roomRepo.updateOccupancyStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), OccupancyStatusEnum.AVAILABLE.getCode());
 
-        return LeaseStatusEnum.CANCELLED.getCode();
+        return LeaseStatusEnum.VOIDED.getCode();
     }
 }

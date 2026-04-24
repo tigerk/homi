@@ -126,7 +126,7 @@ public class ApprovalEventListener {
             log.info("租客入住审批驳回: leaseId={}", leaseId);
 
             // 1. 审批驳回 -> 租客状态改为已取消，可以再次提交。
-            leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.CANCELLED.getCode());
+            leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.VOIDED.getCode());
 
             Lease lease = leaseRepo.getById(leaseId);
             // 2. 更新房间状态为空置
