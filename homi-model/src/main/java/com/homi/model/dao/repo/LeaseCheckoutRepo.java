@@ -60,6 +60,16 @@ public class LeaseCheckoutRepo extends ServiceImpl<LeaseCheckoutMapper, LeaseChe
             .one();
     }
 
+    public LeaseCheckout getByIdForUpdate(Long checkoutId) {
+        if (checkoutId == null) {
+            return null;
+        }
+        return lambdaQuery()
+            .eq(LeaseCheckout::getId, checkoutId)
+            .last("LIMIT 1 FOR UPDATE")
+            .one();
+    }
+
     /**
      * 判断租客是否有进行中的退租单（草稿或待确认）
      */

@@ -1,6 +1,7 @@
 package com.homi.common.lib.config;
 
 import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import org.springdoc.core.customizers.OpenApiCustomizer;
@@ -61,6 +62,28 @@ public class OpenApiEnumConfig {
 
                 } catch (ClassNotFoundException e) { /* ignore */ }
             }
+        };
+    }
+
+    @Bean
+    public OpenApiCustomizer checkoutPresetFeeSchemaCustomizer() {
+        return openApi -> {
+            Components components = openApi.getComponents();
+            if (components == null || components.getSchemas() == null) {
+                return;
+            }
+
+            Schema<?> initSchema = components.getSchemas().get("LeaseCheckoutInitVO");
+            Schema<?> feeSchema = components.getSchemas().get("LeaseCheckoutFeeVO");
+            if (initSchema == null || feeSchema == null || initSchema.getProperties() == null) {
+                return;
+            }
+
+            ArraySchema presetFeesSchema = new ArraySchema();
+            presetFeesSchema.setItems(new Schema<>().$ref("#/components/schemas/LeaseCheckoutFeeVO"));
+            initSchema.addProperty("presetFees", presetFeesSchema);
+
+            components.getSchemas().remove("PresetFeeVO");
         };
     }
 

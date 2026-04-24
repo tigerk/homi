@@ -4,15 +4,18 @@ import cn.hutool.core.date.DateTime;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
+import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowDirectionEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.entity.FinanceFlow;
+import com.homi.model.dao.entity.LeaseCheckout;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.entity.PaymentFlow;
 import com.homi.model.dao.repo.FinanceFlowRepo;
+import com.homi.model.dao.repo.LeaseCheckoutRepo;
 import com.homi.model.dao.repo.LeaseBillRepo;
 import com.homi.model.dao.repo.PaymentFlowRepo;
 import com.homi.service.service.lease.bill.component.LeaseBillUpdater;
@@ -31,6 +34,7 @@ public class PaymentFlowService {
     private final PaymentFlowRepo paymentFlowRepo;
     private final FinanceFlowRepo financeFlowRepo;
     private final LeaseBillRepo leaseBillRepo;
+    private final LeaseCheckoutRepo leaseCheckoutRepo;
     private final LeaseBillUpdater leaseBillUpdater;
 
     public PaymentFlow getLatestByBiz(String bizType, Long bizId) {
@@ -52,6 +56,37 @@ public class PaymentFlowService {
         paymentFlow.setCompanyId(bill.getCompanyId());
         paymentFlow.setBizType(PaymentFlowBizTypeEnum.LEASE_BILL.getCode());
         paymentFlow.setBizId(bill.getId());
+        paymentFlow.setChannel(resolvePaymentChannel(command.payChannel()));
+        paymentFlow.setThirdTradeNo(command.thirdTradeNo());
+        paymentFlow.setPaymentVoucherUrl(command.paymentVoucherUrl());
+        paymentFlow.setAmount(command.totalAmount());
+        paymentFlow.setCurrency("CNY");
+        paymentFlow.setRefundedAmount(BigDecimal.ZERO);
+        paymentFlow.setFlowDirection(PaymentFlowDirectionEnum.IN.getCode());
+        paymentFlow.setStatus(command.status());
+        paymentFlow.setApprovalStatus(command.approvalStatus());
+        paymentFlow.setPayAt(command.payAt());
+        paymentFlow.setPayerName(command.payerName());
+        paymentFlow.setPayerPhone(command.payerPhone());
+        paymentFlow.setOperatorId(command.operatorId());
+        paymentFlow.setOperatorName(command.operatorName());
+        paymentFlow.setRemark(command.remark());
+        paymentFlow.setExtJson(command.extJson());
+        paymentFlow.setCreateBy(command.operatorId());
+        paymentFlow.setCreateAt(command.now());
+        paymentFlow.setUpdateBy(command.operatorId());
+        paymentFlow.setUpdateAt(command.now());
+        paymentFlowRepo.save(paymentFlow);
+        return paymentFlow;
+    }
+
+    public PaymentFlow createTenantCheckoutPaymentFlow(CreateCheckoutCommand command) {
+        LeaseCheckout checkout = command.checkout();
+        PaymentFlow paymentFlow = new PaymentFlow();
+        paymentFlow.setPaymentNo(generatePaymentNo());
+        paymentFlow.setCompanyId(checkout.getCompanyId());
+        paymentFlow.setBizType(PaymentFlowBizTypeEnum.TENANT_CHECKOUT.getCode());
+        paymentFlow.setBizId(checkout.getId());
         paymentFlow.setChannel(resolvePaymentChannel(command.payChannel()));
         paymentFlow.setThirdTradeNo(command.thirdTradeNo());
         paymentFlow.setPaymentVoucherUrl(command.paymentVoucherUrl());
@@ -154,6 +189,54 @@ public class PaymentFlowService {
         leaseBillUpdater.recalculateFromFinanceFlows(bill, operatorId, now);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void voidTenantCheckoutPaymentFlow(Long paymentFlowId, String voidReason, Long operatorId) {
+        PaymentFlow paymentFlow = paymentFlowRepo.getByIdForUpdate(paymentFlowId);
+        if (paymentFlow == null) {
+            throw new BizException("支付流水不存在");
+        }
+        if (!PaymentFlowBizTypeEnum.TENANT_CHECKOUT.getCode().equals(paymentFlow.getBizType())) {
+            throw new BizException("仅租客退租支付流水允许作废");
+        }
+        if (PaymentFlowStatusEnum.VOIDED.getCode().equals(paymentFlow.getStatus())) {
+            throw new BizException("支付流水已作废");
+        }
+        if (!PaymentFlowStatusEnum.SUCCESS.getCode().equals(paymentFlow.getStatus())) {
+            throw new BizException("仅支付成功流水允许作废");
+        }
+
+        LeaseCheckout checkout = leaseCheckoutRepo.getByIdForUpdate(paymentFlow.getBizId());
+        if (checkout == null) {
+            throw new BizException("关联退租单不存在");
+        }
+
+        DateTime now = cn.hutool.core.date.DateUtil.date();
+        String finalReason = CharSequenceUtil.blankToDefault(CharSequenceUtil.trim(voidReason), "支付流水作废");
+
+        paymentFlow.setStatus(PaymentFlowStatusEnum.VOIDED.getCode());
+        paymentFlow.setRemark(appendVoidReason(paymentFlow.getRemark(), finalReason));
+        paymentFlow.setUpdateBy(operatorId);
+        paymentFlow.setUpdateAt(now);
+        paymentFlowRepo.updateById(paymentFlow);
+
+        List<FinanceFlow> financeFlows = financeFlowRepo.getListByPaymentFlowIdForUpdate(paymentFlowId);
+        if (!financeFlows.isEmpty()) {
+            for (FinanceFlow financeFlow : financeFlows) {
+                financeFlow.setStatus(FinanceFlowStatusEnum.VOIDED.getCode());
+                financeFlow.setRemark(appendVoidReason(financeFlow.getRemark(), finalReason));
+                financeFlow.setUpdateBy(operatorId);
+                financeFlow.setUpdateAt(now);
+            }
+            financeFlowRepo.updateBatchById(financeFlows);
+        }
+
+        checkout.setPaymentStatus(CheckoutPaymentStatusEnum.UNPAID.getCode());
+        checkout.setPayAt(null);
+        checkout.setUpdateBy(operatorId);
+        checkout.setUpdateAt(now);
+        leaseCheckoutRepo.updateById(checkout);
+    }
+
     private String appendVoidReason(String remark, String voidReason) {
         String suffix = "【作废原因】" + voidReason;
         if (CharSequenceUtil.isBlank(remark)) {
@@ -185,6 +268,26 @@ public class PaymentFlowService {
     @Builder
     public record CreateCommand(
         LeaseBill bill,
+        BigDecimal totalAmount,
+        Integer payChannel,
+        String thirdTradeNo,
+        String paymentVoucherUrl,
+        Date payAt,
+        Long operatorId,
+        String operatorName,
+        String payerName,
+        String payerPhone,
+        String remark,
+        Integer status,
+        Integer approvalStatus,
+        String extJson,
+        DateTime now
+    ) {
+    }
+
+    @Builder
+    public record CreateCheckoutCommand(
+        LeaseCheckout checkout,
         BigDecimal totalAmount,
         Integer payChannel,
         String thirdTradeNo,

@@ -1,6 +1,8 @@
 package com.homi.model.checkout.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.common.lib.enums.checkout.CheckoutBankCardTypeEnum;
+import com.homi.common.lib.enums.checkout.CheckoutBankTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -71,7 +73,7 @@ public class LeaseCheckoutDTO {
      * 预计收/付款时间
      */
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date expectedPaymentDate;
+    private Date dueDate;
 
     /**
      * 账单处理方式：1=生成待付账单，2=线下付款，3=申请付款，4=标记坏账
@@ -117,11 +119,13 @@ public class LeaseCheckoutDTO {
     /**
      * 收款银行类型（银联等）
      */
+    @Schema(description = "收款银行类型", implementation = CheckoutBankTypeEnum.class)
     private String bankType;
 
     /**
      * 银行卡类型（借记卡/信用卡）
      */
+    @Schema(description = "银行卡类型", implementation = CheckoutBankCardTypeEnum.class)
     private String bankCardType;
 
     /**

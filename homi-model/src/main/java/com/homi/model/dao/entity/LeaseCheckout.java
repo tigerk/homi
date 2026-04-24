@@ -13,6 +13,9 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import java.io.Serial;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.common.lib.enums.checkout.CheckoutBankCardTypeEnum;
+import com.homi.common.lib.enums.checkout.CheckoutBankTypeEnum;
+import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 
 /**
  * 退租主表（退租并结账）
@@ -87,14 +90,23 @@ public class LeaseCheckout implements Serializable {
     @TableField("final_amount")
     private BigDecimal finalAmount;
 
-    @Schema(description = "预计收/付款时间")
-    @TableField("expected_payment_date")
+    @Schema(description = "退租结算应完成日期")
+    @TableField("due_date")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date expectedPaymentDate;
+    private Date dueDate;
 
     @Schema(description = "账单处理方式：1=生成待付账单，2=线下付款，3=申请付款，4=标记坏账")
     @TableField("settlement_method")
     private Integer settlementMethod;
+
+    @Schema(description = "支付状态", implementation = CheckoutPaymentStatusEnum.class)
+    @TableField("payment_status")
+    private String paymentStatus;
+
+    @Schema(description = "支付完成时间")
+    @TableField("pay_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date payAt;
 
     @Schema(description = "坏账原因（标记坏账时必填）")
     @TableField("bad_debt_reason")
@@ -136,14 +148,14 @@ public class LeaseCheckout implements Serializable {
     private Integer payeeIdType;
 
     @Schema(description = "收款人证件号")
-    @TableField("payee_id_number")
+    @TableField("payee_id_no")
     private String payeeIdNo;
 
-    @Schema(description = "银行类型（银联等）")
+    @Schema(description = "银行类型（银联等）", implementation = CheckoutBankTypeEnum.class)
     @TableField("bank_type")
     private String bankType;
 
-    @Schema(description = "银行卡类型（借记卡/信用卡）")
+    @Schema(description = "银行卡类型（借记卡/信用卡）", implementation = CheckoutBankCardTypeEnum.class)
     @TableField("bank_card_type")
     private String bankCardType;
 

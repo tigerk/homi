@@ -1,6 +1,9 @@
 package com.homi.model.checkout.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.common.lib.enums.checkout.CheckoutBankCardTypeEnum;
+import com.homi.common.lib.enums.checkout.CheckoutBankTypeEnum;
+import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -128,10 +131,10 @@ public class LeaseCheckoutVO {
     private BigDecimal finalAmount;
 
     /**
-     * 预计收/付款时间
+     * 退租结算应完成日期
      */
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-    private Date expectedPaymentDate;
+    private Date dueDate;
 
     /**
      * 账单处理方式
@@ -142,6 +145,23 @@ public class LeaseCheckoutVO {
      * 账单处理方式名称
      */
     private String settlementMethodName;
+
+    /**
+     * 支付状态
+     */
+    @io.swagger.v3.oas.annotations.media.Schema(description = "支付状态", implementation = CheckoutPaymentStatusEnum.class)
+    private String paymentStatus;
+
+    /**
+     * 支付状态名称
+     */
+    private String paymentStatusName;
+
+    /**
+     * 支付完成时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date payAt;
 
     /**
      * 费用明细列表
@@ -185,11 +205,13 @@ public class LeaseCheckoutVO {
     /**
      * 银行类型
      */
+    @io.swagger.v3.oas.annotations.media.Schema(description = "银行类型", implementation = CheckoutBankTypeEnum.class)
     private String bankType;
 
     /**
      * 银行卡类型
      */
+    @io.swagger.v3.oas.annotations.media.Schema(description = "银行卡类型", implementation = CheckoutBankCardTypeEnum.class)
     private String bankCardType;
 
     /**

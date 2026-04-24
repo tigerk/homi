@@ -44,9 +44,14 @@ public class LeaseCheckoutFeeVO {
     private String feeTypeName;
 
     /**
-     * 费用子类名称（如"房屋押金"）
+     * 费用字典数据项ID
      */
-    private String feeSubName;
+    private Long dictDataId;
+
+    /**
+     * 费用名称快照（如"房屋押金"）
+     */
+    private String feeName;
 
     /**
      * 费用金额
@@ -71,7 +76,7 @@ public class LeaseCheckoutFeeVO {
     private String remark;
 
     /**
-     * 关联账单ID
+     * 关联租客账单ID
      */
-    private Long billId;
+    private Long leaseBillId;
 }

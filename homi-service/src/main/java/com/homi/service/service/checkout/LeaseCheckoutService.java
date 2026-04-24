@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
+import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutFeeTypeEnum;
 import com.homi.common.lib.enums.checkout.CheckoutSettlementMethodEnum;
 import com.homi.common.lib.enums.checkout.CheckoutStatusEnum;
@@ -26,8 +27,8 @@ import com.homi.model.approval.dto.ApprovalSubmitDTO;
 import com.homi.model.checkout.dto.LeaseCheckoutDTO;
 import com.homi.model.checkout.dto.LeaseCheckoutFeeDTO;
 import com.homi.model.checkout.dto.LeaseCheckoutQueryDTO;
-import com.homi.model.checkout.vo.LeaseCheckoutFeeVO;
 import com.homi.model.checkout.vo.LeaseCheckoutInitVO;
+import com.homi.model.checkout.vo.LeaseCheckoutFeeVO;
 import com.homi.model.checkout.vo.LeaseCheckoutVO;
 import com.homi.model.common.dto.OperatorDTO;
 import com.homi.model.dao.entity.*;
@@ -117,7 +118,7 @@ public class LeaseCheckoutService {
             .multiply(BigDecimal.valueOf(ObjectUtil.defaultIfNull(lease.getDepositMonths(), 0)));
 
         // 构建预填费用行（根据未付账单自动生成）
-        List<LeaseCheckoutInitVO.PresetFeeVO> presetFees = buildPresetFees(lease, unpaidBills, depositAmount);
+        List<LeaseCheckoutFeeVO> presetFees = buildPresetFees(lease, unpaidBills, depositAmount);
 
         TenantDetailVO tenant = tenantService.getTenantDetail(lease.getTenantId());
         if (tenant == null) {
@@ -157,25 +158,26 @@ public class LeaseCheckoutService {
      * 构建预填费用行
      * 自动根据押金、未付账单等生成费用清算表初始行
      */
-    private List<LeaseCheckoutInitVO.PresetFeeVO> buildPresetFees(
+    private List<LeaseCheckoutFeeVO> buildPresetFees(
         Lease lease,
         List<LeaseBill> unpaidBills,
         BigDecimal depositAmount
     ) {
-        List<LeaseCheckoutInitVO.PresetFeeVO> presetFees = new ArrayList<>();
+        List<LeaseCheckoutFeeVO> presetFees = new ArrayList<>();
         Date today = DateUtil.date();
 
         // 1. 押金退还（支出方向）- 默认正常退时预填
         if (depositAmount != null && depositAmount.compareTo(BigDecimal.ZERO) > 0) {
-            presetFees.add(LeaseCheckoutInitVO.PresetFeeVO.builder()
-                .feeDirection(2) // 支
-                .feeType(CheckoutFeeTypeEnum.DEPOSIT_REFUND.getCode())
-                .feeSubName("房屋押金")
-                .feeAmount(depositAmount)
-                .feeStartDate(lease.getLeaseStart())
-                .feeEndDate(lease.getLeaseEnd())
-                .remark(DateUtil.formatDate(today) + "退租清算\"预退押金" + depositAmount + "元\"")
-                .build());
+            LeaseCheckoutFeeVO presetFee = new LeaseCheckoutFeeVO();
+            presetFee.setFeeDirection(2);
+            presetFee.setFeeType(CheckoutFeeTypeEnum.DEPOSIT_REFUND.getCode());
+            presetFee.setFeeTypeName(CheckoutFeeTypeEnum.DEPOSIT_REFUND.getName());
+            presetFee.setFeeName("房屋押金");
+            presetFee.setFeeAmount(depositAmount);
+            presetFee.setFeeStartDate(lease.getLeaseStart());
+            presetFee.setFeeEndDate(lease.getLeaseEnd());
+            presetFee.setRemark(DateUtil.formatDate(today) + "退租清算\"预退押金" + depositAmount + "元\"");
+            presetFees.add(presetFee);
         }
 
         // 2. 未付账单（收入方向）
@@ -184,16 +186,17 @@ public class LeaseCheckoutService {
                 .subtract(ObjectUtil.defaultIfNull(bill.getPaidAmount(), BigDecimal.ZERO));
             if (unpaid.compareTo(BigDecimal.ZERO) > 0) {
                 String typeName = getBillTypeName(bill.getBillType());
-                presetFees.add(LeaseCheckoutInitVO.PresetFeeVO.builder()
-                    .feeDirection(1) // 收
-                    .feeType(mapBillTypeToFeeType(bill.getBillType()))
-                    .feeSubName(typeName)
-                    .feeAmount(unpaid)
-                    .feeStartDate(bill.getBillStart())
-                    .feeEndDate(bill.getBillEnd())
-                    .remark(DateUtil.formatDate(today) + "退租清算\"应退" + unpaid + "元\"")
-                    .billId(bill.getId())
-                    .build());
+                LeaseCheckoutFeeVO presetFee = new LeaseCheckoutFeeVO();
+                presetFee.setFeeDirection(1);
+                presetFee.setFeeType(mapBillTypeToFeeType(bill.getBillType()));
+                presetFee.setFeeName(typeName);
+                presetFee.setFeeTypeName(typeName);
+                presetFee.setFeeAmount(unpaid);
+                presetFee.setFeeStartDate(bill.getBillStart());
+                presetFee.setFeeEndDate(bill.getBillEnd());
+                presetFee.setRemark(DateUtil.formatDate(today) + "退租清算\"应退" + unpaid + "元\"");
+                presetFee.setLeaseBillId(bill.getId());
+                presetFees.add(presetFee);
             }
         }
 
@@ -218,7 +221,7 @@ public class LeaseCheckoutService {
         checkout.setActualCheckoutDate(dto.getActualCheckoutDate());
         BigDecimal depositAmount = lease.getRentPrice().multiply(BigDecimal.valueOf(ObjectUtil.defaultIfNull(lease.getDepositMonths(), 0)));
         checkout.setDepositAmount(depositAmount);
-        checkout.setExpectedPaymentDate(dto.getExpectedPaymentDate());
+        checkout.setDueDate(dto.getDueDate());
         checkout.setSettlementMethod(dto.getSettlementMethod());
         // 坏账原因（标记坏账时必填）
         if (CheckoutSettlementMethodEnum.BAD_DEBT.getCode().equals(dto.getSettlementMethod())) {
@@ -260,6 +263,7 @@ public class LeaseCheckoutService {
 
         // 计算费用汇总
         calculateAndSetFees(checkout, dto.getFeeList());
+        initializePaymentStatus(checkout);
 
         // 保存退租单和费用明细
         saveCheckoutAndFees(checkout, isNew, dto.getFeeList(), dto.getOperatorId());
@@ -338,6 +342,18 @@ public class LeaseCheckoutService {
         checkout.setFinalAmount(incomeAmount.subtract(expenseAmount));
     }
 
+    private void initializePaymentStatus(LeaseCheckout checkout) {
+        BigDecimal finalAmount = ObjectUtil.defaultIfNull(checkout.getFinalAmount(), BigDecimal.ZERO);
+        if (CheckoutSettlementMethodEnum.BAD_DEBT.getCode().equals(checkout.getSettlementMethod())
+            || finalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            checkout.setPaymentStatus(CheckoutPaymentStatusEnum.NO_PAYMENT_REQUIRED.getCode());
+            checkout.setPayAt(null);
+            return;
+        }
+        checkout.setPaymentStatus(CheckoutPaymentStatusEnum.UNPAID.getCode());
+        checkout.setPayAt(null);
+    }
+
     /**
      * 保存退租单和费用明细
      */
@@ -357,12 +373,13 @@ public class LeaseCheckoutService {
                 fee.setCheckoutId(checkout.getId());
                 fee.setFeeDirection(feeDTO.getFeeDirection());
                 fee.setFeeType(feeDTO.getFeeType());
-                fee.setFeeSubName(feeDTO.getFeeSubName());
+                fee.setDictDataId(feeDTO.getDictDataId());
+                fee.setFeeName(feeDTO.getFeeName());
                 fee.setFeeAmount(feeDTO.getFeeAmount());
                 fee.setFeeStartDate(feeDTO.getFeeStartDate());
                 fee.setFeeEndDate(feeDTO.getFeeEndDate());
                 fee.setRemark(feeDTO.getRemark());
-                fee.setBillId(feeDTO.getBillId());
+                fee.setLeaseBillId(feeDTO.getLeaseBillId());
                 fee.setCreateBy(operatorId);
                 fee.setCreateAt(DateUtil.date());
                 fees.add(fee);
@@ -425,6 +442,15 @@ public class LeaseCheckoutService {
         // 更新退租单状态
         checkout.setStatus(CheckoutStatusEnum.COMPLETED.getCode());
         checkout.setSettlementAt(DateUtil.date());
+        if (CheckoutSettlementMethodEnum.OFFLINE_PAYMENT.getCode().equals(checkout.getSettlementMethod())
+            && ObjectUtil.defaultIfNull(checkout.getFinalAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) > 0) {
+            checkout.setPaymentStatus(CheckoutPaymentStatusEnum.PAID.getCode());
+            checkout.setPayAt(DateUtil.date());
+        } else if (CheckoutSettlementMethodEnum.BAD_DEBT.getCode().equals(checkout.getSettlementMethod())
+            || ObjectUtil.defaultIfNull(checkout.getFinalAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) <= 0) {
+            checkout.setPaymentStatus(CheckoutPaymentStatusEnum.NO_PAYMENT_REQUIRED.getCode());
+            checkout.setPayAt(null);
+        }
         checkout.setUpdateBy(operatorId);
         checkout.setUpdateAt(DateUtil.date());
         leaseCheckoutRepo.updateById(checkout);
@@ -572,6 +598,8 @@ public class LeaseCheckoutService {
         vo.setCheckoutTypeName(CheckoutTypeEnum.getNameByCode(checkout.getCheckoutType()));
         vo.setStatusName(CheckoutStatusEnum.getNameByCode(checkout.getStatus()));
         vo.setSettlementMethodName(CheckoutSettlementMethodEnum.getNameByCode(checkout.getSettlementMethod()));
+        CheckoutPaymentStatusEnum paymentStatusEnum = getCheckoutPaymentStatusByCode(checkout.getPaymentStatus());
+        vo.setPaymentStatusName(paymentStatusEnum != null ? paymentStatusEnum.getName() : "");
         BizApprovalStatusEnum approvalEnum = BizApprovalStatusEnum.getByCode(checkout.getApprovalStatus());
         vo.setApprovalStatusName(approvalEnum != null ? approvalEnum.getName() : "");
 
@@ -625,6 +653,18 @@ public class LeaseCheckoutService {
             case 7 -> CheckoutFeeTypeEnum.PROPERTY_FEE.getCode();   // 物业费
             default -> CheckoutFeeTypeEnum.OTHER.getCode();         // 其他
         };
+    }
+
+    private CheckoutPaymentStatusEnum getCheckoutPaymentStatusByCode(String code) {
+        if (CharSequenceUtil.isBlank(code)) {
+            return null;
+        }
+        for (CheckoutPaymentStatusEnum item : CheckoutPaymentStatusEnum.values()) {
+            if (item.getCode().equals(code)) {
+                return item;
+            }
+        }
+        return null;
     }
 
     /**

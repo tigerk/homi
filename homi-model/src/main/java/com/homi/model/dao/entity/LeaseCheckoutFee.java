@@ -43,21 +43,25 @@ public class LeaseCheckoutFee implements Serializable {
     @TableField("fee_type")
     private Integer feeType;
 
-    @Schema(description = "费用子类名称（如'房屋押金'）")
-    @TableField("fee_sub_name")
-    private String feeSubName;
+    @Schema(description = "费用字典数据项ID")
+    @TableField("dict_data_id")
+    private Long dictDataId;
+
+    @Schema(description = "费用名称快照（如'房屋押金'）")
+    @TableField("fee_name")
+    private String feeName;
 
     @Schema(description = "费用金额（正数）")
     @TableField("fee_amount")
     private BigDecimal feeAmount;
 
     @Schema(description = "费用周期开始")
-    @TableField("fee_period_start")
+    @TableField("fee_start_date")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date feeStartDate;
 
     @Schema(description = "费用周期结束")
-    @TableField("fee_period_end")
+    @TableField("fee_end_date")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date feeEndDate;
 
@@ -65,9 +69,9 @@ public class LeaseCheckoutFee implements Serializable {
     @TableField("remark")
     private String remark;
 
-    @Schema(description = "关联账单ID（如有）")
-    @TableField("bill_id")
-    private Long billId;
+    @Schema(description = "关联租客账单ID（如有）")
+    @TableField("lease_bill_id")
+    private Long leaseBillId;
 
     @Schema(description = "是否删除")
     @TableField("deleted")

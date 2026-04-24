@@ -1,6 +1,7 @@
 package com.homi.model.checkout.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
@@ -98,7 +99,8 @@ public class LeaseCheckoutInitVO {
     /**
      * 预填费用列表
      */
-    private List<PresetFeeVO> presetFees;
+    @ArraySchema(schema = @Schema(implementation = LeaseCheckoutFeeVO.class))
+    private List<LeaseCheckoutFeeVO> presetFees;
 
     /**
      * 收款人信息
@@ -126,55 +128,14 @@ public class LeaseCheckoutInitVO {
     }
 
     /**
-     * 预填费用行 VO
-     */
-    @Data
-    @Builder
-    public static class PresetFeeVO {
-        /**
-         * 收支类型：1=收，2=支
-         */
-        private Integer feeDirection;
-        /**
-         * 费用类型
-         */
-        private Integer feeType;
-        /**
-         * 费用子类名称
-         */
-        private String feeSubName;
-        /**
-         * 金额
-         */
-        private BigDecimal feeAmount;
-        /**
-         * 费用周期开始
-         */
-        @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-        private Date feeStartDate;
-        /**
-         * 费用周期结束
-         */
-        @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
-        private Date feeEndDate;
-        /**
-         * 备注
-         */
-        private String remark;
-        /**
-         * 关联账单ID
-         */
-        private Long billId;
-    }
-
-    /**
      * 收款人信息 VO
      */
-    @Data
-    @Builder
-    public static class PayeeInfoVO {
+        @Data
+        @Builder
+        public static class PayeeInfoVO {
         private String payeeName;
         private String payeePhone;
+        @Schema(description = "收款人证件类型")
         private Integer payeeIdType;
         private String payeeIdNo;
     }
