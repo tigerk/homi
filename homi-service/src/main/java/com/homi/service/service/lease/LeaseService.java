@@ -624,9 +624,8 @@ public class LeaseService {
 
         LeaseDetailVO originalLease = getLeaseDetailById(leaseId);
 
-        if (Objects.equals(originalLease.getStatus(), LeaseStatusEnum.TERMINATED.getCode()) ||
-            Objects.equals(originalLease.getStatus(), LeaseStatusEnum.EFFECTIVE.getCode())) {
-            throw new IllegalArgumentException("租约在租或退租时，不允许修改");
+        if (Objects.equals(originalLease.getStatus(), LeaseStatusEnum.TERMINATED.getCode()) || Objects.equals(originalLease.getStatus(), LeaseStatusEnum.VOIDED.getCode())) {
+            throw new IllegalArgumentException("退租或作废的租约不允许修改租客信息！");
         }
 
         boolean needRegenerate = isKeyInfoChanged(leaseDTO, originalLease);
