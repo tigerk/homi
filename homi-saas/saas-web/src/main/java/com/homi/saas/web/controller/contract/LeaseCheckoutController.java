@@ -65,6 +65,7 @@ public class LeaseCheckoutController {
     public ResponseResult<Void> cancelCheckout(@RequestBody LeaseCheckoutQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
         leaseCheckoutService.cancelCheckout(
             query.getCheckoutId(),
+            query.getCancelReason(),
             OperatorDTO.builder()
                 .operatorId(loginUser.getId())
                 .operatorName(loginUser.getNickname())

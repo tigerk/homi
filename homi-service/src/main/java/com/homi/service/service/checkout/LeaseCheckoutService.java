@@ -216,6 +216,7 @@ public class LeaseCheckoutService {
 
         boolean isNew = dto.getId() == null;
         LeaseCheckout checkout = isNew ? createNewCheckout(dto, lease) : updateExistingCheckout(dto);
+        boolean shouldSubmitAfterSave = shouldSubmitAfterSave(checkout);
 
         // 设置退租基本信息
         checkout.setCheckoutType(dto.getCheckoutType());
@@ -275,13 +276,15 @@ public class LeaseCheckoutService {
         // 保存退租单和费用明细
         saveCheckoutAndFees(checkout, isNew, dto.getFeeList(), dto.getOperatorId());
 
-        submitCheckout(
-            checkout.getId(),
-            OperatorDTO.builder()
-                .operatorId(dto.getOperatorId())
-                .operatorName(dto.getOperatorName())
-                .build()
-        );
+        if (shouldSubmitAfterSave) {
+            submitCheckout(
+                checkout.getId(),
+                OperatorDTO.builder()
+                    .operatorId(dto.getOperatorId())
+                    .operatorName(dto.getOperatorName())
+                    .build()
+            );
+        }
 
         log.info("退租单保存成功: checkoutId={}, leaseId={}, type={}",
             checkout.getId(), dto.getTenantId(),
@@ -318,16 +321,27 @@ public class LeaseCheckoutService {
             throw new BizException("退租单不存在");
         }
 
-        boolean canModify = CheckoutStatusEnum.DRAFT.getCode().equals(checkout.getStatus())
-            || BizApprovalStatusEnum.REJECTED.getCode().equals(checkout.getApprovalStatus());
-
-        if (!canModify) {
+        if (!canModifyCheckout(checkout)) {
             throw new BizException("当前状态不允许修改");
         }
+
+        assertRoomsCanRestore(checkout, "当前房间已被重新出租，不能修改退租单");
 
         checkout.setUpdateBy(dto.getOperatorId());
         checkout.setUpdateAt(DateUtil.date());
         return checkout;
+    }
+
+    private boolean canModifyCheckout(LeaseCheckout checkout) {
+        if (CheckoutStatusEnum.CANCELLED.getCode().equals(checkout.getStatus())) {
+            return false;
+        }
+        return !CheckoutPaymentStatusEnum.PAID.getCode().equals(checkout.getPaymentStatus());
+    }
+
+    private boolean shouldSubmitAfterSave(LeaseCheckout checkout) {
+        return CheckoutStatusEnum.DRAFT.getCode().equals(checkout.getStatus())
+            || BizApprovalStatusEnum.REJECTED.getCode().equals(checkout.getApprovalStatus());
     }
 
     /**
@@ -495,17 +509,30 @@ public class LeaseCheckoutService {
      * 取消退租单
      */
     @Transactional(rollbackFor = Exception.class)
-    public void cancelCheckout(Long checkoutId, OperatorDTO operatorDTO) {
+    public void cancelCheckout(Long checkoutId, String cancelReason, OperatorDTO operatorDTO) {
         LeaseCheckout checkout = leaseCheckoutRepo.getById(checkoutId);
         if (checkout == null) {
             throw new BizException("退租单不存在");
         }
 
+        if (CheckoutStatusEnum.CANCELLED.getCode().equals(checkout.getStatus())) {
+            throw new BizException("退租单已取消");
+        }
+
+        if (CheckoutPaymentStatusEnum.PAID.getCode().equals(checkout.getPaymentStatus())) {
+            throw new BizException("退租单已支付，不能取消");
+        }
+
         if (CheckoutStatusEnum.COMPLETED.getCode().equals(checkout.getStatus())) {
-            throw new BizException("已完成的退租单不能取消");
+            restoreCompletedCheckout(checkout);
         }
 
         checkout.setStatus(CheckoutStatusEnum.CANCELLED.getCode());
+        checkout.setSettlementAt(null);
+        checkout.setCancelReason(CharSequenceUtil.blankToDefault(CharSequenceUtil.trim(cancelReason), "取消退租单"));
+        checkout.setCancelBy(operatorDTO.getOperatorId());
+        checkout.setCancelByName(operatorDTO.getOperatorName());
+        checkout.setCancelAt(DateUtil.date());
         checkout.setUpdateBy(operatorDTO.getOperatorId());
         checkout.setUpdateAt(DateUtil.date());
         leaseCheckoutRepo.updateById(checkout);
@@ -629,6 +656,10 @@ public class LeaseCheckoutService {
             vo.setCreateByName(userRepo.getUserNicknameById(checkout.getCreateBy()));
         }
 
+        if (checkout.getCancelBy() != null && CharSequenceUtil.isBlank(checkout.getCancelByName())) {
+            vo.setCancelByName(userRepo.getUserNicknameById(checkout.getCancelBy()));
+        }
+
         // 附件
         if (CharSequenceUtil.isNotBlank(checkout.getAttachmentIds())) {
             vo.setAttachmentUrls(JSONUtil.toList(checkout.getAttachmentIds(), String.class));
@@ -683,6 +714,39 @@ public class LeaseCheckoutService {
             }
         }
         return null;
+    }
+
+    private void restoreCompletedCheckout(LeaseCheckout checkout) {
+        assertRoomsCanRestore(checkout, "当前房间已被重新出租，不能取消退租单");
+
+        Lease lease = checkout.getLeaseId() == null ? null : leaseRepo.getById(checkout.getLeaseId());
+        if (lease == null) {
+            throw new BizException("关联租约不存在，不能取消退租单");
+        }
+
+        lease.setStatus(LeaseStatusEnum.EFFECTIVE.getCode());
+        lease.setCheckOutStatus(0);
+        lease.setUpdateAt(DateUtil.date());
+        leaseRepo.updateById(lease);
+
+        List<Long> roomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
+        if (CollUtil.isNotEmpty(roomIds)) {
+            roomRepo.updateOccupancyStatusByRoomIds(roomIds, OccupancyStatusEnum.LEASED.getCode());
+        }
+    }
+
+    private void assertRoomsCanRestore(LeaseCheckout checkout, String message) {
+        Lease lease = checkout.getLeaseId() == null ? null : leaseRepo.getById(checkout.getLeaseId());
+        if (lease == null) {
+            return;
+        }
+        List<Long> roomIds = JSONUtil.toList(lease.getRoomIds(), Long.class);
+        if (CollUtil.isEmpty(roomIds)) {
+            return;
+        }
+        if (leaseRepo.existsConflict(roomIds, lease.getLeaseStart(), lease.getLeaseEnd(), lease.getId())) {
+            throw new BizException(message);
+        }
     }
 
     /**

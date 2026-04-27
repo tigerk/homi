@@ -186,6 +186,27 @@ public class LeaseCheckoutVO {
     private String remark;
 
     /**
+     * 取消原因
+     */
+    private String cancelReason;
+
+    /**
+     * 取消人ID
+     */
+    private Long cancelBy;
+
+    /**
+     * 取消人姓名
+     */
+    private String cancelByName;
+
+    /**
+     * 取消时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date cancelAt;
+
+    /**
      * 退租凭证附件列表
      */
     private List<String> attachmentUrls;

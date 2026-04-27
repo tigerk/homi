@@ -52,4 +52,7 @@ public class LeaseCheckoutQueryDTO extends PageDTO {
      * 审批状态
      */
     private Integer approvalStatus;
+
+    @Schema(description = "取消原因")
+    private String cancelReason;
 }

@@ -137,6 +137,23 @@ public class LeaseCheckout implements Serializable {
     @TableField("remark")
     private String remark;
 
+    @Schema(description = "取消原因")
+    @TableField("cancel_reason")
+    private String cancelReason;
+
+    @Schema(description = "取消人ID")
+    @TableField("cancel_by")
+    private Long cancelBy;
+
+    @Schema(description = "取消人姓名")
+    @TableField("cancel_by_name")
+    private String cancelByName;
+
+    @Schema(description = "取消时间")
+    @TableField("cancel_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date cancelAt;
+
     @Schema(description = "退租凭证附件ID列表（JSON数组）")
     @TableField("attachment_ids")
     private String attachmentIds;
