@@ -13,7 +13,7 @@ public enum CheckoutStatusEnum {
     DRAFT(0, "草稿"),
     PENDING(1, "待确认"),
     COMPLETED(2, "已完成"),
-    VOIDED(3, "已作废");
+    CANCELLED(3, "已取消");
 
     private final Integer code;
     private final String name;
