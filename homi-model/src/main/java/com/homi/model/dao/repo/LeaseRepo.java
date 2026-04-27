@@ -74,6 +74,9 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
                 vo.setTenantSource(lease.getTenantSource());
                 vo.setDealChannel(lease.getDealChannel());
                 vo.setRemark(lease.getRemark());
+                vo.setCancelReason(lease.getCancelReason());
+                vo.setCancelBy(lease.getCancelBy());
+                vo.setCancelAt(lease.getCancelAt());
                 vo.setDeleted(lease.getDeleted());
                 vo.setCreateBy(lease.getCreateBy());
                 vo.setCreateAt(lease.getCreateAt());

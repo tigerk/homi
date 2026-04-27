@@ -158,6 +158,19 @@ public class Lease implements Serializable {
     @TableField("remark")
     private String remark;
 
+    @Schema(description = "作废原因")
+    @TableField("cancel_reason")
+    private String cancelReason;
+
+    @Schema(description = "作废人ID")
+    @TableField("cancel_by")
+    private Long cancelBy;
+
+    @Schema(description = "作废时间")
+    @TableField("cancel_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date cancelAt;
+
     @Schema(description = "是否删除")
     @TableField("deleted")
     @TableLogic

@@ -1,14 +1,21 @@
 package com.homi.service.service.lease;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
+import com.homi.common.lib.annotation.BizOperateLog;
+import com.homi.common.lib.enums.StatusEnum;
+import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.contract.TenantParamsEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.enums.tenant.TenantTypeEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.contract.vo.LeaseContractVO;
+import com.homi.model.common.dto.OperatorDTO;
 import com.homi.model.dao.entity.ContractTemplate;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.entity.LeaseContract;
@@ -239,13 +246,39 @@ public class LeaseContractService {
         return true;
     }
 
-    public Integer cancelLease(Long leaseId) {
+    @BizOperateLog(
+        bizType = BizOperateBizTypeEnum.LEASE,
+        operateType = BizOperateTypeEnum.CANCEL,
+        operateDesc = "作废租客",
+        bizIdExpr = "#p0",
+        remarkExpr = "#p1",
+        extraDataExpr = "{'cancelReason': #p1, 'operatorId': #p2.operatorId, 'operatorName': #p2.operatorName}",
+        sourceType = BizOperateSourceTypeEnum.LEASE,
+        sourceIdExpr = "#p0",
+        saveBeforeSnapshot = true,
+        saveAfterSnapshot = true,
+        snapshotProvider = "leaseTenantInfoSnapshotProvider"
+    )
+    public Integer cancelLease(Long leaseId, String cancelReason, OperatorDTO operatorDTO) {
         Lease lease = leaseRepo.getById(leaseId);
         if (lease == null) {
             throw new IllegalArgumentException("未找到指定的租约");
         }
+        LeaseContract leaseContract = leaseContractRepo.getContractByLeaseId(leaseId);
+        if (leaseContract != null && StatusEnum.ACTIVE.getValue().equals(leaseContract.getSignStatus())) {
+            throw new IllegalArgumentException("租客已签字，不能直接作废，请走租客退租流程");
+        }
+        if (CharSequenceUtil.isBlank(cancelReason)) {
+            throw new IllegalArgumentException("作废原因不能为空");
+        }
 
-        leaseRepo.updateStatusById(leaseId, LeaseStatusEnum.VOIDED.getCode());
+        lease.setStatus(LeaseStatusEnum.VOIDED.getCode());
+        lease.setCancelReason(CharSequenceUtil.trim(cancelReason));
+        lease.setCancelBy(operatorDTO == null ? null : operatorDTO.getOperatorId());
+        lease.setCancelAt(DateUtil.date());
+        lease.setUpdateBy(operatorDTO == null ? null : operatorDTO.getOperatorId());
+        lease.setUpdateAt(lease.getCancelAt());
+        leaseRepo.updateById(lease);
 
         // 房间设置为"空置"
         roomRepo.updateOccupancyStatusByRoomIds(JSONUtil.toList(lease.getRoomIds(), Long.class), OccupancyStatusEnum.AVAILABLE.getCode());

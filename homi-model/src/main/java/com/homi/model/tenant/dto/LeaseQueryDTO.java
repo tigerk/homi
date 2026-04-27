@@ -38,4 +38,7 @@ public class LeaseQueryDTO extends PageDTO {
 
     @Schema(description = "N天内到期合同", example = "7")
     private Integer expiringDaysWithin;
+
+    @Schema(description = "作废原因")
+    private String cancelReason;
 }

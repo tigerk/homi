@@ -16,9 +16,9 @@ public enum StatusEnum {
      */
     DISABLED(0);
 
-    private final int value;
+    private final Integer value;
 
-    StatusEnum(int value) {
+    StatusEnum(Integer value) {
         this.value = value;
     }
 

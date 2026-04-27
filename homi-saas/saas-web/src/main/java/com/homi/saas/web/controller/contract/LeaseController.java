@@ -10,6 +10,7 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.contract.vo.LeaseContractVO;
+import com.homi.model.common.dto.OperatorDTO;
 import com.homi.model.owner.vo.BizOperateLogVO;
 import com.homi.model.tenant.dto.*;
 import com.homi.model.tenant.vo.*;
@@ -178,9 +179,16 @@ public class LeaseController {
 
     @PostMapping(value = "/cancel")
     @Log(title = "租客作废", operationType = OperationTypeEnum.INSERT)
-    public ResponseResult<Integer> cancelTenant(@RequestBody LeaseQueryDTO query) {
+    public ResponseResult<Integer> cancelTenant(@RequestBody LeaseQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
 
-        return ResponseResult.ok(leaseContractService.cancelLease(query.getLeaseId()));
+        return ResponseResult.ok(leaseContractService.cancelLease(
+            query.getLeaseId(),
+            query.getCancelReason(),
+            OperatorDTO.builder()
+                .operatorId(loginUser.getId())
+                .operatorName(loginUser.getNickname())
+                .build()
+        ));
     }
 
     /**
