@@ -12,6 +12,7 @@ import com.homi.service.bizlog.BizOperateLogSnapshotProvider;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 @Component("leaseTenantInfoSnapshotProvider")
@@ -68,7 +69,25 @@ public class LeaseTenantInfoSnapshotProvider implements BizOperateLogSnapshotPro
                 company = tenantCompanyRepo.getById(tenant.getTenantTypeId());
             }
         }
-        return new LeaseTenantInfoLogSnapshot(lease, tenant, personal, company);
+        return new LeaseTenantInfoLogSnapshot(
+            copy(lease, Lease.class),
+            copy(tenant, Tenant.class),
+            copy(personal, TenantPersonal.class),
+            copy(company, TenantCompany.class)
+        );
+    }
+
+    private <T> T copy(T source, Class<T> targetClass) {
+        if (source == null) {
+            return null;
+        }
+        try {
+            T target = targetClass.getDeclaredConstructor().newInstance();
+            BeanUtils.copyProperties(source, target);
+            return target;
+        } catch (Exception e) {
+            throw new IllegalStateException("业务日志快照拷贝失败", e);
+        }
     }
 
     @Data
