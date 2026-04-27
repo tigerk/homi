@@ -64,7 +64,7 @@ public class TenantMateService {
 
             // 保存租客手持照片
             if (CollUtil.isNotEmpty(tenantMateDTO.getIdCardInHandList())) {
-                fileAttachRepo.addFileAttachBatch(tenantMate.getId(), FileAttachBizTypeEnum.TENANT_MATE_ID_CARD_FRONT.getBizType(), tenantMateDTO.getIdCardInHandList());
+                fileAttachRepo.addFileAttachBatch(tenantMate.getId(), FileAttachBizTypeEnum.TENANT_MATE_ID_CARD_IN_HAND.getBizType(), tenantMateDTO.getIdCardInHandList());
             }
 
             // 保存租客其他照片
