@@ -20,6 +20,7 @@ import com.homi.service.service.tenant.TenantService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -122,7 +123,7 @@ public class LeaseController {
 
     @PostMapping(value = "/contract/download")
     @Log(title = "下载租客合同", operationType = OperationTypeEnum.INSERT)
-    public ResponseEntity<byte[]> download(@RequestBody LeaseQueryDTO query) {
+    public ResponseEntity<byte @NotNull []> download(@RequestBody LeaseQueryDTO query) {
         byte[] pdfBytes = leaseService.downloadContract(query.getLeaseId());
 
         // 保存到本地，检查生成的 pdf 是否准确
@@ -189,7 +190,7 @@ public class LeaseController {
      * {@code @date} 2025/11/12 17:32
      */
     @PostMapping("/contract/preview")
-    public ResponseEntity<byte[]> previewLeaseContract(@RequestBody LeaseQueryDTO query) {
+    public ResponseEntity<byte @NotNull []> previewLeaseContract(@RequestBody LeaseQueryDTO query) {
         LeaseContractVO leaseContractVO = leaseContractService.getContractByLeaseId(query.getLeaseId());
         if (leaseContractVO == null) {
             throw new IllegalArgumentException("Tenant Contract not found");
