@@ -1,5 +1,6 @@
 package com.homi.service.bizlog.provider;
 
+import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.entity.Tenant;
 import com.homi.model.dao.entity.TenantCompany;
@@ -12,7 +13,6 @@ import com.homi.service.bizlog.BizOperateLogSnapshotProvider;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 @Component("leaseTenantInfoSnapshotProvider")
@@ -81,13 +81,7 @@ public class LeaseTenantInfoSnapshotProvider implements BizOperateLogSnapshotPro
         if (source == null) {
             return null;
         }
-        try {
-            T target = targetClass.getDeclaredConstructor().newInstance();
-            BeanUtils.copyProperties(source, target);
-            return target;
-        } catch (Exception e) {
-            throw new IllegalStateException("业务日志快照拷贝失败", e);
-        }
+        return BeanCopyUtils.copyBean(source, targetClass);
     }
 
     @Data

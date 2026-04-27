@@ -32,16 +32,20 @@ public class BizOperateLogAspect {
 
     @Around("@annotation(annotation)")
     public Object around(ProceedingJoinPoint joinPoint, BizOperateLog annotation) throws Throwable {
+        Object beforeSnapshotSource = null;
         Object beforeSnapshot = null;
         if (annotation.saveBeforeSnapshot()) {
-            beforeSnapshot = loadSnapshot(annotation.snapshotProvider(), true, joinPoint.getArgs(), null);
+            beforeSnapshotSource = loadSnapshot(annotation.snapshotProvider(), true, joinPoint.getArgs(), null);
+            beforeSnapshot = freezeSnapshot(beforeSnapshotSource);
         }
 
         Object result = joinPoint.proceed();
 
+        Object afterSnapshotSource = null;
         Object afterSnapshot = null;
         if (annotation.saveAfterSnapshot()) {
-            afterSnapshot = loadSnapshot(annotation.snapshotProvider(), false, joinPoint.getArgs(), result);
+            afterSnapshotSource = loadSnapshot(annotation.snapshotProvider(), false, joinPoint.getArgs(), result);
+            afterSnapshot = freezeSnapshot(afterSnapshotSource);
         }
 
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
@@ -52,8 +56,8 @@ public class BizOperateLogAspect {
             parameterNameDiscoverer
         );
         context.setVariable("result", result);
-        context.setVariable("beforeSnapshot", beforeSnapshot);
-        context.setVariable("afterSnapshot", afterSnapshot);
+        context.setVariable("beforeSnapshot", beforeSnapshotSource);
+        context.setVariable("afterSnapshot", afterSnapshotSource);
 
         bizOperateLogService.saveLog(
             operatorContext.getCompanyId(),
@@ -79,6 +83,13 @@ public class BizOperateLogAspect {
         }
         BizOperateLogSnapshotProvider provider = applicationContext.getBean(providerBeanName, BizOperateLogSnapshotProvider.class);
         return before ? provider.getBeforeSnapshot(args) : provider.getAfterSnapshot(args, result);
+    }
+
+    private Object freezeSnapshot(Object snapshot) {
+        if (snapshot == null) {
+            return null;
+        }
+        return JSONUtil.parse(JSONUtil.toJsonStr(snapshot));
     }
 
     private Long evalLong(String expr, MethodBasedEvaluationContext context) {
