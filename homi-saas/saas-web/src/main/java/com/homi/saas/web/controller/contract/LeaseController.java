@@ -79,7 +79,7 @@ public class LeaseController {
             createDTO.getLease().setCompanyId(loginUser.getCurCompanyId());
         }
 
-        return ResponseResult.ok(leaseService.updateTenant(createDTO));
+        return ResponseResult.ok(leaseService.updateLease(createDTO));
     }
 
     @PostMapping("/tenant/info/update")

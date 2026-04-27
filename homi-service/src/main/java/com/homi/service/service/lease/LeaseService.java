@@ -615,7 +615,7 @@ public class LeaseService {
      * @return 租客ID
      */
     @Transactional(rollbackFor = Exception.class)
-    public Long updateTenant(TenantCreateDTO createDTO) {
+    public Long updateLease(TenantCreateDTO createDTO) {
         LeaseDTO leaseDTO = resolveLeaseDTO(createDTO);
         Long leaseId = leaseDTO.getId();
         if (leaseId == null) {
@@ -624,8 +624,10 @@ public class LeaseService {
 
         LeaseDetailVO originalLease = getLeaseDetailById(leaseId);
 
-        if (Objects.equals(originalLease.getStatus(), LeaseStatusEnum.TERMINATED.getCode()) || Objects.equals(originalLease.getStatus(), LeaseStatusEnum.VOIDED.getCode())) {
-            throw new IllegalArgumentException("退租或作废的租约不允许修改租客信息！");
+        boolean canUpdateLease = Objects.equals(originalLease.getStatus(), LeaseStatusEnum.PENDING_APPROVAL.getCode()) || Objects.equals(originalLease.getStatus(), LeaseStatusEnum.TO_SIGN.getCode());
+
+        if (!canUpdateLease) {
+            throw new IllegalArgumentException("当前租约状态不允许修改租约！");
         }
 
         boolean needRegenerate = isKeyInfoChanged(leaseDTO, originalLease);
@@ -692,8 +694,8 @@ public class LeaseService {
         }
 
         if (Objects.equals(originalLease.getStatus(), LeaseStatusEnum.TERMINATED.getCode()) ||
-            Objects.equals(originalLease.getStatus(), LeaseStatusEnum.EFFECTIVE.getCode())) {
-            throw new IllegalArgumentException("租约在租或退租时，不允许修改");
+            Objects.equals(originalLease.getStatus(), LeaseStatusEnum.VOIDED.getCode())) {
+            throw new IllegalArgumentException("退租和已作废的租约不允许修改租客信息！");
         }
 
         TenantCreateDTO createDTO = new TenantCreateDTO();
