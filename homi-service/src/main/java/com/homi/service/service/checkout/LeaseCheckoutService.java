@@ -318,8 +318,7 @@ public class LeaseCheckoutService {
             throw new BizException("退租单不存在");
         }
 
-        boolean canModify = CheckoutStatusEnum.DRAFT.getCode().equals(checkout.getStatus())
-            || BizApprovalStatusEnum.REJECTED.getCode().equals(checkout.getApprovalStatus());
+        boolean canModify = CheckoutStatusEnum.DRAFT.getCode().equals(checkout.getStatus()) || BizApprovalStatusEnum.REJECTED.getCode().equals(checkout.getApprovalStatus());
 
         if (!canModify) {
             throw new BizException("当前状态不允许修改");
@@ -505,7 +504,7 @@ public class LeaseCheckoutService {
             throw new BizException("已完成的退租单不能取消");
         }
 
-        checkout.setStatus(CheckoutStatusEnum.CANCELLED.getCode());
+        checkout.setStatus(CheckoutStatusEnum.VOIDED.getCode());
         checkout.setUpdateBy(operatorDTO.getOperatorId());
         checkout.setUpdateAt(DateUtil.date());
         leaseCheckoutRepo.updateById(checkout);

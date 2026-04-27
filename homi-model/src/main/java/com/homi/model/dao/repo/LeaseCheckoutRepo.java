@@ -44,7 +44,7 @@ public class LeaseCheckoutRepo extends ServiceImpl<LeaseCheckoutMapper, LeaseChe
     public LeaseCheckout getByTenantId(Long tenantId) {
         return lambdaQuery()
             .eq(LeaseCheckout::getTenantId, tenantId)
-            .ne(LeaseCheckout::getStatus, CheckoutStatusEnum.CANCELLED.getCode())
+            .ne(LeaseCheckout::getStatus, CheckoutStatusEnum.VOIDED.getCode())
             .last("LIMIT 1")
             .one();
     }
@@ -55,7 +55,7 @@ public class LeaseCheckoutRepo extends ServiceImpl<LeaseCheckoutMapper, LeaseChe
     public LeaseCheckout getByLeaseId(Long leaseId) {
         return lambdaQuery()
             .eq(LeaseCheckout::getLeaseId, leaseId)
-            .ne(LeaseCheckout::getStatus, CheckoutStatusEnum.CANCELLED.getCode())
+            .ne(LeaseCheckout::getStatus, CheckoutStatusEnum.VOIDED.getCode())
             .last("LIMIT 1")
             .one();
     }
