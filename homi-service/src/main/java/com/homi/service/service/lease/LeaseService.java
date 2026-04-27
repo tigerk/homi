@@ -6,9 +6,12 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
+import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.booking.BookingStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
@@ -27,6 +30,7 @@ import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.vo.RoomListVO;
 import com.homi.model.tenant.dto.*;
 import com.homi.model.tenant.vo.*;
+import com.homi.model.owner.vo.BizOperateLogVO;
 import com.homi.service.service.approval.ApprovalResult;
 import com.homi.service.service.approval.ApprovalTemplate;
 import com.homi.service.service.company.CompanyCodeService;
@@ -83,6 +87,7 @@ public class LeaseService {
 
     private final ApprovalTemplate approvalTemplate;
     private final LeaseRoomRepo leaseRoomRepo;
+    private final BizOperateLogRepo bizOperateLogRepo;
 
     /**
      * 统一创建租客入口（编排逻辑）
@@ -664,6 +669,18 @@ public class LeaseService {
         return leaseId;
     }
 
+    @com.homi.common.lib.annotation.BizOperateLog(
+        bizType = BizOperateBizTypeEnum.LEASE,
+        operateType = BizOperateTypeEnum.UPDATE,
+        operateDesc = "修改租客信息",
+        bizIdExpr = "#p0.leaseId",
+        remarkExpr = "'修改租客信息'",
+        sourceType = "LEASE",
+        sourceIdExpr = "#p0.leaseId",
+        saveBeforeSnapshot = true,
+        saveAfterSnapshot = true,
+        snapshotProvider = "leaseTenantInfoSnapshotProvider"
+    )
     @Transactional(rollbackFor = Exception.class)
     public Long updateTenantInfo(TenantInfoUpdateDTO updateDTO) {
         if (updateDTO.getLeaseId() == null) {
@@ -694,6 +711,40 @@ public class LeaseService {
         handleTenantIdentityUpdate(originalLease.getTenantId(), tenantTypeInfo, updateDTO.getTenantType());
 
         return updateDTO.getLeaseId();
+    }
+
+    public List<BizOperateLogVO> listLeaseOperateLogs(Long leaseId, Long companyId) {
+        if (leaseId == null) {
+            return List.of();
+        }
+        return bizOperateLogRepo.list(new LambdaQueryWrapper<BizOperateLog>()
+                .eq(BizOperateLog::getCompanyId, companyId)
+                .and(wrapper -> wrapper
+                    .and(item -> item.eq(BizOperateLog::getBizType, BizOperateBizTypeEnum.LEASE.getCode())
+                        .eq(BizOperateLog::getBizId, leaseId))
+                    .or(item -> item.eq(BizOperateLog::getSourceType, "LEASE")
+                        .eq(BizOperateLog::getSourceId, leaseId)))
+                .orderByDesc(BizOperateLog::getId))
+            .stream()
+            .map(this::toBizOperateLogVO)
+            .toList();
+    }
+
+    private BizOperateLogVO toBizOperateLogVO(BizOperateLog item) {
+        BizOperateLogVO vo = new BizOperateLogVO();
+        vo.setId(item.getId());
+        vo.setBizType(item.getBizType());
+        vo.setBizId(item.getBizId());
+        vo.setOperateType(item.getOperateType());
+        vo.setOperateDesc(item.getOperateDesc());
+        vo.setRemark(item.getRemark());
+        vo.setExtraData(item.getExtraData());
+        vo.setSourceType(item.getSourceType());
+        vo.setSourceId(item.getSourceId());
+        vo.setOperatorId(item.getOperatorId());
+        vo.setOperatorName(item.getOperatorName());
+        vo.setCreateAt(item.getCreateAt());
+        return vo;
     }
 
     /**

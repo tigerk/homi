@@ -10,6 +10,7 @@ import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.contract.vo.LeaseContractVO;
+import com.homi.model.owner.vo.BizOperateLogVO;
 import com.homi.model.tenant.dto.*;
 import com.homi.model.tenant.vo.*;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -86,6 +87,11 @@ public class LeaseController {
     public ResponseResult<Long> updateTenantInfo(@RequestBody TenantInfoUpdateDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
         updateDTO.setCreateBy(loginUser.getId());
         return ResponseResult.ok(leaseService.updateTenantInfo(updateDTO));
+    }
+
+    @PostMapping("/operate-log/list")
+    public ResponseResult<List<BizOperateLogVO>> getLeaseOperateLogList(@RequestBody LeaseQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(leaseService.listLeaseOperateLogs(query.getLeaseId(), loginUser.getCurCompanyId()));
     }
 
     @PostMapping("/total")

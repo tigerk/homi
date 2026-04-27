@@ -9,6 +9,7 @@ import lombok.Getter;
 @Schema(enumAsRef = true, description = "业务操作类型枚举")
 public enum BizOperateTypeEnum {
     CREATE("CREATE", "新增"),
+    SAVE("SAVE", "保存"),
     UPDATE("UPDATE", "修改"),
     CANCEL("CANCEL", "作废"),
     PAY("PAY", "付款");

@@ -10,9 +10,12 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.annotation.BizOperateLog;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.FeeDirectionEnum;
+import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutSettlementMethodEnum;
 import com.homi.common.lib.enums.checkout.CheckoutStatusEnum;
@@ -207,6 +210,18 @@ public class LeaseCheckoutService {
     /**
      * 创建/保存退租单（退租并结账）
      */
+    @BizOperateLog(
+        bizType = BizOperateBizTypeEnum.LEASE_CHECKOUT,
+        operateType = BizOperateTypeEnum.SAVE,
+        operateDesc = "保存退租单",
+        bizIdExpr = "#result",
+        remarkExpr = "#p0.remark",
+        sourceType = "LEASE",
+        sourceIdExpr = "#afterSnapshot != null ? #afterSnapshot.leaseId : #p0.leaseId",
+        saveBeforeSnapshot = true,
+        saveAfterSnapshot = true,
+        snapshotProvider = "leaseCheckoutSnapshotProvider"
+    )
     @Transactional(rollbackFor = Exception.class)
     public Long saveCheckout(LeaseCheckoutDTO dto) {
         Lease lease = leaseRepo.getById(dto.getLeaseId());
@@ -508,6 +523,18 @@ public class LeaseCheckoutService {
     /**
      * 取消退租单
      */
+    @BizOperateLog(
+        bizType = BizOperateBizTypeEnum.LEASE_CHECKOUT,
+        operateType = BizOperateTypeEnum.CANCEL,
+        operateDesc = "取消退租单",
+        bizIdExpr = "#p0",
+        remarkExpr = "#p1",
+        sourceType = "LEASE",
+        sourceIdExpr = "#afterSnapshot != null ? #afterSnapshot.leaseId : null",
+        saveBeforeSnapshot = true,
+        saveAfterSnapshot = true,
+        snapshotProvider = "leaseCheckoutSnapshotProvider"
+    )
     @Transactional(rollbackFor = Exception.class)
     public void cancelCheckout(Long checkoutId, String cancelReason, OperatorDTO operatorDTO) {
         LeaseCheckout checkout = leaseCheckoutRepo.getById(checkoutId);
