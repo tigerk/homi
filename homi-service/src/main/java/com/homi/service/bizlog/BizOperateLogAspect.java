@@ -65,7 +65,7 @@ public class BizOperateLogAspect {
             beforeSnapshot,
             afterSnapshot,
             evalJsonMap(annotation.extraDataExpr(), context),
-            CharSequenceUtil.emptyToDefault(annotation.sourceType(), null),
+            annotation.sourceType().getCode().isBlank() ? null : annotation.sourceType().getCode(),
             evalLong(annotation.sourceIdExpr(), context),
             operatorContext.getOperatorId(),
             operatorContext.getOperatorName()

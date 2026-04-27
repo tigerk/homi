@@ -15,6 +15,7 @@ import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.FeeDirectionEnum;
 import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutSettlementMethodEnum;
@@ -216,7 +217,7 @@ public class LeaseCheckoutService {
         operateDesc = "保存退租单",
         bizIdExpr = "#result",
         remarkExpr = "#p0.remark",
-        sourceType = "LEASE",
+        sourceType = BizOperateSourceTypeEnum.LEASE,
         sourceIdExpr = "#afterSnapshot != null ? #afterSnapshot.leaseId : #p0.leaseId",
         saveBeforeSnapshot = true,
         saveAfterSnapshot = true,
@@ -529,7 +530,7 @@ public class LeaseCheckoutService {
         operateDesc = "取消退租单",
         bizIdExpr = "#p0",
         remarkExpr = "#p1",
-        sourceType = "LEASE",
+        sourceType = BizOperateSourceTypeEnum.LEASE,
         sourceIdExpr = "#afterSnapshot != null ? #afterSnapshot.leaseId : null",
         saveBeforeSnapshot = true,
         saveAfterSnapshot = true,

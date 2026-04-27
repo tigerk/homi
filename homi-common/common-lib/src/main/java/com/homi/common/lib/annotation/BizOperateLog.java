@@ -1,6 +1,7 @@
 package com.homi.common.lib.annotation;
 
 import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 
 import java.lang.annotation.*;
@@ -22,7 +23,7 @@ public @interface BizOperateLog {
 
     String extraDataExpr() default "";
 
-    String sourceType() default "";
+    BizOperateSourceTypeEnum sourceType() default BizOperateSourceTypeEnum.NONE;
 
     String sourceIdExpr() default "";
 

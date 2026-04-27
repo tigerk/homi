@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
@@ -129,11 +130,7 @@ public class OwnerPayableBillService {
         vo.setFeeList(ownerPayableBillFeeRepo.lambdaQuery().eq(OwnerPayableBillFee::getBillId, bill.getId()).orderByAsc(OwnerPayableBillFee::getId).list()
             .stream().map(this::toFeeVO).toList());
         vo.setPaymentList(buildPaymentList(bill.getId()));
-        vo.setOperateLogList(bizOperateLogRepo.lambdaQuery()
-            .eq(BizOperateLog::getBizType, BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode())
-            .eq(BizOperateLog::getBizId, bill.getId())
-            .orderByDesc(BizOperateLog::getId)
-            .list().stream().map(this::toLogVO).toList());
+        vo.setOperateLogList(bizOperateLogRepo.listByBiz(BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(), bill.getId()));
         return vo;
     }
 
@@ -232,7 +229,7 @@ public class OwnerPayableBillService {
         bizIdExpr = "#p0.billId",
         remarkExpr = "#p0.remark",
         extraDataExpr = "{'payAmount': #p0.payAmount, 'payChannel': #p0.payChannel != null ? #p0.payChannel.code : null}",
-        sourceType = "OWNER_PAYABLE_BILL_PAYMENT",
+        sourceType = BizOperateSourceTypeEnum.OWNER_PAYABLE_BILL_PAYMENT,
         sourceIdExpr = "#result",
         saveBeforeSnapshot = true,
         saveAfterSnapshot = true,
@@ -514,23 +511,6 @@ public class OwnerPayableBillService {
         vo.setThirdTradeNo(item.getThirdTradeNo());
         vo.setRemark(item.getRemark());
         vo.setVoucherUrls(voucherUrls == null ? Collections.emptyList() : voucherUrls);
-        vo.setCreateAt(item.getCreateAt());
-        return vo;
-    }
-
-    private BizOperateLogVO toLogVO(BizOperateLog item) {
-        BizOperateLogVO vo = new BizOperateLogVO();
-        vo.setId(item.getId());
-        vo.setBizType(item.getBizType());
-        vo.setBizId(item.getBizId());
-        vo.setOperateType(item.getOperateType());
-        vo.setOperateDesc(item.getOperateDesc());
-        vo.setRemark(item.getRemark());
-        vo.setExtraData(item.getExtraData());
-        vo.setSourceType(item.getSourceType());
-        vo.setSourceId(item.getSourceId());
-        vo.setOperatorId(item.getOperatorId());
-        vo.setOperatorName(item.getOperatorName());
         vo.setCreateAt(item.getCreateAt());
         return vo;
     }

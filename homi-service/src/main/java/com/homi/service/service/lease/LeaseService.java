@@ -6,11 +6,11 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.booking.BookingStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
@@ -675,7 +675,7 @@ public class LeaseService {
         operateDesc = "修改租客信息",
         bizIdExpr = "#p0.leaseId",
         remarkExpr = "'修改租客信息'",
-        sourceType = "LEASE",
+        sourceType = BizOperateSourceTypeEnum.LEASE,
         sourceIdExpr = "#p0.leaseId",
         saveBeforeSnapshot = true,
         saveAfterSnapshot = true,
@@ -714,37 +714,7 @@ public class LeaseService {
     }
 
     public List<BizOperateLogVO> listLeaseOperateLogs(Long leaseId, Long companyId) {
-        if (leaseId == null) {
-            return List.of();
-        }
-        return bizOperateLogRepo.list(new LambdaQueryWrapper<BizOperateLog>()
-                .eq(BizOperateLog::getCompanyId, companyId)
-                .and(wrapper -> wrapper
-                    .and(item -> item.eq(BizOperateLog::getBizType, BizOperateBizTypeEnum.LEASE.getCode())
-                        .eq(BizOperateLog::getBizId, leaseId))
-                    .or(item -> item.eq(BizOperateLog::getSourceType, "LEASE")
-                        .eq(BizOperateLog::getSourceId, leaseId)))
-                .orderByDesc(BizOperateLog::getId))
-            .stream()
-            .map(this::toBizOperateLogVO)
-            .toList();
-    }
-
-    private BizOperateLogVO toBizOperateLogVO(BizOperateLog item) {
-        BizOperateLogVO vo = new BizOperateLogVO();
-        vo.setId(item.getId());
-        vo.setBizType(item.getBizType());
-        vo.setBizId(item.getBizId());
-        vo.setOperateType(item.getOperateType());
-        vo.setOperateDesc(item.getOperateDesc());
-        vo.setRemark(item.getRemark());
-        vo.setExtraData(item.getExtraData());
-        vo.setSourceType(item.getSourceType());
-        vo.setSourceId(item.getSourceId());
-        vo.setOperatorId(item.getOperatorId());
-        vo.setOperatorName(item.getOperatorName());
-        vo.setCreateAt(item.getCreateAt());
-        return vo;
+        return bizOperateLogRepo.listByBizOrSource(companyId, BizOperateBizTypeEnum.LEASE.getCode(), leaseId, BizOperateSourceTypeEnum.LEASE, leaseId);
     }
 
     /**
