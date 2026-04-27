@@ -70,6 +70,9 @@ public class LeaseDetailVO {
     @Schema(description = "支付周期（月）")
     private Integer paymentMonths;
 
+    @Schema(description = "首期账单收租日")
+    private Integer firstBillDay;
+
     @Schema(description = "租赁开始时间")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private Date leaseStart;

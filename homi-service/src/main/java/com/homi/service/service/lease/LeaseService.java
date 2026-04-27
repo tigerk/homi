@@ -5,6 +5,7 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.EnumUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
@@ -73,6 +74,7 @@ public class LeaseService {
     private final FileAttachRepo fileAttachRepo;
     private final LeaseOtherFeeRepo leaseOtherFeeRepo;
     private final BookingRepo bookingRepo;
+    private final LeaseCheckoutRepo leaseCheckoutRepo;
 
     private final RoomService roomService;
     private final LeaseBillGenService leaseBillGenService;
@@ -158,6 +160,9 @@ public class LeaseService {
      */
     public Long createTenant(TenantCreateDTO createDTO) {
         LeaseDTO leaseDTO = resolveLeaseDTO(createDTO);
+        if (leaseDTO.getParentLeaseId() != null) {
+            throw new IllegalArgumentException("续约请使用续约接口");
+        }
 
         // 检查房间是否存在
         List<Room> roomList = roomRepo.listByIds(leaseDTO.getRoomIds());
@@ -165,8 +170,8 @@ public class LeaseService {
             throw new IllegalArgumentException("房间不存在，不能创建租约");
         }
 
-        // 检查租期是否与已有租约冲突（续签时排除原租约）
-        Long excludeLeaseId = leaseDTO.getParentLeaseId();
+        // 检查租期是否与已有租约冲突
+        Long excludeLeaseId = null;
         boolean hasConflict = leaseRepo.existsConflict(
             leaseDTO.getRoomIds(),
             leaseDTO.getLeaseStart(),
@@ -201,7 +206,7 @@ public class LeaseService {
 
         Lease lease = saveLease(tenantId, leaseDTO, createDTO.getOtherFees());
 
-        tenantMateService.saveTenantMateList(tenantId, createDTO.getTenantMateList());
+        tenantMateService.handleTenantMateUpdate(tenantId, createDTO.getTenantMateList(), tenantMateService.getTenantMateListByTenantId(tenantId));
 
         leaseBillGenService.addLeaseBill(lease.getId(), tenantId, leaseDTO, createDTO.getOtherFees());
 
@@ -234,6 +239,104 @@ public class LeaseService {
 
         log.info("租约创建处理完成: leaseId={}, needApproval={}", lease.getId(), approvalResult.isNeedApproval());
 
+        return lease.getId();
+    }
+
+    /**
+     * 租客续约。
+     *
+     * <p>续约是独立业务入口：创建新租约，复用旧租客，租金和其他费用按新租约生成，
+     * 押金由结转服务统一处理，避免普通创建流程重复生成完整押金账单。
+     */
+    @com.homi.common.lib.annotation.BizOperateLog(
+        bizType = BizOperateBizTypeEnum.LEASE,
+        operateType = BizOperateTypeEnum.RENEW,
+        operateDesc = "租客续约",
+        bizIdExpr = "#result",
+        remarkExpr = "'租客续约'",
+        sourceType = BizOperateSourceTypeEnum.LEASE,
+        sourceIdExpr = "#p0.lease.parentLeaseId"
+    )
+    @Transactional(rollbackFor = Exception.class)
+    public Long renewLease(TenantCreateDTO createDTO) {
+        LeaseDTO leaseDTO = resolveLeaseDTO(createDTO);
+        Long oldLeaseId = leaseDTO.getParentLeaseId();
+        if (oldLeaseId == null) {
+            throw new IllegalArgumentException("原租约ID不能为空");
+        }
+
+        Lease oldLease = leaseRepo.getById(oldLeaseId);
+        if (oldLease == null) {
+            throw new IllegalArgumentException("原租约不存在");
+        }
+        if (Objects.equals(oldLease.getStatus(), LeaseStatusEnum.VOIDED.getCode())) {
+            throw new IllegalArgumentException("已作废租约不能续约");
+        }
+        if (leaseCheckoutRepo.getByLeaseId(oldLeaseId) != null) {
+            throw new IllegalArgumentException("原租约已有退租单，不能续约");
+        }
+        boolean existsRenewLease = leaseRepo.lambdaQuery()
+            .eq(Lease::getParentLeaseId, oldLeaseId)
+            .in(Lease::getStatus, LeaseStatusEnum.getValidStatus())
+            .exists();
+        if (existsRenewLease) {
+            throw new IllegalArgumentException("该租约已存在有效续约租约");
+        }
+        if (leaseDTO.getLeaseStart() == null || leaseDTO.getLeaseEnd() == null) {
+            throw new IllegalArgumentException("续约租期不能为空");
+        }
+        if (leaseDTO.getLeaseStart().before(DateUtil.beginOfDay(oldLease.getLeaseEnd()))) {
+            throw new IllegalArgumentException("续约开始日期不能早于原租约结束日期");
+        }
+
+        List<Room> roomList = roomRepo.listByIds(leaseDTO.getRoomIds());
+        if (roomList == null || roomList.size() != leaseDTO.getRoomIds().size()) {
+            throw new IllegalArgumentException("房间不存在，不能续约");
+        }
+        boolean hasConflict = leaseRepo.existsConflict(
+            leaseDTO.getRoomIds(),
+            leaseDTO.getLeaseStart(),
+            leaseDTO.getLeaseEnd(),
+            oldLeaseId
+        );
+        if (hasConflict) {
+            throw new IllegalArgumentException("房间在该租期内已被出租，不能续约");
+        }
+
+        Long tenantId = ObjectUtil.defaultIfNull(leaseDTO.getTenantId(), oldLease.getTenantId());
+        leaseDTO.setTenantId(tenantId);
+        leaseDTO.setContractNature(2);
+        Lease lease = saveLease(tenantId, leaseDTO, createDTO.getOtherFees());
+
+        tenantMateService.handleTenantMateUpdate(
+            tenantId,
+            createDTO.getTenantMateList(),
+            tenantMateService.getTenantMateListByTenantId(tenantId)
+        );
+        leaseBillGenService.addLeaseBill(lease.getId(), tenantId, leaseDTO, createDTO.getOtherFees(), false);
+        depositCarryOverService.carryOverDeposit(oldLeaseId, lease.getId(), tenantId, leaseDTO);
+
+        LeaseDetailVO leaseDetail = getLeaseDetailById(lease.getId());
+        leaseContractService.addLeaseContract(leaseDTO.getContractTemplateId(), leaseDetail);
+        roomRepo.updateOccupancyStatusByRoomIds(leaseDTO.getRoomIds(), OccupancyStatusEnum.LEASED.getCode());
+
+        Tenant tenant = tenantRepo.getById(tenantId);
+        ApprovalResult approvalResult = approvalTemplate.submitIfNeed(
+            ApprovalSubmitDTO.builder()
+                .companyId(lease.getCompanyId())
+                .bizType(ApprovalBizTypeEnum.TENANT_CHECKIN.getCode())
+                .bizId(lease.getId())
+                .title(String.format("【租客续约审批】-租客：%s", tenant != null ? tenant.getTenantName() : ""))
+                .applicantId(createDTO.getCreateBy())
+                .build(),
+            bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId,
+                LeaseStatusEnum.PENDING_APPROVAL.getCode(),
+                BizApprovalStatusEnum.PENDING.getCode()),
+            bizId -> leaseRepo.updateStatusAndApprovalStatus(bizId,
+                LeaseStatusEnum.TO_SIGN.getCode(),
+                BizApprovalStatusEnum.APPROVED.getCode())
+        );
+        log.info("租客续约处理完成: oldLeaseId={}, newLeaseId={}, needApproval={}", oldLeaseId, lease.getId(), approvalResult.isNeedApproval());
         return lease.getId();
     }
 
@@ -925,6 +1028,7 @@ public class LeaseService {
         lease.setRentPrice(leaseDTO.getRentPrice());
         lease.setDepositMonths(leaseDTO.getDepositMonths());
         lease.setPaymentMonths(leaseDTO.getPaymentMonths());
+        lease.setFirstBillDay(leaseDTO.getFirstBillDay());
         lease.setRentDueType(leaseDTO.getRentDueType());
         lease.setRentDueDay(leaseDTO.getRentDueDay());
         lease.setRentDueOffsetDays(leaseDTO.getRentDueOffsetDays());

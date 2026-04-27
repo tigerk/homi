@@ -32,6 +32,15 @@ public class LeaseBillCalculator {
      * @return {@link PayStatusEnum} 对应 code
      */
     public Integer resolvePayStatus(BigDecimal paidAmount, BigDecimal totalAmount) {
+        if (totalAmount != null && totalAmount.compareTo(BigDecimal.ZERO) < 0) {
+            if (paidAmount == null || paidAmount.compareTo(BigDecimal.ZERO) == 0) {
+                return PayStatusEnum.UNPAID.getCode();
+            }
+            if (paidAmount.compareTo(totalAmount) <= 0) {
+                return PayStatusEnum.PAID.getCode();
+            }
+            return PayStatusEnum.PARTIALLY_PAID.getCode();
+        }
         if (paidAmount == null || paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
             return PayStatusEnum.UNPAID.getCode();
         }
@@ -116,6 +125,12 @@ public class LeaseBillCalculator {
      * 条件：归属账单正确、分摊金额 &gt; 0 且不超过未收金额。
      */
     private boolean isCollectableItem(LeaseBill bill, LeaseBillFee fee, BigDecimal amount) {
+        if (fee != null && Objects.equals(fee.getBillId(), bill.getId())) {
+            BigDecimal unpaidAmount = ObjectUtil.defaultIfNull(fee.getUnpaidAmount(), BigDecimal.ZERO);
+            if (unpaidAmount.compareTo(BigDecimal.ZERO) < 0) {
+                return amount.compareTo(BigDecimal.ZERO) < 0 && amount.compareTo(unpaidAmount) >= 0;
+            }
+        }
         return fee != null
             && Objects.equals(fee.getBillId(), bill.getId())
             && amount.compareTo(BigDecimal.ZERO) > 0

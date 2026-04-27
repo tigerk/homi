@@ -59,10 +59,13 @@ public class PaymentFlowService {
         paymentFlow.setChannel(resolvePaymentChannel(command.payChannel()));
         paymentFlow.setThirdTradeNo(command.thirdTradeNo());
         paymentFlow.setPaymentVoucherUrl(command.paymentVoucherUrl());
-        paymentFlow.setAmount(command.totalAmount());
+        BigDecimal totalAmount = command.totalAmount() == null ? BigDecimal.ZERO : command.totalAmount();
+        paymentFlow.setAmount(totalAmount.abs());
         paymentFlow.setCurrency("CNY");
         paymentFlow.setRefundedAmount(BigDecimal.ZERO);
-        paymentFlow.setFlowDirection(PaymentFlowDirectionEnum.IN.getCode());
+        paymentFlow.setFlowDirection(totalAmount.compareTo(BigDecimal.ZERO) < 0
+            ? PaymentFlowDirectionEnum.OUT.getCode()
+            : PaymentFlowDirectionEnum.IN.getCode());
         paymentFlow.setStatus(command.status());
         paymentFlow.setApprovalStatus(command.approvalStatus());
         paymentFlow.setPayAt(command.payAt());

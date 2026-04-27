@@ -59,9 +59,11 @@ public class FinanceFlowService {
         financeFlow.setBizType(FinanceBizTypeEnum.LEASE_BILL_FEE.getCode());
         financeFlow.setBizId(item.getLeaseBillFeeId());
         financeFlow.setBizNo(String.valueOf(item.getLeaseBillFeeId()));
-        financeFlow.setFlowType(FinanceFlowTypeEnum.RECEIVE.getCode());
-        financeFlow.setFlowDirection(FinanceFlowDirectionEnum.IN.getCode());
-        financeFlow.setAmount(item.getAmount() == null ? BigDecimal.ZERO : item.getAmount());
+        BigDecimal amount = item.getAmount() == null ? BigDecimal.ZERO : item.getAmount();
+        boolean expense = amount.compareTo(BigDecimal.ZERO) < 0;
+        financeFlow.setFlowType(expense ? FinanceFlowTypeEnum.PAY.getCode() : FinanceFlowTypeEnum.RECEIVE.getCode());
+        financeFlow.setFlowDirection(expense ? FinanceFlowDirectionEnum.OUT.getCode() : FinanceFlowDirectionEnum.IN.getCode());
+        financeFlow.setAmount(amount.abs());
         financeFlow.setCurrency("CNY");
         financeFlow.setStatus(FinanceFlowStatusEnum.SUCCESS.getCode());
         financeFlow.setFlowAt(command.payAt());

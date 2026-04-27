@@ -3,6 +3,7 @@ package com.homi.service.service.lease.bill.component;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.util.ObjectUtil;
 import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
+import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.entity.LeaseBillFee;
@@ -77,7 +78,9 @@ public class LeaseBillUpdater {
             .collect(java.util.stream.Collectors.groupingBy(
                 FinanceFlow::getBizId,
                 java.util.stream.Collectors.mapping(
-                    item -> ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO),
+                    item -> FinanceFlowDirectionEnum.OUT.getCode().equals(item.getFlowDirection())
+                        ? ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO).negate()
+                        : ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO),
                     java.util.stream.Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
                 )
             ));
@@ -116,7 +119,11 @@ public class LeaseBillUpdater {
             BigDecimal nextPaidAmount = ObjectUtil.defaultIfNull(fee.getPaidAmount(), BigDecimal.ZERO)
                 .add(ObjectUtil.defaultIfNull(item.getAmount(), BigDecimal.ZERO));
             // 防止浮点误差导致超收
-            if (nextPaidAmount.compareTo(totalAmount) > 0) {
+            if (totalAmount.compareTo(BigDecimal.ZERO) >= 0 && nextPaidAmount.compareTo(totalAmount) > 0) {
+                nextPaidAmount = totalAmount;
+            }
+            // 负账单表示应退金额，防止超额退款。
+            if (totalAmount.compareTo(BigDecimal.ZERO) < 0 && nextPaidAmount.compareTo(totalAmount) < 0) {
                 nextPaidAmount = totalAmount;
             }
             fee.setPaidAmount(nextPaidAmount);

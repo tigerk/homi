@@ -54,8 +54,15 @@ public class LeaseBillGenService {
      */
     @Transactional(rollbackFor = Exception.class)
     public void addLeaseBill(Long leaseId, Long tenantId, LeaseDTO lease, List<OtherFeeDTO> otherFees) {
+        addLeaseBill(leaseId, tenantId, lease, otherFees, true);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void addLeaseBill(Long leaseId, Long tenantId, LeaseDTO lease, List<OtherFeeDTO> otherFees, boolean generateDepositBill) {
         // 生成押金账单
-        addTenantDepositBill(leaseId, tenantId, lease);
+        if (generateDepositBill) {
+            addTenantDepositBill(leaseId, tenantId, lease);
+        }
 
         // 生成租金账单（包含随房租付的其他费用）
         addTenantRentBill(leaseId, tenantId, lease, otherFees);

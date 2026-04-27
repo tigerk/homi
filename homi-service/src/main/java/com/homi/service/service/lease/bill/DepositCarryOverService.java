@@ -42,6 +42,10 @@ public class DepositCarryOverService {
 
         if (oldDepositBills.isEmpty()) {
             log.info("旧租约 {} 无已支付押金，跳过结转", oldLeaseId);
+            BigDecimal newDepositTotal = calculateNewDepositTotal(newLease);
+            if (newDepositTotal.compareTo(BigDecimal.ZERO) > 0) {
+                createDepositBill(newLeaseId, tenantId, newLease, newDepositTotal, "续签押金账单");
+            }
             return;
         }
 
@@ -49,9 +53,7 @@ public class DepositCarryOverService {
             .map(LeaseBill::getTotalAmount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal newDepositTotal = newLease.getRentPrice()
-            .multiply(BigDecimal.valueOf(newLease.getDepositMonths()))
-            .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal newDepositTotal = calculateNewDepositTotal(newLease);
 
         LeaseBill carryOutBill = new LeaseBill();
         carryOutBill.setTenantId(tenantId);
@@ -105,35 +107,57 @@ public class DepositCarryOverService {
 
         BigDecimal diff = newDepositTotal.subtract(oldDepositTotal);
         if (diff.compareTo(BigDecimal.ZERO) > 0) {
-            LeaseBill supplementBill = new LeaseBill();
-            supplementBill.setTenantId(tenantId);
-            supplementBill.setLeaseId(newLeaseId);
-            supplementBill.setCompanyId(newLease.getCompanyId());
-            supplementBill.setSortOrder(0);
-            supplementBill.setBillType(LeaseBillTypeEnum.DEPOSIT.getCode());
-            supplementBill.setBillStart(newLease.getLeaseStart());
-            supplementBill.setBillEnd(newLease.getLeaseEnd());
-            supplementBill.setTotalAmount(diff);
-            supplementBill.setPaidAmount(BigDecimal.ZERO);
-            supplementBill.setUnpaidAmount(diff);
-            supplementBill.setDueDate(new Date());
-            supplementBill.setPayStatus(PayStatusEnum.UNPAID.getCode());
-            supplementBill.setRemark("续签押金补缴（差额）");
-            supplementBill.setStatus(LeaseBillStatusEnum.NORMAL.getCode());
-            supplementBill.setHistorical(false);
-            supplementBill.setDeleted(false);
-            supplementBill.setCreateBy(newLease.getCreateBy());
-            supplementBill.setCreateAt(new Date());
-            tenantBillRepo.save(supplementBill);
-            saveDepositFee(supplementBill, diff, newLease.getCreateBy());
-
+            createDepositBill(newLeaseId, tenantId, newLease, diff, "续签押金补缴（差额）");
             log.info("新租约 {} 需补缴押金差额：{}", newLeaseId, diff);
         } else if (diff.compareTo(BigDecimal.ZERO) < 0) {
-            log.info("新租约 {} 押金减少 {}，将在退租时退还", newLeaseId, diff.abs());
+            createDepositBill(newLeaseId, tenantId, newLease, diff, "续签押金差额退款");
+            log.info("新租约 {} 需退还押金差额：{}", newLeaseId, diff.abs());
         }
 
         log.info("押金结转完成：旧租约={}, 新租约={}, 结转金额={}",
             oldLeaseId, newLeaseId, oldDepositTotal);
+    }
+
+    private BigDecimal calculateNewDepositTotal(LeaseDTO newLease) {
+        BigDecimal monthlyRent = BigDecimal.ZERO;
+        if (newLease.getRoomRentList() != null && !newLease.getRoomRentList().isEmpty()) {
+            monthlyRent = newLease.getRoomRentList().stream()
+                .map(item -> item == null || item.getRentPrice() == null ? BigDecimal.ZERO : item.getRentPrice())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+        if (monthlyRent.compareTo(BigDecimal.ZERO) == 0 && newLease.getRentPrice() != null) {
+            monthlyRent = newLease.getRentPrice();
+        }
+        return monthlyRent
+            .multiply(BigDecimal.valueOf(newLease.getDepositMonths() == null ? 0 : newLease.getDepositMonths()))
+            .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private void createDepositBill(Long leaseId, Long tenantId, LeaseDTO newLease, BigDecimal amount, String remark) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) == 0) {
+            return;
+        }
+        LeaseBill bill = new LeaseBill();
+        bill.setTenantId(tenantId);
+        bill.setLeaseId(leaseId);
+        bill.setCompanyId(newLease.getCompanyId());
+        bill.setSortOrder(0);
+        bill.setBillType(LeaseBillTypeEnum.DEPOSIT.getCode());
+        bill.setBillStart(newLease.getLeaseStart());
+        bill.setBillEnd(newLease.getLeaseEnd());
+        bill.setTotalAmount(amount);
+        bill.setPaidAmount(BigDecimal.ZERO);
+        bill.setUnpaidAmount(amount);
+        bill.setDueDate(new Date());
+        bill.setPayStatus(PayStatusEnum.UNPAID.getCode());
+        bill.setRemark(remark);
+        bill.setStatus(LeaseBillStatusEnum.NORMAL.getCode());
+        bill.setHistorical(false);
+        bill.setDeleted(false);
+        bill.setCreateBy(newLease.getCreateBy());
+        bill.setCreateAt(new Date());
+        tenantBillRepo.save(bill);
+        saveDepositFee(bill, amount, newLease.getCreateBy());
     }
 
     private void saveDepositFee(LeaseBill bill, BigDecimal amount, Long operatorId) {

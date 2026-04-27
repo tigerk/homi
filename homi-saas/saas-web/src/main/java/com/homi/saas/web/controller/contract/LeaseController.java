@@ -69,7 +69,7 @@ public class LeaseController {
         if (createDTO.getLease() != null) {
             createDTO.getLease().setCompanyId(loginUser.getCurCompanyId());
         }
-        return ResponseResult.ok(leaseService.saveTenantOrFromBooking(createDTO));
+        return ResponseResult.ok(leaseService.renewLease(createDTO));
     }
 
     @PostMapping("/update")

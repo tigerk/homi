@@ -72,6 +72,10 @@ public class Lease implements Serializable {
     @TableField("payment_months")
     private Integer paymentMonths;
 
+    @Schema(description = "首期账单收租日")
+    @TableField("first_bill_day")
+    private Integer firstBillDay;
+
     @Schema(description = "租赁开始时间")
     @TableField("lease_start")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
