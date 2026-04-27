@@ -43,7 +43,7 @@ public class LeaseTenantInfoSnapshotProvider implements BizOperateLogSnapshotPro
             try {
                 Object value = arg.getClass().getMethod("getLeaseId").invoke(arg);
                 return value instanceof Long id ? id : null;
-            } catch (Exception ignored) {
+            } catch (Exception _) {
                 // Continue scanning other arguments.
             }
         }

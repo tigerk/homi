@@ -63,6 +63,8 @@ public class BizOperateLogRepo extends ServiceImpl<BizOperateLogMapper, BizOpera
         vo.setOperateType(item.getOperateType());
         vo.setOperateDesc(item.getOperateDesc());
         vo.setRemark(item.getRemark());
+        vo.setBeforeSnapshot(item.getBeforeSnapshot());
+        vo.setAfterSnapshot(item.getAfterSnapshot());
         vo.setExtraData(item.getExtraData());
         vo.setSourceType(item.getSourceType());
         vo.setSourceId(item.getSourceId());

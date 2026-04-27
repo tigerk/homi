@@ -27,6 +27,12 @@ public class BizOperateLogVO {
     @Schema(description = "备注")
     private String remark;
 
+    @Schema(description = "操作前快照")
+    private String beforeSnapshot;
+
+    @Schema(description = "操作后快照")
+    private String afterSnapshot;
+
     @Schema(description = "扩展数据")
     private String extraData;
 
