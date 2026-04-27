@@ -10,9 +10,9 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.enums.FeeDirectionEnum;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
-import com.homi.common.lib.enums.FeeDirectionEnum;
 import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutSettlementMethodEnum;
 import com.homi.common.lib.enums.checkout.CheckoutStatusEnum;
@@ -28,8 +28,8 @@ import com.homi.model.approval.dto.ApprovalSubmitDTO;
 import com.homi.model.checkout.dto.LeaseCheckoutDTO;
 import com.homi.model.checkout.dto.LeaseCheckoutFeeDTO;
 import com.homi.model.checkout.dto.LeaseCheckoutQueryDTO;
-import com.homi.model.checkout.vo.LeaseCheckoutInitVO;
 import com.homi.model.checkout.vo.LeaseCheckoutFeeVO;
+import com.homi.model.checkout.vo.LeaseCheckoutInitVO;
 import com.homi.model.checkout.vo.LeaseCheckoutVO;
 import com.homi.model.common.dto.OperatorDTO;
 import com.homi.model.dao.entity.*;
@@ -318,9 +318,9 @@ public class LeaseCheckoutService {
             throw new BizException("退租单不存在");
         }
 
-        boolean canModify = CheckoutStatusEnum.DRAFT.getCode().equals(checkout.getStatus()) || BizApprovalStatusEnum.REJECTED.getCode().equals(checkout.getApprovalStatus());
+        boolean canNotModify = CheckoutStatusEnum.VOIDED.getCode().equals(checkout.getStatus());
 
-        if (!canModify) {
+        if (canNotModify) {
             throw new BizException("当前状态不允许修改");
         }
 
