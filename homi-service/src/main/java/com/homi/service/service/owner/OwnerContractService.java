@@ -17,6 +17,7 @@ import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.contract.OwnerParamsEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
+import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.owner.*;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
@@ -458,15 +459,18 @@ public class OwnerContractService {
         List<OwnerCheckoutLeaseRoomVO> leasedRoomList = new ArrayList<>();
         List<OwnerContractSubject> subjectList = ownerContractSubjectRepo.listByContractId(contract.getId());
         List<Long> roomIds = resolveOwnerContractRoomIds(subjectList);
+        Map<Long, LeaseLiteVO> leaseInfoMap = leaseRepo.getCurrentLeaseMapByRoomIds(roomIds);
         for (Long roomId : roomIds) {
-            LeaseLiteVO leaseInfo = leaseRepo.getCurrentLeasesByRoomId(roomId);
-            if (leaseInfo == null || !Objects.equals(leaseInfo.getStatus(), LeaseStatusEnum.EFFECTIVE.getCode())) {
+            LeaseLiteVO leaseInfo = leaseInfoMap.get(roomId);
+            if (leaseInfo == null) {
                 continue;
             }
             OwnerCheckoutLeaseRoomVO roomVO = new OwnerCheckoutLeaseRoomVO();
             roomVO.setRoomId(roomId);
             roomVO.setRoomName(leaseInfo.getRoomName());
             roomVO.setLeaseId(leaseInfo.getLeaseId());
+            roomVO.setLeaseStatus(leaseInfo.getStatus());
+            roomVO.setLeaseStatusName(leaseStatusName(leaseInfo.getStatus()));
             roomVO.setTenantId(leaseInfo.getTenantId());
             roomVO.setTenantName(leaseInfo.getTenantName());
             roomVO.setTenantPhone(leaseInfo.getTenantPhone());
@@ -1013,19 +1017,62 @@ public class OwnerContractService {
         if (subjectList == null || subjectList.isEmpty()) {
             return List.of();
         }
+        LinkedHashSet<Long> houseIds = new LinkedHashSet<>();
         LinkedHashSet<Long> roomIds = new LinkedHashSet<>();
         for (OwnerContractSubject subject : subjectList) {
             if (subject == null || subject.getSubjectId() == null) {
                 continue;
             }
             if (OwnerContractSubjectTypeEnum.HOUSE.getCode().equals(subject.getSubjectType())) {
-                roomRepo.getRoomListByHouseId(subject.getSubjectId()).stream()
-                    .map(Room::getId)
+                houseIds.add(subject.getSubjectId());
+                continue;
+            }
+            if (OwnerContractSubjectTypeEnum.FOCUS.getCode().equals(subject.getSubjectType())) {
+                houseRepo.getHousesByLeaseModeId(subject.getSubjectId(), LeaseModeEnum.FOCUS.getCode()).stream()
+                    .map(House::getId)
                     .filter(Objects::nonNull)
-                    .forEach(roomIds::add);
+                    .forEach(houseIds::add);
+                continue;
+            }
+            if (OwnerContractSubjectTypeEnum.FOCUS_BUILDING.getCode().equals(subject.getSubjectType())) {
+                FocusBuilding focusBuilding = focusBuildingRepo.getById(subject.getSubjectId());
+                if (focusBuilding == null) {
+                    continue;
+                }
+                houseRepo.lambdaQuery()
+                    .eq(House::getLeaseMode, LeaseModeEnum.FOCUS.getCode())
+                    .eq(House::getLeaseModeId, focusBuilding.getFocusId())
+                    .eq(House::getBuilding, focusBuilding.getBuilding())
+                    .eq(House::getUnit, focusBuilding.getUnit())
+                    .list()
+                    .stream()
+                    .map(House::getId)
+                    .filter(Objects::nonNull)
+                    .forEach(houseIds::add);
             }
         }
+        if (!houseIds.isEmpty()) {
+            roomRepo.lambdaQuery()
+                .in(Room::getHouseId, houseIds)
+                .list()
+                .stream()
+                .map(Room::getId)
+                .filter(Objects::nonNull)
+                .forEach(roomIds::add);
+        }
         return new ArrayList<>(roomIds);
+    }
+
+    private String leaseStatusName(Integer status) {
+        if (status == null) {
+            return null;
+        }
+        for (LeaseStatusEnum item : LeaseStatusEnum.values()) {
+            if (Objects.equals(item.getCode(), status)) {
+                return item.getName();
+            }
+        }
+        return null;
     }
 
     private BigDecimal normalizeAmount(BigDecimal value) {

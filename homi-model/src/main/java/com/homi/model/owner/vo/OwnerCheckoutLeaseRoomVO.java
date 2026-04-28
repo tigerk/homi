@@ -28,6 +28,12 @@ public class OwnerCheckoutLeaseRoomVO {
     @Schema(description = "租客电话")
     private String tenantPhone;
 
+    @Schema(description = "租客合同状态")
+    private Integer leaseStatus;
+
+    @Schema(description = "租客合同状态名称")
+    private String leaseStatusName;
+
     @Schema(description = "房间月租金")
     private BigDecimal rentPrice;
 

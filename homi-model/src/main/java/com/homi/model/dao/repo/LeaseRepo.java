@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
@@ -166,5 +169,15 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
      */
     public LeaseLiteVO getCurrentLeasesByRoomId(Long roomId) {
         return getBaseMapper().getCurrentLeaseByRoomId(roomId, LeaseStatusEnum.getValidStatus());
+    }
+
+    public Map<Long, LeaseLiteVO> getCurrentLeaseMapByRoomIds(List<Long> roomIds) {
+        if (roomIds == null || roomIds.isEmpty()) {
+            return Map.of();
+        }
+        return getBaseMapper().getCurrentLeaseByRoomIds(roomIds, LeaseStatusEnum.getValidStatus())
+            .stream()
+            .filter(item -> item.getRoomId() != null)
+            .collect(Collectors.toMap(LeaseLiteVO::getRoomId, Function.identity(), (left, right) -> left));
     }
 }

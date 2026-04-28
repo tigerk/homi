@@ -28,7 +28,52 @@
             #{item}
         </foreach>
         AND lr.room_id = #{roomId}
-        ORDER BY l.id DESC
+        AND l.lease_start &lt;= NOW()
+        AND l.lease_end &gt;= NOW()
+        ORDER BY l.lease_start DESC,
+                 l.id DESC
         LIMIT 1
+    </select>
+
+    <select id="getCurrentLeaseByRoomIds" resultType="com.homi.model.tenant.vo.LeaseLiteVO">
+        SELECT *
+        FROM (
+            SELECT l.id           as lease_id,
+                   l.tenant_id,
+                   l.company_id,
+                   l.dept_id,
+                   t.tenant_name  AS tenant_name,
+                   t.tenant_phone as tenant_phone,
+                   lr.room_id,
+                   r.keywords as room_name,
+                   COALESCE(lr.rent_price, l.rent_price) as rent_price,
+                   l.deposit_months,
+                   l.payment_months,
+                   l.lease_start,
+                   l.lease_end,
+                   l.status,
+                   l.sign_status,
+                   l.check_out_status,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY lr.room_id
+                       ORDER BY l.lease_start DESC,
+                                l.id DESC
+                   ) AS row_num
+            FROM lease l
+                     JOIN lease_room lr ON l.id = lr.lease_id
+                     LEFT JOIN room r ON lr.room_id = r.id
+                     JOIN tenant t ON l.tenant_id = t.id
+            WHERE l.status IN
+            <foreach item="item" index="index" collection="status" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            AND lr.room_id IN
+            <foreach item="item" index="index" collection="roomIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            AND l.lease_start &lt;= NOW()
+            AND l.lease_end &gt;= NOW()
+        ) lease_ranked
+        WHERE lease_ranked.row_num = 1
     </select>
 </mapper>

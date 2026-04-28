@@ -13,4 +13,6 @@ import java.util.List;
 @Mapper
 public interface LeaseMapper extends BaseMapper<Lease> {
     LeaseLiteVO getCurrentLeaseByRoomId(@Param("roomId") Long roomId, @Param("status") List<Integer> status);
+
+    List<LeaseLiteVO> getCurrentLeaseByRoomIds(@Param("roomIds") List<Long> roomIds, @Param("status") List<Integer> status);
 }
