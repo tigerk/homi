@@ -71,16 +71,24 @@ INSERT INTO house_layout (
 ) VALUES
   (
     @layout_entire_id, @company_id, 2, @community_id, '测试整租两居', 1, 1, 1, 2,
-    '["整租","测试"]', '["BED","WARDROBE","AIR_CONDITIONER","WASHER","WIFI"]', '[]', '[]',
+    '["整租","测试"]',
+    '[{"name":"BED","count":"1"},{"name":"WARDROBE","count":"1"},{"name":"AIR_CONDITIONER","count":"1"},{"name":"WASHER","count":"1"},{"name":"WIFI","count":"1"}]',
+    '[]', '[]',
     0, @operator_id, NOW(), @operator_id, NOW()
   ),
   (
     @layout_shared_id, @company_id, 2, @community_id, '测试合租三居', 1, 1, 1, 3,
-    '["合租","测试"]', '["BED","WARDROBE","AIR_CONDITIONER","DESK","WIFI"]', '[]', '[]',
+    '["合租","测试"]',
+    '[{"name":"BED","count":"3"},{"name":"WARDROBE","count":"3"},{"name":"AIR_CONDITIONER","count":"3"},{"name":"DESK","count":"3"},{"name":"WIFI","count":"1"}]',
+    '[]', '[]',
     0, @operator_id, NOW(), @operator_id, NOW()
   )
 ON DUPLICATE KEY UPDATE
   layout_name = VALUES(layout_name),
+  tags = VALUES(tags),
+  facilities = VALUES(facilities),
+  image_list = VALUES(image_list),
+  video_list = VALUES(video_list),
   update_by = VALUES(update_by),
   update_at = VALUES(update_at);
 
@@ -184,7 +192,7 @@ SELECT
   0,
   0,
   '["整租","可签约"]',
-  '["BED","WARDROBE","AIR_CONDITIONER","WASHER","WIFI"]',
+  '[{"name":"BED","count":"1"},{"name":"WARDROBE","count":"1"},{"name":"AIR_CONDITIONER","count":"1"},{"name":"WASHER","count":"1"},{"name":"WIFI","count":"1"}]',
   '[]',
   '[]',
   @operator_id,
@@ -219,7 +227,7 @@ SELECT
   0,
   0,
   '["合租","可签约"]',
-  '["BED","WARDROBE","AIR_CONDITIONER","DESK","WIFI"]',
+  '[{"name":"BED","count":"1"},{"name":"WARDROBE","count":"1"},{"name":"AIR_CONDITIONER","count":"1"},{"name":"DESK","count":"1"},{"name":"WIFI","count":"1"}]',
   '[]',
   '[]',
   @operator_id,
@@ -463,3 +471,29 @@ SELECT
   10 AS master_lease_house_count,
   10 AS master_lease_contract_count,
   10 AS owner_payable_bill_count;
+
+-- 如果旧版本脚本已执行过，可单独执行以下修复语句，将字符串数组设施修正为 FacilityItemDTO 对象数组。
+-- UPDATE house_layout
+-- SET facilities = '[{"name":"BED","count":"1"},{"name":"WARDROBE","count":"1"},{"name":"AIR_CONDITIONER","count":"1"},{"name":"WASHER","count":"1"},{"name":"WIFI","count":"1"}]',
+--     update_by = @operator_id,
+--     update_at = NOW()
+-- WHERE id = @layout_entire_id;
+--
+-- UPDATE house_layout
+-- SET facilities = '[{"name":"BED","count":"3"},{"name":"WARDROBE","count":"3"},{"name":"AIR_CONDITIONER","count":"3"},{"name":"DESK","count":"3"},{"name":"WIFI","count":"1"}]',
+--     update_by = @operator_id,
+--     update_at = NOW()
+-- WHERE id = @layout_shared_id;
+--
+-- UPDATE room
+-- SET facilities = '[{"name":"BED","count":"1"},{"name":"WARDROBE","count":"1"},{"name":"AIR_CONDITIONER","count":"1"},{"name":"WASHER","count":"1"},{"name":"WIFI","count":"1"}]',
+--     update_by = @operator_id,
+--     update_at = NOW()
+-- WHERE house_id BETWEEN @house_base_id + 1 AND @house_base_id + 50
+--    OR house_id BETWEEN @house_base_id + 101 AND @house_base_id + 110;
+--
+-- UPDATE room
+-- SET facilities = '[{"name":"BED","count":"1"},{"name":"WARDROBE","count":"1"},{"name":"AIR_CONDITIONER","count":"1"},{"name":"DESK","count":"1"},{"name":"WIFI","count":"1"}]',
+--     update_by = @operator_id,
+--     update_at = NOW()
+-- WHERE house_id BETWEEN @house_base_id + 51 AND @house_base_id + 100;
