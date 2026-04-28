@@ -1,5 +1,6 @@
 package com.homi.common.lib.enums.owner;
 
+import cn.hutool.core.util.EnumUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,4 +14,11 @@ public enum OwnerSignStatusEnum {
 
     private final Integer code;
     private final String name;
+
+    public static OwnerSignStatusEnum fromCode(Integer code) {
+        if (code == null) {
+            return null;
+        }
+        return EnumUtil.getBy(OwnerSignStatusEnum::getCode, code);
+    }
 }

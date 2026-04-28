@@ -16,7 +16,9 @@ import com.homi.model.owner.vo.OwnerContractCheckoutInitVO;
 import com.homi.model.owner.vo.OwnerDetailVO;
 import com.homi.model.owner.vo.OwnerListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
-import com.homi.service.service.owner.OwnerContractService;
+import com.homi.service.service.owner.OwnerContractCheckoutService;
+import com.homi.service.service.owner.OwnerContractCommandService;
+import com.homi.service.service.owner.OwnerContractQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -33,7 +35,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/saas/contract/owner")
 public class OwnerContractController {
-    private final OwnerContractService ownerContractService;
+    private final OwnerContractCommandService ownerContractCommandService;
+    private final OwnerContractQueryService ownerContractQueryService;
+    private final OwnerContractCheckoutService ownerContractCheckoutService;
 
     @PostMapping("/create")
     @Log(title = "创建业主合同", operationType = OperationTypeEnum.INSERT)
@@ -42,7 +46,7 @@ public class OwnerContractController {
         if (dto.getOwnerContract() != null) {
             dto.getOwnerContract().setCompanyId(loginUser.getCurCompanyId());
         }
-        return ResponseResult.ok(ownerContractService.createOwnerContract(dto));
+        return ResponseResult.ok(ownerContractCommandService.createOwnerContract(dto));
     }
 
     @PostMapping("/renew")
@@ -52,38 +56,38 @@ public class OwnerContractController {
         if (dto.getOwnerContract() != null) {
             dto.getOwnerContract().setCompanyId(loginUser.getCurCompanyId());
         }
-        return ResponseResult.ok(ownerContractService.renewOwnerContract(dto));
+        return ResponseResult.ok(ownerContractCommandService.renewOwnerContract(dto));
     }
 
     @PostMapping("/checkout")
     @Log(title = "业主合同退房", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Long> checkout(@RequestBody OwnerContractCheckoutDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(ownerContractService.checkoutOwnerContract(dto, loginUser.getId(), loginUser.getNickname()));
+        return ResponseResult.ok(ownerContractCheckoutService.checkoutOwnerContract(dto, loginUser.getId(), loginUser.getNickname()));
     }
 
     @PostMapping("/checkout/init")
     public ResponseResult<OwnerContractCheckoutInitVO> checkoutInit(@RequestBody OwnerContractIdDTO dto) {
-        return ResponseResult.ok(ownerContractService.getOwnerContractCheckoutInit(dto));
+        return ResponseResult.ok(ownerContractCheckoutService.getOwnerContractCheckoutInit(dto));
     }
 
     @PostMapping("/list")
     public ResponseResult<PageVO<OwnerListVO>> list(@RequestBody OwnerQueryDTO query) {
-        return ResponseResult.ok(ownerContractService.getOwnerContractList(query));
+        return ResponseResult.ok(ownerContractQueryService.getOwnerContractList(query));
     }
 
     @PostMapping("/total")
     public ResponseResult<OwnerContractTotalVO> total(@RequestBody OwnerQueryDTO query) {
-        return ResponseResult.ok(ownerContractService.getOwnerContractTotal(query));
+        return ResponseResult.ok(ownerContractQueryService.getOwnerContractTotal(query));
     }
 
     @PostMapping("/detail")
     public ResponseResult<OwnerDetailVO> detail(@RequestBody OwnerContractIdDTO dto) {
-        return ResponseResult.ok(ownerContractService.getOwnerContractDetail(dto));
+        return ResponseResult.ok(ownerContractQueryService.getOwnerContractDetail(dto));
     }
 
     @PostMapping("/preview")
     public ResponseEntity<byte[]> preview(@RequestBody OwnerContractIdDTO dto) {
-        byte[] pdfBytes = ownerContractService.previewOwnerContract(dto);
+        byte[] pdfBytes = ownerContractQueryService.previewOwnerContract(dto);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDisposition(ContentDisposition.attachment().filename("owner-preview-" + dto.getContractId() + ".pdf").build());
@@ -97,18 +101,18 @@ public class OwnerContractController {
         if (dto.getOwnerContract() != null) {
             dto.getOwnerContract().setCompanyId(loginUser.getCurCompanyId());
         }
-        return ResponseResult.ok(ownerContractService.updateOwnerContract(dto));
+        return ResponseResult.ok(ownerContractCommandService.updateOwnerContract(dto));
     }
 
     @PostMapping("/updateStatus")
     @Log(title = "更新业主合同状态", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Long> updateStatus(@RequestBody OwnerContractStatusDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(ownerContractService.updateOwnerContractStatus(dto, loginUser.getId()));
+        return ResponseResult.ok(ownerContractCommandService.updateOwnerContractStatus(dto, loginUser.getId()));
     }
 
     @PostMapping("/delete")
     @Log(title = "删除业主合同", operationType = OperationTypeEnum.DELETE)
     public ResponseResult<Long> delete(@RequestBody OwnerContractIdDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(ownerContractService.deleteOwnerContract(dto, loginUser.getId()));
+        return ResponseResult.ok(ownerContractCommandService.deleteOwnerContract(dto, loginUser.getId()));
     }
 }

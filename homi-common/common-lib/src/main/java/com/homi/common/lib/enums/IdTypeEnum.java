@@ -26,16 +26,15 @@ public enum IdTypeEnum {
     private final Integer code;
     private final String name;
 
+    public static IdTypeEnum fromCode(Integer code) {
+        if (code == null) {
+            return null;
+        }
+        return EnumUtil.getBy(IdTypeEnum::getCode, code);
+    }
+
     public static String getIdTypeName(Integer idType) {
-        if (idType == null) {
-            return null;
-        }
-
-        IdTypeEnum by = EnumUtil.getBy(IdTypeEnum::getCode, idType);
-        if (by == null) {
-            return null;
-        }
-
-        return by.getName();
+        IdTypeEnum by = fromCode(idType);
+        return by == null ? null : by.getName();
     }
 }

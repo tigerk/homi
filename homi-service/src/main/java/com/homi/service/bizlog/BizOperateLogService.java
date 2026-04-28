@@ -1,4 +1,4 @@
-package com.homi.service.service.owner;
+package com.homi.service.bizlog;
 
 import cn.hutool.json.JSONUtil;
 import com.homi.model.dao.entity.BizOperateLog;

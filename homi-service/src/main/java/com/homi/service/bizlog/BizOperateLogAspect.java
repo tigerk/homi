@@ -3,7 +3,6 @@ package com.homi.service.bizlog;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.annotation.BizOperateLog;
-import com.homi.service.service.owner.BizOperateLogService;
 import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

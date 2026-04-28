@@ -1,5 +1,6 @@
 package com.homi.common.lib.enums;
 
+import cn.hutool.core.util.EnumUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -31,4 +32,11 @@ public enum GenderEnum {
     private final int code;
 
     private final String name;
+
+    public static GenderEnum fromCode(Integer code) {
+        if (code == null) {
+            return null;
+        }
+        return EnumUtil.getBy(GenderEnum::getCode, code);
+    }
 }

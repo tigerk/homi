@@ -1,6 +1,7 @@
 package com.homi.common.lib.enums.lease;
 
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.EnumUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -37,5 +38,17 @@ public enum LeaseStatusEnum {
      */
     public static List<Integer> getValidStatus() {
         return ListUtil.of(EFFECTIVE.getCode(), TO_SIGN.getCode(), PENDING_APPROVAL.getCode());
+    }
+
+    public static LeaseStatusEnum fromCode(Integer code) {
+        if (code == null) {
+            return null;
+        }
+        return EnumUtil.getBy(LeaseStatusEnum::getCode, code);
+    }
+
+    public static String getNameByCode(Integer code) {
+        LeaseStatusEnum status = fromCode(code);
+        return status == null ? null : status.getName();
     }
 }
