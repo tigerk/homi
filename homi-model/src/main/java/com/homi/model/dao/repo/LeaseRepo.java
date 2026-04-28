@@ -160,16 +160,12 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
     }
 
     /**
-     * 根据房间ID查询当前有效的租赁信息
-     * <p>
-     * {@code @author} tk
-     * {@code @date} 2026/2/25 15:54
+     * 查询房间展示用租约，只返回一条最适合在房间卡片上展示的租约。
      *
-     * @param roomId 房间 id
-     * @return com.homi.model.tenant.vo.LeaseLiteVO
+     * <p>不要在业主退房等业务结算场景使用该方法；这些场景需要完整占用列表。
      */
-    public LeaseLiteVO getCurrentLeasesByRoomId(Long roomId) {
-        return getBaseMapper().getCurrentLeaseByRoomId(roomId, LeaseStatusEnum.getValidStatus(), LeaseCheckOutStatusEnum.UN_CHECK_OUT.getCode());
+    public LeaseLiteVO getDisplayLeaseByRoomId(Long roomId) {
+        return getBaseMapper().getDisplayLeaseByRoomId(roomId, LeaseStatusEnum.getValidStatus(), LeaseCheckOutStatusEnum.UN_CHECK_OUT.getCode());
     }
 
     /**

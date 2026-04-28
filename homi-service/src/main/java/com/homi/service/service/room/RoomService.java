@@ -286,7 +286,7 @@ public class RoomService {
     public LeaseInfoVO getRoomLeaseInfo(Long roomId, Integer roomStatus) {
         if (Objects.equals(roomStatus, OccupancyStatusEnum.LEASED.getCode())) {
             // 查询
-            LeaseLiteVO lease = leaseRepo.getCurrentLeasesByRoomId(roomId);
+            LeaseLiteVO lease = leaseRepo.getDisplayLeaseByRoomId(roomId);
             if (lease != null) {
                 Tenant tenant = tenantRepo.getById(lease.getTenantId());
                 return LeaseInfoVO.builder()
@@ -479,20 +479,20 @@ public class RoomService {
         return roomRepo.getById(roomId);
     }
 
-    public LeaseLiteVO getCurrentLeasesByRoomId(Long roomId) {
-        LeaseLiteVO currentLeasesByRoomId = leaseRepo.getCurrentLeasesByRoomId(roomId);
-        if (Objects.isNull(currentLeasesByRoomId)) {
+    public LeaseLiteVO getDisplayLeaseByRoomId(Long roomId) {
+        LeaseLiteVO displayLease = leaseRepo.getDisplayLeaseByRoomId(roomId);
+        if (Objects.isNull(displayLease)) {
             return null;
         }
 
-        List<LeaseRoom> listByLeaseId = leaseRoomRepo.getListByLeaseId(currentLeasesByRoomId.getLeaseId());
+        List<LeaseRoom> listByLeaseId = leaseRoomRepo.getListByLeaseId(displayLease.getLeaseId());
         List<Long> roomIds = listByLeaseId.stream().map(LeaseRoom::getRoomId).collect(Collectors.toList());
-        currentLeasesByRoomId.setRoomIds(roomIds);
+        displayLease.setRoomIds(roomIds);
 
         List<RoomListVO> roomList = getRoomListByRoomIds(roomIds);
-        currentLeasesByRoomId.setRoomList(roomList);
+        displayLease.setRoomList(roomList);
 
-        return currentLeasesByRoomId;
+        return displayLease;
     }
 
     public Long addRoomRemark(RoomSaveRemarkDTO dto) {

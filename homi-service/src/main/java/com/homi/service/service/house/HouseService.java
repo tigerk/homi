@@ -93,7 +93,7 @@ public class HouseService {
 
         List<RoomDetailVO> roomList = roomService.getRoomDetailByHouseId(house.getId());
         roomList.forEach(room -> {
-            room.setLease(roomService.getCurrentLeasesByRoomId(room.getId()));
+            room.setLease(roomService.getDisplayLeaseByRoomId(room.getId()));
             Booking currentBookingByRoomId = bookingRepo.getCurrentBookingByRoomId(room.getId());
             if (Objects.nonNull(currentBookingByRoomId)) {
                 BookingListVO bookingListVO = BeanCopyUtils.copyBean(currentBookingByRoomId, BookingListVO.class);
