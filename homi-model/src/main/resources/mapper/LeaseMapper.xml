@@ -28,9 +28,19 @@
             #{item}
         </foreach>
         AND lr.room_id = #{roomId}
-        AND l.lease_start &lt;= NOW()
-        AND l.lease_end &gt;= NOW()
-        ORDER BY l.lease_start DESC,
+        AND l.check_out_status = #{checkOutStatus}
+        ORDER BY CASE
+                     WHEN l.status = 2 THEN 0
+                     WHEN l.lease_start &lt;= NOW() AND l.lease_end &gt;= NOW() THEN 1
+                     WHEN l.lease_start &gt; NOW() THEN 2
+                     ELSE 3
+                 END,
+                 CASE
+                     WHEN l.lease_start &gt; NOW() THEN TIMESTAMPDIFF(SECOND, NOW(), l.lease_start)
+                     WHEN l.lease_end &lt; NOW() THEN TIMESTAMPDIFF(SECOND, l.lease_end, NOW())
+                     ELSE 0
+                 END,
+                 l.lease_start DESC,
                  l.id DESC
         LIMIT 1
     </select>

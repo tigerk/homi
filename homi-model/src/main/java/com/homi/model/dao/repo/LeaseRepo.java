@@ -169,7 +169,7 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
      * @return com.homi.model.tenant.vo.LeaseLiteVO
      */
     public LeaseLiteVO getCurrentLeasesByRoomId(Long roomId) {
-        return getBaseMapper().getCurrentLeaseByRoomId(roomId, LeaseStatusEnum.getValidStatus());
+        return getBaseMapper().getCurrentLeaseByRoomId(roomId, LeaseStatusEnum.getValidStatus(), LeaseCheckOutStatusEnum.UN_CHECK_OUT.getCode());
     }
 
     /**

@@ -10,7 +10,11 @@ import java.util.List;
 
 @Mapper
 public interface LeaseMapper extends BaseMapper<Lease> {
-    LeaseLiteVO getCurrentLeaseByRoomId(@Param("roomId") Long roomId, @Param("status") List<Integer> status);
+    LeaseLiteVO getCurrentLeaseByRoomId(
+        @Param("roomId") Long roomId,
+        @Param("status") List<Integer> status,
+        @Param("checkOutStatus") Integer checkOutStatus
+    );
 
     /**
      * 查询房间列表，当前所有占用租约，未退租且有效的
