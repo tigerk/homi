@@ -1170,8 +1170,4 @@ public class LeaseService {
         Long tenantId = lease.getTenantId();
         leaseBillGenService.addLeaseBill(leaseId, tenantId, leaseDTO, createDTO.getOtherFees());
     }
-
-    public LeaseLiteVO getCurrentLeaseByRoomId(Long roomId) {
-        return leaseRepo.getBaseMapper().getCurrentLeaseByRoomId(roomId, LeaseStatusEnum.getValidStatus());
-    }
 }

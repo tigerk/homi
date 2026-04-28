@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.enums.lease.LeaseCheckOutStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.Lease;
@@ -171,13 +172,16 @@ public class LeaseRepo extends ServiceImpl<LeaseMapper, Lease> {
         return getBaseMapper().getCurrentLeaseByRoomId(roomId, LeaseStatusEnum.getValidStatus());
     }
 
-    public Map<Long, LeaseLiteVO> getCurrentLeaseMapByRoomIds(List<Long> roomIds) {
+    /**
+     * 查询房间当前所有占用租约。
+     * <p>
+     * 这里的“占用”是业务占用，不按当前日期判断；待审批、待签字、在租中且未退租的合同都会占用房间。
+     */
+    public List<LeaseLiteVO> listOccupyingLeasesByRoomIds(List<Long> roomIds) {
         if (roomIds == null || roomIds.isEmpty()) {
-            return Map.of();
+            return List.of();
         }
-        return getBaseMapper().getCurrentLeaseByRoomIds(roomIds, LeaseStatusEnum.getValidStatus())
-            .stream()
-            .filter(item -> item.getRoomId() != null)
-            .collect(Collectors.toMap(LeaseLiteVO::getRoomId, Function.identity(), (left, right) -> left));
+        return getBaseMapper().listOccupyingLeasesByRoomIds(roomIds, LeaseStatusEnum.getValidStatus(), LeaseCheckOutStatusEnum.UN_CHECK_OUT.getCode()
+        );
     }
 }

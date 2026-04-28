@@ -37,7 +37,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -101,15 +100,10 @@ public class OwnerContractCheckoutService {
         OwnerContractCheckoutInitVO vo = new OwnerContractCheckoutInitVO();
         List<OwnerContractSubject> subjectList = ownerContractSubjectRepo.listByContractId(contract.getId());
         List<Long> roomIds = resolveOwnerContractRoomIds(subjectList);
-        Map<Long, LeaseLiteVO> leaseInfoMap = leaseRepo.getCurrentLeaseMapByRoomIds(roomIds);
-        List<OwnerCheckoutLeaseRoomVO> leasedRoomList = new ArrayList<>();
-        for (Long roomId : roomIds) {
-            LeaseLiteVO leaseInfo = leaseInfoMap.get(roomId);
-            if (leaseInfo == null) {
-                continue;
-            }
-            leasedRoomList.add(toLeaseRoomVO(roomId, leaseInfo));
-        }
+        List<OwnerCheckoutLeaseRoomVO> leasedRoomList = leaseRepo.listOccupyingLeasesByRoomIds(roomIds)
+            .stream()
+            .map(this::toLeaseRoomVO)
+            .toList();
         vo.setLeasedRoomList(leasedRoomList);
         return vo;
     }
@@ -274,9 +268,9 @@ public class OwnerContractCheckoutService {
             .toList();
     }
 
-    private OwnerCheckoutLeaseRoomVO toLeaseRoomVO(Long roomId, LeaseLiteVO leaseInfo) {
+    private OwnerCheckoutLeaseRoomVO toLeaseRoomVO(LeaseLiteVO leaseInfo) {
         OwnerCheckoutLeaseRoomVO roomVO = new OwnerCheckoutLeaseRoomVO();
-        roomVO.setRoomId(roomId);
+        roomVO.setRoomId(leaseInfo.getRoomId());
         roomVO.setRoomName(leaseInfo.getRoomName());
         roomVO.setLeaseId(leaseInfo.getLeaseId());
         roomVO.setLeaseStatus(leaseInfo.getStatus());
