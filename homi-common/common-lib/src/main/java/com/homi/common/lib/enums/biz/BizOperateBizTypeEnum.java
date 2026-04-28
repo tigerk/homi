@@ -10,6 +10,8 @@ import lombok.Getter;
 public enum BizOperateBizTypeEnum {
     LEASE("LEASE", "租客合同"),
     LEASE_CHECKOUT("LEASE_CHECKOUT", "租客退租单"),
+    OWNER_CONTRACT("OWNER_CONTRACT", "业主合同"),
+    OWNER_CONTRACT_CHECKOUT("OWNER_CONTRACT_CHECKOUT", "业主合同退房单"),
     OWNER_PAYABLE_BILL("OWNER_PAYABLE_BILL", "包租业主应付单"),
     OWNER_SETTLEMENT_BILL("OWNER_SETTLEMENT_BILL", "轻托管业主结算单");
 

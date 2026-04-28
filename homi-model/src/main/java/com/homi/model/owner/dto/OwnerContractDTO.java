@@ -65,6 +65,35 @@ public class OwnerContractDTO {
     @Schema(description = "备注")
     private String remark;
 
+    @Schema(description = "原业主合同ID")
+    private Long parentContractId;
+
+    @Schema(description = "合同性质：1=新签，2=续约")
+    private Integer contractNature;
+
+    @Schema(description = "续约来源合同编号快照")
+    private String renewFromContractNo;
+
+    @Schema(description = "退房状态：0=未退房，1=已退房")
+    private Integer checkoutStatus;
+
+    @Schema(description = "退房日期")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date checkoutDate;
+
+    @Schema(description = "退房原因")
+    private String checkoutReason;
+
+    @Schema(description = "退房操作人ID")
+    private Long checkoutBy;
+
+    @Schema(description = "退房操作人名称")
+    private String checkoutByName;
+
+    @Schema(description = "退房操作时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date checkoutAt;
+
     @Schema(description = "创建人")
     private Long createBy;
 

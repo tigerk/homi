@@ -247,6 +247,34 @@ public class OwnerBillingGenerateService {
     }
 
     /**
+     * 作废退房日期之后尚未付款的包租应付单。
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public int cancelFutureUnpaidMasterLeasePayableBills(Long contractId, Date checkoutDate, Long operatorId, String operatorName, String reason) {
+        if (contractId == null || checkoutDate == null) {
+            return 0;
+        }
+        Date now = DateUtil.date();
+        List<OwnerPayableBill> billList = ownerPayableBillRepo.lambdaQuery()
+            .eq(OwnerPayableBill::getContractId, contractId)
+            .eq(OwnerPayableBill::getBillStatus, OwnerPayableBillStatusEnum.NORMAL.getCode())
+            .eq(OwnerPayableBill::getPaymentStatus, OwnerPayableBillPaymentStatusEnum.UNPAID.getCode())
+            .gt(OwnerPayableBill::getBillStartDate, DateUtil.endOfDay(checkoutDate))
+            .list();
+        for (OwnerPayableBill bill : billList) {
+            bill.setBillStatus(OwnerPayableBillStatusEnum.CANCELED.getCode());
+            bill.setCancelReason(reason);
+            bill.setCancelBy(operatorId);
+            bill.setCancelByName(operatorName);
+            bill.setCancelAt(now);
+            bill.setUpdateBy(operatorId);
+            bill.setUpdateAt(now);
+            ownerPayableBillRepo.updateById(bill);
+        }
+        return billList.size();
+    }
+
+    /**
      * 判断包租合同账单条款是否已锁定。
      * <p>
      * 一旦该合同下已有付款记录，或账单已发生已结/已提现/冻结金额变化，则不允许再重建账单计划。

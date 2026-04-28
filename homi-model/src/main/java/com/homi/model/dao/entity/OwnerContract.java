@@ -97,6 +97,44 @@ public class OwnerContract implements Serializable {
     @TableField("remark")
     private String remark;
 
+    @Schema(description = "原业主合同ID")
+    @TableField("parent_contract_id")
+    private Long parentContractId;
+
+    @Schema(description = "合同性质：1=新签，2=续约")
+    @TableField("contract_nature")
+    private Integer contractNature;
+
+    @Schema(description = "续约来源合同编号快照")
+    @TableField("renew_from_contract_no")
+    private String renewFromContractNo;
+
+    @Schema(description = "退房状态：0=未退房，1=已退房")
+    @TableField("checkout_status")
+    private Integer checkoutStatus;
+
+    @Schema(description = "退房日期")
+    @TableField("checkout_date")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date checkoutDate;
+
+    @Schema(description = "退房原因")
+    @TableField("checkout_reason")
+    private String checkoutReason;
+
+    @Schema(description = "退房操作人ID")
+    @TableField("checkout_by")
+    private Long checkoutBy;
+
+    @Schema(description = "退房操作人名称")
+    @TableField("checkout_by_name")
+    private String checkoutByName;
+
+    @Schema(description = "退房操作时间")
+    @TableField("checkout_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date checkoutAt;
+
     @Schema(description = "是否删除：0=否，1=是")
     @TableField("deleted")
     @TableLogic

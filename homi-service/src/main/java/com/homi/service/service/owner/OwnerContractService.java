@@ -3,12 +3,17 @@ package com.homi.service.service.owner;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.annotation.BizOperateLog;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
+import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.contract.OwnerParamsEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
@@ -47,6 +52,7 @@ public class OwnerContractService {
     private final OwnerLeaseRuleRepo ownerLeaseRuleRepo;
     private final OwnerLeaseFeeRepo ownerLeaseFeeRepo;
     private final OwnerLeaseFreeRuleRepo ownerLeaseFreeRuleRepo;
+    private final OwnerContractCheckoutRepo ownerContractCheckoutRepo;
     private final OwnerAccountRepo ownerAccountRepo;
     private final ContractTemplateRepo contractTemplateRepo;
     private final HouseRepo houseRepo;
@@ -73,6 +79,10 @@ public class OwnerContractService {
         contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
         contract.setStatus(Objects.requireNonNullElse(dto.getOwnerContract().getStatus(), StatusEnum.ACTIVE).getValue());
         contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
+        contract.setParentContractId(dto.getOwnerContract().getParentContractId());
+        contract.setContractNature(Objects.requireNonNullElse(dto.getOwnerContract().getContractNature(), 1));
+        contract.setRenewFromContractNo(dto.getOwnerContract().getRenewFromContractNo());
+        contract.setCheckoutStatus(Objects.requireNonNullElse(dto.getOwnerContract().getCheckoutStatus(), 0));
         contract.setCreateBy(dto.getCreateBy());
         contract.setCreateAt(now);
         contract.setUpdateBy(dto.getCreateBy());
@@ -89,6 +99,48 @@ public class OwnerContractService {
         }
         initOwnerAccount(dto.getOwnerContract().getCompanyId(), ownerId, now);
         return contract.getId();
+    }
+
+    @BizOperateLog(
+        bizType = BizOperateBizTypeEnum.OWNER_CONTRACT,
+        operateType = BizOperateTypeEnum.RENEW,
+        operateDesc = "业主续约",
+        bizIdExpr = "#result",
+        remarkExpr = "#p0.ownerContract != null ? #p0.ownerContract.remark : null",
+        sourceType = BizOperateSourceTypeEnum.OWNER_CONTRACT,
+        sourceIdExpr = "#p0.sourceContractId",
+        extraDataExpr = "{'sourceContractId': #p0.sourceContractId}"
+    )
+    @Transactional(rollbackFor = Exception.class)
+    public Long renewOwnerContract(OwnerRenewDTO dto) {
+        if (dto == null || dto.getSourceContractId() == null) {
+            throw new IllegalArgumentException("续约来源合同ID不能为空");
+        }
+        validateCreateDTO(dto);
+        OwnerContract source = ownerContractRepo.getById(dto.getSourceContractId());
+        if (source == null) {
+            throw new IllegalArgumentException("续约来源业主合同不存在");
+        }
+        if (Objects.equals(source.getCheckoutStatus(), 1)) {
+            throw new IllegalArgumentException("已退房的业主合同不能续约");
+        }
+        Owner owner = ownerRepo.getById(source.getOwnerId());
+        if (owner == null) {
+            throw new IllegalArgumentException("业主不存在");
+        }
+        if (source.getContractEnd() != null && dto.getOwnerContract().getContractStart() != null
+            && !dto.getOwnerContract().getContractStart().after(source.getContractEnd())) {
+            throw new IllegalArgumentException("续约合同开始日期必须晚于原合同结束日期");
+        }
+        dto.getOwnerContract().setId(null);
+        dto.getOwnerContract().setOwnerId(source.getOwnerId());
+        dto.getOwnerContract().setCompanyId(source.getCompanyId());
+        dto.getOwnerContract().setContractNo(null);
+        dto.getOwnerContract().setParentContractId(source.getId());
+        dto.getOwnerContract().setContractNature(2);
+        dto.getOwnerContract().setRenewFromContractNo(source.getContractNo());
+        dto.getOwnerContract().setCheckoutStatus(0);
+        return createOwnerContractForExistingOwner(dto, source.getOwnerId());
     }
 
     public PageVO<OwnerListVO> getOwnerContractList(OwnerQueryDTO query) {
@@ -279,6 +331,15 @@ public class OwnerContractService {
         contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
         contract.setStatus(Objects.requireNonNullElse(dto.getOwnerContract().getStatus(), StatusEnum.ACTIVE).getValue());
         contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
+        contract.setParentContractId(currentContract.getParentContractId());
+        contract.setContractNature(Objects.requireNonNullElse(currentContract.getContractNature(), 1));
+        contract.setRenewFromContractNo(currentContract.getRenewFromContractNo());
+        contract.setCheckoutStatus(Objects.requireNonNullElse(currentContract.getCheckoutStatus(), 0));
+        contract.setCheckoutDate(currentContract.getCheckoutDate());
+        contract.setCheckoutReason(currentContract.getCheckoutReason());
+        contract.setCheckoutBy(currentContract.getCheckoutBy());
+        contract.setCheckoutByName(currentContract.getCheckoutByName());
+        contract.setCheckoutAt(currentContract.getCheckoutAt());
         contract.setUpdateBy(dto.getUpdateBy());
         contract.setUpdateAt(now);
         contract.setContractContent(buildContractContent(contract, owner.getId(), dto.getContractSubjectList()));
@@ -295,6 +356,86 @@ public class OwnerContractService {
             }
         }
         return contract.getId();
+    }
+
+    @BizOperateLog(
+        bizType = BizOperateBizTypeEnum.OWNER_CONTRACT_CHECKOUT,
+        operateType = BizOperateTypeEnum.CHECKOUT,
+        operateDesc = "业主退房",
+        bizIdExpr = "#result",
+        remarkExpr = "#p0.checkoutReason",
+        sourceType = BizOperateSourceTypeEnum.OWNER_CONTRACT,
+        sourceIdExpr = "#p0.contractId",
+        extraDataExpr = "{'contractId': #p0.contractId, 'checkoutDate': #p0.checkoutDate, 'releaseSubject': #p0.releaseSubject, 'voidUnpaidFutureBills': #p0.voidUnpaidFutureBills}"
+    )
+    @Transactional(rollbackFor = Exception.class)
+    public Long checkoutOwnerContract(OwnerContractCheckoutDTO dto, Long operatorId, String operatorName) {
+        if (dto == null || dto.getContractId() == null) {
+            throw new IllegalArgumentException("业主合同ID不能为空");
+        }
+        if (dto.getCheckoutDate() == null) {
+            throw new IllegalArgumentException("退房日期不能为空");
+        }
+        if (CharSequenceUtil.isBlank(dto.getCheckoutReason())) {
+            throw new IllegalArgumentException("退房原因不能为空");
+        }
+        OwnerContract contract = ownerContractRepo.getById(dto.getContractId());
+        if (contract == null) {
+            throw new IllegalArgumentException("业主合同不存在");
+        }
+        if (Objects.equals(contract.getCheckoutStatus(), 1)) {
+            throw new IllegalArgumentException("该业主合同已退房");
+        }
+        if (contract.getContractStart() != null && dto.getCheckoutDate().before(DateUtil.beginOfDay(contract.getContractStart()))) {
+            throw new IllegalArgumentException("退房日期不能早于合同开始日期");
+        }
+
+        Date now = DateUtil.date();
+        OwnerContractCheckout checkout = new OwnerContractCheckout();
+        checkout.setCompanyId(contract.getCompanyId());
+        checkout.setOwnerContractId(contract.getId());
+        checkout.setOwnerId(contract.getOwnerId());
+        checkout.setCooperationMode(contract.getCooperationMode());
+        checkout.setCheckoutDate(dto.getCheckoutDate());
+        checkout.setCheckoutReason(dto.getCheckoutReason());
+        checkout.setSettlementRemark(dto.getSettlementRemark());
+        checkout.setReleaseSubject(Objects.requireNonNullElse(dto.getReleaseSubject(), Boolean.FALSE));
+        checkout.setVoidUnpaidFutureBills(Objects.requireNonNullElse(dto.getVoidUnpaidFutureBills(), Boolean.TRUE));
+        checkout.setStatus(2);
+        checkout.setCreateBy(operatorId);
+        checkout.setCreateAt(now);
+        checkout.setUpdateBy(operatorId);
+        checkout.setUpdateAt(now);
+        ownerContractCheckoutRepo.save(checkout);
+
+        contract.setCheckoutStatus(1);
+        contract.setCheckoutDate(dto.getCheckoutDate());
+        contract.setCheckoutReason(dto.getCheckoutReason());
+        contract.setCheckoutBy(operatorId);
+        contract.setCheckoutByName(operatorName);
+        contract.setCheckoutAt(now);
+        contract.setStatus(StatusEnum.DISABLED.getValue());
+        contract.setUpdateBy(operatorId);
+        contract.setUpdateAt(now);
+        ownerContractRepo.updateById(contract);
+
+        ownerContractSubjectRepo.listByContractId(contract.getId()).forEach(item -> {
+            item.setStatus(StatusEnum.DISABLED.getValue());
+            item.setUpdateBy(operatorId);
+            item.setUpdateAt(now);
+            ownerContractSubjectRepo.updateById(item);
+        });
+
+        if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode()) && Boolean.TRUE.equals(checkout.getVoidUnpaidFutureBills())) {
+            ownerBillingGenerateService.cancelFutureUnpaidMasterLeasePayableBills(
+                contract.getId(),
+                dto.getCheckoutDate(),
+                operatorId,
+                operatorName,
+                "业主退房：" + dto.getCheckoutReason()
+            );
+        }
+        return checkout.getId();
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -318,6 +459,40 @@ public class OwnerContractService {
             item.setUpdateAt(now);
             ownerContractSubjectRepo.updateById(item);
         });
+        return contract.getId();
+    }
+
+    private Long createOwnerContractForExistingOwner(OwnerCreateDTO dto, Long ownerId) {
+        Date now = DateUtil.date();
+        OwnerContract contract = BeanCopyUtils.copyBean(dto.getOwnerContract(), OwnerContract.class);
+        assert contract != null;
+        contract.setId(null);
+        contract.setOwnerId(ownerId);
+        contract.setContractNo(Objects.requireNonNullElseGet(contract.getContractNo(), this::generateContractNo));
+        contract.setCooperationMode(enumName(dto.getOwnerContract().getCooperationMode()));
+        contract.setSignStatus(Objects.requireNonNullElse(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING).getCode());
+        contract.setSignType(enumName(dto.getOwnerContract().getSignType()));
+        contract.setContractMedium(enumName(dto.getOwnerContract().getContractMedium()));
+        contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
+        contract.setStatus(Objects.requireNonNullElse(dto.getOwnerContract().getStatus(), StatusEnum.ACTIVE).getValue());
+        contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
+        contract.setContractNature(Objects.requireNonNullElse(dto.getOwnerContract().getContractNature(), 1));
+        contract.setCheckoutStatus(Objects.requireNonNullElse(dto.getOwnerContract().getCheckoutStatus(), 0));
+        contract.setCreateBy(dto.getCreateBy());
+        contract.setCreateAt(now);
+        contract.setUpdateBy(dto.getCreateBy());
+        contract.setUpdateAt(now);
+        contract.setContractContent(buildContractContent(contract, ownerId, dto.getContractSubjectList()));
+        ownerContractRepo.save(contract);
+
+        List<OwnerContractSubject> contractSubjects = saveContractSubjects(dto, contract.getId(), now);
+        if (OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode())) {
+            saveLightManagedRules(dto, contract, contractSubjects, now);
+        } else if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
+            saveMasterLeaseRules(dto, contract.getId(), now);
+            ownerBillingGenerateService.rebuildMasterLeasePayableBillsByContract(contract.getId());
+        }
+        initOwnerAccount(dto.getOwnerContract().getCompanyId(), ownerId, now);
         return contract.getId();
     }
 
@@ -726,6 +901,10 @@ public class OwnerContractService {
         vo.setCooperationMode(contract.getCooperationMode() == null ? null : OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()));
         vo.setSignStatus(signStatusOf(contract.getSignStatus()));
         vo.setStatus(statusOf(contract.getStatus()));
+        vo.setContractNature(contract.getContractNature());
+        vo.setCheckoutStatus(contract.getCheckoutStatus());
+        vo.setCheckoutDate(contract.getCheckoutDate());
+        vo.setCheckoutReason(contract.getCheckoutReason());
         vo.setCreateAt(contract.getCreateAt());
         vo.setUpdateAt(contract.getUpdateAt());
 
@@ -1019,6 +1198,15 @@ public class OwnerContractService {
         dto.setStatus(statusOf(contract.getStatus()));
         dto.setApprovalStatus(BizApprovalStatusEnum.getByCode(contract.getApprovalStatus()));
         dto.setRemark(contract.getRemark());
+        dto.setParentContractId(contract.getParentContractId());
+        dto.setContractNature(contract.getContractNature());
+        dto.setRenewFromContractNo(contract.getRenewFromContractNo());
+        dto.setCheckoutStatus(contract.getCheckoutStatus());
+        dto.setCheckoutDate(contract.getCheckoutDate());
+        dto.setCheckoutReason(contract.getCheckoutReason());
+        dto.setCheckoutBy(contract.getCheckoutBy());
+        dto.setCheckoutByName(contract.getCheckoutByName());
+        dto.setCheckoutAt(contract.getCheckoutAt());
         dto.setCreateBy(contract.getCreateBy());
         dto.setCreateAt(contract.getCreateAt());
         dto.setUpdateBy(contract.getUpdateBy());

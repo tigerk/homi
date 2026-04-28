@@ -12,6 +12,7 @@ public enum BizOperateTypeEnum {
     SAVE("SAVE", "保存"),
     UPDATE("UPDATE", "修改"),
     RENEW("RENEW", "续约"),
+    CHECKOUT("CHECKOUT", "退房"),
     CANCEL("CANCEL", "作废"),
     PAY("PAY", "付款");
 

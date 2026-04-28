@@ -5,9 +5,11 @@ import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.owner.dto.OwnerCreateDTO;
+import com.homi.model.owner.dto.OwnerContractCheckoutDTO;
 import com.homi.model.owner.dto.OwnerContractIdDTO;
 import com.homi.model.owner.dto.OwnerContractStatusDTO;
 import com.homi.model.owner.dto.OwnerQueryDTO;
+import com.homi.model.owner.dto.OwnerRenewDTO;
 import com.homi.model.owner.dto.OwnerUpdateDTO;
 import com.homi.model.owner.vo.OwnerContractTotalVO;
 import com.homi.model.owner.vo.OwnerDetailVO;
@@ -40,6 +42,22 @@ public class OwnerContractController {
             dto.getOwnerContract().setCompanyId(loginUser.getCurCompanyId());
         }
         return ResponseResult.ok(ownerContractService.createOwnerContract(dto));
+    }
+
+    @PostMapping("/renew")
+    @Log(title = "业主合同续约", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<Long> renew(@RequestBody OwnerRenewDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        dto.setCreateBy(loginUser.getId());
+        if (dto.getOwnerContract() != null) {
+            dto.getOwnerContract().setCompanyId(loginUser.getCurCompanyId());
+        }
+        return ResponseResult.ok(ownerContractService.renewOwnerContract(dto));
+    }
+
+    @PostMapping("/checkout")
+    @Log(title = "业主合同退房", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> checkout(@RequestBody OwnerContractCheckoutDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerContractService.checkoutOwnerContract(dto, loginUser.getId(), loginUser.getNickname()));
     }
 
     @PostMapping("/list")

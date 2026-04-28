@@ -67,6 +67,19 @@ public class OwnerListVO {
     @Schema(description = "状态")
     private StatusEnum status;
 
+    @Schema(description = "合同性质：1=新签，2=续约")
+    private Integer contractNature;
+
+    @Schema(description = "退房状态：0=未退房，1=已退房")
+    private Integer checkoutStatus;
+
+    @Schema(description = "退房日期")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date checkoutDate;
+
+    @Schema(description = "退房原因")
+    private String checkoutReason;
+
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createAt;
