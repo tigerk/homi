@@ -17,6 +17,7 @@ import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.contract.OwnerParamsEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
+import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.owner.*;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
@@ -26,9 +27,12 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.owner.dto.*;
+import com.homi.model.owner.vo.OwnerCheckoutLeaseRoomVO;
+import com.homi.model.owner.vo.OwnerContractCheckoutInitVO;
 import com.homi.model.owner.vo.OwnerContractTotalVO;
 import com.homi.model.owner.vo.OwnerDetailVO;
 import com.homi.model.owner.vo.OwnerListVO;
+import com.homi.model.tenant.vo.LeaseLiteVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -56,6 +60,8 @@ public class OwnerContractService {
     private final OwnerAccountRepo ownerAccountRepo;
     private final ContractTemplateRepo contractTemplateRepo;
     private final HouseRepo houseRepo;
+    private final RoomRepo roomRepo;
+    private final LeaseRepo leaseRepo;
     private final FocusRepo focusRepo;
     private final FocusBuildingRepo focusBuildingRepo;
     private final UserRepo userRepo;
@@ -366,7 +372,7 @@ public class OwnerContractService {
         remarkExpr = "#p0.checkoutReason",
         sourceType = BizOperateSourceTypeEnum.OWNER_CONTRACT,
         sourceIdExpr = "#p0.contractId",
-        extraDataExpr = "{'contractId': #p0.contractId, 'checkoutDate': #p0.checkoutDate, 'releaseSubject': #p0.releaseSubject, 'voidUnpaidFutureBills': #p0.voidUnpaidFutureBills}"
+        extraDataExpr = "{'contractId': #p0.contractId, 'checkoutDate': #p0.checkoutDate, 'releaseSubject': #p0.releaseSubject, 'voidUnpaidFutureBills': #p0.voidUnpaidFutureBills, 'breachPenaltyAmount': #p0.breachPenaltyAmount}"
     )
     @Transactional(rollbackFor = Exception.class)
     public Long checkoutOwnerContract(OwnerContractCheckoutDTO dto, Long operatorId, String operatorName) {
@@ -399,6 +405,7 @@ public class OwnerContractService {
         checkout.setCheckoutDate(dto.getCheckoutDate());
         checkout.setCheckoutReason(dto.getCheckoutReason());
         checkout.setSettlementRemark(dto.getSettlementRemark());
+        checkout.setBreachPenaltyAmount(normalizeAmount(dto.getBreachPenaltyAmount()));
         checkout.setReleaseSubject(Objects.requireNonNullElse(dto.getReleaseSubject(), Boolean.FALSE));
         checkout.setVoidUnpaidFutureBills(Objects.requireNonNullElse(dto.getVoidUnpaidFutureBills(), Boolean.TRUE));
         checkout.setStatus(2);
@@ -435,7 +442,41 @@ public class OwnerContractService {
                 "业主退房：" + dto.getCheckoutReason()
             );
         }
+        ownerBillingGenerateService.createOwnerCheckoutPenaltyBill(contract, checkout, checkout.getBreachPenaltyAmount(), operatorId);
         return checkout.getId();
+    }
+
+    public OwnerContractCheckoutInitVO getOwnerContractCheckoutInit(OwnerContractIdDTO dto) {
+        if (dto == null || dto.getContractId() == null) {
+            throw new IllegalArgumentException("业主合同ID不能为空");
+        }
+        OwnerContract contract = ownerContractRepo.getById(dto.getContractId());
+        if (contract == null) {
+            throw new IllegalArgumentException("业主合同不存在");
+        }
+        OwnerContractCheckoutInitVO vo = new OwnerContractCheckoutInitVO();
+        List<OwnerCheckoutLeaseRoomVO> leasedRoomList = new ArrayList<>();
+        List<OwnerContractSubject> subjectList = ownerContractSubjectRepo.listByContractId(contract.getId());
+        List<Long> roomIds = resolveOwnerContractRoomIds(subjectList);
+        for (Long roomId : roomIds) {
+            LeaseLiteVO leaseInfo = leaseRepo.getCurrentLeasesByRoomId(roomId);
+            if (leaseInfo == null || !Objects.equals(leaseInfo.getStatus(), LeaseStatusEnum.EFFECTIVE.getCode())) {
+                continue;
+            }
+            OwnerCheckoutLeaseRoomVO roomVO = new OwnerCheckoutLeaseRoomVO();
+            roomVO.setRoomId(roomId);
+            roomVO.setRoomName(leaseInfo.getRoomName());
+            roomVO.setLeaseId(leaseInfo.getLeaseId());
+            roomVO.setTenantId(leaseInfo.getTenantId());
+            roomVO.setTenantName(leaseInfo.getTenantName());
+            roomVO.setTenantPhone(leaseInfo.getTenantPhone());
+            roomVO.setRentPrice(leaseInfo.getRentPrice());
+            roomVO.setLeaseStart(leaseInfo.getLeaseStart());
+            roomVO.setLeaseEnd(leaseInfo.getLeaseEnd());
+            leasedRoomList.add(roomVO);
+        }
+        vo.setLeasedRoomList(leasedRoomList);
+        return vo;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -966,6 +1007,32 @@ public class OwnerContractService {
             configuredHouseCount = configuredIds.size();
         }
         return new ContractSubjectSummary(contractSubjects.size(), totalArea, configuredHouseCount);
+    }
+
+    private List<Long> resolveOwnerContractRoomIds(List<OwnerContractSubject> subjectList) {
+        if (subjectList == null || subjectList.isEmpty()) {
+            return List.of();
+        }
+        LinkedHashSet<Long> roomIds = new LinkedHashSet<>();
+        for (OwnerContractSubject subject : subjectList) {
+            if (subject == null || subject.getSubjectId() == null) {
+                continue;
+            }
+            if (OwnerContractSubjectTypeEnum.HOUSE.getCode().equals(subject.getSubjectType())) {
+                roomRepo.getRoomListByHouseId(subject.getSubjectId()).stream()
+                    .map(Room::getId)
+                    .filter(Objects::nonNull)
+                    .forEach(roomIds::add);
+            }
+        }
+        return new ArrayList<>(roomIds);
+    }
+
+    private BigDecimal normalizeAmount(BigDecimal value) {
+        if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        return value;
     }
 
     private Map<Long, String> getUserNameMap(Long... userIds) {

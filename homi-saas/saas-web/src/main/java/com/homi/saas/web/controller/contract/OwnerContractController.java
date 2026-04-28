@@ -12,6 +12,7 @@ import com.homi.model.owner.dto.OwnerQueryDTO;
 import com.homi.model.owner.dto.OwnerRenewDTO;
 import com.homi.model.owner.dto.OwnerUpdateDTO;
 import com.homi.model.owner.vo.OwnerContractTotalVO;
+import com.homi.model.owner.vo.OwnerContractCheckoutInitVO;
 import com.homi.model.owner.vo.OwnerDetailVO;
 import com.homi.model.owner.vo.OwnerListVO;
 import com.homi.saas.web.auth.vo.login.UserLoginVO;
@@ -58,6 +59,11 @@ public class OwnerContractController {
     @Log(title = "业主合同退房", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Long> checkout(@RequestBody OwnerContractCheckoutDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(ownerContractService.checkoutOwnerContract(dto, loginUser.getId(), loginUser.getNickname()));
+    }
+
+    @PostMapping("/checkout/init")
+    public ResponseResult<OwnerContractCheckoutInitVO> checkoutInit(@RequestBody OwnerContractIdDTO dto) {
+        return ResponseResult.ok(ownerContractService.getOwnerContractCheckoutInit(dto));
     }
 
     @PostMapping("/list")

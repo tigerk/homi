@@ -92,6 +92,7 @@ public class OwnerSettlementBillService {
         OwnerSettlementBillDetailVO vo = new OwnerSettlementBillDetailVO();
         vo.setBillId(bill.getId());
         vo.setBillNo(bill.getBillNo());
+        vo.setBillScene(bill.getBillScene());
         vo.setOwnerId(bill.getOwnerId());
         vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
@@ -183,6 +184,7 @@ public class OwnerSettlementBillService {
         OwnerSettlementBillListVO vo = new OwnerSettlementBillListVO();
         vo.setBillId(item.getId());
         vo.setBillNo(item.getBillNo());
+        vo.setBillScene(item.getBillScene());
         vo.setOwnerId(item.getOwnerId());
         vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);

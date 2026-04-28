@@ -11,6 +11,7 @@ import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
+import com.homi.common.lib.enums.owner.OwnerBillSceneEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillPaymentStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillStatusEnum;
 import com.homi.common.lib.vo.PageVO;
@@ -104,6 +105,7 @@ public class OwnerPayableBillService {
         OwnerPayableBillDetailVO vo = new OwnerPayableBillDetailVO();
         vo.setBillId(bill.getId());
         vo.setBillNo(bill.getBillNo());
+        vo.setBillScene(bill.getBillScene());
         vo.setOwnerId(bill.getOwnerId());
         vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
@@ -374,6 +376,7 @@ public class OwnerPayableBillService {
         bill.setContractId(dto.getContractId());
         bill.setSubjectNameSnapshot(buildContractSubjectSummary(contract.getId()));
         bill.setBillNo(generateBillNo());
+        bill.setBillScene(OwnerBillSceneEnum.REGULAR.getCode());
         bill.setBillStartDate(dto.getBillStartDate());
         bill.setBillEndDate(dto.getBillEndDate());
         bill.setDueDate(dto.getDueDate());
@@ -465,6 +468,7 @@ public class OwnerPayableBillService {
         OwnerPayableBillListVO vo = new OwnerPayableBillListVO();
         vo.setBillId(item.getId());
         vo.setBillNo(item.getBillNo());
+        vo.setBillScene(item.getBillScene());
         vo.setOwnerId(item.getOwnerId());
         vo.setOwnerName(owner != null ? owner.getOwnerName() : null);
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);

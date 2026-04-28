@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -53,6 +54,10 @@ public class OwnerContractCheckout implements Serializable {
     @Schema(description = "结算说明")
     @TableField("settlement_remark")
     private String settlementRemark;
+
+    @Schema(description = "业主退房违约金")
+    @TableField("breach_penalty_amount")
+    private BigDecimal breachPenaltyAmount;
 
     @Schema(description = "是否释放房源")
     @TableField("release_subject")

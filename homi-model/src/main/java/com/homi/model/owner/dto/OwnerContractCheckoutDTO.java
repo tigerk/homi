@@ -2,6 +2,7 @@ package com.homi.model.owner.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
 import java.util.Date;
 import lombok.Data;
 
@@ -20,6 +21,9 @@ public class OwnerContractCheckoutDTO {
 
     @Schema(description = "结算说明")
     private String settlementRemark;
+
+    @Schema(description = "业主退房违约金")
+    private BigDecimal breachPenaltyAmount;
 
     @Schema(description = "是否释放房源")
     private Boolean releaseSubject;

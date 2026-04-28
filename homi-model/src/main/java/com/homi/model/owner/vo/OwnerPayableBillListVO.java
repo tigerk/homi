@@ -16,6 +16,9 @@ public class OwnerPayableBillListVO {
     @Schema(description = "应付单号")
     private String billNo;
 
+    @Schema(description = "账单业务场景")
+    private String billScene;
+
     @Schema(description = "业主ID")
     private Long ownerId;
 

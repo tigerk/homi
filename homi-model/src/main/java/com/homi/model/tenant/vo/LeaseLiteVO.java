@@ -36,6 +36,12 @@ public class LeaseLiteVO {
     @Schema(description = "租客联系电话")
     private String tenantPhone;
 
+    @Schema(description = "房间ID")
+    private Long roomId;
+
+    @Schema(description = "房间名称")
+    private String roomName;
+
     @Schema(description = "租金价格")
     private BigDecimal rentPrice;
 

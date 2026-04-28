@@ -9,7 +9,9 @@
                l.dept_id,
                t.tenant_name  AS tenant_name,
                t.tenant_phone as tenant_phone,
-               l.rent_price,
+               lr.room_id,
+               r.keywords as room_name,
+               COALESCE(lr.rent_price, l.rent_price) as rent_price,
                l.deposit_months,
                l.payment_months,
                l.lease_start,
@@ -19,11 +21,14 @@
                l.check_out_status
         FROM lease l
                  JOIN lease_room lr ON l.id = lr.lease_id
+                 LEFT JOIN room r ON lr.room_id = r.id
                  JOIN tenant t ON l.tenant_id = t.id
         WHERE l.status IN
         <foreach item="item" index="index" collection="status" open="(" separator="," close=")">
             #{item}
         </foreach>
         AND lr.room_id = #{roomId}
+        ORDER BY l.id DESC
+        LIMIT 1
     </select>
 </mapper>

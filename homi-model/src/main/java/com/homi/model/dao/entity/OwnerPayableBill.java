@@ -49,6 +49,10 @@ public class OwnerPayableBill implements Serializable {
     @TableField("bill_no")
     private String billNo;
 
+    @Schema(description = "账单业务场景")
+    @TableField("bill_scene")
+    private String billScene;
+
     @Schema(description = "账期开始日期")
     @TableField("bill_start_date")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")

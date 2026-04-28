@@ -274,6 +274,113 @@ public class OwnerBillingGenerateService {
         return billList.size();
     }
 
+    public void createOwnerCheckoutPenaltyBill(OwnerContract contract, OwnerContractCheckout checkout, BigDecimal penaltyAmount, Long operatorId) {
+        if (contract == null || checkout == null || penaltyAmount == null || penaltyAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            return;
+        }
+        Date now = DateUtil.date();
+        BigDecimal negativeAmount = penaltyAmount.abs().negate();
+        OwnerContractSubject subject = ownerContractSubjectRepo.listByContractId(contract.getId()).stream().findFirst().orElse(null);
+        String subjectName = subject != null && StrUtil.isNotBlank(subject.getSubjectNameSnapshot())
+            ? subject.getSubjectNameSnapshot()
+            : "业主合同房源";
+        String remark = "业主退房违约金扣款：" + CharSequenceUtil.nullToDefault(checkout.getCheckoutReason(), "");
+
+        if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
+            OwnerPayableBill bill = new OwnerPayableBill();
+            bill.setCompanyId(contract.getCompanyId());
+            bill.setOwnerId(contract.getOwnerId());
+            bill.setContractId(contract.getId());
+            bill.setSubjectNameSnapshot(subjectName);
+            bill.setBillNo(generateOwnerPayableBillNo());
+            bill.setBillScene(OwnerBillSceneEnum.CHECKOUT_PENALTY.getCode());
+            bill.setBillStartDate(checkout.getCheckoutDate());
+            bill.setBillEndDate(checkout.getCheckoutDate());
+            bill.setDueDate(checkout.getCheckoutDate());
+            bill.setPayableAmount(negativeAmount);
+            bill.setPaidAmount(BigDecimal.ZERO);
+            bill.setUnpaidAmount(negativeAmount);
+            bill.setAdjustAmount(BigDecimal.ZERO);
+            bill.setPaymentStatus(OwnerPayableBillPaymentStatusEnum.UNPAID.getCode());
+            bill.setBillStatus(OwnerPayableBillStatusEnum.NORMAL.getCode());
+            bill.setGeneratedAt(now);
+            bill.setRemark(remark);
+            bill.setCreateBy(operatorId);
+            bill.setCreateAt(now);
+            bill.setUpdateBy(operatorId);
+            bill.setUpdateAt(now);
+            ownerPayableBillRepo.save(bill);
+
+            OwnerPayableBillFee fee = new OwnerPayableBillFee();
+            fee.setCompanyId(contract.getCompanyId());
+            fee.setBillId(bill.getId());
+            fee.setSourceType(OwnerBillingSourceTypeEnum.OWNER_CONTRACT_CHECKOUT.getCode());
+            fee.setSourceId(checkout.getId());
+            fee.setSubjectNameSnapshot(subjectName);
+            fee.setFeeType(OwnerBillingItemTypeEnum.BREACH_PENALTY.getCode());
+            fee.setFeeName(OwnerBillingItemTypeEnum.BREACH_PENALTY.getName());
+            fee.setDirection(FinanceFlowDirectionEnum.OUT.getCode());
+            fee.setAmount(negativeAmount);
+            fee.setBizDate(checkout.getCheckoutDate());
+            fee.setRemark(remark);
+            fee.setFormulaSnapshot("ownerCheckoutPenalty");
+            fee.setCreateAt(now);
+            ownerPayableBillFeeRepo.save(fee);
+            return;
+        }
+
+        OwnerSettlementBill bill = new OwnerSettlementBill();
+        bill.setCompanyId(contract.getCompanyId());
+        bill.setOwnerId(contract.getOwnerId());
+        bill.setContractId(contract.getId());
+        bill.setSubjectType(subject != null ? subject.getSubjectType() : OwnerContractSubjectTypeEnum.HOUSE.getCode());
+        bill.setSubjectId(subject != null ? subject.getSubjectId() : null);
+        bill.setSubjectNameSnapshot(subjectName);
+        bill.setBillNo(generateOwnerSettlementBillNo());
+        bill.setBillScene(OwnerBillSceneEnum.CHECKOUT_PENALTY.getCode());
+        bill.setBillStartDate(checkout.getCheckoutDate());
+        bill.setBillEndDate(checkout.getCheckoutDate());
+        bill.setIncomeAmount(BigDecimal.ZERO);
+        bill.setReductionAmount(BigDecimal.ZERO);
+        bill.setExpenseAmount(penaltyAmount.abs());
+        bill.setAdjustAmount(BigDecimal.ZERO);
+        bill.setPayableAmount(negativeAmount);
+        bill.setSettledAmount(BigDecimal.ZERO);
+        bill.setWithdrawnAmount(BigDecimal.ZERO);
+        bill.setFreezeAmount(BigDecimal.ZERO);
+        bill.setWithdrawableAmount(BigDecimal.ZERO);
+        bill.setBillStatus(OwnerSettlementBillStatusEnum.NORMAL.getCode());
+        bill.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
+        bill.setSettlementStatus(OwnerSettlementStatusEnum.UNSETTLED.getCode());
+        bill.setGeneratedAt(now);
+        bill.setApprovedAt(now);
+        bill.setRemark(remark);
+        bill.setCreateBy(operatorId);
+        bill.setCreateAt(now);
+        bill.setUpdateBy(operatorId);
+        bill.setUpdateAt(now);
+        ownerSettlementBillRepo.save(bill);
+
+        OwnerSettlementBillFee fee = new OwnerSettlementBillFee();
+        fee.setCompanyId(contract.getCompanyId());
+        fee.setBillId(bill.getId());
+        fee.setSourceType(OwnerBillingSourceTypeEnum.OWNER_CONTRACT_CHECKOUT.getCode());
+        fee.setSourceId(checkout.getId());
+        fee.setSubjectType(bill.getSubjectType());
+        fee.setSubjectId(bill.getSubjectId());
+        fee.setSubjectNameSnapshot(subjectName);
+        fee.setFeeType(OwnerBillingItemTypeEnum.BREACH_PENALTY.getCode());
+        fee.setFeeName(OwnerBillingItemTypeEnum.BREACH_PENALTY.getName());
+        fee.setDirection(FinanceFlowDirectionEnum.OUT.getCode());
+        fee.setAmount(negativeAmount);
+        fee.setBizDate(checkout.getCheckoutDate());
+        fee.setRemark(remark);
+        fee.setFormulaSnapshot("ownerCheckoutPenalty");
+        fee.setCreateAt(now);
+        ownerSettlementBillFeeRepo.save(fee);
+        adjustOwnerAccountAmount(contract, bill, negativeAmount, now);
+    }
+
     /**
      * 判断包租合同账单条款是否已锁定。
      * <p>
@@ -391,6 +498,7 @@ public class OwnerBillingGenerateService {
             ownerBill.setSubjectId(contractSubject.getSubjectId());
             ownerBill.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
             ownerBill.setBillNo(generateOwnerSettlementBillNo());
+            ownerBill.setBillScene(OwnerBillSceneEnum.REGULAR.getCode());
             ownerBill.setBillStartDate(billDate);
             ownerBill.setBillEndDate(billDate);
             ownerBill.setIncomeAmount(incomeAmount);
@@ -638,6 +746,7 @@ public class OwnerBillingGenerateService {
         ownerBill.setContractId(contract.getId());
         ownerBill.setSubjectNameSnapshot(subjectSummary);
         ownerBill.setBillNo(generateOwnerPayableBillNo());
+        ownerBill.setBillScene(OwnerBillSceneEnum.REGULAR.getCode());
         ownerBill.setBillStartDate(periodStart);
         ownerBill.setBillEndDate(periodEnd);
         ownerBill.setDueDate(resolveMasterLeaseDueDate(leaseRule, periodStart));
@@ -1083,6 +1192,7 @@ public class OwnerBillingGenerateService {
         bill.setSubjectId(contractSubject.getSubjectId());
         bill.setSubjectNameSnapshot(contractSubject.getSubjectNameSnapshot());
         bill.setBillNo(generateOwnerSettlementBillNo());
+        bill.setBillScene(OwnerBillSceneEnum.REALTIME_SETTLEMENT.getCode());
         bill.setBillStartDate(billDate);
         bill.setBillEndDate(billDate);
         bill.setIncomeAmount(BigDecimal.ZERO);
