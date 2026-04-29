@@ -1,8 +1,5 @@
 package com.homi.model.owner.dto;
 
-import com.homi.common.lib.enums.GenderEnum;
-import com.homi.common.lib.enums.IdTypeEnum;
-import com.homi.common.lib.enums.StatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -21,10 +18,10 @@ public class OwnerPersonalDTO {
     private String name;
 
     @Schema(description = "性别")
-    private GenderEnum gender;
+    private Integer gender;
 
     @Schema(description = "证件类型")
-    private IdTypeEnum idType;
+    private Integer idType;
 
     @Schema(description = "证件号码")
     private String idNo;
@@ -39,7 +36,7 @@ public class OwnerPersonalDTO {
     private String payeePhone;
 
     @Schema(description = "收款人证件类型")
-    private IdTypeEnum payeeIdType;
+    private Integer payeeIdType;
 
     @Schema(description = "收款人证件号码")
     private String payeeIdNo;
@@ -72,7 +69,7 @@ public class OwnerPersonalDTO {
     private String remark;
 
     @Schema(description = "状态")
-    private StatusEnum status;
+    private Integer status;
 
     @Schema(description = "创建人")
     private Long createBy;

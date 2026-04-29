@@ -7,7 +7,6 @@ import com.homi.model.owner.dto.OwnerLeaseFreeRuleDTO;
 import com.homi.model.owner.dto.OwnerLeaseRuleDTO;
 import com.homi.model.owner.dto.OwnerPersonalDTO;
 import com.homi.model.owner.dto.OwnerContractSubjectDTO;
-import com.homi.common.lib.enums.owner.OwnerTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -22,7 +21,7 @@ public class OwnerDetailVO {
     private Long ownerId;
 
     @Schema(description = "业主类型")
-    private OwnerTypeEnum ownerType;
+    private Integer ownerType;
 
     @Schema(description = "个人业主信息")
     private OwnerPersonalDTO ownerPersonal;

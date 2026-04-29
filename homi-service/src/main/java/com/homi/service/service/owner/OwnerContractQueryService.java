@@ -5,25 +5,10 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.homi.common.lib.enums.GenderEnum;
-import com.homi.common.lib.enums.IdTypeEnum;
 import com.homi.common.lib.enums.StatusEnum;
-import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
-import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
-import com.homi.common.lib.enums.owner.OwnerBearTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerContractMediumEnum;
+import com.homi.common.lib.enums.owner.OwnerContractStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
-import com.homi.common.lib.enums.owner.OwnerFeeModeEnum;
-import com.homi.common.lib.enums.owner.OwnerFreeCalcModeEnum;
-import com.homi.common.lib.enums.owner.OwnerFreeTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerIncomeBasisEnum;
-import com.homi.common.lib.enums.owner.OwnerPaymentFeeBearTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerProrateTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerSettlementModeEnum;
-import com.homi.common.lib.enums.owner.OwnerSettlementTimingEnum;
-import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
-import com.homi.common.lib.enums.owner.OwnerSignTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerTypeEnum;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -138,10 +123,11 @@ public class OwnerContractQueryService {
         DateTime expireLimit = DateUtil.offsetDay(now, 30);
 
         vo.setTotal(contracts.size());
-        vo.setActiveTotal((int) contracts.stream().filter(item -> Objects.equals(item.getStatus(), StatusEnum.ACTIVE.getValue())).count());
-        vo.setDisabledTotal((int) contracts.stream().filter(item -> Objects.equals(item.getStatus(), StatusEnum.DISABLED.getValue())).count());
-        vo.setPendingSignTotal((int) contracts.stream().filter(item -> Objects.equals(item.getSignStatus(), OwnerSignStatusEnum.PENDING.getCode())).count());
-        vo.setSignedTotal((int) contracts.stream().filter(item -> Objects.equals(item.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())).count());
+        vo.setPendingApprovalTotal((int) contracts.stream().filter(item -> Objects.equals(item.getStatus(), OwnerContractStatusEnum.PENDING_APPROVAL.getCode())).count());
+        vo.setCheckedOutTotal((int) contracts.stream().filter(item -> Objects.equals(item.getStatus(), OwnerContractStatusEnum.CHECKED_OUT.getCode())).count());
+        vo.setVoidedTotal((int) contracts.stream().filter(item -> Objects.equals(item.getStatus(), OwnerContractStatusEnum.VOIDED.getCode())).count());
+        vo.setPendingSignTotal((int) contracts.stream().filter(item -> Objects.equals(item.getStatus(), OwnerContractStatusEnum.PENDING_SIGN.getCode())).count());
+        vo.setSignedTotal((int) contracts.stream().filter(item -> Objects.equals(item.getStatus(), OwnerContractStatusEnum.SIGNED.getCode())).count());
         vo.setExpiring30DaysTotal((int) contracts.stream()
             .filter(item -> item.getContractEnd() != null)
             .filter(item -> !item.getContractEnd().before(now) && !item.getContractEnd().after(expireLimit))
@@ -164,13 +150,13 @@ public class OwnerContractQueryService {
 
         OwnerDetailVO vo = new OwnerDetailVO();
         vo.setOwnerId(owner.getId());
-        vo.setOwnerType(OwnerTypeEnum.fromCode(owner.getOwnerType()));
+        vo.setOwnerType(owner.getOwnerType());
         vo.setOwnerContract(toOwnerContractDTO(contract));
         ContractTemplate template = contractTemplateRepo.getById(contract.getContractTemplateId());
         if (template != null) {
             vo.setContractTemplateName(template.getTemplateName());
         }
-        if (OwnerTypeEnum.PERSONAL.equals(vo.getOwnerType())) {
+        if (Objects.equals(vo.getOwnerType(), OwnerTypeEnum.PERSONAL.getCode())) {
             OwnerPersonal personal = ownerPersonalRepo.getById(owner.getOwnerTypeId());
             if (personal != null) {
                 vo.setOwnerPersonal(toOwnerPersonalDTO(personal));
@@ -186,7 +172,7 @@ public class OwnerContractQueryService {
         List<OwnerContractSubjectDTO> subjectDTOList = contractSubjects.stream().map(item -> {
             OwnerContractSubjectDTO subjectDTO = new OwnerContractSubjectDTO();
             subjectDTO.setId(item.getId());
-            subjectDTO.setSubjectType(com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum.fromCode(item.getSubjectType()));
+            subjectDTO.setSubjectType(item.getSubjectType());
             subjectDTO.setSubjectId(item.getSubjectId());
             subjectDTO.setSubjectName(item.getSubjectNameSnapshot());
             subjectDTO.setRemark(item.getRemark());
@@ -269,15 +255,15 @@ public class OwnerContractQueryService {
         OwnerListVO vo = new OwnerListVO();
         vo.setContractId(contract.getId());
         vo.setOwnerId(owner.getId());
-        vo.setOwnerType(OwnerTypeEnum.fromCode(owner.getOwnerType()));
+        vo.setOwnerType(owner.getOwnerType());
         vo.setOwnerName(owner.getOwnerName());
         vo.setOwnerPhone(owner.getOwnerPhone());
         vo.setContractNo(contract.getContractNo());
         vo.setContractStart(contract.getContractStart());
         vo.setContractEnd(contract.getContractEnd());
-        vo.setCooperationMode(contract.getCooperationMode() == null ? null : OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()));
-        vo.setSignStatus(OwnerSignStatusEnum.fromCode(contract.getSignStatus()));
-        vo.setStatus(StatusEnum.fromValue(contract.getStatus()));
+        vo.setCooperationMode(contract.getCooperationMode());
+        vo.setSignStatus(contract.getSignStatus());
+        vo.setStatus(contract.getStatus());
         vo.setContractNature(contract.getContractNature());
         vo.setCheckoutStatus(contract.getCheckoutStatus());
         vo.setCheckoutDate(contract.getCheckoutDate());
@@ -307,10 +293,10 @@ public class OwnerContractQueryService {
             return wrapper;
         }
         wrapper.in(ownerIds != null, OwnerContract::getOwnerId, ownerIds);
-        wrapper.eq(query.getCooperationMode() != null, OwnerContract::getCooperationMode, query.getCooperationMode() == null ? null : query.getCooperationMode().name());
+        wrapper.eq(query.getCooperationMode() != null, OwnerContract::getCooperationMode, query.getCooperationMode());
         if (!ignoreStatusFilters) {
-            wrapper.eq(Objects.nonNull(query.getStatus()), OwnerContract::getStatus, query.getStatus() == null ? null : query.getStatus().getValue());
-            wrapper.eq(Objects.nonNull(query.getSignStatus()), OwnerContract::getSignStatus, query.getSignStatus() == null ? null : query.getSignStatus().getCode());
+            wrapper.eq(Objects.nonNull(query.getStatus()), OwnerContract::getStatus, query.getStatus());
+            wrapper.eq(Objects.nonNull(query.getSignStatus()), OwnerContract::getSignStatus, query.getSignStatus());
             if (query.getExpiringDaysWithin() != null) {
                 wrapper.ge(OwnerContract::getContractEnd, DateUtil.beginOfDay(new Date()));
                 wrapper.le(OwnerContract::getContractEnd, DateUtil.endOfDay(DateUtil.offsetDay(new Date(), query.getExpiringDaysWithin())));
@@ -366,7 +352,7 @@ public class OwnerContractQueryService {
             return null;
         }
         LambdaQueryWrapper<Owner> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(query.getOwnerType() != null, Owner::getOwnerType, query.getOwnerType() == null ? null : query.getOwnerType().getCode());
+        wrapper.eq(query.getOwnerType() != null, Owner::getOwnerType, query.getOwnerType());
         wrapper.like(!isBlank(query.getOwnerName()), Owner::getOwnerName, query.getOwnerName());
         wrapper.like(!isBlank(query.getOwnerPhone()), Owner::getOwnerPhone, query.getOwnerPhone());
         return ownerRepo.list(wrapper).stream().map(Owner::getId).toList();
@@ -387,18 +373,18 @@ public class OwnerContractQueryService {
         dto.setId(contract.getId());
         dto.setCompanyId(contract.getCompanyId());
         dto.setOwnerId(contract.getOwnerId());
-        dto.setCooperationMode(contract.getCooperationMode() == null ? null : OwnerCooperationModeEnum.valueOf(contract.getCooperationMode()));
+        dto.setCooperationMode(contract.getCooperationMode());
         dto.setContractNo(contract.getContractNo());
         dto.setContractTemplateId(contract.getContractTemplateId());
         dto.setContractContent(contract.getContractContent());
-        dto.setSignStatus(OwnerSignStatusEnum.fromCode(contract.getSignStatus()));
-        dto.setSignType(contract.getSignType() == null ? null : OwnerSignTypeEnum.valueOf(contract.getSignType()));
-        dto.setContractMedium(contract.getContractMedium() == null ? null : OwnerContractMediumEnum.valueOf(contract.getContractMedium()));
+        dto.setSignStatus(contract.getSignStatus());
+        dto.setSignType(contract.getSignType());
+        dto.setContractMedium(contract.getContractMedium());
         dto.setNotifyOwner(Objects.requireNonNullElse(contract.getNotifyOwner(), Boolean.FALSE));
         dto.setContractStart(contract.getContractStart());
         dto.setContractEnd(contract.getContractEnd());
-        dto.setStatus(StatusEnum.fromValue(contract.getStatus()));
-        dto.setApprovalStatus(BizApprovalStatusEnum.getByCode(contract.getApprovalStatus()));
+        dto.setStatus(contract.getStatus());
+        dto.setApprovalStatus(contract.getApprovalStatus());
         dto.setRemark(contract.getRemark());
         dto.setParentContractId(contract.getParentContractId());
         dto.setContractNature(contract.getContractNature());
@@ -421,13 +407,13 @@ public class OwnerContractQueryService {
         dto.setId(personal.getId());
         dto.setCompanyId(personal.getCompanyId());
         dto.setName(personal.getName());
-        dto.setGender(GenderEnum.fromCode(personal.getGender()));
-        dto.setIdType(IdTypeEnum.fromCode(personal.getIdType()));
+        dto.setGender(personal.getGender());
+        dto.setIdType(personal.getIdType());
         dto.setIdNo(personal.getIdNo());
         dto.setPhone(personal.getPhone());
         dto.setPayeeName(personal.getPayeeName());
         dto.setPayeePhone(personal.getPayeePhone());
-        dto.setPayeeIdType(IdTypeEnum.fromCode(personal.getPayeeIdType()));
+        dto.setPayeeIdType(personal.getPayeeIdType());
         dto.setPayeeIdNo(personal.getPayeeIdNo());
         dto.setBankAccountName(personal.getBankAccountName());
         dto.setBankAccountNo(personal.getBankAccountNo());
@@ -438,7 +424,7 @@ public class OwnerContractQueryService {
         dto.setOtherImageList(getFileUrls(personal.getId(), FileAttachBizTypeEnum.OWNER_OTHER_IMAGE.getBizType()));
         dto.setTags(parseTags(personal.getTags()));
         dto.setRemark(personal.getRemark());
-        dto.setStatus(StatusEnum.fromValue(personal.getStatus()));
+        dto.setStatus(personal.getStatus());
         dto.setCreateBy(personal.getCreateBy());
         return dto;
     }
@@ -450,13 +436,13 @@ public class OwnerContractQueryService {
         dto.setName(company.getName());
         dto.setUscc(company.getUscc());
         dto.setLegalPerson(company.getLegalPerson());
-        dto.setLegalPersonIdType(IdTypeEnum.fromCode(company.getLegalPersonIdType()));
+        dto.setLegalPersonIdType(company.getLegalPersonIdType());
         dto.setLegalPersonIdNo(company.getLegalPersonIdNo());
         dto.setContactName(company.getContactName());
         dto.setContactPhone(company.getContactPhone());
         dto.setPayeeName(company.getPayeeName());
         dto.setPayeePhone(company.getPayeePhone());
-        dto.setPayeeIdType(IdTypeEnum.fromCode(company.getPayeeIdType()));
+        dto.setPayeeIdType(company.getPayeeIdType());
         dto.setPayeeIdNo(company.getPayeeIdNo());
         dto.setBankAccountName(company.getBankAccountName());
         dto.setBankAccountNo(company.getBankAccountNo());
@@ -465,27 +451,27 @@ public class OwnerContractQueryService {
         dto.setRegisteredAddress(company.getRegisteredAddress());
         dto.setTags(parseTags(company.getTags()));
         dto.setRemark(company.getRemark());
-        dto.setStatus(StatusEnum.fromValue(company.getStatus()));
+        dto.setStatus(company.getStatus());
         dto.setCreateBy(company.getCreateBy());
         return dto;
     }
 
     private OwnerSettlementRuleDTO toOwnerSettlementRuleDTO(OwnerSettlementRule rule) {
         OwnerSettlementRuleDTO dto = new OwnerSettlementRuleDTO();
-        dto.setIncomeBasis(rule.getIncomeBasis() == null ? null : OwnerIncomeBasisEnum.valueOf(rule.getIncomeBasis()));
-        dto.setSettlementMode(rule.getSettlementMode() == null ? null : OwnerSettlementModeEnum.valueOf(rule.getSettlementMode()));
+        dto.setIncomeBasis(rule.getIncomeBasis());
+        dto.setSettlementMode(rule.getSettlementMode());
         dto.setGuaranteedRentAmount(rule.getGuaranteedRentAmount());
         dto.setHasGuaranteedRent(Objects.requireNonNullElse(rule.getHasGuaranteedRent(), Boolean.FALSE));
-        dto.setCommissionMode(rule.getCommissionMode() == null ? null : OwnerFeeModeEnum.valueOf(rule.getCommissionMode()));
+        dto.setCommissionMode(rule.getCommissionMode());
         dto.setCommissionValue(rule.getCommissionValue());
-        dto.setServiceFeeMode(rule.getServiceFeeMode() == null ? null : OwnerFeeModeEnum.valueOf(rule.getServiceFeeMode()));
+        dto.setServiceFeeMode(rule.getServiceFeeMode());
         dto.setServiceFeeValue(rule.getServiceFeeValue());
         dto.setManagementFeeEnabled(Objects.requireNonNullElse(rule.getManagementFeeEnabled(), Boolean.FALSE));
-        dto.setManagementFeeMode(rule.getManagementFeeMode() == null ? null : OwnerFeeModeEnum.valueOf(rule.getManagementFeeMode()));
+        dto.setManagementFeeMode(rule.getManagementFeeMode());
         dto.setManagementFeeValue(rule.getManagementFeeValue());
-        dto.setBearTaxType(rule.getBearTaxType() == null ? null : OwnerBearTypeEnum.valueOf(rule.getBearTaxType()));
-        dto.setPaymentFeeBearType(rule.getPaymentFeeBearType() == null ? null : OwnerPaymentFeeBearTypeEnum.valueOf(rule.getPaymentFeeBearType()));
-        dto.setSettlementTiming(rule.getSettlementTiming() == null ? null : OwnerSettlementTimingEnum.valueOf(rule.getSettlementTiming()));
+        dto.setBearTaxType(rule.getBearTaxType());
+        dto.setPaymentFeeBearType(rule.getPaymentFeeBearType());
+        dto.setSettlementTiming(rule.getSettlementTiming());
         dto.setRentFreeEnabled(Objects.requireNonNullElse(rule.getRentFreeEnabled(), Boolean.FALSE));
         dto.setSettlementItemList(ownerSettlementFeeRepo.list(new LambdaQueryWrapper<OwnerSettlementFee>()
                 .eq(OwnerSettlementFee::getContractId, rule.getContractId())
@@ -495,7 +481,7 @@ public class OwnerContractQueryService {
             .toList());
         dto.setEffectiveStart(rule.getEffectiveStart());
         dto.setEffectiveEnd(rule.getEffectiveEnd());
-        dto.setStatus(StatusEnum.fromValue(rule.getStatus()));
+        dto.setStatus(rule.getStatus());
         dto.setRemark(rule.getRemark());
         return dto;
     }
@@ -503,14 +489,14 @@ public class OwnerContractQueryService {
     private OwnerRentFreeRuleDTO toOwnerRentFreeRuleDTO(OwnerRentFreeRule rule) {
         OwnerRentFreeRuleDTO dto = new OwnerRentFreeRuleDTO();
         dto.setEnabled(Objects.requireNonNullElse(rule.getEnabled(), Boolean.FALSE));
-        dto.setFreeType(rule.getFreeType() == null ? null : OwnerFreeTypeEnum.valueOf(rule.getFreeType()));
+        dto.setFreeType(rule.getFreeType());
         dto.setStartDate(rule.getStartDate());
         dto.setEndDate(rule.getEndDate());
-        dto.setBearType(rule.getBearType() == null ? null : OwnerBearTypeEnum.valueOf(rule.getBearType()));
+        dto.setBearType(rule.getBearType());
         dto.setOwnerRatio(rule.getOwnerRatio());
         dto.setPlatformRatio(rule.getPlatformRatio());
-        dto.setCalcMode(rule.getCalcMode() == null ? null : OwnerFreeCalcModeEnum.valueOf(rule.getCalcMode()));
-        dto.setStatus(StatusEnum.fromValue(rule.getStatus()));
+        dto.setCalcMode(rule.getCalcMode());
+        dto.setStatus(rule.getStatus());
         dto.setRemark(rule.getRemark());
         return dto;
     }
@@ -522,7 +508,7 @@ public class OwnerContractQueryService {
         dto.setDepositMonths(rule.getDepositMonths());
         dto.setPaymentMonths(rule.getPaymentMonths());
         dto.setPayWay(rule.getPayWay());
-        dto.setRentDueType(rule.getRentDueType() == null ? null : com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum.values()[rule.getRentDueType() - 1]);
+        dto.setRentDueType(rule.getRentDueType());
         dto.setRentDueDay(rule.getRentDueDay());
         dto.setRentDueOffsetDays(rule.getRentDueOffsetDays());
         dto.setFirstPayDate(rule.getFirstPayDate());
@@ -530,8 +516,8 @@ public class OwnerContractQueryService {
         dto.setUsageType(rule.getUsageType());
         dto.setBillingStart(rule.getBillingStart());
         dto.setBillingEnd(rule.getBillingEnd());
-        dto.setProrateType(rule.getProrateType() == null ? null : OwnerProrateTypeEnum.valueOf(rule.getProrateType()));
-        dto.setStatus(StatusEnum.fromValue(rule.getStatus()));
+        dto.setProrateType(rule.getProrateType());
+        dto.setStatus(rule.getStatus());
         dto.setRemark(rule.getRemark());
         dto.setOtherFeeList(ownerLeaseFeeRepo.list(new LambdaQueryWrapper<OwnerLeaseFee>().eq(OwnerLeaseFee::getContractId, rule.getContractId()))
             .stream()
@@ -542,13 +528,13 @@ public class OwnerContractQueryService {
 
     private OwnerLeaseFreeRuleDTO toOwnerLeaseFreeRuleDTO(OwnerLeaseFreeRule rule) {
         OwnerLeaseFreeRuleDTO dto = new OwnerLeaseFreeRuleDTO();
-        dto.setFreeType(rule.getFreeType() == null ? null : OwnerFreeTypeEnum.valueOf(rule.getFreeType()));
+        dto.setFreeType(rule.getFreeType());
         dto.setStartDate(rule.getStartDate());
         dto.setEndDate(rule.getEndDate());
-        dto.setCalcMode(rule.getCalcMode() == null ? null : OwnerFreeCalcModeEnum.valueOf(rule.getCalcMode()));
+        dto.setCalcMode(rule.getCalcMode());
         dto.setFreeAmount(rule.getFreeAmount());
         dto.setFreeRatio(rule.getFreeRatio());
-        dto.setStatus(StatusEnum.fromValue(rule.getStatus()));
+        dto.setStatus(rule.getStatus());
         dto.setRemark(rule.getRemark());
         return dto;
     }
@@ -571,7 +557,7 @@ public class OwnerContractQueryService {
         dto.setDictDataId(fee.getDictDataId());
         dto.setFeeType(fee.getFeeType());
         dto.setFeeName(fee.getFeeName());
-        dto.setFeeDirection(fee.getFeeDirection() == null ? null : FinanceFlowDirectionEnum.valueOf(fee.getFeeDirection()));
+        dto.setFeeDirection(fee.getFeeDirection());
         dto.setPaymentMethod(fee.getPaymentMethod());
         dto.setPriceMethod(fee.getPriceMethod());
         dto.setPriceInput(fee.getPriceInput());

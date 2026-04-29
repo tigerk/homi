@@ -1,9 +1,6 @@
 package com.homi.model.owner.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.common.lib.enums.StatusEnum;
-import com.homi.common.lib.enums.owner.OwnerFreeCalcModeEnum;
-import com.homi.common.lib.enums.owner.OwnerFreeTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -14,7 +11,7 @@ import java.util.Date;
 @Schema(description = "包租免租规则DTO")
 public class OwnerLeaseFreeRuleDTO {
     @Schema(description = "免租类型")
-    private OwnerFreeTypeEnum freeType;
+    private String freeType;
 
     @Schema(description = "开始日期")
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
@@ -25,7 +22,7 @@ public class OwnerLeaseFreeRuleDTO {
     private Date endDate;
 
     @Schema(description = "计算方式")
-    private OwnerFreeCalcModeEnum calcMode;
+    private String calcMode;
 
     @Schema(description = "免租金额")
     private BigDecimal freeAmount;
@@ -34,7 +31,7 @@ public class OwnerLeaseFreeRuleDTO {
     private BigDecimal freeRatio;
 
     @Schema(description = "状态")
-    private StatusEnum status;
+    private Integer status;
 
     @Schema(description = "备注")
     private String remark;

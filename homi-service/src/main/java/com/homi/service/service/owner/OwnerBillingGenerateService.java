@@ -69,7 +69,7 @@ public class OwnerBillingGenerateService {
 
         List<OwnerContract> contractList = ownerContractRepo.list(new LambdaQueryWrapper<OwnerContract>()
             .eq(OwnerContract::getCooperationMode, OwnerCooperationModeEnum.LIGHT_MANAGED.name())
-            .eq(OwnerContract::getStatus, StatusEnum.ACTIVE.getValue())
+            .eq(OwnerContract::getStatus, OwnerContractStatusEnum.SIGNED.getCode())
             .eq(OwnerContract::getApprovalStatus, BizApprovalStatusEnum.APPROVED.getCode())
             .le(OwnerContract::getContractStart, todayEnd));
 
@@ -536,7 +536,7 @@ public class OwnerBillingGenerateService {
     }
 
     private boolean isLeaseStartBillContract(OwnerContract contract) {
-        return Objects.equals(contract.getStatus(), StatusEnum.ACTIVE.getValue())
+        return Objects.equals(contract.getStatus(), OwnerContractStatusEnum.SIGNED.getCode())
             && Objects.equals(contract.getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode())
             && Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())
             && OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode());
@@ -626,7 +626,7 @@ public class OwnerBillingGenerateService {
     }
 
     private boolean isMasterLeaseBillContract(OwnerContract contract) {
-        return Objects.equals(contract.getStatus(), StatusEnum.ACTIVE.getValue())
+        return Objects.equals(contract.getStatus(), OwnerContractStatusEnum.SIGNED.getCode())
             && Objects.equals(contract.getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode())
             && Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())
             && OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode());

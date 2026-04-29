@@ -1,12 +1,6 @@
 package com.homi.model.owner.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.common.lib.enums.StatusEnum;
-import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
-import com.homi.common.lib.enums.owner.OwnerContractMediumEnum;
-import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
-import com.homi.common.lib.enums.owner.OwnerSignTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -25,7 +19,7 @@ public class OwnerContractDTO {
     private Long ownerId;
 
     @Schema(description = "合作模式")
-    private OwnerCooperationModeEnum cooperationMode;
+    private String cooperationMode;
 
     @Schema(description = "合同编号")
     private String contractNo;
@@ -37,13 +31,13 @@ public class OwnerContractDTO {
     private String contractContent;
 
     @Schema(description = "签署状态")
-    private OwnerSignStatusEnum signStatus;
+    private Integer signStatus;
 
     @Schema(description = "签约类型")
-    private OwnerSignTypeEnum signType;
+    private String signType;
 
     @Schema(description = "合同介质")
-    private OwnerContractMediumEnum contractMedium;
+    private String contractMedium;
 
     @Schema(description = "是否通知业主")
     private Boolean notifyOwner;
@@ -57,10 +51,10 @@ public class OwnerContractDTO {
     private Date contractEnd;
 
     @Schema(description = "状态")
-    private StatusEnum status;
+    private Integer status;
 
     @Schema(description = "审批状态")
-    private BizApprovalStatusEnum approvalStatus;
+    private Integer approvalStatus;
 
     @Schema(description = "备注")
     private String remark;

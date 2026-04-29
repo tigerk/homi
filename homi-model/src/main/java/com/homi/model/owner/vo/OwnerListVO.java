@@ -1,10 +1,6 @@
 package com.homi.model.owner.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.common.lib.enums.StatusEnum;
-import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
-import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
-import com.homi.common.lib.enums.owner.OwnerTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -21,7 +17,7 @@ public class OwnerListVO {
     private Long ownerId;
 
     @Schema(description = "业主类型")
-    private OwnerTypeEnum ownerType;
+    private Integer ownerType;
 
     @Schema(description = "业主名称")
     private String ownerName;
@@ -36,7 +32,7 @@ public class OwnerListVO {
     private String contractNo;
 
     @Schema(description = "合作模式")
-    private OwnerCooperationModeEnum cooperationMode;
+    private String cooperationMode;
 
     @Schema(description = "合同模板名称")
     private String contractTemplateName;
@@ -62,10 +58,10 @@ public class OwnerListVO {
     private Date contractEnd;
 
     @Schema(description = "签署状态")
-    private OwnerSignStatusEnum signStatus;
+    private Integer signStatus;
 
     @Schema(description = "状态")
-    private StatusEnum status;
+    private Integer status;
 
     @Schema(description = "合同性质：1=新签，2=续约")
     private Integer contractNature;

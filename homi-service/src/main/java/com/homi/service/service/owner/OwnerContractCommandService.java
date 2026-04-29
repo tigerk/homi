@@ -8,6 +8,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.annotation.BizOperateLog;
 import com.homi.common.lib.enums.StatusEnum;
+import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
@@ -19,8 +20,11 @@ import com.homi.common.lib.enums.owner.*;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
+import com.homi.model.approval.dto.ApprovalSubmitDTO;
 import com.homi.model.owner.dto.*;
 import com.homi.model.owner.vo.OwnerDetailVO;
+import com.homi.service.service.approval.ApprovalResult;
+import com.homi.service.service.approval.ApprovalTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -56,6 +60,7 @@ public class OwnerContractCommandService {
     private final FileAttachRepo fileAttachRepo;
     private final OwnerBillingGenerateService ownerBillingGenerateService;
     private final OwnerContractQueryService ownerContractQueryService;
+    private final ApprovalTemplate approvalTemplate;
 
     @Transactional(rollbackFor = Exception.class)
     public Long createOwnerContract(OwnerCreateDTO dto) {
@@ -67,13 +72,12 @@ public class OwnerContractCommandService {
         assert contract != null;
         contract.setOwnerId(ownerId);
         contract.setContractNo(Objects.requireNonNullElseGet(contract.getContractNo(), this::generateContractNo));
-        contract.setCooperationMode(enumName(dto.getOwnerContract().getCooperationMode()));
-        contract.setSignStatus(Objects.requireNonNullElse(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING).getCode());
-        contract.setSignType(enumName(dto.getOwnerContract().getSignType()));
-        contract.setContractMedium(enumName(dto.getOwnerContract().getContractMedium()));
+        contract.setCooperationMode(dto.getOwnerContract().getCooperationMode());
+        contract.setSignStatus(defaultInteger(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING.getCode()));
+        contract.setSignType(dto.getOwnerContract().getSignType());
+        contract.setContractMedium(dto.getOwnerContract().getContractMedium());
         contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
-        contract.setStatus(Objects.requireNonNullElse(dto.getOwnerContract().getStatus(), StatusEnum.ACTIVE).getValue());
-        contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
+        applyCreateApprovalState(contract, dto.getOwnerContract());
         contract.setParentContractId(dto.getOwnerContract().getParentContractId());
         contract.setContractNature(Objects.requireNonNullElse(dto.getOwnerContract().getContractNature(), 1));
         contract.setRenewFromContractNo(dto.getOwnerContract().getRenewFromContractNo());
@@ -90,6 +94,9 @@ public class OwnerContractCommandService {
             saveLightManagedRules(dto, contract, contractSubjects, now);
         } else if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
             saveMasterLeaseRules(dto, contract.getId(), now);
+        }
+        ApprovalResult approvalResult = submitOwnerContractApproval(contract, dto.getCreateBy());
+        if (!approvalResult.isNeedApproval() && OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
             ownerBillingGenerateService.rebuildMasterLeasePayableBillsByContract(contract.getId());
         }
         initOwnerAccount(dto.getOwnerContract().getCompanyId(), ownerId, now);
@@ -166,19 +173,19 @@ public class OwnerContractCommandService {
             }
         }
         if (!OwnerCooperationModeEnum.MASTER_LEASE.name().equals(currentContract.getCooperationMode())
-            && OwnerCooperationModeEnum.MASTER_LEASE.equals(dto.getOwnerContract().getCooperationMode())) {
+            && OwnerCooperationModeEnum.MASTER_LEASE.getCode().equals(dto.getOwnerContract().getCooperationMode())) {
             shouldRebuildMasterLeaseBills = true;
         }
         OwnerContract contract = BeanCopyUtils.copyBean(dto.getOwnerContract(), OwnerContract.class);
         assert contract != null;
         contract.setOwnerId(owner.getId());
-        contract.setCooperationMode(enumName(dto.getOwnerContract().getCooperationMode()));
-        contract.setSignStatus(Objects.requireNonNullElse(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING).getCode());
-        contract.setSignType(enumName(dto.getOwnerContract().getSignType()));
-        contract.setContractMedium(enumName(dto.getOwnerContract().getContractMedium()));
+        contract.setCooperationMode(dto.getOwnerContract().getCooperationMode());
+        contract.setSignStatus(defaultInteger(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING.getCode()));
+        contract.setSignType(dto.getOwnerContract().getSignType());
+        contract.setContractMedium(dto.getOwnerContract().getContractMedium());
         contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
-        contract.setStatus(Objects.requireNonNullElse(dto.getOwnerContract().getStatus(), StatusEnum.ACTIVE).getValue());
-        contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
+        contract.setStatus(resolveContractStatusForUpdate(currentContract, dto.getOwnerContract()));
+        contract.setApprovalStatus(defaultInteger(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode()));
         contract.setParentContractId(currentContract.getParentContractId());
         contract.setContractNature(Objects.requireNonNullElse(currentContract.getContractNature(), 1));
         contract.setRenewFromContractNo(currentContract.getRenewFromContractNo());
@@ -213,13 +220,12 @@ public class OwnerContractCommandService {
         contract.setId(null);
         contract.setOwnerId(ownerId);
         contract.setContractNo(Objects.requireNonNullElseGet(contract.getContractNo(), this::generateContractNo));
-        contract.setCooperationMode(enumName(dto.getOwnerContract().getCooperationMode()));
-        contract.setSignStatus(Objects.requireNonNullElse(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING).getCode());
-        contract.setSignType(enumName(dto.getOwnerContract().getSignType()));
-        contract.setContractMedium(enumName(dto.getOwnerContract().getContractMedium()));
+        contract.setCooperationMode(dto.getOwnerContract().getCooperationMode());
+        contract.setSignStatus(defaultInteger(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING.getCode()));
+        contract.setSignType(dto.getOwnerContract().getSignType());
+        contract.setContractMedium(dto.getOwnerContract().getContractMedium());
         contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
-        contract.setStatus(Objects.requireNonNullElse(dto.getOwnerContract().getStatus(), StatusEnum.ACTIVE).getValue());
-        contract.setApprovalStatus(Objects.requireNonNullElse(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED).getCode());
+        applyCreateApprovalState(contract, dto.getOwnerContract());
         contract.setContractNature(Objects.requireNonNullElse(dto.getOwnerContract().getContractNature(), 1));
         contract.setCheckoutStatus(Objects.requireNonNullElse(dto.getOwnerContract().getCheckoutStatus(), 0));
         contract.setCreateBy(dto.getCreateBy());
@@ -234,6 +240,9 @@ public class OwnerContractCommandService {
             saveLightManagedRules(dto, contract, contractSubjects, now);
         } else if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
             saveMasterLeaseRules(dto, contract.getId(), now);
+        }
+        ApprovalResult approvalResult = submitOwnerContractApproval(contract, dto.getCreateBy());
+        if (!approvalResult.isNeedApproval() && OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
             ownerBillingGenerateService.rebuildMasterLeasePayableBillsByContract(contract.getId());
         }
         initOwnerAccount(dto.getOwnerContract().getCompanyId(), ownerId, now);
@@ -258,11 +267,10 @@ public class OwnerContractCommandService {
         contract.setVoidReason(reason);
         contract.setVoidBy(updateBy);
         contract.setVoidAt(now);
+        contract.setStatus(OwnerContractStatusEnum.VOIDED.getCode());
         contract.setUpdateBy(updateBy);
         contract.setUpdateAt(now);
         ownerContractRepo.updateById(contract);
-        clearContractRelations(contract.getId());
-        ownerContractRepo.removeById(contract.getId());
         return contract.getId();
     }
 
@@ -272,6 +280,13 @@ public class OwnerContractCommandService {
      * 作废只用于未进入业务流程的误建合同；已签约、已生成账单或已被租客占用的合同，必须走业主退房。
      */
     private void validateOwnerContractCanVoid(OwnerContract contract) {
+        OwnerContractStatusEnum status = OwnerContractStatusEnum.fromCode(contract.getStatus());
+        if (OwnerContractStatusEnum.VOIDED.equals(status)) {
+            throw new IllegalArgumentException("该合同已作废");
+        }
+        if (OwnerContractStatusEnum.CHECKED_OUT.equals(status)) {
+            throw new IllegalArgumentException("该合同已退房，不能作废");
+        }
         if (Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())) {
             throw new IllegalArgumentException("该合同已进入业务流程，请走业主退房");
         }
@@ -281,6 +296,72 @@ public class OwnerContractCommandService {
         if (hasOwnerContractBills(contract.getId()) || hasOwnerContractLeases(contract.getId())) {
             throw new IllegalArgumentException("该合同已进入业务流程，请走业主退房");
         }
+    }
+
+    private Integer resolveEditableContractStatus(OwnerContractDTO dto) {
+        Integer approvalStatus = defaultInteger(dto.getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode());
+        if (!BizApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
+            return OwnerContractStatusEnum.PENDING_APPROVAL.getCode();
+        }
+        OwnerSignStatusEnum signStatus = OwnerSignStatusEnum.fromCode(defaultInteger(dto.getSignStatus(), OwnerSignStatusEnum.PENDING.getCode()));
+        return OwnerContractStatusEnum.fromSignStatus(signStatus).getCode();
+    }
+
+    /**
+     * 创建/续约时根据审批流配置初始化业主合同状态。
+     * <p>
+     * 配置了审批流：合同先进入待审核，审批通过后由审批事件推进到待签字。
+     * 未配置审批流：合同直接按签署状态进入待签字或已签字。
+     */
+    private void applyCreateApprovalState(OwnerContract contract, OwnerContractDTO dto) {
+        boolean needApproval = approvalTemplate.needApproval(
+            dto.getCompanyId(),
+            ApprovalBizTypeEnum.OWNER_CONTRACT.getCode()
+        );
+        if (needApproval) {
+            contract.setSignStatus(OwnerSignStatusEnum.PENDING.getCode());
+            contract.setStatus(OwnerContractStatusEnum.PENDING_APPROVAL.getCode());
+            contract.setApprovalStatus(BizApprovalStatusEnum.PENDING.getCode());
+            return;
+        }
+        contract.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
+        contract.setStatus(OwnerContractStatusEnum.fromSignStatus(
+            OwnerSignStatusEnum.fromCode(defaultInteger(dto.getSignStatus(), OwnerSignStatusEnum.PENDING.getCode()))
+        ).getCode());
+    }
+
+    /**
+     * 提交业主合同审批；无需审批时保持业务状态为待签字/已签字。
+     */
+    private ApprovalResult submitOwnerContractApproval(OwnerContract contract, Long applicantId) {
+        return approvalTemplate.submitIfNeed(
+            ApprovalSubmitDTO.builder()
+                .companyId(contract.getCompanyId())
+                .bizType(ApprovalBizTypeEnum.OWNER_CONTRACT.getCode())
+                .bizId(contract.getId())
+                .title(String.format("【业主合同审批】-合同：%s", contract.getContractNo()))
+                .applicantId(applicantId)
+                .remark(contract.getRemark())
+                .build(),
+            bizId -> ownerContractRepo.updateStatusAndApprovalStatus(
+                bizId,
+                OwnerContractStatusEnum.PENDING_APPROVAL.getCode(),
+                BizApprovalStatusEnum.PENDING.getCode()
+            ),
+            bizId -> ownerContractRepo.updateStatusAndApprovalStatus(
+                bizId,
+                OwnerContractStatusEnum.fromSignStatus(OwnerSignStatusEnum.fromCode(contract.getSignStatus())).getCode(),
+                BizApprovalStatusEnum.APPROVED.getCode()
+            )
+        );
+    }
+
+    private Integer resolveContractStatusForUpdate(OwnerContract currentContract, OwnerContractDTO dto) {
+        OwnerContractStatusEnum currentStatus = OwnerContractStatusEnum.fromCode(currentContract.getStatus());
+        if (OwnerContractStatusEnum.CHECKED_OUT.equals(currentStatus) || OwnerContractStatusEnum.VOIDED.equals(currentStatus)) {
+            return currentContract.getStatus();
+        }
+        return resolveEditableContractStatus(dto);
     }
 
     /**
@@ -376,11 +457,11 @@ public class OwnerContractCommandService {
         if (dto.getContractSubjectList() == null || dto.getContractSubjectList().isEmpty()) {
             throw new IllegalArgumentException("合同房源不能为空");
         }
-        OwnerCooperationModeEnum mode = dto.getOwnerContract().getCooperationMode();
+        String mode = dto.getOwnerContract().getCooperationMode();
         if (mode == null) {
             throw new IllegalArgumentException("合作模式不正确");
         }
-        if (OwnerCooperationModeEnum.MASTER_LEASE.equals(mode) && dto.getOwnerLeaseRule() == null) {
+        if (OwnerCooperationModeEnum.MASTER_LEASE.getCode().equals(mode) && dto.getOwnerLeaseRule() == null) {
             throw new IllegalArgumentException("包租规则不能为空");
         }
     }
@@ -392,18 +473,20 @@ public class OwnerContractCommandService {
         if (dto.getContractSubjectList() == null || dto.getContractSubjectList().isEmpty()) {
             throw new IllegalArgumentException("合同房源不能为空");
         }
-        OwnerCooperationModeEnum mode = dto.getOwnerContract().getCooperationMode();
+        String mode = dto.getOwnerContract().getCooperationMode();
         if (mode == null) {
             throw new IllegalArgumentException("合作模式不正确");
         }
-        if (OwnerCooperationModeEnum.MASTER_LEASE.equals(mode) && dto.getOwnerLeaseRule() == null) {
+        if (OwnerCooperationModeEnum.MASTER_LEASE.getCode().equals(mode) && dto.getOwnerLeaseRule() == null) {
             throw new IllegalArgumentException("包租规则不能为空");
         }
     }
 
     private List<OwnerContractSubject> saveContractSubjects(OwnerCreateDTO dto, Long contractId, Date now) {
         List<OwnerContractSubject> records = dto.getContractSubjectList().stream().map(item -> {
-            OwnerContractSubjectTypeEnum subjectType = Objects.requireNonNullElse(item.getSubjectType(), OwnerContractSubjectTypeEnum.HOUSE);
+            OwnerContractSubjectTypeEnum subjectType = OwnerContractSubjectTypeEnum.fromCode(
+                Objects.requireNonNullElse(item.getSubjectType(), OwnerContractSubjectTypeEnum.HOUSE.getCode())
+            );
             if (item.getSubjectId() == null) {
                 throw new IllegalArgumentException("合同房源ID不能为空");
             }
@@ -437,19 +520,19 @@ public class OwnerContractCommandService {
                 rule.setContractId(contract.getId());
                 rule.setContractSubjectId(subject.getId());
                 rule.setRuleVersion(1);
-                rule.setIncomeBasis(enumName(settlementRuleDTO.getIncomeBasis()));
-                rule.setSettlementMode(enumName(settlementRuleDTO.getSettlementMode()));
+                rule.setIncomeBasis(settlementRuleDTO.getIncomeBasis());
+                rule.setSettlementMode(settlementRuleDTO.getSettlementMode());
                 rule.setHasGuaranteedRent(Objects.requireNonNullElse(settlementRuleDTO.getHasGuaranteedRent(), Boolean.FALSE));
-                rule.setCommissionMode(enumName(settlementRuleDTO.getCommissionMode()));
-                rule.setServiceFeeMode(enumName(settlementRuleDTO.getServiceFeeMode()));
+                rule.setCommissionMode(settlementRuleDTO.getCommissionMode());
+                rule.setServiceFeeMode(settlementRuleDTO.getServiceFeeMode());
                 rule.setManagementFeeEnabled(Objects.requireNonNullElse(settlementRuleDTO.getManagementFeeEnabled(), Boolean.FALSE));
-                rule.setManagementFeeMode(enumName(settlementRuleDTO.getManagementFeeMode()));
+                rule.setManagementFeeMode(settlementRuleDTO.getManagementFeeMode());
                 rule.setManagementFeeValue(settlementRuleDTO.getManagementFeeValue());
-                rule.setBearTaxType(enumName(settlementRuleDTO.getBearTaxType()));
-                rule.setPaymentFeeBearType(enumName(settlementRuleDTO.getPaymentFeeBearType()));
-                rule.setSettlementTiming(enumName(settlementRuleDTO.getSettlementTiming()));
+                rule.setBearTaxType(settlementRuleDTO.getBearTaxType());
+                rule.setPaymentFeeBearType(settlementRuleDTO.getPaymentFeeBearType());
+                rule.setSettlementTiming(settlementRuleDTO.getSettlementTiming());
                 rule.setRentFreeEnabled(Objects.requireNonNullElse(settlementRuleDTO.getRentFreeEnabled(), Boolean.FALSE));
-                rule.setStatus(Objects.requireNonNullElse(settlementRuleDTO.getStatus(), StatusEnum.ACTIVE).getValue());
+                rule.setStatus(defaultInteger(settlementRuleDTO.getStatus(), StatusEnum.ACTIVE.getValue()));
                 rule.setRuleSnapshot(JSONUtil.toJsonStr(settlementRuleDTO));
                 rule.setCreateBy(dto.getCreateBy());
                 rule.setCreateAt(now);
@@ -466,10 +549,10 @@ public class OwnerContractCommandService {
                 rule.setContractId(contract.getId());
                 rule.setContractSubjectId(subject.getId());
                 rule.setEnabled(Objects.requireNonNullElse(rentFreeRuleDTO.getEnabled(), Boolean.FALSE));
-                rule.setFreeType(enumName(rentFreeRuleDTO.getFreeType()));
-                rule.setBearType(enumName(rentFreeRuleDTO.getBearType()));
-                rule.setCalcMode(enumName(rentFreeRuleDTO.getCalcMode()));
-                rule.setStatus(Objects.requireNonNullElse(rentFreeRuleDTO.getStatus(), StatusEnum.ACTIVE).getValue());
+                rule.setFreeType(rentFreeRuleDTO.getFreeType());
+                rule.setBearType(rentFreeRuleDTO.getBearType());
+                rule.setCalcMode(rentFreeRuleDTO.getCalcMode());
+                rule.setStatus(defaultInteger(rentFreeRuleDTO.getStatus(), StatusEnum.ACTIVE.getValue()));
                 rule.setCreateBy(dto.getCreateBy());
                 rule.setCreateAt(now);
                 rule.setUpdateBy(dto.getCreateBy());
@@ -485,9 +568,9 @@ public class OwnerContractCommandService {
         BeanUtils.copyProperties(leaseRuleDTO, leaseRule);
         leaseRule.setCompanyId(dto.getOwnerContract().getCompanyId());
         leaseRule.setContractId(contractId);
-        leaseRule.setRentDueType(leaseRuleDTO.getRentDueType() == null ? null : leaseRuleDTO.getRentDueType().getCode());
-        leaseRule.setProrateType(enumName(leaseRuleDTO.getProrateType()));
-        leaseRule.setStatus(Objects.requireNonNullElse(leaseRuleDTO.getStatus(), StatusEnum.ACTIVE).getValue());
+        leaseRule.setRentDueType(leaseRuleDTO.getRentDueType());
+        leaseRule.setProrateType(leaseRuleDTO.getProrateType());
+        leaseRule.setStatus(defaultInteger(leaseRuleDTO.getStatus(), StatusEnum.ACTIVE.getValue()));
         leaseRule.setCreateBy(dto.getCreateBy());
         leaseRule.setCreateAt(now);
         leaseRule.setUpdateBy(dto.getCreateBy());
@@ -503,9 +586,9 @@ public class OwnerContractCommandService {
             BeanUtils.copyProperties(item, rule);
             rule.setCompanyId(dto.getOwnerContract().getCompanyId());
             rule.setContractId(contractId);
-            rule.setFreeType(enumName(item.getFreeType()));
-            rule.setCalcMode(enumName(item.getCalcMode()));
-            rule.setStatus(Objects.requireNonNullElse(item.getStatus(), StatusEnum.ACTIVE).getValue());
+            rule.setFreeType(item.getFreeType());
+            rule.setCalcMode(item.getCalcMode());
+            rule.setStatus(defaultInteger(item.getStatus(), StatusEnum.ACTIVE.getValue()));
             rule.setCreateBy(dto.getCreateBy());
             rule.setCreateAt(now);
             rule.setUpdateBy(dto.getCreateBy());
@@ -517,7 +600,7 @@ public class OwnerContractCommandService {
 
     private Long saveOwner(OwnerCreateDTO dto) {
         Date now = DateUtil.date();
-        OwnerTypeEnum ownerType = dto.getOwnerType();
+        OwnerTypeEnum ownerType = OwnerTypeEnum.fromCode(dto.getOwnerType());
         if (ownerType == null) {
             throw new IllegalArgumentException("业主类型不能为空");
         }
@@ -533,11 +616,11 @@ public class OwnerContractCommandService {
             OwnerPersonal personal = new OwnerPersonal();
             BeanUtils.copyProperties(personalDTO, personal);
             personal.setCompanyId(dto.getOwnerContract().getCompanyId());
-            personal.setGender(personalDTO.getGender() == null ? null : personalDTO.getGender().getCode());
-            personal.setIdType(personalDTO.getIdType() == null ? null : personalDTO.getIdType().getCode());
-            personal.setPayeeIdType(personalDTO.getPayeeIdType() == null ? null : personalDTO.getPayeeIdType().getCode());
+            personal.setGender(personalDTO.getGender());
+            personal.setIdType(personalDTO.getIdType());
+            personal.setPayeeIdType(personalDTO.getPayeeIdType());
             personal.setTags(JSONUtil.toJsonStr(personalDTO.getTags()));
-            personal.setStatus(Objects.requireNonNullElse(personalDTO.getStatus(), StatusEnum.ACTIVE).getValue());
+            personal.setStatus(defaultInteger(personalDTO.getStatus(), StatusEnum.ACTIVE.getValue()));
             personal.setCreateBy(dto.getCreateBy());
             personal.setCreateAt(now);
             personal.setUpdateBy(dto.getCreateBy());
@@ -555,10 +638,10 @@ public class OwnerContractCommandService {
             OwnerCompany company = new OwnerCompany();
             BeanUtils.copyProperties(companyDTO, company);
             company.setCompanyId(dto.getOwnerContract().getCompanyId());
-            company.setLegalPersonIdType(companyDTO.getLegalPersonIdType() == null ? null : companyDTO.getLegalPersonIdType().getCode());
-            company.setPayeeIdType(companyDTO.getPayeeIdType() == null ? null : companyDTO.getPayeeIdType().getCode());
+            company.setLegalPersonIdType(companyDTO.getLegalPersonIdType());
+            company.setPayeeIdType(companyDTO.getPayeeIdType());
             company.setTags(JSONUtil.toJsonStr(companyDTO.getTags()));
-            company.setStatus(Objects.requireNonNullElse(companyDTO.getStatus(), StatusEnum.ACTIVE).getValue());
+            company.setStatus(defaultInteger(companyDTO.getStatus(), StatusEnum.ACTIVE.getValue()));
             company.setCreateBy(dto.getCreateBy());
             company.setCreateAt(now);
             company.setUpdateBy(dto.getCreateBy());
@@ -587,7 +670,7 @@ public class OwnerContractCommandService {
 
     private void updateOwnerInfo(OwnerUpdateDTO dto, Owner owner) {
         Date now = DateUtil.date();
-        OwnerTypeEnum ownerType = dto.getOwnerType();
+        OwnerTypeEnum ownerType = OwnerTypeEnum.fromCode(dto.getOwnerType());
         if (ownerType == null) {
             throw new IllegalArgumentException("业主类型不能为空");
         }
@@ -611,11 +694,11 @@ public class OwnerContractCommandService {
             }
             BeanUtils.copyProperties(personalDTO, personal);
             personal.setCompanyId(dto.getOwnerContract().getCompanyId());
-            personal.setGender(personalDTO.getGender() == null ? null : personalDTO.getGender().getCode());
-            personal.setIdType(personalDTO.getIdType() == null ? null : personalDTO.getIdType().getCode());
-            personal.setPayeeIdType(personalDTO.getPayeeIdType() == null ? null : personalDTO.getPayeeIdType().getCode());
+            personal.setGender(personalDTO.getGender());
+            personal.setIdType(personalDTO.getIdType());
+            personal.setPayeeIdType(personalDTO.getPayeeIdType());
             personal.setTags(JSONUtil.toJsonStr(personalDTO.getTags()));
-            personal.setStatus(Objects.requireNonNullElse(personalDTO.getStatus(), StatusEnum.ACTIVE).getValue());
+            personal.setStatus(defaultInteger(personalDTO.getStatus(), StatusEnum.ACTIVE.getValue()));
             personal.setUpdateBy(dto.getUpdateBy());
             personal.setUpdateAt(now);
             if (personal.getId() == null) {
@@ -647,10 +730,10 @@ public class OwnerContractCommandService {
             }
             BeanUtils.copyProperties(companyDTO, company);
             company.setCompanyId(dto.getOwnerContract().getCompanyId());
-            company.setLegalPersonIdType(companyDTO.getLegalPersonIdType() == null ? null : companyDTO.getLegalPersonIdType().getCode());
-            company.setPayeeIdType(companyDTO.getPayeeIdType() == null ? null : companyDTO.getPayeeIdType().getCode());
+            company.setLegalPersonIdType(companyDTO.getLegalPersonIdType());
+            company.setPayeeIdType(companyDTO.getPayeeIdType());
             company.setTags(JSONUtil.toJsonStr(companyDTO.getTags()));
-            company.setStatus(Objects.requireNonNullElse(companyDTO.getStatus(), StatusEnum.ACTIVE).getValue());
+            company.setStatus(defaultInteger(companyDTO.getStatus(), StatusEnum.ACTIVE.getValue()));
             company.setUpdateBy(dto.getUpdateBy());
             company.setUpdateAt(now);
             if (company.getId() == null) {
@@ -708,7 +791,7 @@ public class OwnerContractCommandService {
         Owner owner = ownerRepo.getById(ownerId);
         List<OwnerContractSubjectDTO> houseSubjects = Objects.requireNonNullElse(subjectDTOs, List.<OwnerContractSubjectDTO>of())
             .stream()
-            .filter(item -> OwnerContractSubjectTypeEnum.HOUSE.equals(Objects.requireNonNullElse(item.getSubjectType(), OwnerContractSubjectTypeEnum.HOUSE)))
+            .filter(item -> OwnerContractSubjectTypeEnum.HOUSE.getCode().equals(Objects.requireNonNullElse(item.getSubjectType(), OwnerContractSubjectTypeEnum.HOUSE.getCode())))
             .toList();
         List<House> houses = houseSubjects.stream()
             .map(item -> houseRepo.getById(item.getSubjectId()))
@@ -750,8 +833,8 @@ public class OwnerContractCommandService {
     }
 
     private boolean hasMasterLeaseBillChange(OwnerContract currentContract, OwnerUpdateDTO dto) {
-        OwnerCooperationModeEnum nextMode = dto.getOwnerContract().getCooperationMode();
-        if (!OwnerCooperationModeEnum.MASTER_LEASE.equals(nextMode)) {
+        String nextMode = dto.getOwnerContract().getCooperationMode();
+        if (!OwnerCooperationModeEnum.MASTER_LEASE.getCode().equals(nextMode)) {
             return true;
         }
 
@@ -765,7 +848,7 @@ public class OwnerContractCommandService {
         currentSnapshot.put("leaseFreeRuleList", normalizeLeaseFreeRuleList(currentDetail.getOwnerLeaseFreeRuleList()));
 
         Map<String, Object> nextSnapshot = new LinkedHashMap<>();
-        nextSnapshot.put("cooperationMode", nextMode.name());
+        nextSnapshot.put("cooperationMode", nextMode);
         nextSnapshot.put("contractStart", formatDate(dto.getOwnerContract().getContractStart()));
         nextSnapshot.put("contractEnd", formatDate(dto.getOwnerContract().getContractEnd()));
         nextSnapshot.put("subjectList", normalizeContractSubjectList(dto.getContractSubjectList()));
@@ -785,7 +868,7 @@ public class OwnerContractCommandService {
             .stream()
             .map(item -> {
                 Map<String, Object> map = new LinkedHashMap<>();
-                map.put("subjectType", item.getSubjectType() == null ? null : item.getSubjectType().name());
+                map.put("subjectType", item.getSubjectType());
                 map.put("subjectId", item.getSubjectId());
                 return map;
             })
@@ -802,13 +885,13 @@ public class OwnerContractCommandService {
         map.put("depositAmount", rule.getDepositAmount());
         map.put("depositMonths", rule.getDepositMonths());
         map.put("paymentMonths", rule.getPaymentMonths());
-        map.put("rentDueType", rule.getRentDueType() == null ? null : rule.getRentDueType().name());
+        map.put("rentDueType", rule.getRentDueType());
         map.put("rentDueDay", rule.getRentDueDay());
         map.put("rentDueOffsetDays", rule.getRentDueOffsetDays());
         map.put("firstPayDate", formatDate(rule.getFirstPayDate()));
         map.put("billingStart", formatDate(rule.getBillingStart()));
         map.put("billingEnd", formatDate(rule.getBillingEnd()));
-        map.put("prorateType", rule.getProrateType() == null ? null : rule.getProrateType().name());
+        map.put("prorateType", rule.getProrateType());
         map.put("otherFeeList", normalizeLeaseFeeList(rule.getOtherFeeList()));
         return map;
     }
@@ -821,7 +904,7 @@ public class OwnerContractCommandService {
                 map.put("dictDataId", item.getDictDataId());
                 map.put("feeType", item.getFeeType());
                 map.put("feeName", item.getFeeName());
-                map.put("feeDirection", item.getFeeDirection() == null ? null : item.getFeeDirection().name());
+                map.put("feeDirection", item.getFeeDirection());
                 map.put("paymentMethod", item.getPaymentMethod());
                 map.put("priceMethod", item.getPriceMethod());
                 map.put("priceInput", item.getPriceInput());
@@ -838,10 +921,10 @@ public class OwnerContractCommandService {
             .stream()
             .map(item -> {
                 Map<String, Object> map = new LinkedHashMap<>();
-                map.put("freeType", item.getFreeType() == null ? null : item.getFreeType().name());
+                map.put("freeType", item.getFreeType());
                 map.put("startDate", formatDate(item.getStartDate()));
                 map.put("endDate", formatDate(item.getEndDate()));
-                map.put("calcMode", item.getCalcMode() == null ? null : item.getCalcMode().name());
+                map.put("calcMode", item.getCalcMode());
                 map.put("freeAmount", item.getFreeAmount());
                 map.put("freeRatio", item.getFreeRatio());
                 map.put("remark", defaultString(item.getRemark()));
@@ -872,8 +955,15 @@ public class OwnerContractCommandService {
         return createDTO;
     }
 
-    private String enumName(Enum<?> value) {
-        return value == null ? null : value.name();
+    private Integer defaultInteger(Integer value, Integer defaultValue) {
+        return value == null ? defaultValue : value;
+    }
+
+    private String enumName(Object value) {
+        if (value == null) {
+            return null;
+        }
+        return value instanceof Enum<?> item ? item.name() : String.valueOf(value);
     }
 
     private void saveSettlementItems(OwnerCreateDTO dto, OwnerContract contract, OwnerContractSubject subject, List<OwnerSettlementFeeDTO> items, Date now) {
@@ -951,7 +1041,7 @@ public class OwnerContractCommandService {
             fee.setDictDataId(item.getDictDataId());
             fee.setFeeType(item.getFeeType());
             fee.setFeeName(item.getFeeName());
-            fee.setFeeDirection(enumName(item.getFeeDirection()));
+            fee.setFeeDirection(item.getFeeDirection());
             fee.setPaymentMethod(item.getPaymentMethod());
             fee.setPriceMethod(item.getPriceMethod());
             fee.setPriceInput(item.getPriceInput());

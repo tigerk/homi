@@ -85,7 +85,7 @@ public class OwnerContract implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date contractEnd;
 
-    @Schema(description = "状态：1=启用，0=禁用")
+    @Schema(description = "合同状态：0=待审核，1=待签字，2=已签字，3=已退房，-1=已作废")
     @TableField("status")
     private Integer status;
 

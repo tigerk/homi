@@ -11,6 +11,7 @@ import lombok.Getter;
 public enum ApprovalBizTypeEnum {
 
     TENANT_CHECKIN("TENANT_CHECKIN", "租客入住", "tenant", "id"),
+    OWNER_CONTRACT("OWNER_CONTRACT", "业主合同", "owner_contract", "id"),
     TENANT_CHECKOUT("TENANT_CHECKOUT", "租客退租", "lease_checkout", "id"),
     HOUSE_CREATE("HOUSE_CREATE", "房源录入", "house", "id"),
     PAYMENT_FLOW("PAYMENT_FLOW", "支付流水", "payment_flow", "id"),

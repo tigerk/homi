@@ -1,6 +1,5 @@
 package com.homi.model.owner.dto;
 
-import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -11,7 +10,7 @@ public class OwnerContractSubjectDTO {
     private Long id;
 
     @Schema(description = "合同房源类型")
-    private OwnerContractSubjectTypeEnum subjectType;
+    private String subjectType;
 
     @Schema(description = "合同房源ID")
     private Long subjectId;

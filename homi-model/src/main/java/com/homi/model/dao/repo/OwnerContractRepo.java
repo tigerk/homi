@@ -13,6 +13,27 @@ import java.util.Objects;
 public class OwnerContractRepo extends ServiceImpl<OwnerContractMapper, OwnerContract> {
 
     /**
+     * 同步更新合同状态和审批状态。
+     */
+    public void updateStatusAndApprovalStatus(Long contractId, Integer status, Integer approvalStatus) {
+        lambdaUpdate()
+            .eq(OwnerContract::getId, contractId)
+            .set(OwnerContract::getStatus, status)
+            .set(OwnerContract::getApprovalStatus, approvalStatus)
+            .update();
+    }
+
+    /**
+     * 更新审批状态。
+     */
+    public void updateApprovalStatus(Long contractId, Integer approvalStatus) {
+        lambdaUpdate()
+            .eq(OwnerContract::getId, contractId)
+            .set(OwnerContract::getApprovalStatus, approvalStatus)
+            .update();
+    }
+
+    /**
      * 根据合作模式code获取合同ID列表
      * <p>
      * {@code @author} tk

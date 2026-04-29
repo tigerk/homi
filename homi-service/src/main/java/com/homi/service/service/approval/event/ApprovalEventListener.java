@@ -7,12 +7,14 @@ import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseCheckOutStatusEnum;
+import com.homi.common.lib.enums.owner.OwnerContractStatusEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.entity.Lease;
 import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.RoomRepo;
 import com.homi.model.dao.repo.LeaseCheckoutRepo;
 import com.homi.model.dao.repo.LeaseRepo;
+import com.homi.model.dao.repo.OwnerContractRepo;
 import com.homi.service.service.lease.bill.PaymentApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +42,7 @@ public class ApprovalEventListener {
     private final RoomRepo roomRepo;
     private final LeaseCheckoutRepo leaseCheckoutRepo;
     private final HouseRepo houseRepo;
+    private final OwnerContractRepo ownerContractRepo;
     private final PaymentApprovalService paymentApprovalService;
 
     /**
@@ -73,6 +76,7 @@ public class ApprovalEventListener {
         try {
             switch (bizTypeEnum) {
                 case TENANT_CHECKIN -> handleTenantCheckin(bizId, approvalStatus, bizApprovalStatus);
+                case OWNER_CONTRACT -> handleOwnerContract(bizId, approvalStatus, bizApprovalStatus);
                 case TENANT_CHECKOUT -> handleLeaseCheckout(bizId, approvalStatus, bizApprovalStatus);
                 case HOUSE_CREATE -> handleHouseCreate(bizId, approvalStatus, bizApprovalStatus);
                 case PAYMENT_FLOW -> handlePaymentFlow(bizId, approvalStatus, bizApprovalStatus);
@@ -139,6 +143,28 @@ public class ApprovalEventListener {
         } else if (ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
             // 撤回 -> 租客状态保持待签约，可重新提交
             log.info("租客入住审批撤回: leaseId={}", leaseId);
+        }
+    }
+
+    /**
+     * 处理业主合同审批。
+     */
+    private void handleOwnerContract(Long contractId, Integer approvalStatus, Integer bizApprovalStatus) {
+        if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
+            ownerContractRepo.updateStatusAndApprovalStatus(
+                contractId,
+                OwnerContractStatusEnum.PENDING_SIGN.getCode(),
+                BizApprovalStatusEnum.APPROVED.getCode()
+            );
+            log.info("业主合同审批通过，已更新为待签字状态: contractId={}", contractId);
+            return;
+        }
+
+        ownerContractRepo.updateApprovalStatus(contractId, bizApprovalStatus);
+        if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)) {
+            log.info("业主合同审批驳回: contractId={}", contractId);
+        } else if (ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
+            log.info("业主合同审批撤回: contractId={}", contractId);
         }
     }
 

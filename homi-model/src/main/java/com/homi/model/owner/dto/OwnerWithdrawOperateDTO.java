@@ -1,6 +1,5 @@
 package com.homi.model.owner.dto;
 
-import com.homi.common.lib.enums.owner.OwnerWithdrawOperateEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -11,7 +10,7 @@ public class OwnerWithdrawOperateDTO {
     private Long applyId;
 
     @Schema(description = "操作类型")
-    private OwnerWithdrawOperateEnum operateType;
+    private String operateType;
 
     @Schema(description = "失败或驳回原因")
     private String failureReason;

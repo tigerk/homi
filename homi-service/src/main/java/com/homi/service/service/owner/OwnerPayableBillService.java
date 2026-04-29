@@ -10,7 +10,6 @@ import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
-import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
 import com.homi.common.lib.enums.owner.OwnerBillSceneEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillPaymentStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillStatusEnum;
@@ -230,7 +229,7 @@ public class OwnerPayableBillService {
         operateDesc = "登记付款",
         bizIdExpr = "#p0.billId",
         remarkExpr = "#p0.remark",
-        extraDataExpr = "{'payAmount': #p0.payAmount, 'payChannel': #p0.payChannel != null ? #p0.payChannel.code : null}",
+        extraDataExpr = "{'payAmount': #p0.payAmount, 'payChannel': #p0.payChannel}",
         sourceType = BizOperateSourceTypeEnum.OWNER_PAYABLE_BILL_PAYMENT,
         sourceIdExpr = "#result",
         saveBeforeSnapshot = true,
@@ -265,7 +264,7 @@ public class OwnerPayableBillService {
         payment.setPaymentNo(generatePaymentNo());
         payment.setPayAmount(dto.getPayAmount());
         payment.setPayAt(dto.getPayAt());
-        payment.setPayChannel(dto.getPayChannel().getCode());
+        payment.setPayChannel(dto.getPayChannel());
         payment.setThirdTradeNo(dto.getThirdTradeNo());
         payment.setRemark(dto.getRemark());
         payment.setCreateBy(operatorId);
@@ -511,7 +510,7 @@ public class OwnerPayableBillService {
         vo.setPaymentNo(item.getPaymentNo());
         vo.setPayAmount(item.getPayAmount());
         vo.setPayAt(item.getPayAt());
-        vo.setPayChannel(item.getPayChannel() == null ? null : PaymentFlowChannelEnum.valueOf(item.getPayChannel()));
+        vo.setPayChannel(item.getPayChannel());
         vo.setThirdTradeNo(item.getThirdTradeNo());
         vo.setRemark(item.getRemark());
         vo.setVoucherUrls(voucherUrls == null ? Collections.emptyList() : voucherUrls);

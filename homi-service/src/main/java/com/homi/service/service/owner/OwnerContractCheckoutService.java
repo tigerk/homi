@@ -10,6 +10,7 @@ import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
+import com.homi.common.lib.enums.owner.OwnerContractStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
 import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
 import com.homi.model.dao.entity.FocusBuilding;
@@ -171,7 +172,7 @@ public class OwnerContractCheckoutService {
         contract.setCheckoutBy(operatorId);
         contract.setCheckoutByName(operatorName);
         contract.setCheckoutAt(DateUtil.date());
-        contract.setStatus(StatusEnum.DISABLED.getValue());
+        contract.setStatus(OwnerContractStatusEnum.CHECKED_OUT.getCode());
         contract.setUpdateBy(operatorId);
         contract.setUpdateAt(contract.getCheckoutAt());
         ownerContractRepo.updateById(contract);

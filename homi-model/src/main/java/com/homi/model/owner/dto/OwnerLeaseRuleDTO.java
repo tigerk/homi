@@ -1,9 +1,6 @@
 package com.homi.model.owner.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.common.lib.enums.StatusEnum;
-import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
-import com.homi.common.lib.enums.owner.OwnerProrateTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -30,7 +27,7 @@ public class OwnerLeaseRuleDTO {
     private String payWay;
 
     @Schema(description = "收租类型")
-    private LeaseRentDueTypeEnum rentDueType;
+    private Integer rentDueType;
 
     @Schema(description = "固定收租日")
     private Integer rentDueDay;
@@ -58,10 +55,10 @@ public class OwnerLeaseRuleDTO {
     private Date billingEnd;
 
     @Schema(description = "折算方式")
-    private OwnerProrateTypeEnum prorateType;
+    private String prorateType;
 
     @Schema(description = "状态")
-    private StatusEnum status;
+    private Integer status;
 
     @Schema(description = "备注")
     private String remark;

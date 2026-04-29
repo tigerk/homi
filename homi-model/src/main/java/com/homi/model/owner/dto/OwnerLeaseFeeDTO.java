@@ -1,6 +1,5 @@
 package com.homi.model.owner.dto;
 
-import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -19,7 +18,7 @@ public class OwnerLeaseFeeDTO {
     private String feeName;
 
     @Schema(description = "收支方向")
-    private FinanceFlowDirectionEnum feeDirection;
+    private String feeDirection;
 
     @Schema(description = "付款方式代码")
     private Integer paymentMethod;

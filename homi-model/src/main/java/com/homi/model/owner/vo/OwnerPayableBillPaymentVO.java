@@ -1,7 +1,6 @@
 package com.homi.model.owner.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.homi.common.lib.enums.finance.PaymentFlowChannelEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -26,7 +25,7 @@ public class OwnerPayableBillPaymentVO {
     private Date payAt;
 
     @Schema(description = "付款渠道")
-    private PaymentFlowChannelEnum payChannel;
+    private String payChannel;
 
     @Schema(description = "第三方流水号")
     private String thirdTradeNo;

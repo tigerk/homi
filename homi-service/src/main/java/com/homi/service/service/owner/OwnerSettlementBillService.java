@@ -98,7 +98,7 @@ public class OwnerSettlementBillService {
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
         vo.setContractId(bill.getContractId());
         vo.setContractNo(contract != null ? contract.getContractNo() : null);
-        vo.setSubjectType(contract == null ? null : com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum.fromCode(bill.getSubjectType()));
+        vo.setSubjectType(bill.getSubjectType());
         vo.setSubjectId(bill.getSubjectId());
         vo.setSubjectName(bill.getSubjectNameSnapshot());
         vo.setBillStartDate(bill.getBillStartDate());
@@ -190,7 +190,7 @@ public class OwnerSettlementBillService {
         vo.setOwnerPhone(owner != null ? owner.getOwnerPhone() : null);
         vo.setContractId(item.getContractId());
         vo.setContractNo(contract != null ? contract.getContractNo() : null);
-        vo.setSubjectType(com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum.fromCode(item.getSubjectType()));
+        vo.setSubjectType(item.getSubjectType());
         vo.setSubjectName(item.getSubjectNameSnapshot());
         vo.setBillStartDate(item.getBillStartDate());
         vo.setBillEndDate(item.getBillEndDate());

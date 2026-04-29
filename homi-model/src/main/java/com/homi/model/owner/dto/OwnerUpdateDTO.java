@@ -1,6 +1,5 @@
 package com.homi.model.owner.dto;
 
-import com.homi.common.lib.enums.owner.OwnerTypeEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -10,7 +9,7 @@ import java.util.List;
 @Schema(description = "业主更新DTO")
 public class OwnerUpdateDTO {
     @Schema(description = "业主类型")
-    private OwnerTypeEnum ownerType;
+    private Integer ownerType;
 
     @Schema(description = "个人业主信息")
     private OwnerPersonalDTO ownerPersonal;

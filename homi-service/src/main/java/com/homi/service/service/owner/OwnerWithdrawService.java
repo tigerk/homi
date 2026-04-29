@@ -193,8 +193,9 @@ public class OwnerWithdrawService {
         if (account == null) {
             throw new IllegalArgumentException("业主账户不存在");
         }
+        OwnerWithdrawOperateEnum operateType = parseOperateType(dto.getOperateType());
         Date now = DateUtil.date();
-        switch (dto.getOperateType()) {
+        switch (operateType) {
             case APPROVE -> apply.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
             case REJECT -> {
                 apply.setApprovalStatus(BizApprovalStatusEnum.REJECTED.getCode());
@@ -229,11 +230,19 @@ public class OwnerWithdrawService {
         }
         apply.setUpdateBy(operatorId);
         apply.setUpdateAt(now);
-        if (dto.getOperateType() == OwnerWithdrawOperateEnum.APPROVE) {
+        if (OwnerWithdrawOperateEnum.APPROVE.equals(operateType)) {
             apply.setApprovedAt(now);
         }
         ownerWithdrawApplyRepo.updateById(apply);
         return apply.getId();
+    }
+
+    private OwnerWithdrawOperateEnum parseOperateType(String operateType) {
+        try {
+            return OwnerWithdrawOperateEnum.valueOf(operateType);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("不支持的提现操作");
+        }
     }
 
     private PageVO<OwnerWithdrawApplyListVO> emptyWithdrawPage(OwnerWithdrawApplyQueryDTO query) {
