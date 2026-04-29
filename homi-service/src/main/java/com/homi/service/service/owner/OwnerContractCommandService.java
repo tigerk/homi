@@ -200,30 +200,6 @@ public class OwnerContractCommandService {
         return contract.getId();
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public Long updateOwnerContractStatus(OwnerContractStatusDTO dto, Long updateBy) {
-        if (dto == null || dto.getContractId() == null || dto.getStatus() == null) {
-            throw new IllegalArgumentException("合同状态参数不能为空");
-        }
-        OwnerContract contract = ownerContractRepo.getById(dto.getContractId());
-        if (contract == null) {
-            throw new IllegalArgumentException("业主合同不存在");
-        }
-        Date now = DateUtil.date();
-        contract.setStatus(dto.getStatus().getValue());
-        contract.setUpdateBy(updateBy);
-        contract.setUpdateAt(now);
-        ownerContractRepo.updateById(contract);
-
-        ownerContractSubjectRepo.listByContractId(contract.getId()).forEach(item -> {
-            item.setStatus(dto.getStatus().getValue());
-            item.setUpdateBy(updateBy);
-            item.setUpdateAt(now);
-            ownerContractSubjectRepo.updateById(item);
-        });
-        return contract.getId();
-    }
-
     private Long createOwnerContractForExistingOwner(OwnerCreateDTO dto, Long ownerId) {
         Date now = DateUtil.date();
         OwnerContract contract = BeanCopyUtils.copyBean(dto.getOwnerContract(), OwnerContract.class);
