@@ -9,7 +9,7 @@ import lombok.Getter;
 @Schema(enumAsRef = true, description = "包租业主应付单状态枚举")
 public enum OwnerPayableBillStatusEnum {
     NORMAL(1, "正常"),
-    CANCELED(2, "已作废");
+    VOIDED(2, "已作废");
 
     private final Integer code;
     private final String name;

@@ -88,7 +88,7 @@ public class OwnerPayableBillService {
         vo.setTotalPayableAmount(sum(list, OwnerPayableBill::getPayableAmount));
         vo.setTotalPaidAmount(sum(list, OwnerPayableBill::getPaidAmount));
         vo.setTotalUnpaidAmount(sum(list, OwnerPayableBill::getUnpaidAmount));
-        vo.setCanceledCount(list.stream().filter(item -> Objects.equals(item.getBillStatus(), OwnerPayableBillStatusEnum.CANCELED.getCode())).count());
+        vo.setVoidedCount(list.stream().filter(item -> Objects.equals(item.getBillStatus(), OwnerPayableBillStatusEnum.VOIDED.getCode())).count());
         return vo;
     }
 
@@ -121,10 +121,10 @@ public class OwnerPayableBillService {
         vo.setAdjustAmount(bill.getAdjustAmount());
         vo.setPaymentStatus(bill.getPaymentStatus());
         vo.setBillStatus(bill.getBillStatus());
-        vo.setCancelReason(bill.getCancelReason());
-        vo.setCancelBy(bill.getCancelBy());
-        vo.setCancelByName(bill.getCancelByName());
-        vo.setCancelAt(bill.getCancelAt());
+        vo.setVoidReason(bill.getVoidReason());
+        vo.setVoidBy(bill.getVoidBy());
+        vo.setVoidByName(bill.getVoidByName());
+        vo.setVoidAt(bill.getVoidAt());
         vo.setGeneratedAt(bill.getGeneratedAt());
         vo.setRemark(bill.getRemark());
         vo.setCreateAt(bill.getCreateAt());
@@ -199,25 +199,25 @@ public class OwnerPayableBillService {
         operateType = BizOperateTypeEnum.CANCEL,
         operateDesc = "作废包租应付单",
         bizIdExpr = "#p0.billId",
-        remarkExpr = "#p0.cancelReason",
-        extraDataExpr = "{'cancelReason': #p0.cancelReason}",
+        remarkExpr = "#p0.voidReason",
+        extraDataExpr = "{'voidReason': #p0.voidReason}",
         saveBeforeSnapshot = true,
         saveAfterSnapshot = true,
         snapshotProvider = "ownerPayableBillSnapshotProvider"
     )
     @Transactional(rollbackFor = Exception.class)
-    public Long cancel(OwnerPayableBillCancelDTO dto, Long operatorId, String operatorName) {
-        if (dto == null || dto.getBillId() == null || StrUtil.isBlank(dto.getCancelReason())) {
+    public Long voidBill(OwnerPayableBillVoidDTO dto, Long operatorId, String operatorName) {
+        if (dto == null || dto.getBillId() == null || StrUtil.isBlank(dto.getVoidReason())) {
             throw new IllegalArgumentException("作废参数不正确");
         }
         OwnerPayableBill bill = mustGetBill(dto.getBillId());
         ensureCancelable(bill);
         Date now = new Date();
-        bill.setBillStatus(OwnerPayableBillStatusEnum.CANCELED.getCode());
-        bill.setCancelReason(dto.getCancelReason());
-        bill.setCancelBy(operatorId);
-        bill.setCancelByName(operatorName);
-        bill.setCancelAt(now);
+        bill.setBillStatus(OwnerPayableBillStatusEnum.VOIDED.getCode());
+        bill.setVoidReason(dto.getVoidReason());
+        bill.setVoidBy(operatorId);
+        bill.setVoidByName(operatorName);
+        bill.setVoidAt(now);
         bill.setUpdateBy(operatorId);
         bill.setUpdateAt(now);
         ownerPayableBillRepo.updateById(bill);
@@ -252,7 +252,7 @@ public class OwnerPayableBillService {
             throw new IllegalArgumentException("付款渠道不能为空");
         }
         OwnerPayableBill bill = mustGetBill(dto.getBillId());
-        if (Objects.equals(bill.getBillStatus(), OwnerPayableBillStatusEnum.CANCELED.getCode())) {
+        if (Objects.equals(bill.getBillStatus(), OwnerPayableBillStatusEnum.VOIDED.getCode())) {
             throw new IllegalArgumentException("已作废账单不可登记付款");
         }
         if (dto.getPayAmount().compareTo(defaultZero(bill.getUnpaidAmount())) > 0) {
@@ -322,7 +322,7 @@ public class OwnerPayableBillService {
         vo.setTotalPayableAmount(BigDecimal.ZERO);
         vo.setTotalPaidAmount(BigDecimal.ZERO);
         vo.setTotalUnpaidAmount(BigDecimal.ZERO);
-        vo.setCanceledCount(0L);
+        vo.setVoidedCount(0L);
     }
 
     private BigDecimal sum(List<OwnerPayableBill> list, Function<OwnerPayableBill, BigDecimal> getter) {
@@ -485,7 +485,7 @@ public class OwnerPayableBillService {
         vo.setPaymentStatus(item.getPaymentStatus());
         vo.setBillStatus(item.getBillStatus());
         vo.setGeneratedAt(item.getGeneratedAt());
-        vo.setCancelAt(item.getCancelAt());
+        vo.setVoidAt(item.getVoidAt());
         return vo;
     }
 

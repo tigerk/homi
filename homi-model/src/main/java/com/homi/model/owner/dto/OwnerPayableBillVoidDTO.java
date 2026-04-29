@@ -5,10 +5,10 @@ import lombok.Data;
 
 @Data
 @Schema(description = "包租业主应付单作废DTO")
-public class OwnerPayableBillCancelDTO {
+public class OwnerPayableBillVoidDTO {
     @Schema(description = "应付单ID")
     private Long billId;
 
     @Schema(description = "作废原因")
-    private String cancelReason;
+    private String voidReason;
 }

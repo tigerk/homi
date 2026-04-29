@@ -116,10 +116,10 @@ public class OwnerPayableBillSnapshotProvider implements BizOperateLogSnapshotPr
             bill.getAdjustAmount(),
             bill.getPaymentStatus(),
             bill.getBillStatus(),
-            bill.getCancelReason(),
-            bill.getCancelBy(),
-            bill.getCancelByName(),
-            bill.getCancelAt(),
+            bill.getVoidReason(),
+            bill.getVoidBy(),
+            bill.getVoidByName(),
+            bill.getVoidAt(),
             bill.getGeneratedAt(),
             bill.getRemark(),
             feeList,
@@ -145,10 +145,10 @@ public class OwnerPayableBillSnapshotProvider implements BizOperateLogSnapshotPr
         private BigDecimal adjustAmount;
         private Integer paymentStatus;
         private Integer billStatus;
-        private String cancelReason;
-        private Long cancelBy;
-        private String cancelByName;
-        private Date cancelAt;
+        private String voidReason;
+        private Long voidBy;
+        private String voidByName;
+        private Date voidAt;
         private Date generatedAt;
         private String remark;
         private List<OwnerPayableBillFeeSnapshot> feeList = Collections.emptyList();

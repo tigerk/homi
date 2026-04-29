@@ -408,7 +408,7 @@ WHERE n <= 10;
 INSERT INTO owner_payable_bill (
   id, company_id, owner_id, contract_id, subject_name_snapshot, bill_no, bill_scene,
   bill_start_date, bill_end_date, due_date, payable_amount, paid_amount, unpaid_amount, adjust_amount,
-  payment_status, bill_status, cancel_reason, cancel_by, cancel_by_name, cancel_at, generated_at, remark,
+  payment_status, bill_status, void_reason, void_by, void_by_name, void_at, generated_at, remark,
   deleted, create_by, create_at, update_by, update_at
 )
 SELECT

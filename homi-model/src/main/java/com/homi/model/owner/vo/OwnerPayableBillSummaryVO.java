@@ -21,5 +21,5 @@ public class OwnerPayableBillSummaryVO {
     private BigDecimal totalUnpaidAmount;
 
     @Schema(description = "作废数量")
-    private Long canceledCount;
+    private Long voidedCount;
 }

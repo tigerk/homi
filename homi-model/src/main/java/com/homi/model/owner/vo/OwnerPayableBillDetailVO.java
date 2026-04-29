@@ -69,17 +69,17 @@ public class OwnerPayableBillDetailVO {
     private Integer billStatus;
 
     @Schema(description = "作废原因")
-    private String cancelReason;
+    private String voidReason;
 
     @Schema(description = "作废操作人ID")
-    private Long cancelBy;
+    private Long voidBy;
 
     @Schema(description = "作废操作人名称")
-    private String cancelByName;
+    private String voidByName;
 
     @Schema(description = "作废时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date cancelAt;
+    private Date voidAt;
 
     @Schema(description = "生成时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

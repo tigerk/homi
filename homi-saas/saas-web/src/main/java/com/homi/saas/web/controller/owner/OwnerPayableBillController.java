@@ -2,12 +2,12 @@ package com.homi.saas.web.controller.owner;
 
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
-import com.homi.model.owner.dto.OwnerPayableBillCancelDTO;
 import com.homi.model.owner.dto.OwnerPayableBillCreateDTO;
 import com.homi.model.owner.dto.OwnerPayableBillIdDTO;
 import com.homi.model.owner.dto.OwnerPayableBillPaymentCreateDTO;
 import com.homi.model.owner.dto.OwnerPayableBillQueryDTO;
 import com.homi.model.owner.dto.OwnerPayableBillUpdateDTO;
+import com.homi.model.owner.dto.OwnerPayableBillVoidDTO;
 import com.homi.model.owner.vo.OwnerPayableBillDetailVO;
 import com.homi.model.owner.vo.OwnerPayableBillListVO;
 import com.homi.model.owner.vo.OwnerPayableBillSummaryVO;
@@ -57,10 +57,10 @@ public class OwnerPayableBillController {
         return ResponseResult.ok(ownerPayableBillService.update(dto, loginUser.getId(), loginUser.getUsername()));
     }
 
-    @PostMapping("/cancel")
+    @PostMapping("/void")
     @Operation(summary = "作废包租业主应付单")
-    public ResponseResult<Long> cancel(@RequestBody OwnerPayableBillCancelDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(ownerPayableBillService.cancel(dto, loginUser.getId(), loginUser.getUsername()));
+    public ResponseResult<Long> voidBill(@RequestBody OwnerPayableBillVoidDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerPayableBillService.voidBill(dto, loginUser.getId(), loginUser.getUsername()));
     }
 
     @PostMapping("/payment/create")

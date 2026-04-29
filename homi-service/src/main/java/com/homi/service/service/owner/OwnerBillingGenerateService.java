@@ -250,7 +250,7 @@ public class OwnerBillingGenerateService {
      * 作废退房日期之后尚未付款的包租应付单。
      */
     @Transactional(rollbackFor = Exception.class)
-    public int cancelFutureUnpaidMasterLeasePayableBills(Long contractId, Date checkoutDate, Long operatorId, String operatorName, String reason) {
+    public int voidFutureUnpaidMasterLeasePayableBills(Long contractId, Date checkoutDate, Long operatorId, String operatorName, String reason) {
         if (contractId == null || checkoutDate == null) {
             return 0;
         }
@@ -262,11 +262,11 @@ public class OwnerBillingGenerateService {
             .gt(OwnerPayableBill::getBillStartDate, DateUtil.endOfDay(checkoutDate))
             .list();
         for (OwnerPayableBill bill : billList) {
-            bill.setBillStatus(OwnerPayableBillStatusEnum.CANCELED.getCode());
-            bill.setCancelReason(reason);
-            bill.setCancelBy(operatorId);
-            bill.setCancelByName(operatorName);
-            bill.setCancelAt(now);
+            bill.setBillStatus(OwnerPayableBillStatusEnum.VOIDED.getCode());
+            bill.setVoidReason(reason);
+            bill.setVoidBy(operatorId);
+            bill.setVoidByName(operatorName);
+            bill.setVoidAt(now);
             bill.setUpdateBy(operatorId);
             bill.setUpdateAt(now);
             ownerPayableBillRepo.updateById(bill);

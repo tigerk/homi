@@ -165,7 +165,7 @@ public class OwnerContractCheckoutService {
 
     private void processCheckoutBills(OwnerContractCheckoutDTO dto, OwnerContract contract, OwnerContractCheckout checkout, Long operatorId, String operatorName) {
         if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode()) && Boolean.TRUE.equals(checkout.getVoidUnpaidFutureBills())) {
-            ownerBillingGenerateService.cancelFutureUnpaidMasterLeasePayableBills(
+            ownerBillingGenerateService.voidFutureUnpaidMasterLeasePayableBills(
                 contract.getId(),
                 dto.getCheckoutDate(),
                 operatorId,

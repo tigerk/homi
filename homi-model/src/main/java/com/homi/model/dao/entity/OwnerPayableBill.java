@@ -93,21 +93,21 @@ public class OwnerPayableBill implements Serializable {
     private Integer billStatus;
 
     @Schema(description = "作废原因")
-    @TableField("cancel_reason")
-    private String cancelReason;
+    @TableField("void_reason")
+    private String voidReason;
 
     @Schema(description = "作废操作人ID")
-    @TableField("cancel_by")
-    private Long cancelBy;
+    @TableField("void_by")
+    private Long voidBy;
 
     @Schema(description = "作废操作人名称")
-    @TableField("cancel_by_name")
-    private String cancelByName;
+    @TableField("void_by_name")
+    private String voidByName;
 
     @Schema(description = "作废时间")
-    @TableField("cancel_at")
+    @TableField("void_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    private Date cancelAt;
+    private Date voidAt;
 
     @Schema(description = "生成时间")
     @TableField("generated_at")
