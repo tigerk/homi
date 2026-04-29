@@ -11,6 +11,7 @@ import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
+import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
 import com.homi.model.dao.entity.FocusBuilding;
 import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.OwnerContract;
@@ -77,9 +78,7 @@ public class OwnerContractCheckoutService {
         if (Objects.equals(contract.getCheckoutStatus(), 1)) {
             throw new IllegalArgumentException("该业主合同已退房");
         }
-        if (contract.getContractStart() != null && dto.getCheckoutDate().before(DateUtil.beginOfDay(contract.getContractStart()))) {
-            throw new IllegalArgumentException("退房日期不能早于合同开始日期");
-        }
+        validateCheckoutDate(dto, contract);
 
         OwnerContractCheckout checkout = createCheckoutRecord(dto, contract, operatorId);
         updateContractCheckoutStatus(dto, contract, operatorId, operatorName);
@@ -118,6 +117,30 @@ public class OwnerContractCheckoutService {
         if (CharSequenceUtil.isBlank(dto.getCheckoutReason())) {
             throw new IllegalArgumentException("退房原因不能为空");
         }
+    }
+
+    /**
+     * 校验业主退房日期。
+     * <p>
+     * 已签约但尚未到合同开始日时，业务语义是提前解约，允许解约日期早于合同开始日期；
+     * 合同已生效后，退房日期仍不能早于合同开始日期。
+     */
+    private void validateCheckoutDate(OwnerContractCheckoutDTO dto, OwnerContract contract) {
+        if (contract.getContractStart() == null || isSignedBeforeEffective(contract)) {
+            return;
+        }
+        if (dto.getCheckoutDate().before(DateUtil.beginOfDay(contract.getContractStart()))) {
+            throw new IllegalArgumentException("退房日期不能早于合同开始日期");
+        }
+    }
+
+    /**
+     * 判断合同是否属于“已签约但未生效”的提前解约场景。
+     */
+    private boolean isSignedBeforeEffective(OwnerContract contract) {
+        return Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())
+            && contract.getContractStart() != null
+            && DateUtil.beginOfDay(DateUtil.date()).before(DateUtil.beginOfDay(contract.getContractStart()));
     }
 
     private OwnerContractCheckout createCheckoutRecord(OwnerContractCheckoutDTO dto, OwnerContract contract, Long operatorId) {
