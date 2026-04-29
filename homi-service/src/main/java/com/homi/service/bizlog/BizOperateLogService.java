@@ -3,10 +3,12 @@ package com.homi.service.bizlog;
 import cn.hutool.json.JSONUtil;
 import com.homi.model.dao.entity.BizOperateLog;
 import com.homi.model.dao.repo.BizOperateLogRepo;
+import com.homi.model.owner.vo.BizOperateLogVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -55,6 +57,10 @@ public class BizOperateLogService {
         log.setCreateAt(new Date());
         log.setUpdateAt(log.getCreateAt());
         bizOperateLogRepo.save(log);
+    }
+
+    public List<BizOperateLogVO> listByBizOrSource(Long companyId, String bizType, Long bizId, String sourceType, Long sourceId) {
+        return bizOperateLogRepo.listByBizOrSource(companyId, bizType, bizId, sourceType, sourceId);
     }
 
     private String toJson(Object value) {

@@ -39,6 +39,10 @@ public class BizOperateLogRepo extends ServiceImpl<BizOperateLogMapper, BizOpera
      * {@code @return} java.util.List<com.homi.model.owner.vo.BizOperateLogVO>
      */
     public List<BizOperateLogVO> listByBizOrSource(Long companyId, String bizType, Long bizId, BizOperateSourceTypeEnum sourceType, Long sourceId) {
+        return listByBizOrSource(companyId, bizType, bizId, sourceType == null ? null : sourceType.getCode(), sourceId);
+    }
+
+    public List<BizOperateLogVO> listByBizOrSource(Long companyId, String bizType, Long bizId, String sourceType, Long sourceId) {
         if (bizId == null && sourceId == null) {
             return List.of();
         }
@@ -46,9 +50,17 @@ public class BizOperateLogRepo extends ServiceImpl<BizOperateLogMapper, BizOpera
         if (companyId != null) {
             wrapper.eq(BizOperateLog::getCompanyId, companyId);
         }
-        wrapper.and(item -> item
-            .and(biz -> biz.eq(BizOperateLog::getBizType, bizType).eq(BizOperateLog::getBizId, bizId))
-            .or(source -> source.eq(BizOperateLog::getSourceType, sourceType.getCode()).eq(BizOperateLog::getSourceId, sourceId)));
+        wrapper.and(item -> {
+            if (bizId != null) {
+                item.and(biz -> biz.eq(BizOperateLog::getBizType, bizType).eq(BizOperateLog::getBizId, bizId));
+            }
+            if (sourceId != null) {
+                if (bizId != null) {
+                    item.or();
+                }
+                item.and(source -> source.eq(BizOperateLog::getSourceType, sourceType).eq(BizOperateLog::getSourceId, sourceId));
+            }
+        });
         return list(wrapper.orderByDesc(BizOperateLog::getId))
             .stream()
             .map(this::toVO)
