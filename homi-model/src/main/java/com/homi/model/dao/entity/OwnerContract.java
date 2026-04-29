@@ -135,6 +135,19 @@ public class OwnerContract implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date checkoutAt;
 
+    @Schema(description = "作废原因")
+    @TableField("void_reason")
+    private String voidReason;
+
+    @Schema(description = "作废操作人ID")
+    @TableField("void_by")
+    private Long voidBy;
+
+    @Schema(description = "作废时间")
+    @TableField("void_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date voidAt;
+
     @Schema(description = "是否删除：0=否，1=是")
     @TableField("deleted")
     @TableLogic

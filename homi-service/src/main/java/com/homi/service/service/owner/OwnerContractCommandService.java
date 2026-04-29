@@ -2,6 +2,7 @@ package com.homi.service.service.owner;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -13,6 +14,7 @@ import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.contract.OwnerParamsEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.house.LeaseModeEnum;
 import com.homi.common.lib.enums.owner.*;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.*;
@@ -42,9 +44,13 @@ public class OwnerContractCommandService {
     private final OwnerLeaseRuleRepo ownerLeaseRuleRepo;
     private final OwnerLeaseFeeRepo ownerLeaseFeeRepo;
     private final OwnerLeaseFreeRuleRepo ownerLeaseFreeRuleRepo;
+    private final OwnerPayableBillRepo ownerPayableBillRepo;
+    private final OwnerSettlementBillRepo ownerSettlementBillRepo;
     private final OwnerAccountRepo ownerAccountRepo;
     private final ContractTemplateRepo contractTemplateRepo;
     private final HouseRepo houseRepo;
+    private final RoomRepo roomRepo;
+    private final LeaseRepo leaseRepo;
     private final FocusRepo focusRepo;
     private final FocusBuildingRepo focusBuildingRepo;
     private final FileAttachRepo fileAttachRepo;
@@ -235,23 +241,132 @@ public class OwnerContractCommandService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Long deleteOwnerContract(OwnerContractIdDTO dto, Long updateBy) {
+    public Long voidOwnerContract(OwnerContractVoidDTO dto, Long updateBy) {
         if (dto == null || dto.getContractId() == null) {
             throw new IllegalArgumentException("合同ID不能为空");
+        }
+        if (CharSequenceUtil.isBlank(dto.getVoidReason())) {
+            throw new IllegalArgumentException("作废原因不能为空");
         }
         OwnerContract contract = ownerContractRepo.getById(dto.getContractId());
         if (contract == null) {
             throw new IllegalArgumentException("业主合同不存在");
         }
-        if (OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode())) {
-            ownerBillingGenerateService.clearMasterLeasePayableBillsByContract(contract.getId());
-        }
+        validateOwnerContractCanVoid(contract);
+        Date now = DateUtil.date();
+        String reason = CharSequenceUtil.trim(dto.getVoidReason());
+        contract.setVoidReason(reason);
+        contract.setVoidBy(updateBy);
+        contract.setVoidAt(now);
         contract.setUpdateBy(updateBy);
-        contract.setUpdateAt(DateUtil.date());
+        contract.setUpdateAt(now);
         ownerContractRepo.updateById(contract);
         clearContractRelations(contract.getId());
         ownerContractRepo.removeById(contract.getId());
         return contract.getId();
+    }
+
+    /**
+     * 校验业主合同是否仍处于可作废状态。
+     * <p>
+     * 作废只用于未进入业务流程的误建合同；已签约、已生成账单或已被租客占用的合同，必须走业主退房。
+     */
+    private void validateOwnerContractCanVoid(OwnerContract contract) {
+        if (Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())) {
+            throw new IllegalArgumentException("该合同已进入业务流程，请走业主退房");
+        }
+        if (Objects.equals(contract.getCheckoutStatus(), 1)) {
+            throw new IllegalArgumentException("该合同已退房，不能作废");
+        }
+        if (hasOwnerContractBills(contract.getId()) || hasOwnerContractLeases(contract.getId())) {
+            throw new IllegalArgumentException("该合同已进入业务流程，请走业主退房");
+        }
+    }
+
+    /**
+     * 判断业主合同是否已经产生任何业主账单。
+     */
+    private boolean hasOwnerContractBills(Long contractId) {
+        return ownerPayableBillRepo.lambdaQuery().eq(OwnerPayableBill::getContractId, contractId).count() > 0
+            || ownerSettlementBillRepo.lambdaQuery().eq(OwnerSettlementBill::getContractId, contractId).count() > 0;
+    }
+
+    /**
+     * 判断业主合同覆盖房间是否已存在未退租租约。
+     */
+    private boolean hasOwnerContractLeases(Long contractId) {
+        List<OwnerContractSubject> subjects = ownerContractSubjectRepo.listByContractId(contractId);
+        List<Long> roomIds = resolveOwnerContractRoomIds(subjects);
+        return CollUtil.isNotEmpty(roomIds) && CollUtil.isNotEmpty(leaseRepo.listOccupyingLeasesByRoomIds(roomIds));
+    }
+
+    /**
+     * 将业主合同标的解析为房间ID列表，用于判断合同是否已经绑定租客业务。
+     */
+    private List<Long> resolveOwnerContractRoomIds(List<OwnerContractSubject> subjectList) {
+        if (CollUtil.isEmpty(subjectList)) {
+            return List.of();
+        }
+        LinkedHashSet<Long> houseIds = new LinkedHashSet<>();
+        for (OwnerContractSubject subject : subjectList) {
+            appendOwnerContractSubjectHouseIds(subject, houseIds);
+        }
+        if (houseIds.isEmpty()) {
+            return List.of();
+        }
+        return roomRepo.lambdaQuery()
+            .in(Room::getHouseId, houseIds)
+            .list()
+            .stream()
+            .map(Room::getId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+    }
+
+    /**
+     * 根据业主合同标的类型追加房源ID，兼容整租房源、集中式项目和集中式楼栋。
+     */
+    private void appendOwnerContractSubjectHouseIds(OwnerContractSubject subject, Set<Long> houseIds) {
+        if (subject == null || subject.getSubjectId() == null) {
+            return;
+        }
+        OwnerContractSubjectTypeEnum subjectType = OwnerContractSubjectTypeEnum.fromCode(subject.getSubjectType());
+        if (OwnerContractSubjectTypeEnum.HOUSE.equals(subjectType)) {
+            houseIds.add(subject.getSubjectId());
+            return;
+        }
+        if (OwnerContractSubjectTypeEnum.FOCUS.equals(subjectType)) {
+            houseRepo.getHousesByLeaseModeId(subject.getSubjectId(), LeaseModeEnum.FOCUS.getCode())
+                .stream()
+                .map(House::getId)
+                .filter(Objects::nonNull)
+                .forEach(houseIds::add);
+            return;
+        }
+        if (OwnerContractSubjectTypeEnum.FOCUS_BUILDING.equals(subjectType)) {
+            appendFocusBuildingHouseIds(subject.getSubjectId(), houseIds);
+        }
+    }
+
+    /**
+     * 追加集中式楼栋下的房源ID。
+     */
+    private void appendFocusBuildingHouseIds(Long focusBuildingId, Set<Long> houseIds) {
+        FocusBuilding focusBuilding = focusBuildingRepo.getById(focusBuildingId);
+        if (focusBuilding == null) {
+            return;
+        }
+        houseRepo.lambdaQuery()
+            .eq(House::getLeaseMode, LeaseModeEnum.FOCUS.getCode())
+            .eq(House::getLeaseModeId, focusBuilding.getFocusId())
+            .eq(House::getBuilding, focusBuilding.getBuilding())
+            .eq(House::getUnit, focusBuilding.getUnit())
+            .list()
+            .stream()
+            .map(House::getId)
+            .filter(Objects::nonNull)
+            .forEach(houseIds::add);
     }
 
     private void validateCreateDTO(OwnerCreateDTO dto) {

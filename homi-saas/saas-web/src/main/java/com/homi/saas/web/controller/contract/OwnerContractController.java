@@ -7,6 +7,7 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.owner.dto.OwnerCreateDTO;
 import com.homi.model.owner.dto.OwnerContractCheckoutDTO;
 import com.homi.model.owner.dto.OwnerContractIdDTO;
+import com.homi.model.owner.dto.OwnerContractVoidDTO;
 import com.homi.model.owner.dto.OwnerQueryDTO;
 import com.homi.model.owner.dto.OwnerRenewDTO;
 import com.homi.model.owner.dto.OwnerUpdateDTO;
@@ -103,9 +104,9 @@ public class OwnerContractController {
         return ResponseResult.ok(ownerContractCommandService.updateOwnerContract(dto));
     }
 
-    @PostMapping("/delete")
-    @Log(title = "删除业主合同", operationType = OperationTypeEnum.DELETE)
-    public ResponseResult<Long> delete(@RequestBody OwnerContractIdDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(ownerContractCommandService.deleteOwnerContract(dto, loginUser.getId()));
+    @PostMapping("/void")
+    @Log(title = "作废业主合同", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> voidContract(@RequestBody OwnerContractVoidDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerContractCommandService.voidOwnerContract(dto, loginUser.getId()));
     }
 }
