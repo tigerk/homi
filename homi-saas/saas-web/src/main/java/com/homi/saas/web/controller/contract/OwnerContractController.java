@@ -5,8 +5,12 @@ import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.owner.dto.OwnerCreateDTO;
+import com.homi.model.owner.dto.OwnerContractAttachmentUpdateDTO;
 import com.homi.model.owner.dto.OwnerContractCheckoutDTO;
+import com.homi.model.owner.dto.OwnerContractGenerateDTO;
 import com.homi.model.owner.dto.OwnerContractIdDTO;
+import com.homi.model.owner.dto.OwnerContractOfflineSignDTO;
+import com.homi.model.owner.dto.OwnerContractSignStatusUpdateDTO;
 import com.homi.model.owner.dto.OwnerContractVoidDTO;
 import com.homi.model.owner.dto.OwnerQueryDTO;
 import com.homi.model.owner.dto.OwnerRenewDTO;
@@ -108,5 +112,29 @@ public class OwnerContractController {
     @Log(title = "作废业主合同", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Long> voidContract(@RequestBody OwnerContractVoidDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(ownerContractCommandService.voidOwnerContract(dto, loginUser.getId()));
+    }
+
+    @PostMapping("/contract/attachments/update")
+    @Log(title = "更新业主合同资料", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> updateContractAttachments(@RequestBody OwnerContractAttachmentUpdateDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerContractCommandService.updateOwnerContractAttachments(dto, loginUser.getId()));
+    }
+
+    @PostMapping("/contract/generate")
+    @Log(title = "重新生成业主合同", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> generateContract(@RequestBody OwnerContractGenerateDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerContractCommandService.generateOwnerContract(dto, loginUser.getId()));
+    }
+
+    @PostMapping("/contract/sign/status/update")
+    @Log(title = "更新业主合同签约状态", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> updateContractSignStatus(@RequestBody OwnerContractSignStatusUpdateDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerContractCommandService.updateOwnerContractSignStatus(dto, loginUser.getId()));
+    }
+
+    @PostMapping("/contract/offline-sign")
+    @Log(title = "业主合同线下签约", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> offlineSignContract(@RequestBody OwnerContractOfflineSignDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerContractCommandService.offlineSignOwnerContract(dto, loginUser.getId()));
     }
 }

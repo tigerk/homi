@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Schema(description = "业主合同DTO")
@@ -30,6 +31,9 @@ public class OwnerContractDTO {
 
     @Schema(description = "合同内容快照")
     private String contractContent;
+
+    @Schema(description = "合同附件列表")
+    private List<String> contractAttachmentList;
 
     @Schema(description = "签署状态")
     private Integer signStatus;

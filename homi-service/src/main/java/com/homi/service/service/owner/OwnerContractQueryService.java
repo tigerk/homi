@@ -386,6 +386,7 @@ public class OwnerContractQueryService {
         dto.setContractNo(contract.getContractNo());
         dto.setContractTemplateId(contract.getContractTemplateId());
         dto.setContractContent(contract.getContractContent());
+        dto.setContractAttachmentList(getFileUrls(contract.getId(), FileAttachBizTypeEnum.CONTRACT_FILE.getBizType()));
         dto.setSignStatus(contract.getSignStatus());
         dto.setSignType(contract.getSignType());
         dto.setContractMedium(contract.getContractMedium());
