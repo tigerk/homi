@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/saas/owner/payable-bill")
@@ -43,6 +45,12 @@ public class OwnerPayableBillController {
     @Operation(summary = "包租业主应付单详情")
     public ResponseResult<OwnerPayableBillDetailVO> detail(@RequestBody OwnerPayableBillIdDTO dto) {
         return ResponseResult.ok(ownerPayableBillService.detail(dto));
+    }
+
+    @PostMapping("/contract-detail-list")
+    @Operation(summary = "按业主合同查询包租业主应付单详情列表")
+    public ResponseResult<List<OwnerPayableBillDetailVO>> contractDetailList(@RequestBody OwnerPayableBillQueryDTO queryDTO) {
+        return ResponseResult.ok(ownerPayableBillService.detailListByContract(queryDTO));
     }
 
     @PostMapping("/create")

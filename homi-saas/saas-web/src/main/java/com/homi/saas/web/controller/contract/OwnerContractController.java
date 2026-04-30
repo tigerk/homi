@@ -7,6 +7,7 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.owner.dto.OwnerCreateDTO;
 import com.homi.model.owner.dto.OwnerContractAttachmentUpdateDTO;
 import com.homi.model.owner.dto.OwnerContractCheckoutDTO;
+import com.homi.model.owner.dto.OwnerContractDocCreateDTO;
 import com.homi.model.owner.dto.OwnerContractDocIdDTO;
 import com.homi.model.owner.dto.OwnerContractGenerateDTO;
 import com.homi.model.owner.dto.OwnerContractIdDTO;
@@ -125,6 +126,12 @@ public class OwnerContractController {
     @Log(title = "重新生成业主合同", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Long> generateContract(@RequestBody OwnerContractGenerateDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(ownerContractCommandService.generateOwnerContract(dto, loginUser.getId()));
+    }
+
+    @PostMapping("/contract/doc/create")
+    @Log(title = "新增业主签约合同", operationType = OperationTypeEnum.INSERT)
+    public ResponseResult<Long> createContractDoc(@RequestBody OwnerContractDocCreateDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerContractCommandService.createOwnerContractDoc(dto, loginUser.getId()));
     }
 
     @PostMapping("/contract/sign/status/update")

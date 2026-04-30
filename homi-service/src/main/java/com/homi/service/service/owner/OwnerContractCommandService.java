@@ -348,6 +348,54 @@ public class OwnerContractCommandService {
 
     @BizOperateLog(
         bizType = BizOperateBizTypeEnum.OWNER_CONTRACT,
+        operateType = BizOperateTypeEnum.CREATE,
+        operateDesc = "新增业主签约合同",
+        bizIdExpr = "#result",
+        remarkExpr = "#p0.remark",
+        sourceType = BizOperateSourceTypeEnum.OWNER_CONTRACT,
+        sourceIdExpr = "#result",
+        extraDataExpr = "{'ownerContractId': #p0.ownerContractId, 'contractTemplateId': #p0.contractTemplateId}"
+    )
+    @Transactional(rollbackFor = Exception.class)
+    public Long createOwnerContractDoc(OwnerContractDocCreateDTO dto, Long createBy) {
+        if (dto == null || dto.getOwnerContractId() == null) {
+            throw new IllegalArgumentException("业主合同ID不能为空");
+        }
+        if (dto.getContractTemplateId() == null) {
+            throw new IllegalArgumentException("合同模板不能为空");
+        }
+        OwnerContract contract = ownerContractRepo.getById(dto.getOwnerContractId());
+        if (contract == null) {
+            throw new IllegalArgumentException("业主合同不存在");
+        }
+        validateOwnerContractNotClosed(contract);
+        if (contractTemplateRepo.getById(dto.getContractTemplateId()) == null) {
+            throw new IllegalArgumentException("合同模板不存在");
+        }
+
+        Date now = DateUtil.date();
+        OwnerContractDoc doc = new OwnerContractDoc();
+        doc.setCompanyId(contract.getCompanyId());
+        doc.setOwnerContractId(contract.getId());
+        doc.setDocNo(generateOwnerContractDocNo(contract));
+        doc.setContractTemplateId(dto.getContractTemplateId());
+        doc.setContractContent(buildContractContent(contract, doc.getDocNo(), dto.getContractTemplateId(), contract.getOwnerId(), listContractSubjectDTOs(contract.getId())));
+        doc.setSignStatus(OwnerSignStatusEnum.PENDING.getCode());
+        doc.setContractMedium(CharSequenceUtil.blankToDefault(dto.getContractMedium(), OwnerContractMediumEnum.ELECTRONIC.getCode()));
+        doc.setRemark(dto.getRemark());
+        doc.setDeleted(Boolean.FALSE);
+        doc.setCreateBy(createBy);
+        doc.setCreateAt(now);
+        doc.setUpdateBy(createBy);
+        doc.setUpdateAt(now);
+        ownerContractDocRepo.save(doc);
+
+        syncOwnerContractSignStatusFromDocs(contract, createBy);
+        return contract.getId();
+    }
+
+    @BizOperateLog(
+        bizType = BizOperateBizTypeEnum.OWNER_CONTRACT,
         operateType = BizOperateTypeEnum.UPDATE,
         operateDesc = "更新业主合同签约状态",
         bizIdExpr = "#result",

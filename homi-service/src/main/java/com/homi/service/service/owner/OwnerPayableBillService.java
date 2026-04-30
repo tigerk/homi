@@ -99,8 +99,62 @@ public class OwnerPayableBillService {
         if (bill == null) {
             throw new IllegalArgumentException("包租业主应付单不存在");
         }
-        Owner owner = ownerRepo.getById(bill.getOwnerId());
-        OwnerContract contract = ownerContractRepo.getById(bill.getContractId());
+        return toDetailVOList(Collections.singletonList(bill), true).get(0);
+    }
+
+    public List<OwnerPayableBillDetailVO> detailListByContract(OwnerPayableBillQueryDTO query) {
+        if (query == null || query.getContractId() == null) {
+            throw new IllegalArgumentException("业主合同ID不能为空");
+        }
+        List<Long> ownerIds = ownerRepo.getOwnerIdsByOwnerName(query.getOwnerName());
+        if (ownerIds != null && ownerIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        LambdaQueryWrapper<OwnerPayableBill> wrapper = buildWrapper(query, ownerIds);
+        wrapper
+            .orderByDesc(OwnerPayableBill::getPaymentStatus)
+            .orderByAsc(OwnerPayableBill::getId);
+        return toDetailVOList(ownerPayableBillRepo.list(wrapper), false);
+    }
+
+    private List<OwnerPayableBillDetailVO> toDetailVOList(List<OwnerPayableBill> billList, boolean includeOperateLog) {
+        if (CollectionUtils.isEmpty(billList)) {
+            return Collections.emptyList();
+        }
+
+        List<Long> billIds = billList.stream().map(OwnerPayableBill::getId).filter(Objects::nonNull).toList();
+        List<Long> ownerIds = billList.stream().map(OwnerPayableBill::getOwnerId).filter(Objects::nonNull).distinct().toList();
+        List<Long> contractIds = billList.stream().map(OwnerPayableBill::getContractId).filter(Objects::nonNull).distinct().toList();
+
+        Map<Long, Owner> ownerMap = ownerIds.isEmpty()
+            ? Collections.emptyMap()
+            : ownerRepo.listByIds(ownerIds).stream().collect(Collectors.toMap(Owner::getId, Function.identity()));
+        Map<Long, OwnerContract> contractMap = contractIds.isEmpty()
+            ? Collections.emptyMap()
+            : ownerContractRepo.listByIds(contractIds).stream().collect(Collectors.toMap(OwnerContract::getId, Function.identity()));
+        Map<Long, List<OwnerPayableBillFeeVO>> feeMap = buildFeeListMap(billIds);
+        Map<Long, List<OwnerPayableBillPaymentVO>> paymentMap = buildPaymentListMap(billIds);
+
+        return billList.stream()
+            .map(bill -> toDetailVO(
+                bill,
+                ownerMap.get(bill.getOwnerId()),
+                contractMap.get(bill.getContractId()),
+                feeMap.getOrDefault(bill.getId(), Collections.emptyList()),
+                paymentMap.getOrDefault(bill.getId(), Collections.emptyList()),
+                includeOperateLog
+            ))
+            .toList();
+    }
+
+    private OwnerPayableBillDetailVO toDetailVO(
+        OwnerPayableBill bill,
+        Owner owner,
+        OwnerContract contract,
+        List<OwnerPayableBillFeeVO> feeList,
+        List<OwnerPayableBillPaymentVO> paymentList,
+        boolean includeOperateLog
+    ) {
         OwnerPayableBillDetailVO vo = new OwnerPayableBillDetailVO();
         vo.setBillId(bill.getId());
         vo.setBillNo(bill.getBillNo());
@@ -128,10 +182,11 @@ public class OwnerPayableBillService {
         vo.setRemark(bill.getRemark());
         vo.setCreateAt(bill.getCreateAt());
         vo.setUpdateAt(bill.getUpdateAt());
-        vo.setFeeList(ownerPayableBillFeeRepo.lambdaQuery().eq(OwnerPayableBillFee::getBillId, bill.getId()).orderByAsc(OwnerPayableBillFee::getId).list()
-            .stream().map(this::toFeeVO).toList());
-        vo.setPaymentList(buildPaymentList(bill.getId()));
-        vo.setOperateLogList(bizOperateLogRepo.listByBiz(BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(), bill.getId()));
+        vo.setFeeList(feeList);
+        vo.setPaymentList(paymentList);
+        vo.setOperateLogList(includeOperateLog
+            ? bizOperateLogRepo.listByBiz(BizOperateBizTypeEnum.OWNER_PAYABLE_BILL.getCode(), bill.getId())
+            : Collections.emptyList());
         return vo;
     }
 
@@ -432,14 +487,32 @@ public class OwnerPayableBillService {
         return OwnerPayableBillPaymentStatusEnum.UNPAID.getCode();
     }
 
-    private List<OwnerPayableBillPaymentVO> buildPaymentList(Long billId) {
+    private Map<Long, List<OwnerPayableBillFeeVO>> buildFeeListMap(Collection<Long> billIds) {
+        if (CollectionUtils.isEmpty(billIds)) {
+            return Collections.emptyMap();
+        }
+        return ownerPayableBillFeeRepo.lambdaQuery()
+            .in(OwnerPayableBillFee::getBillId, billIds)
+            .orderByAsc(OwnerPayableBillFee::getId)
+            .list()
+            .stream()
+            .collect(Collectors.groupingBy(
+                OwnerPayableBillFee::getBillId,
+                Collectors.mapping(this::toFeeVO, Collectors.toList())
+            ));
+    }
+
+    private Map<Long, List<OwnerPayableBillPaymentVO>> buildPaymentListMap(Collection<Long> billIds) {
+        if (CollectionUtils.isEmpty(billIds)) {
+            return Collections.emptyMap();
+        }
         List<OwnerPayableBillPayment> list = ownerPayableBillPaymentRepo.lambdaQuery()
-            .eq(OwnerPayableBillPayment::getBillId, billId)
+            .in(OwnerPayableBillPayment::getBillId, billIds)
             .orderByDesc(OwnerPayableBillPayment::getPayAt)
             .orderByDesc(OwnerPayableBillPayment::getId)
             .list();
         if (list.isEmpty()) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
         List<Long> ids = list.stream().map(OwnerPayableBillPayment::getId).toList();
         Map<Long, List<String>> voucherMap = fileAttachRepo.lambdaQuery()
@@ -449,7 +522,11 @@ public class OwnerPayableBillService {
             .list()
             .stream()
             .collect(Collectors.groupingBy(FileAttach::getBizId, Collectors.mapping(FileAttach::getFileUrl, Collectors.toList())));
-        return list.stream().map(item -> toPaymentVO(item, voucherMap.get(item.getId()))).toList();
+        return list.stream()
+            .collect(Collectors.groupingBy(
+                OwnerPayableBillPayment::getBillId,
+                Collectors.mapping(item -> toPaymentVO(item, voucherMap.get(item.getId())), Collectors.toList())
+            ));
     }
 
     /**
