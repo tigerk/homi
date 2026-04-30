@@ -7,6 +7,7 @@ import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
+import com.homi.common.lib.annotation.BizOperateLog;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
@@ -15,6 +16,7 @@ import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.booking.BookingStatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.file.FileAttachSubtypeEnum;
 import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.price.PaymentMethodEnum;
 import com.homi.common.lib.enums.price.PriceMethodEnum;
@@ -24,6 +26,7 @@ import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.approval.dto.ApprovalSubmitDTO;
+import com.homi.model.common.dto.FileAttachGroupDTO;
 import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
@@ -35,6 +38,7 @@ import com.homi.model.owner.vo.BizOperateLogVO;
 import com.homi.service.service.approval.ApprovalResult;
 import com.homi.service.service.approval.ApprovalTemplate;
 import com.homi.service.service.company.CompanyCodeService;
+import com.homi.service.service.file.FileAttachGroupResolver;
 import com.homi.service.service.lease.bill.DepositCarryOverService;
 import com.homi.service.service.lease.bill.LeaseBillGenService;
 import com.homi.service.service.lease.bill.LeaseBillService;
@@ -564,8 +568,68 @@ public class LeaseService {
 
         leaseDetailVO.setLeaseBillList(leaseBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.FALSE));
         leaseDetailVO.setLeaseHistoricalBillList(leaseBillService.getBillListByLeaseId(leaseDetailVO.getLeaseId(), Boolean.TRUE));
+        leaseDetailVO.setLeaseAttachmentGroupList(getLeaseAttachmentGroups(leaseDetailVO.getLeaseId()));
 
         return leaseDetailVO;
+    }
+
+    @BizOperateLog(
+        bizType = BizOperateBizTypeEnum.LEASE,
+        operateType = BizOperateTypeEnum.UPDATE,
+        operateDesc = "更新租约资料附件",
+        bizIdExpr = "#p0.leaseId",
+        remarkExpr = "'更新租约资料附件'",
+        sourceType = BizOperateSourceTypeEnum.LEASE,
+        sourceIdExpr = "#p0.leaseId",
+        extraDataExpr = "{'leaseId': #p0.leaseId}"
+    )
+    @Transactional(rollbackFor = Exception.class)
+    public Long updateLeaseAttachments(LeaseAttachmentUpdateDTO dto, Long updateBy) {
+        if (dto == null || dto.getLeaseId() == null) {
+            throw new IllegalArgumentException("租约ID不能为空");
+        }
+        Lease lease = leaseRepo.getById(dto.getLeaseId());
+        if (lease == null) {
+            throw new IllegalArgumentException("租约不存在");
+        }
+        if (LeaseStatusEnum.VOIDED.equals(LeaseStatusEnum.fromCode(lease.getStatus()))) {
+            throw new IllegalArgumentException("已作废租约不能修改资料附件");
+        }
+        fileAttachRepo.recreateFileAttachListBySubtypeGroups(
+            lease.getId(),
+            FileAttachBizTypeEnum.LEASE_ATTACHMENT.getBizType(),
+            FileAttachGroupResolver.resolveSubtypeGroups(dto.getAttachmentGroupList(), dto.getAttachmentUrls())
+        );
+        lease.setUpdateBy(updateBy);
+        lease.setUpdateAt(DateUtil.date());
+        leaseRepo.updateById(lease);
+        return lease.getId();
+    }
+
+    private List<FileAttachGroupDTO> getLeaseAttachmentGroups(Long leaseId) {
+        if (leaseId == null) {
+            return List.of();
+        }
+        Map<String, List<String>> groupMap = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(
+                leaseId,
+                List.of(FileAttachBizTypeEnum.LEASE_ATTACHMENT.getBizType())
+            )
+            .stream()
+            .filter(item -> item.getFileUrl() != null)
+            .collect(Collectors.groupingBy(
+                item -> FileAttachSubtypeEnum.normalizeCode(item.getBizSubtype()),
+                LinkedHashMap::new,
+                Collectors.mapping(FileAttach::getFileUrl, Collectors.toList())
+            ));
+        return groupMap.entrySet()
+            .stream()
+            .map(entry -> {
+                FileAttachGroupDTO group = new FileAttachGroupDTO();
+                group.setBizSubtype(entry.getKey());
+                group.setAttachmentUrls(entry.getValue());
+                return group;
+            })
+            .toList();
     }
 
     /**

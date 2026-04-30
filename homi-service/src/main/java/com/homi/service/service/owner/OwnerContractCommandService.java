@@ -22,11 +22,11 @@ import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.approval.dto.ApprovalSubmitDTO;
-import com.homi.model.common.dto.FileAttachGroupDTO;
 import com.homi.model.owner.dto.*;
 import com.homi.model.owner.vo.OwnerDetailVO;
 import com.homi.service.service.approval.ApprovalResult;
 import com.homi.service.service.approval.ApprovalTemplate;
+import com.homi.service.service.file.FileAttachGroupResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -299,7 +299,7 @@ public class OwnerContractCommandService {
         fileAttachRepo.recreateFileAttachListBySubtypeGroups(
             contract.getId(),
             FileAttachBizTypeEnum.CONTRACT_FILE.getBizType(),
-            resolveFileAttachSubtypeGroups(dto)
+            FileAttachGroupResolver.resolveSubtypeGroups(dto.getAttachmentGroupList(), dto.getAttachmentUrls())
         );
         contract.setUpdateBy(updateBy);
         contract.setUpdateAt(DateUtil.date());
@@ -479,37 +479,6 @@ public class OwnerContractCommandService {
                 FileAttachSubtypeEnum.SIGNED_CONTRACT.getCode()
             )
         );
-    }
-
-    private Map<String, List<String>> resolveFileAttachSubtypeGroups(OwnerContractAttachmentUpdateDTO dto) {
-        Map<String, List<String>> result = new LinkedHashMap<>();
-        if (CollUtil.isNotEmpty(dto.getAttachmentGroupList())) {
-            for (FileAttachGroupDTO group : dto.getAttachmentGroupList()) {
-                if (group == null) {
-                    continue;
-                }
-                String bizSubtype = FileAttachSubtypeEnum.normalizeCode(group.getBizSubtype());
-                List<String> urls = sanitizeAttachmentUrls(group.getAttachmentUrls());
-                if (CollUtil.isNotEmpty(urls)) {
-                    result.computeIfAbsent(bizSubtype, key -> new ArrayList<>()).addAll(urls);
-                }
-            }
-            return result;
-        }
-        List<String> urls = sanitizeAttachmentUrls(dto.getAttachmentUrls());
-        if (CollUtil.isNotEmpty(urls)) {
-            result.put(FileAttachSubtypeEnum.OTHER.getCode(), urls);
-        }
-        return result;
-    }
-
-    private List<String> sanitizeAttachmentUrls(List<String> attachmentUrls) {
-        return Objects.requireNonNullElse(attachmentUrls, List.<String>of())
-            .stream()
-            .map(CharSequenceUtil::trim)
-            .filter(CharSequenceUtil::isNotBlank)
-            .distinct()
-            .toList();
     }
 
     private List<OwnerContractSubjectDTO> listContractSubjectDTOs(Long contractId) {

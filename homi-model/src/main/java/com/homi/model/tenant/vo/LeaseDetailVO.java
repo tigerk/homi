@@ -1,6 +1,7 @@
 package com.homi.model.tenant.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.model.common.dto.FileAttachGroupDTO;
 import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.room.dto.price.OtherFeeDTO;
 import com.homi.model.room.vo.RoomListVO;
@@ -177,4 +178,7 @@ public class LeaseDetailVO {
 
     @Schema(description = "其他费用列表")
     private List<OtherFeeDTO> otherFees;
+
+    @Schema(description = "租约资料附件分组列表")
+    private List<FileAttachGroupDTO> leaseAttachmentGroupList;
 }

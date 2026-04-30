@@ -13,6 +13,7 @@ public enum FileAttachSubtypeEnum {
     SUPPLEMENT_AGREEMENT("SUPPLEMENT_AGREEMENT", "补充协议"),
     AUTHORIZATION("AUTHORIZATION", "授权委托书"),
     OWNER_MATERIAL("OWNER_MATERIAL", "业主资料"),
+    TENANT_MATERIAL("TENANT_MATERIAL", "租客资料"),
     HOUSE_MATERIAL("HOUSE_MATERIAL", "房源资料"),
     OTHER("OTHER", "其他资料");
 

@@ -38,6 +38,10 @@ public enum FileAttachBizTypeEnum {
      */
     CONTRACT_FILE("contract_file"),
     /**
+     * 租约资料附件
+     */
+    LEASE_ATTACHMENT("lease_attachment"),
+    /**
      * 租客图片
      */
     TENANT_IMAGE("tenant_image"),

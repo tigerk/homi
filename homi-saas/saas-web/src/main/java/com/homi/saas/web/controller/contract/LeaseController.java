@@ -91,6 +91,12 @@ public class LeaseController {
         return ResponseResult.ok(leaseService.updateTenantInfo(updateDTO));
     }
 
+    @PostMapping("/attachments/update")
+    @Log(title = "更新租约资料附件", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> updateLeaseAttachments(@RequestBody LeaseAttachmentUpdateDTO updateDTO, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(leaseService.updateLeaseAttachments(updateDTO, loginUser.getId()));
+    }
+
     @PostMapping("/operate-log/list")
     public ResponseResult<List<BizOperateLogVO>> getLeaseOperateLogList(@RequestBody LeaseQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(leaseService.listLeaseOperateLogs(query.getLeaseId(), loginUser.getCurCompanyId()));
