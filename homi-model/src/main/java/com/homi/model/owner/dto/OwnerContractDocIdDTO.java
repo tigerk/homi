@@ -4,11 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@Schema(description = "业主合同重新生成DTO")
-public class OwnerContractGenerateDTO {
+@Schema(description = "业主合同签约文档ID DTO")
+public class OwnerContractDocIdDTO {
     @Schema(description = "业主合同签约文档ID")
     private Long ownerContractDocId;
-
-    @Schema(description = "合同模板ID")
-    private Long contractTemplateId;
 }

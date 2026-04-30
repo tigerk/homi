@@ -3,6 +3,7 @@ package com.homi.model.owner.vo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.model.owner.dto.OwnerCompanyDTO;
 import com.homi.model.owner.dto.OwnerContractDTO;
+import com.homi.model.owner.dto.OwnerContractDocDTO;
 import com.homi.model.owner.dto.OwnerLeaseFreeRuleDTO;
 import com.homi.model.owner.dto.OwnerLeaseRuleDTO;
 import com.homi.model.owner.dto.OwnerPersonalDTO;
@@ -31,6 +32,9 @@ public class OwnerDetailVO {
 
     @Schema(description = "业主合同")
     private OwnerContractDTO ownerContract;
+
+    @Schema(description = "业主合同签约文档列表")
+    private List<OwnerContractDocDTO> ownerContractDocList;
 
     @Schema(description = "合同模板名称")
     private String contractTemplateName;

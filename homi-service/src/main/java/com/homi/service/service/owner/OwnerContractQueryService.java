@@ -20,6 +20,7 @@ import com.homi.model.dao.entity.Owner;
 import com.homi.model.dao.entity.OwnerCompany;
 import com.homi.model.dao.entity.OwnerContract;
 import com.homi.model.dao.entity.OwnerContractCheckout;
+import com.homi.model.dao.entity.OwnerContractDoc;
 import com.homi.model.dao.entity.OwnerContractSubject;
 import com.homi.model.dao.entity.OwnerLeaseFee;
 import com.homi.model.dao.entity.OwnerLeaseFreeRule;
@@ -33,6 +34,7 @@ import com.homi.model.dao.repo.ContractTemplateRepo;
 import com.homi.model.dao.repo.FileAttachRepo;
 import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.OwnerCompanyRepo;
+import com.homi.model.dao.repo.OwnerContractDocRepo;
 import com.homi.model.dao.repo.OwnerContractRepo;
 import com.homi.model.dao.repo.OwnerContractCheckoutRepo;
 import com.homi.model.dao.repo.OwnerContractSubjectRepo;
@@ -48,6 +50,8 @@ import com.homi.model.dao.repo.UserRepo;
 import com.homi.model.common.dto.FileAttachGroupDTO;
 import com.homi.model.owner.dto.OwnerCompanyDTO;
 import com.homi.model.owner.dto.OwnerContractDTO;
+import com.homi.model.owner.dto.OwnerContractDocDTO;
+import com.homi.model.owner.dto.OwnerContractDocIdDTO;
 import com.homi.model.owner.dto.OwnerContractIdDTO;
 import com.homi.model.owner.dto.OwnerContractSubjectDTO;
 import com.homi.model.owner.dto.OwnerLeaseFeeDTO;
@@ -86,6 +90,7 @@ public class OwnerContractQueryService {
     private final OwnerPersonalRepo ownerPersonalRepo;
     private final OwnerCompanyRepo ownerCompanyRepo;
     private final OwnerContractRepo ownerContractRepo;
+    private final OwnerContractDocRepo ownerContractDocRepo;
     private final OwnerContractCheckoutRepo ownerContractCheckoutRepo;
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final OwnerSettlementRuleRepo ownerSettlementRuleRepo;
@@ -159,6 +164,7 @@ public class OwnerContractQueryService {
         OwnerContractDTO contractDTO = toOwnerContractDTO(contract);
         appendCheckoutRecordInfo(contractDTO, contract.getId());
         vo.setOwnerContract(contractDTO);
+        vo.setOwnerContractDocList(listOwnerContractDocDTOs(contract));
         ContractTemplate template = contractTemplateRepo.getById(contract.getContractTemplateId());
         if (template != null) {
             vo.setContractTemplateName(template.getTemplateName());
@@ -210,15 +216,15 @@ public class OwnerContractQueryService {
         return vo;
     }
 
-    public byte[] previewOwnerContract(OwnerContractIdDTO dto) {
-        if (dto == null || dto.getContractId() == null) {
-            throw new IllegalArgumentException("合同ID不能为空");
+    public byte[] previewOwnerContract(OwnerContractDocIdDTO dto) {
+        if (dto == null || dto.getOwnerContractDocId() == null) {
+            throw new IllegalArgumentException("签约合同ID不能为空");
         }
-        OwnerContract contract = ownerContractRepo.getById(dto.getContractId());
-        if (contract == null || contract.getContractContent() == null) {
-            throw new IllegalArgumentException("业主合同不存在");
+        OwnerContractDoc contractDoc = ownerContractDocRepo.getById(dto.getOwnerContractDocId());
+        if (contractDoc == null || contractDoc.getContractContent() == null) {
+            throw new IllegalArgumentException("业主签约合同不存在");
         }
-        return ConvertHtml2PdfUtils.generatePdf(contract.getContractContent());
+        return ConvertHtml2PdfUtils.generatePdf(contractDoc.getContractContent());
     }
 
     private void appendLightManagedDetail(OwnerContract contract, List<OwnerContractSubjectDTO> subjectDTOList) {
@@ -389,7 +395,7 @@ public class OwnerContractQueryService {
         dto.setContractTemplateId(contract.getContractTemplateId());
         dto.setContractContent(contract.getContractContent());
         dto.setContractAttachmentList(getFileUrls(contract.getId(), FileAttachBizTypeEnum.CONTRACT_FILE.getBizType()));
-        dto.setContractAttachmentGroupList(getContractAttachmentGroups(contract.getId()));
+        dto.setContractAttachmentGroupList(getAttachmentGroups(contract.getId(), FileAttachBizTypeEnum.CONTRACT_FILE));
         dto.setSignStatus(contract.getSignStatus());
         dto.setSignType(contract.getSignType());
         dto.setContractMedium(contract.getContractMedium());
@@ -415,6 +421,40 @@ public class OwnerContractQueryService {
         dto.setCreateAt(contract.getCreateAt());
         dto.setUpdateBy(contract.getUpdateBy());
         dto.setUpdateAt(contract.getUpdateAt());
+        return dto;
+    }
+
+    private List<OwnerContractDocDTO> listOwnerContractDocDTOs(OwnerContract contract) {
+        return ownerContractDocRepo.listByOwnerContractId(contract.getId())
+            .stream()
+            .map(item -> toOwnerContractDocDTO(item, contract))
+            .toList();
+    }
+
+    private OwnerContractDocDTO toOwnerContractDocDTO(OwnerContractDoc doc, OwnerContract contract) {
+        OwnerContractDocDTO dto = new OwnerContractDocDTO();
+        dto.setId(doc.getId());
+        dto.setCompanyId(doc.getCompanyId());
+        dto.setOwnerContractId(doc.getOwnerContractId());
+        dto.setContractNo(doc.getContractNo());
+        dto.setContractTemplateId(doc.getContractTemplateId());
+        ContractTemplate template = contractTemplateRepo.getById(doc.getContractTemplateId());
+        if (template != null) {
+            dto.setContractTemplateName(template.getTemplateName());
+        }
+        dto.setContractContent(doc.getContractContent());
+        dto.setContractAttachmentList(getFileUrls(doc.getId(), FileAttachBizTypeEnum.OWNER_CONTRACT_DOC.getBizType()));
+        dto.setContractAttachmentGroupList(getAttachmentGroups(doc.getId(), FileAttachBizTypeEnum.OWNER_CONTRACT_DOC));
+        dto.setSignStatus(doc.getSignStatus());
+        dto.setContractMedium(doc.getContractMedium());
+        dto.setStatus(contract.getStatus());
+        dto.setContractStart(contract.getContractStart());
+        dto.setContractEnd(contract.getContractEnd());
+        dto.setRemark(doc.getRemark());
+        dto.setCreateBy(doc.getCreateBy());
+        dto.setCreateAt(doc.getCreateAt());
+        dto.setUpdateBy(doc.getUpdateBy());
+        dto.setUpdateAt(doc.getUpdateAt());
         return dto;
     }
 
@@ -632,13 +672,13 @@ public class OwnerContractQueryService {
             .toList();
     }
 
-    private List<FileAttachGroupDTO> getContractAttachmentGroups(Long contractId) {
-        if (contractId == null) {
+    private List<FileAttachGroupDTO> getAttachmentGroups(Long bizId, FileAttachBizTypeEnum bizType) {
+        if (bizId == null || bizType == null) {
             return List.of();
         }
         Map<String, List<String>> groupMap = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(
-                contractId,
-                List.of(FileAttachBizTypeEnum.CONTRACT_FILE.getBizType())
+                bizId,
+                List.of(bizType.getBizType())
             )
             .stream()
             .filter(item -> item.getFileUrl() != null)

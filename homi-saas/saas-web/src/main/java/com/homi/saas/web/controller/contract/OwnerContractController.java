@@ -7,6 +7,7 @@ import com.homi.common.lib.vo.PageVO;
 import com.homi.model.owner.dto.OwnerCreateDTO;
 import com.homi.model.owner.dto.OwnerContractAttachmentUpdateDTO;
 import com.homi.model.owner.dto.OwnerContractCheckoutDTO;
+import com.homi.model.owner.dto.OwnerContractDocIdDTO;
 import com.homi.model.owner.dto.OwnerContractGenerateDTO;
 import com.homi.model.owner.dto.OwnerContractIdDTO;
 import com.homi.model.owner.dto.OwnerContractOfflineSignDTO;
@@ -90,11 +91,11 @@ public class OwnerContractController {
     }
 
     @PostMapping("/preview")
-    public ResponseEntity<byte[]> preview(@RequestBody OwnerContractIdDTO dto) {
+    public ResponseEntity<byte[]> preview(@RequestBody OwnerContractDocIdDTO dto) {
         byte[] pdfBytes = ownerContractQueryService.previewOwnerContract(dto);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(ContentDisposition.attachment().filename("owner-preview-" + dto.getContractId() + ".pdf").build());
+        headers.setContentDisposition(ContentDisposition.attachment().filename("owner-preview-" + dto.getOwnerContractDocId() + ".pdf").build());
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 
