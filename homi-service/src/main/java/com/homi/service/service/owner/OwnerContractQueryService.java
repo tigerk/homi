@@ -18,6 +18,7 @@ import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.Owner;
 import com.homi.model.dao.entity.OwnerCompany;
 import com.homi.model.dao.entity.OwnerContract;
+import com.homi.model.dao.entity.OwnerContractCheckout;
 import com.homi.model.dao.entity.OwnerContractSubject;
 import com.homi.model.dao.entity.OwnerLeaseFee;
 import com.homi.model.dao.entity.OwnerLeaseFreeRule;
@@ -32,6 +33,7 @@ import com.homi.model.dao.repo.FileAttachRepo;
 import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.OwnerCompanyRepo;
 import com.homi.model.dao.repo.OwnerContractRepo;
+import com.homi.model.dao.repo.OwnerContractCheckoutRepo;
 import com.homi.model.dao.repo.OwnerContractSubjectRepo;
 import com.homi.model.dao.repo.OwnerLeaseFeeRepo;
 import com.homi.model.dao.repo.OwnerLeaseFreeRuleRepo;
@@ -82,6 +84,7 @@ public class OwnerContractQueryService {
     private final OwnerPersonalRepo ownerPersonalRepo;
     private final OwnerCompanyRepo ownerCompanyRepo;
     private final OwnerContractRepo ownerContractRepo;
+    private final OwnerContractCheckoutRepo ownerContractCheckoutRepo;
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final OwnerSettlementRuleRepo ownerSettlementRuleRepo;
     private final OwnerSettlementFeeRepo ownerSettlementFeeRepo;
@@ -151,7 +154,9 @@ public class OwnerContractQueryService {
         OwnerDetailVO vo = new OwnerDetailVO();
         vo.setOwnerId(owner.getId());
         vo.setOwnerType(owner.getOwnerType());
-        vo.setOwnerContract(toOwnerContractDTO(contract));
+        OwnerContractDTO contractDTO = toOwnerContractDTO(contract);
+        appendCheckoutRecordInfo(contractDTO, contract.getId());
+        vo.setOwnerContract(contractDTO);
         ContractTemplate template = contractTemplateRepo.getById(contract.getContractTemplateId());
         if (template != null) {
             vo.setContractTemplateName(template.getTemplateName());
@@ -193,9 +198,13 @@ public class OwnerContractQueryService {
         vo.setCreateAt(contract.getCreateAt());
         vo.setUpdateBy(contract.getUpdateBy());
         vo.setUpdateAt(contract.getUpdateAt());
-        Map<Long, String> userNameMap = getUserNameMap(contract.getCreateBy(), contract.getUpdateBy());
+        Map<Long, String> userNameMap = getUserNameMap(contract.getCreateBy(), contract.getUpdateBy(), contract.getCheckoutBy(), contract.getVoidBy());
         vo.setCreateByName(userNameMap.get(contract.getCreateBy()));
         vo.setUpdateByName(userNameMap.get(contract.getUpdateBy()));
+        contractDTO.setVoidByName(userNameMap.get(contract.getVoidBy()));
+        if (contractDTO.getCheckoutByName() == null || contractDTO.getCheckoutByName().isBlank()) {
+            contractDTO.setCheckoutByName(userNameMap.get(contract.getCheckoutBy()));
+        }
         return vo;
     }
 
@@ -395,11 +404,31 @@ public class OwnerContractQueryService {
         dto.setCheckoutBy(contract.getCheckoutBy());
         dto.setCheckoutByName(contract.getCheckoutByName());
         dto.setCheckoutAt(contract.getCheckoutAt());
+        dto.setVoidReason(contract.getVoidReason());
+        dto.setVoidBy(contract.getVoidBy());
+        dto.setVoidAt(contract.getVoidAt());
         dto.setCreateBy(contract.getCreateBy());
         dto.setCreateAt(contract.getCreateAt());
         dto.setUpdateBy(contract.getUpdateBy());
         dto.setUpdateAt(contract.getUpdateAt());
         return dto;
+    }
+
+    private void appendCheckoutRecordInfo(OwnerContractDTO dto, Long contractId) {
+        OwnerContractCheckout checkout = ownerContractCheckoutRepo.getOne(
+            new LambdaQueryWrapper<OwnerContractCheckout>()
+                .eq(OwnerContractCheckout::getOwnerContractId, contractId)
+                .orderByDesc(OwnerContractCheckout::getCreateAt)
+                .last("limit 1")
+        );
+        if (checkout == null) {
+            return;
+        }
+        dto.setSettlementRemark(checkout.getSettlementRemark());
+        dto.setBreachPenaltyAmount(checkout.getBreachPenaltyAmount());
+        dto.setReleaseSubject(checkout.getReleaseSubject());
+        dto.setVoidUnpaidFutureBills(checkout.getVoidUnpaidFutureBills());
+        dto.setCheckoutRecordStatus(checkout.getStatus());
     }
 
     private OwnerPersonalDTO toOwnerPersonalDTO(OwnerPersonal personal) {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
@@ -87,6 +88,34 @@ public class OwnerContractDTO {
     @Schema(description = "退房操作时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date checkoutAt;
+
+    @Schema(description = "退房结算说明")
+    private String settlementRemark;
+
+    @Schema(description = "业主退房违约金")
+    private BigDecimal breachPenaltyAmount;
+
+    @Schema(description = "是否释放房源")
+    private Boolean releaseSubject;
+
+    @Schema(description = "是否作废退房日之后未付款账单")
+    private Boolean voidUnpaidFutureBills;
+
+    @Schema(description = "退房单状态：1=已提交，2=已完成，3=已取消")
+    private Integer checkoutRecordStatus;
+
+    @Schema(description = "作废原因")
+    private String voidReason;
+
+    @Schema(description = "作废操作人ID")
+    private Long voidBy;
+
+    @Schema(description = "作废操作人名称")
+    private String voidByName;
+
+    @Schema(description = "作废时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date voidAt;
 
     @Schema(description = "创建人")
     private Long createBy;
