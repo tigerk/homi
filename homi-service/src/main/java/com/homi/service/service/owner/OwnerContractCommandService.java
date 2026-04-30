@@ -299,7 +299,7 @@ public class OwnerContractCommandService {
         fileAttachRepo.recreateFileAttachListBySubtypeGroups(
             contract.getId(),
             FileAttachBizTypeEnum.CONTRACT_FILE.getBizType(),
-            resolveAttachmentSubtypeGroups(dto)
+            resolveFileAttachSubtypeGroups(dto)
         );
         contract.setUpdateBy(updateBy);
         contract.setUpdateAt(DateUtil.date());
@@ -481,7 +481,7 @@ public class OwnerContractCommandService {
         );
     }
 
-    private Map<String, List<String>> resolveAttachmentSubtypeGroups(OwnerContractAttachmentUpdateDTO dto) {
+    private Map<String, List<String>> resolveFileAttachSubtypeGroups(OwnerContractAttachmentUpdateDTO dto) {
         Map<String, List<String>> result = new LinkedHashMap<>();
         if (CollUtil.isNotEmpty(dto.getAttachmentGroupList())) {
             for (FileAttachGroupDTO group : dto.getAttachmentGroupList()) {

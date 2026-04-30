@@ -53,7 +53,20 @@ public class FileController {
             "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp", "image/svg+xml",
             // 视频
             "video/mp4", "video/x-msvideo", "video/quicktime", "video/x-ms-wmv",
-            "video/x-flv", "video/x-matroska", "video/webm"
+            "video/x-flv", "video/x-matroska", "video/webm",
+            // 文档
+            "application/pdf", "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "text/plain", "text/csv", "application/csv"
+    );
+    private static final Set<String> ALLOWED_FILE_EXTENSIONS = Set.of(
+            ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg",
+            ".mp4", ".avi", ".mov", ".wmv", ".flv", ".mkv", ".webm",
+            ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".csv"
     );
 
     private final FileMetaRepo fileMetaRepo;
@@ -66,14 +79,16 @@ public class FileController {
      * @return 返回文件访问 URL
      */
     @PostMapping("/upload")
-    public ResponseResult<String> uploadImage(HttpServletRequest request, @Valid @NonNull @RequestParam("file") MultipartFile file) throws Exception {
+    public ResponseResult<String> uploadFile(HttpServletRequest request, @Valid @NonNull @RequestParam("file") MultipartFile file) throws Exception {
+        String originalFilename = file.getOriginalFilename();
+        String extension = getSafeExtension(originalFilename);
 
-        // 检测真实的 MIME 类型
-        String detectedMimeType = tika.detect(file.getInputStream());
+        // 同时结合内容和文件名检测 MIME，避免 Office/PDF 等附件被误判为通用二进制。
+        String detectedMimeType = tika.detect(file.getInputStream(), originalFilename);
 
-        if (!ALLOWED_MIME_TYPES.contains(detectedMimeType)) {
+        if (!ALLOWED_MIME_TYPES.contains(detectedMimeType) || !ALLOWED_FILE_EXTENSIONS.contains(extension)) {
             log.warn("不允许的文件类型: {}, 文件名: {}", detectedMimeType, file.getOriginalFilename());
-            return ResponseResult.fail(ResponseCodeEnum.UPLOAD_FAIL.getCode(), "只允许上传图片或视频文件");
+            return ResponseResult.fail(ResponseCodeEnum.UPLOAD_FAIL.getCode(), "仅支持图片、视频、PDF、Word、Excel、PPT、TXT 或 CSV 文件");
         }
 
         String fileMD5 = ImageUtils.getFileMD5(file.getInputStream());
@@ -81,13 +96,6 @@ public class FileController {
         FileMeta fileByHash = fileMetaRepo.searchFileByHash(fileMD5);
         if (Objects.nonNull(fileByHash)) {
             return ResponseResult.ok("上传成功", fileByHash.getFileUrl());
-        }
-
-        String originalFilename = file.getOriginalFilename();
-        String extension = "";
-
-        if (CharSequenceUtil.isNotBlank(originalFilename) && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
         }
 
         // 生成新文件名（只使用 UUID + 扩展名，不包含任何用户输入的路径）
@@ -147,5 +155,12 @@ public class FileController {
         fileMetaRepo.save(fileMeta);
 
         return ResponseResult.ok("上传成功", fileUrl);
+    }
+
+    private String getSafeExtension(String originalFilename) {
+        if (CharSequenceUtil.isBlank(originalFilename) || !originalFilename.contains(".")) {
+            return "";
+        }
+        return originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
     }
 }
