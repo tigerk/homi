@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OwnerBillingGenerateService {
     private final OwnerContractRepo ownerContractRepo;
+    private final OwnerContractDocRepo ownerContractDocRepo;
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final OwnerSettlementRuleRepo ownerSettlementRuleRepo;
     private final OwnerSettlementFeeRepo ownerSettlementFeeRepo;
@@ -538,7 +539,7 @@ public class OwnerBillingGenerateService {
     private boolean isLeaseStartBillContract(OwnerContract contract) {
         return Objects.equals(contract.getStatus(), OwnerContractStatusEnum.SIGNED.getCode())
             && Objects.equals(contract.getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode())
-            && Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())
+            && hasSignedOwnerContractDoc(contract.getId())
             && OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode());
     }
 
@@ -628,8 +629,12 @@ public class OwnerBillingGenerateService {
     private boolean isMasterLeaseBillContract(OwnerContract contract) {
         return Objects.equals(contract.getStatus(), OwnerContractStatusEnum.SIGNED.getCode())
             && Objects.equals(contract.getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode())
-            && Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())
+            && hasSignedOwnerContractDoc(contract.getId())
             && OwnerCooperationModeEnum.MASTER_LEASE.name().equals(contract.getCooperationMode());
+    }
+
+    private boolean hasSignedOwnerContractDoc(Long contractId) {
+        return ownerContractDocRepo.existsSignedDoc(contractId);
     }
 
     private Date resolveMasterLeaseBillingStart(OwnerContract contract, OwnerLeaseRule leaseRule) {

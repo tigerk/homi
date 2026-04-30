@@ -10,6 +10,7 @@ import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachSubtypeEnum;
 import com.homi.common.lib.enums.owner.OwnerContractStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
+import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerTypeEnum;
 import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -72,10 +73,12 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -161,14 +164,12 @@ public class OwnerContractQueryService {
         OwnerDetailVO vo = new OwnerDetailVO();
         vo.setOwnerId(owner.getId());
         vo.setOwnerType(owner.getOwnerType());
-        OwnerContractDTO contractDTO = toOwnerContractDTO(contract);
+        List<OwnerContractDocDTO> contractDocList = listOwnerContractDocDTOs(contract);
+        OwnerContractDTO contractDTO = toOwnerContractDTO(contract, contractDocList);
         appendCheckoutRecordInfo(contractDTO, contract.getId());
         vo.setOwnerContract(contractDTO);
-        vo.setOwnerContractDocList(listOwnerContractDocDTOs(contract));
-        ContractTemplate template = contractTemplateRepo.getById(contract.getContractTemplateId());
-        if (template != null) {
-            vo.setContractTemplateName(template.getTemplateName());
-        }
+        vo.setOwnerContractDocList(contractDocList);
+        contractDocList.stream().findFirst().map(OwnerContractDocDTO::getContractTemplateName).ifPresent(vo::setContractTemplateName);
         if (Objects.equals(vo.getOwnerType(), OwnerTypeEnum.PERSONAL.getCode())) {
             OwnerPersonal personal = ownerPersonalRepo.getById(owner.getOwnerTypeId());
             if (personal != null) {
@@ -279,7 +280,8 @@ public class OwnerContractQueryService {
         vo.setContractStart(contract.getContractStart());
         vo.setContractEnd(contract.getContractEnd());
         vo.setCooperationMode(contract.getCooperationMode());
-        vo.setSignStatus(contract.getSignStatus());
+        List<OwnerContractDoc> contractDocs = ownerContractDocRepo.listByOwnerContractId(contract.getId());
+        vo.setSignStatus(ownerContractDocRepo.resolveAggregateSignStatus(contractDocs));
         vo.setStatus(contract.getStatus());
         vo.setContractNature(contract.getContractNature());
         vo.setCheckoutStatus(contract.getCheckoutStatus());
@@ -288,7 +290,8 @@ public class OwnerContractQueryService {
         vo.setCreateAt(contract.getCreateAt());
         vo.setUpdateAt(contract.getUpdateAt());
 
-        ContractTemplate template = contractTemplateRepo.getById(contract.getContractTemplateId());
+        OwnerContractDoc primaryDoc = contractDocs.stream().findFirst().orElse(null);
+        ContractTemplate template = primaryDoc == null ? null : contractTemplateRepo.getById(primaryDoc.getContractTemplateId());
         if (template != null) {
             vo.setContractTemplateName(template.getTemplateName());
         }
@@ -313,13 +316,53 @@ public class OwnerContractQueryService {
         wrapper.eq(query.getCooperationMode() != null, OwnerContract::getCooperationMode, query.getCooperationMode());
         if (!ignoreStatusFilters) {
             wrapper.eq(Objects.nonNull(query.getStatus()), OwnerContract::getStatus, query.getStatus());
-            wrapper.eq(Objects.nonNull(query.getSignStatus()), OwnerContract::getSignStatus, query.getSignStatus());
+            List<Long> signStatusContractIds = resolveContractIdsByAggregateSignStatus(query.getSignStatus());
+            if (signStatusContractIds != null) {
+                if (signStatusContractIds.isEmpty()) {
+                    wrapper.eq(OwnerContract::getId, -1L);
+                } else {
+                    wrapper.in(OwnerContract::getId, signStatusContractIds);
+                }
+            }
             if (query.getExpiringDaysWithin() != null) {
                 wrapper.ge(OwnerContract::getContractEnd, DateUtil.beginOfDay(new Date()));
                 wrapper.le(OwnerContract::getContractEnd, DateUtil.endOfDay(DateUtil.offsetDay(new Date(), query.getExpiringDaysWithin())));
             }
         }
         return wrapper;
+    }
+
+    private List<Long> resolveContractIdsByAggregateSignStatus(Integer signStatus) {
+        if (signStatus == null) {
+            return null;
+        }
+        List<OwnerContractDoc> docs = ownerContractDocRepo.list();
+        Map<Long, List<OwnerContractDoc>> docMap = docs.stream()
+            .filter(item -> item.getOwnerContractId() != null)
+            .collect(Collectors.groupingBy(OwnerContractDoc::getOwnerContractId));
+        List<Long> matchedIds = docMap.entrySet().stream()
+            .filter(entry -> Objects.equals(ownerContractDocRepo.resolveAggregateSignStatus(entry.getValue()), signStatus))
+            .map(Map.Entry::getKey)
+            .toList();
+        if (!Objects.equals(signStatus, OwnerSignStatusEnum.PENDING.getCode())) {
+            return matchedIds;
+        }
+        Set<Long> matchedSet = new HashSet<>(matchedIds);
+        Set<Long> docContractIds = docMap.keySet();
+        ownerContractRepo.list(new LambdaQueryWrapper<OwnerContract>().select(OwnerContract::getId))
+            .stream()
+            .map(OwnerContract::getId)
+            .filter(Objects::nonNull)
+            .filter(id -> !docContractIds.contains(id))
+            .forEach(matchedSet::add);
+        return new ArrayList<>(matchedSet);
+    }
+
+    private Integer resolveAggregateSignStatusFromDTO(List<OwnerContractDocDTO> docs) {
+        boolean hasSignedDoc = Objects.requireNonNullElse(docs, List.<OwnerContractDocDTO>of())
+            .stream()
+            .anyMatch(item -> Objects.equals(item.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode()));
+        return hasSignedDoc ? OwnerSignStatusEnum.SIGNED.getCode() : OwnerSignStatusEnum.PENDING.getCode();
     }
 
     private ContractSubjectSummary buildContractSubjectSummary(OwnerContract contract, List<OwnerContractSubject> contractSubjects) {
@@ -385,20 +428,23 @@ public class OwnerContractQueryService {
             .build();
     }
 
-    private OwnerContractDTO toOwnerContractDTO(OwnerContract contract) {
+    private OwnerContractDTO toOwnerContractDTO(OwnerContract contract, List<OwnerContractDocDTO> contractDocList) {
         OwnerContractDTO dto = new OwnerContractDTO();
         dto.setId(contract.getId());
         dto.setCompanyId(contract.getCompanyId());
         dto.setOwnerId(contract.getOwnerId());
         dto.setCooperationMode(contract.getCooperationMode());
         dto.setContractNo(contract.getContractNo());
-        dto.setContractTemplateId(contract.getContractTemplateId());
-        dto.setContractContent(contract.getContractContent());
         dto.setContractAttachmentList(getFileUrls(contract.getId(), FileAttachBizTypeEnum.CONTRACT_FILE.getBizType()));
         dto.setContractAttachmentGroupList(getAttachmentGroups(contract.getId(), FileAttachBizTypeEnum.CONTRACT_FILE));
-        dto.setSignStatus(contract.getSignStatus());
         dto.setSignType(contract.getSignType());
-        dto.setContractMedium(contract.getContractMedium());
+        OwnerContractDocDTO primaryDoc = Objects.requireNonNullElse(contractDocList, List.<OwnerContractDocDTO>of()).stream().findFirst().orElse(null);
+        if (primaryDoc != null) {
+            dto.setContractTemplateId(primaryDoc.getContractTemplateId());
+            dto.setContractContent(primaryDoc.getContractContent());
+            dto.setContractMedium(primaryDoc.getContractMedium());
+        }
+        dto.setSignStatus(resolveAggregateSignStatusFromDTO(contractDocList));
         dto.setNotifyOwner(Objects.requireNonNullElse(contract.getNotifyOwner(), Boolean.FALSE));
         dto.setContractStart(contract.getContractStart());
         dto.setContractEnd(contract.getContractEnd());
@@ -436,7 +482,7 @@ public class OwnerContractQueryService {
         dto.setId(doc.getId());
         dto.setCompanyId(doc.getCompanyId());
         dto.setOwnerContractId(doc.getOwnerContractId());
-        dto.setContractNo(doc.getContractNo());
+        dto.setDocNo(doc.getDocNo());
         dto.setContractTemplateId(doc.getContractTemplateId());
         ContractTemplate template = contractTemplateRepo.getById(doc.getContractTemplateId());
         if (template != null) {

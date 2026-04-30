@@ -311,8 +311,8 @@ WHERE n <= 10;
 
 -- 包租业主合同。
 INSERT INTO owner_contract (
-  id, company_id, owner_id, cooperation_mode, contract_no, contract_template_id, contract_content,
-  sign_status, sign_type, contract_medium, notify_owner, contract_start, contract_end, status, approval_status,
+  id, company_id, owner_id, cooperation_mode, contract_no,
+  sign_type, notify_owner, contract_start, contract_end, status, approval_status,
   remark, parent_contract_id, contract_nature, renew_from_contract_no, checkout_status, checkout_date,
   checkout_reason, checkout_by, checkout_by_name, checkout_at, deleted, create_by, create_at, update_by, update_at
 )
@@ -322,15 +322,11 @@ SELECT
   @owner_base_id + n,
   'MASTER_LEASE',
   CONCAT('OWN-SEED-ML-', LPAD(n, 3, '0')),
-  NULL,
-  CONCAT('<p>测试包租合同 ', LPAD(n, 3, '0'), '</p>'),
-  1,
   'NEW',
-  'ELECTRONIC',
   0,
   '2026-05-01 00:00:00',
   '2027-04-30 23:59:59',
-  1,
+  2,
   2,
   '包租业主合同测试数据，可用于续约、作废、退房测试',
   NULL,
@@ -342,6 +338,28 @@ SELECT
   NULL,
   NULL,
   NULL,
+  0,
+  @operator_id,
+  NOW(),
+  @operator_id,
+  NOW()
+FROM seed_n
+WHERE n <= 10;
+
+INSERT INTO owner_contract_doc (
+  id, company_id, owner_contract_id, doc_no, contract_template_id, contract_content,
+  sign_status, contract_medium, remark, deleted, create_by, create_at, update_by, update_at
+)
+SELECT
+  @contract_base_id + n,
+  @company_id,
+  @contract_base_id + n,
+  CONCAT('OWN-SEED-ML-', LPAD(n, 3, '0'), '-DOC-01'),
+  NULL,
+  CONCAT('<p>测试包租合同 ', LPAD(n, 3, '0'), '</p>'),
+  1,
+  'ELECTRONIC',
+  '包租业主合同测试数据，可用于续约、作废、退房测试',
   0,
   @operator_id,
   NOW(),

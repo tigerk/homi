@@ -20,8 +20,8 @@ public class OwnerContractDocDTO {
     @Schema(description = "业主合同主单ID")
     private Long ownerContractId;
 
-    @Schema(description = "签约合同编号")
-    private String contractNo;
+    @Schema(description = "签约合同文档编号")
+    private String docNo;
 
     @Schema(description = "合同模板ID")
     private Long contractTemplateId;

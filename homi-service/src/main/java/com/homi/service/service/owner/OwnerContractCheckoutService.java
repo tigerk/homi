@@ -12,7 +12,6 @@ import com.homi.common.lib.enums.lease.LeaseStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerContractSubjectTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerContractStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
-import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
 import com.homi.model.dao.entity.FocusBuilding;
 import com.homi.model.dao.entity.House;
 import com.homi.model.dao.entity.OwnerContract;
@@ -23,6 +22,7 @@ import com.homi.model.dao.repo.FocusBuildingRepo;
 import com.homi.model.dao.repo.HouseRepo;
 import com.homi.model.dao.repo.LeaseRepo;
 import com.homi.model.dao.repo.OwnerContractCheckoutRepo;
+import com.homi.model.dao.repo.OwnerContractDocRepo;
 import com.homi.model.dao.repo.OwnerContractRepo;
 import com.homi.model.dao.repo.OwnerContractSubjectRepo;
 import com.homi.model.dao.repo.RoomRepo;
@@ -51,6 +51,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class OwnerContractCheckoutService {
     private final OwnerContractRepo ownerContractRepo;
+    private final OwnerContractDocRepo ownerContractDocRepo;
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final OwnerContractCheckoutRepo ownerContractCheckoutRepo;
     private final HouseRepo houseRepo;
@@ -139,9 +140,13 @@ public class OwnerContractCheckoutService {
      * 判断合同是否属于“已签约但未生效”的提前解约场景。
      */
     private boolean isSignedBeforeEffective(OwnerContract contract) {
-        return Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())
+        return hasSignedOwnerContractDoc(contract.getId())
             && contract.getContractStart() != null
             && DateUtil.beginOfDay(DateUtil.date()).before(DateUtil.beginOfDay(contract.getContractStart()));
+    }
+
+    private boolean hasSignedOwnerContractDoc(Long contractId) {
+        return ownerContractDocRepo.existsSignedDoc(contractId);
     }
 
     private OwnerContractCheckout createCheckoutRecord(OwnerContractCheckoutDTO dto, OwnerContract contract, Long operatorId) {

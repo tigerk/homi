@@ -51,25 +51,9 @@ public class OwnerContract implements Serializable {
     @TableField("contract_no")
     private String contractNo;
 
-    @Schema(description = "合同模板ID")
-    @TableField("contract_template_id")
-    private Long contractTemplateId;
-
-    @Schema(description = "合同内容快照")
-    @TableField("contract_content")
-    private String contractContent;
-
-    @Schema(description = "签署状态：0=待签字，1=已签字")
-    @TableField("sign_status")
-    private Integer signStatus;
-
     @Schema(description = "签约类型")
     @TableField("sign_type")
     private String signType;
-
-    @Schema(description = "合同介质")
-    @TableField("contract_medium")
-    private String contractMedium;
 
     @Schema(description = "是否通知业主")
     @TableField("notify_owner")

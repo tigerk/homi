@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS `owner_contract_doc` (
   `id` bigint NOT NULL COMMENT '主键ID',
   `company_id` bigint NOT NULL COMMENT 'SaaS企业ID',
   `owner_contract_id` bigint NOT NULL COMMENT '业主合同主单ID',
-  `contract_no` varchar(64) NOT NULL COMMENT '签约合同编号',
+  `doc_no` varchar(64) NOT NULL COMMENT '签约合同文档编号',
   `contract_template_id` bigint DEFAULT NULL COMMENT '合同模板ID',
   `contract_content` longtext COMMENT '合同内容快照',
   `sign_status` tinyint NOT NULL DEFAULT 0 COMMENT '签署状态：0=待签字，1=已签字',
@@ -21,11 +21,11 @@ CREATE TABLE IF NOT EXISTS `owner_contract_doc` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='业主合同签约文档';
 
 INSERT INTO `owner_contract_doc` (
-  `id`, `company_id`, `owner_contract_id`, `contract_no`, `contract_template_id`, `contract_content`,
+  `id`, `company_id`, `owner_contract_id`, `doc_no`, `contract_template_id`, `contract_content`,
   `sign_status`, `contract_medium`, `remark`, `deleted`, `create_by`, `create_at`, `update_by`, `update_at`
 )
 SELECT
-  `id`, `company_id`, `id`, `contract_no`, `contract_template_id`, `contract_content`,
+  `id`, `company_id`, `id`, CONCAT(`contract_no`, '-DOC-01'), `contract_template_id`, `contract_content`,
   `sign_status`, `contract_medium`, `remark`, `deleted`, `create_by`, `create_at`, `update_by`, `update_at`
 FROM `owner_contract`
 WHERE `contract_no` IS NOT NULL

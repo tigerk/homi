@@ -76,9 +76,7 @@ public class OwnerContractCommandService {
         contract.setOwnerId(ownerId);
         contract.setContractNo(Objects.requireNonNullElseGet(contract.getContractNo(), this::generateContractNo));
         contract.setCooperationMode(dto.getOwnerContract().getCooperationMode());
-        contract.setSignStatus(defaultInteger(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING.getCode()));
         contract.setSignType(dto.getOwnerContract().getSignType());
-        contract.setContractMedium(dto.getOwnerContract().getContractMedium());
         contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
         applyCreateApprovalState(contract, dto.getOwnerContract());
         contract.setParentContractId(dto.getOwnerContract().getParentContractId());
@@ -89,9 +87,8 @@ public class OwnerContractCommandService {
         contract.setCreateAt(now);
         contract.setUpdateBy(dto.getCreateBy());
         contract.setUpdateAt(now);
-        contract.setContractContent(buildContractContent(contract, ownerId, dto.getContractSubjectList()));
         ownerContractRepo.save(contract);
-        createDefaultOwnerContractDoc(contract, dto.getCreateBy(), dto.getContractSubjectList(), now);
+        createDefaultOwnerContractDoc(contract, dto.getOwnerContract(), dto.getCreateBy(), dto.getContractSubjectList(), now);
 
         List<OwnerContractSubject> contractSubjects = saveContractSubjects(dto, contract.getId(), now);
         if (OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode())) {
@@ -184,9 +181,7 @@ public class OwnerContractCommandService {
         assert contract != null;
         contract.setOwnerId(owner.getId());
         contract.setCooperationMode(dto.getOwnerContract().getCooperationMode());
-        contract.setSignStatus(defaultInteger(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING.getCode()));
         contract.setSignType(dto.getOwnerContract().getSignType());
-        contract.setContractMedium(dto.getOwnerContract().getContractMedium());
         contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
         contract.setStatus(resolveContractStatusForUpdate(currentContract, dto.getOwnerContract()));
         contract.setApprovalStatus(defaultInteger(dto.getOwnerContract().getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode()));
@@ -201,9 +196,8 @@ public class OwnerContractCommandService {
         contract.setCheckoutAt(currentContract.getCheckoutAt());
         contract.setUpdateBy(dto.getUpdateBy());
         contract.setUpdateAt(now);
-        contract.setContractContent(buildContractContent(contract, owner.getId(), dto.getContractSubjectList()));
         ownerContractRepo.updateById(contract);
-        ensureOwnerContractDocExists(contract, dto.getUpdateBy(), dto.getContractSubjectList(), now);
+        ensureOwnerContractDocExists(contract, dto.getOwnerContract(), dto.getUpdateBy(), dto.getContractSubjectList(), now);
 
         clearContractRelations(contract.getId());
         List<OwnerContractSubject> contractSubjects = saveContractSubjects(toCreateDTO(dto), contract.getId(), now);
@@ -226,9 +220,7 @@ public class OwnerContractCommandService {
         contract.setOwnerId(ownerId);
         contract.setContractNo(Objects.requireNonNullElseGet(contract.getContractNo(), this::generateContractNo));
         contract.setCooperationMode(dto.getOwnerContract().getCooperationMode());
-        contract.setSignStatus(defaultInteger(dto.getOwnerContract().getSignStatus(), OwnerSignStatusEnum.PENDING.getCode()));
         contract.setSignType(dto.getOwnerContract().getSignType());
-        contract.setContractMedium(dto.getOwnerContract().getContractMedium());
         contract.setNotifyOwner(Objects.requireNonNullElse(dto.getOwnerContract().getNotifyOwner(), Boolean.FALSE));
         applyCreateApprovalState(contract, dto.getOwnerContract());
         contract.setContractNature(Objects.requireNonNullElse(dto.getOwnerContract().getContractNature(), 1));
@@ -237,9 +229,8 @@ public class OwnerContractCommandService {
         contract.setCreateAt(now);
         contract.setUpdateBy(dto.getCreateBy());
         contract.setUpdateAt(now);
-        contract.setContractContent(buildContractContent(contract, ownerId, dto.getContractSubjectList()));
         ownerContractRepo.save(contract);
-        createDefaultOwnerContractDoc(contract, dto.getCreateBy(), dto.getContractSubjectList(), now);
+        createDefaultOwnerContractDoc(contract, dto.getOwnerContract(), dto.getCreateBy(), dto.getContractSubjectList(), now);
 
         List<OwnerContractSubject> contractSubjects = saveContractSubjects(dto, contract.getId(), now);
         if (OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode())) {
@@ -343,14 +334,12 @@ public class OwnerContractCommandService {
         }
         Date now = DateUtil.date();
         contractDoc.setContractTemplateId(dto.getContractTemplateId());
-        contractDoc.setContractContent(buildContractContent(contract, contractDoc.getContractNo(), dto.getContractTemplateId(), contract.getOwnerId(), listContractSubjectDTOs(contract.getId())));
+        contractDoc.setContractContent(buildContractContent(contract, contractDoc.getDocNo(), dto.getContractTemplateId(), contract.getOwnerId(), listContractSubjectDTOs(contract.getId())));
         contractDoc.setSignStatus(OwnerSignStatusEnum.PENDING.getCode());
         contractDoc.setUpdateBy(updateBy);
         contractDoc.setUpdateAt(now);
         ownerContractDocRepo.updateById(contractDoc);
 
-        contract.setContractTemplateId(contractDoc.getContractTemplateId());
-        contract.setContractContent(contractDoc.getContractContent());
         contract.setUpdateBy(updateBy);
         contract.setUpdateAt(now);
         syncOwnerContractSignStatusFromDocs(contract, updateBy);
@@ -464,7 +453,7 @@ public class OwnerContractCommandService {
         if (OwnerContractStatusEnum.CHECKED_OUT.equals(status)) {
             throw new IllegalArgumentException("该合同已退房，不能作废");
         }
-        if (Objects.equals(contract.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode())) {
+        if (isOwnerContractSigned(contract.getId())) {
             throw new IllegalArgumentException("该合同已进入业务流程，请走业主退房");
         }
         if (Objects.equals(contract.getCheckoutStatus(), 1)) {
@@ -516,15 +505,6 @@ public class OwnerContractCommandService {
             .toList();
     }
 
-    private Integer resolveEditableContractStatus(OwnerContractDTO dto) {
-        Integer approvalStatus = defaultInteger(dto.getApprovalStatus(), BizApprovalStatusEnum.APPROVED.getCode());
-        if (!BizApprovalStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
-            return OwnerContractStatusEnum.PENDING_APPROVAL.getCode();
-        }
-        OwnerSignStatusEnum signStatus = OwnerSignStatusEnum.fromCode(defaultInteger(dto.getSignStatus(), OwnerSignStatusEnum.PENDING.getCode()));
-        return OwnerContractStatusEnum.fromSignStatus(signStatus).getCode();
-    }
-
     /**
      * 创建/续约时根据审批流配置初始化业主合同状态。
      * <p>
@@ -537,7 +517,6 @@ public class OwnerContractCommandService {
             ApprovalBizTypeEnum.OWNER_CONTRACT.getCode()
         );
         if (needApproval) {
-            contract.setSignStatus(OwnerSignStatusEnum.PENDING.getCode());
             contract.setStatus(OwnerContractStatusEnum.PENDING_APPROVAL.getCode());
             contract.setApprovalStatus(BizApprovalStatusEnum.PENDING.getCode());
             return;
@@ -568,7 +547,7 @@ public class OwnerContractCommandService {
             ),
             bizId -> ownerContractRepo.updateStatusAndApprovalStatus(
                 bizId,
-                OwnerContractStatusEnum.fromSignStatus(OwnerSignStatusEnum.fromCode(contract.getSignStatus())).getCode(),
+                resolveContractStatusFromDocs(bizId),
                 BizApprovalStatusEnum.APPROVED.getCode()
             )
         );
@@ -579,7 +558,7 @@ public class OwnerContractCommandService {
         if (OwnerContractStatusEnum.CHECKED_OUT.equals(currentStatus) || OwnerContractStatusEnum.VOIDED.equals(currentStatus)) {
             return currentContract.getStatus();
         }
-        return resolveEditableContractStatus(dto);
+        return currentContract.getStatus();
     }
 
     /**
@@ -1004,15 +983,17 @@ public class OwnerContractCommandService {
     /**
      * 创建业主合同主单时同步创建默认签约文档。
      */
-    private void createDefaultOwnerContractDoc(OwnerContract contract, Long operatorId, List<OwnerContractSubjectDTO> subjectDTOs, Date now) {
+    private void createDefaultOwnerContractDoc(OwnerContract contract, OwnerContractDTO contractDTO, Long operatorId, List<OwnerContractSubjectDTO> subjectDTOs, Date now) {
+        Long contractTemplateId = contractDTO == null ? null : contractDTO.getContractTemplateId();
+        String fallbackContent = contractDTO == null ? null : contractDTO.getContractContent();
         OwnerContractDoc doc = new OwnerContractDoc();
         doc.setCompanyId(contract.getCompanyId());
         doc.setOwnerContractId(contract.getId());
-        doc.setContractNo(contract.getContractNo());
-        doc.setContractTemplateId(contract.getContractTemplateId());
-        doc.setContractContent(buildContractContent(contract, contract.getContractNo(), contract.getContractTemplateId(), contract.getOwnerId(), subjectDTOs));
-        doc.setSignStatus(defaultInteger(contract.getSignStatus(), OwnerSignStatusEnum.PENDING.getCode()));
-        doc.setContractMedium(contract.getContractMedium());
+        doc.setDocNo(generateOwnerContractDocNo(contract));
+        doc.setContractTemplateId(contractTemplateId);
+        doc.setContractContent(buildContractContent(contract, doc.getDocNo(), contractTemplateId, contract.getOwnerId(), subjectDTOs, fallbackContent));
+        doc.setSignStatus(resolveInitialDocSignStatus(contract, contractDTO));
+        doc.setContractMedium(contractDTO == null ? null : contractDTO.getContractMedium());
         doc.setRemark(contract.getRemark());
         doc.setDeleted(Boolean.FALSE);
         doc.setCreateBy(operatorId);
@@ -1025,21 +1006,18 @@ public class OwnerContractCommandService {
     /**
      * 兼容已有主单：编辑旧合同但缺少签约文档时补齐默认文档。
      */
-    private void ensureOwnerContractDocExists(OwnerContract contract, Long operatorId, List<OwnerContractSubjectDTO> subjectDTOs, Date now) {
+    private void ensureOwnerContractDocExists(OwnerContract contract, OwnerContractDTO contractDTO, Long operatorId, List<OwnerContractSubjectDTO> subjectDTOs, Date now) {
         if (CollUtil.isNotEmpty(ownerContractDocRepo.listByOwnerContractId(contract.getId()))) {
             return;
         }
-        createDefaultOwnerContractDoc(contract, operatorId, subjectDTOs, now);
+        createDefaultOwnerContractDoc(contract, contractDTO, operatorId, subjectDTOs, now);
     }
 
     /**
      * 根据所有签约文档汇总主合同的签字状态；任意文档已签约则主单视为已签约。
      */
     private void syncOwnerContractSignStatusFromDocs(OwnerContract contract, Long updateBy) {
-        List<OwnerContractDoc> docList = ownerContractDocRepo.listByOwnerContractId(contract.getId());
-        boolean hasSignedDoc = docList.stream().anyMatch(item -> Objects.equals(item.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode()));
-        OwnerSignStatusEnum aggregateSignStatus = hasSignedDoc ? OwnerSignStatusEnum.SIGNED : OwnerSignStatusEnum.PENDING;
-        contract.setSignStatus(aggregateSignStatus.getCode());
+        OwnerSignStatusEnum aggregateSignStatus = ownerContractDocRepo.existsSignedDoc(contract.getId()) ? OwnerSignStatusEnum.SIGNED : OwnerSignStatusEnum.PENDING;
         if (!Objects.equals(contract.getStatus(), OwnerContractStatusEnum.PENDING_APPROVAL.getCode())
             && !Objects.equals(contract.getStatus(), OwnerContractStatusEnum.CHECKED_OUT.getCode())
             && !Objects.equals(contract.getStatus(), OwnerContractStatusEnum.VOIDED.getCode())) {
@@ -1050,14 +1028,37 @@ public class OwnerContractCommandService {
         ownerContractRepo.updateById(contract);
     }
 
-    private String buildContractContent(OwnerContract contract, Long ownerId, List<OwnerContractSubjectDTO> subjectDTOs) {
-        return buildContractContent(contract, contract.getContractNo(), contract.getContractTemplateId(), ownerId, subjectDTOs);
+    private Integer resolveInitialDocSignStatus(OwnerContract contract, OwnerContractDTO contractDTO) {
+        if (Objects.equals(contract.getStatus(), OwnerContractStatusEnum.PENDING_APPROVAL.getCode())) {
+            return OwnerSignStatusEnum.PENDING.getCode();
+        }
+        return defaultInteger(contractDTO == null ? null : contractDTO.getSignStatus(), OwnerSignStatusEnum.PENDING.getCode());
     }
 
-    private String buildContractContent(OwnerContract contract, String contractNo, Long contractTemplateId, Long ownerId, List<OwnerContractSubjectDTO> subjectDTOs) {
+    private boolean isOwnerContractSigned(Long contractId) {
+        return ownerContractDocRepo.existsSignedDoc(contractId);
+    }
+
+    private Integer resolveContractStatusFromDocs(Long contractId) {
+        return OwnerContractStatusEnum.fromSignStatus(isOwnerContractSigned(contractId) ? OwnerSignStatusEnum.SIGNED : OwnerSignStatusEnum.PENDING).getCode();
+    }
+
+    private String generateOwnerContractDocNo(OwnerContract contract) {
+        long next = ownerContractDocRepo.count(
+            new LambdaQueryWrapper<OwnerContractDoc>().eq(OwnerContractDoc::getOwnerContractId, contract.getId())
+        ) + 1;
+        String baseNo = CharSequenceUtil.isBlank(contract.getContractNo()) ? String.valueOf(IdUtil.getSnowflakeNextId()) : contract.getContractNo();
+        return "%s-DOC-%02d".formatted(baseNo, next);
+    }
+
+    private String buildContractContent(OwnerContract contract, String docNo, Long contractTemplateId, Long ownerId, List<OwnerContractSubjectDTO> subjectDTOs) {
+        return buildContractContent(contract, docNo, contractTemplateId, ownerId, subjectDTOs, null);
+    }
+
+    private String buildContractContent(OwnerContract contract, String docNo, Long contractTemplateId, Long ownerId, List<OwnerContractSubjectDTO> subjectDTOs, String fallbackContent) {
         ContractTemplate template = contractTemplateRepo.getById(contractTemplateId);
         if (template == null || template.getTemplateContent() == null) {
-            return contract.getContractContent();
+            return fallbackContent;
         }
         Owner owner = ownerRepo.getById(ownerId);
         List<OwnerContractSubjectDTO> houseSubjects = Objects.requireNonNullElse(subjectDTOs, List.<OwnerContractSubjectDTO>of())
@@ -1074,7 +1075,7 @@ public class OwnerContractCommandService {
             .filter(Objects::nonNull)
             .collect(Collectors.joining("，"));
         String content = template.getTemplateContent();
-        content = content.replace(OwnerParamsEnum.CONTRACT_NUMBER.getKey(), defaultString(contractNo));
+        content = content.replace(OwnerParamsEnum.CONTRACT_NUMBER.getKey(), defaultString(docNo));
         content = content.replace(OwnerParamsEnum.HOUSE_ADDRESS.getKey(), houses.stream().map(this::formatHouseAddress).collect(Collectors.joining("；")));
         content = content.replace(OwnerParamsEnum.PROJECT_NAME.getKey(), subjectNames);
         content = content.replace(OwnerParamsEnum.BUILDING_NUMBER.getKey(), houses.stream().map(House::getBuilding).filter(Objects::nonNull).collect(Collectors.joining("，")));

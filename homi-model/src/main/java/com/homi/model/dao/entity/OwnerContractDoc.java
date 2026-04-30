@@ -40,9 +40,9 @@ public class OwnerContractDoc implements Serializable {
     @TableField("owner_contract_id")
     private Long ownerContractId;
 
-    @Schema(description = "签约合同编号")
-    @TableField("contract_no")
-    private String contractNo;
+    @Schema(description = "签约合同文档编号")
+    @TableField("doc_no")
+    private String docNo;
 
     @Schema(description = "合同模板ID")
     @TableField("contract_template_id")
