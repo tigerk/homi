@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.file.FileAttachSubtypeEnum;
 import com.homi.common.lib.enums.owner.OwnerContractStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
 import com.homi.common.lib.enums.owner.OwnerTypeEnum;
@@ -44,6 +45,7 @@ import com.homi.model.dao.repo.OwnerRepo;
 import com.homi.model.dao.repo.OwnerSettlementFeeRepo;
 import com.homi.model.dao.repo.OwnerSettlementRuleRepo;
 import com.homi.model.dao.repo.UserRepo;
+import com.homi.model.common.dto.FileAttachGroupDTO;
 import com.homi.model.owner.dto.OwnerCompanyDTO;
 import com.homi.model.owner.dto.OwnerContractDTO;
 import com.homi.model.owner.dto.OwnerContractIdDTO;
@@ -387,6 +389,7 @@ public class OwnerContractQueryService {
         dto.setContractTemplateId(contract.getContractTemplateId());
         dto.setContractContent(contract.getContractContent());
         dto.setContractAttachmentList(getFileUrls(contract.getId(), FileAttachBizTypeEnum.CONTRACT_FILE.getBizType()));
+        dto.setContractAttachmentGroupList(getContractAttachmentGroups(contract.getId()));
         dto.setSignStatus(contract.getSignStatus());
         dto.setSignType(contract.getSignType());
         dto.setContractMedium(contract.getContractMedium());
@@ -626,6 +629,32 @@ public class OwnerContractQueryService {
             .stream()
             .map(FileAttach::getFileUrl)
             .filter(Objects::nonNull)
+            .toList();
+    }
+
+    private List<FileAttachGroupDTO> getContractAttachmentGroups(Long contractId) {
+        if (contractId == null) {
+            return List.of();
+        }
+        Map<String, List<String>> groupMap = fileAttachRepo.getFileAttachListByBizIdAndBizTypes(
+                contractId,
+                List.of(FileAttachBizTypeEnum.CONTRACT_FILE.getBizType())
+            )
+            .stream()
+            .filter(item -> item.getFileUrl() != null)
+            .collect(Collectors.groupingBy(
+                item -> FileAttachSubtypeEnum.normalizeCode(item.getBizSubtype()),
+                java.util.LinkedHashMap::new,
+                Collectors.mapping(FileAttach::getFileUrl, Collectors.toList())
+            ));
+        return groupMap.entrySet()
+            .stream()
+            .map(entry -> {
+                FileAttachGroupDTO group = new FileAttachGroupDTO();
+                group.setBizSubtype(entry.getKey());
+                group.setAttachmentUrls(entry.getValue());
+                return group;
+            })
             .toList();
     }
 

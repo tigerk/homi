@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -35,15 +36,23 @@ public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
      * @param idCardBackList 参数说明
      */
     public void addFileAttachBatch(Long id, String bizType, List<String> idCardBackList) {
+        addFileAttachBatch(id, bizType, null, idCardBackList);
+    }
+
+    public void addFileAttachBatch(Long id, String bizType, String bizSubtype, List<String> fileUrlList) {
+        if (fileUrlList == null || fileUrlList.isEmpty()) {
+            return;
+        }
         AtomicInteger i = new AtomicInteger();
-        idCardBackList.forEach(idCardBack -> {
+        fileUrlList.forEach(fileUrl -> {
             FileAttach fileAttach = new FileAttach();
             fileAttach.setBizId(id);
             fileAttach.setBizType(bizType);
-            fileAttach.setFileUrl(idCardBack);
+            fileAttach.setBizSubtype(bizSubtype);
+            fileAttach.setFileUrl(fileUrl);
             fileAttach.setSortOrder(i.getAndIncrement());
 
-            FileMeta fileMeta = fileMetaRepo.getFileMetaByUrl(idCardBack);
+            FileMeta fileMeta = fileMetaRepo.getFileMetaByUrl(fileUrl);
             if (fileMeta != null) {
                 fileAttach.setFileType(fileMeta.getFileType());
             }
@@ -56,6 +65,20 @@ public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
         return lambdaQuery()
             .eq(FileAttach::getBizId, tenantId)
             .in(FileAttach::getBizType, of)
+            .orderByAsc(FileAttach::getSortOrder)
+            .orderByAsc(FileAttach::getCreateAt)
+            .orderByAsc(FileAttach::getId)
+            .list();
+    }
+
+    public List<FileAttach> getFileAttachListByBizIdAndBizTypeAndSubtype(Long bizId, String bizType, String bizSubtype) {
+        return lambdaQuery()
+            .eq(FileAttach::getBizId, bizId)
+            .eq(FileAttach::getBizType, bizType)
+            .eq(FileAttach::getBizSubtype, bizSubtype)
+            .orderByAsc(FileAttach::getSortOrder)
+            .orderByAsc(FileAttach::getCreateAt)
+            .orderByAsc(FileAttach::getId)
             .list();
     }
 
@@ -63,6 +86,15 @@ public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
         LambdaQueryWrapper<FileAttach> wrapper = new LambdaQueryWrapper<FileAttach>()
             .eq(FileAttach::getBizId, bizId)
             .in(FileAttach::getBizType, bizTypes);
+
+        remove(wrapper);
+    }
+
+    public void deleteByBizIdAndBizTypeAndSubtype(Long bizId, String bizType, String bizSubtype) {
+        LambdaQueryWrapper<FileAttach> wrapper = new LambdaQueryWrapper<FileAttach>()
+            .eq(FileAttach::getBizId, bizId)
+            .eq(FileAttach::getBizType, bizType)
+            .eq(FileAttach::getBizSubtype, bizSubtype);
 
         remove(wrapper);
     }
@@ -80,5 +112,15 @@ public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
     public void recreateFileAttachList(Long bizId, String bizType, List<String> fileUrlList) {
         deleteByBizIdAndBizTypes(bizId, List.of(bizType));
         addFileAttachBatch(bizId, bizType, fileUrlList);
+    }
+
+    public void recreateFileAttachList(Long bizId, String bizType, String bizSubtype, List<String> fileUrlList) {
+        deleteByBizIdAndBizTypeAndSubtype(bizId, bizType, bizSubtype);
+        addFileAttachBatch(bizId, bizType, bizSubtype, fileUrlList);
+    }
+
+    public void recreateFileAttachListBySubtypeGroups(Long bizId, String bizType, Map<String, List<String>> subtypeFileUrlMap) {
+        deleteByBizIdAndBizTypes(bizId, List.of(bizType));
+        subtypeFileUrlMap.forEach((bizSubtype, fileUrlList) -> addFileAttachBatch(bizId, bizType, bizSubtype, fileUrlList));
     }
 }

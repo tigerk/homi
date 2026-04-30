@@ -1,6 +1,7 @@
 package com.homi.model.owner.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homi.model.common.dto.FileAttachGroupDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -34,6 +35,9 @@ public class OwnerContractDTO {
 
     @Schema(description = "合同附件列表")
     private List<String> contractAttachmentList;
+
+    @Schema(description = "合同附件分组列表")
+    private List<FileAttachGroupDTO> contractAttachmentGroupList;
 
     @Schema(description = "签署状态")
     private Integer signStatus;

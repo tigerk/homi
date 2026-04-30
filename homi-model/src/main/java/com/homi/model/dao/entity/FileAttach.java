@@ -43,6 +43,10 @@ public class FileAttach implements Serializable {
     @TableField("biz_type")
     private String bizType;
 
+    @Schema(description = "业务子类型")
+    @TableField("biz_subtype")
+    private String bizSubtype;
+
     @Schema(description = "关联的业务数据ID")
     @TableField("biz_id")
     private Long bizId;
