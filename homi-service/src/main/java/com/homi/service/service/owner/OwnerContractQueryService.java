@@ -503,7 +503,7 @@ public class OwnerContractQueryService {
         dto.setRemark(doc.getRemark());
         dto.setVoidReason(doc.getVoidReason());
         dto.setVoidBy(doc.getVoidBy());
-        dto.setVoidByName(userNameMap.get(doc.getVoidBy()));
+        dto.setVoidByName(Objects.nonNull(doc.getVoidBy()) ? userNameMap.get(doc.getVoidBy()) : null);
         dto.setVoidAt(doc.getVoidAt());
         dto.setCreateBy(doc.getCreateBy());
         dto.setCreateAt(doc.getCreateAt());
