@@ -20,6 +20,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Schema(description = "租客合同删除DTO")
 public class LeaseContractDeleteDTO implements Serializable {
-    @Schema(description = "租客合同ID")
+    @Schema(description = "租客签约合同文档ID")
+    private Long leaseContractDocId;
+
+    @Schema(description = "租客合同ID，兼容旧字段，等同 leaseContractDocId")
     private Long leaseContractId;
 }

@@ -286,6 +286,7 @@ public class ContractTemplateService {
         LeaseContractVO leaseContract = new LeaseContractVO();
         leaseContract.setId(5001L);
         leaseContract.setLeaseId(1L);
+        leaseContract.setDocNo("HT20250101001");
         leaseContract.setContractCode("HT20250101001");
         leaseContract.setContractTemplateId(query.getId());
         leaseContract.setContractTemplateName(contractTemplate.getTemplateName());

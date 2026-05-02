@@ -7,7 +7,6 @@ import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.response.ResponseCodeEnum;
 import com.homi.common.lib.response.ResponseResult;
-import com.homi.common.lib.utils.ConvertHtml2PdfUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.contract.vo.LeaseContractVO;
 import com.homi.model.common.dto.OperatorDTO;
@@ -130,8 +129,8 @@ public class LeaseController {
 
     @PostMapping(value = "/contract/download")
     @Log(title = "下载租客合同", operationType = OperationTypeEnum.INSERT)
-    public ResponseEntity<byte @NotNull []> download(@RequestBody LeaseQueryDTO query) {
-        byte[] pdfBytes = leaseService.downloadContract(query.getLeaseId());
+    public ResponseEntity<byte @NotNull []> download(@RequestBody LeaseContractDocIdDTO query) {
+        byte[] pdfBytes = leaseContractService.previewContractPdf(query);
 
         // 保存到本地，检查生成的 pdf 是否准确
         try (OutputStream os = new FileOutputStream("租客合同_" + DateUtil.date().toTimestamp() + ".pdf")) {
@@ -152,6 +151,13 @@ public class LeaseController {
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 
+    @PostMapping("/contract/doc/create")
+    @Schema(description = "新增租客签约合同")
+    public ResponseResult<Long> createContractDoc(@RequestBody LeaseContractDocCreateDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        LeaseDetailVO leaseDetailVO = leaseService.getLeaseDetailById(dto.getLeaseId());
+        return ResponseResult.ok(leaseContractService.createLeaseContractDoc(dto, loginUser.getId(), leaseDetailVO));
+    }
+
     @PostMapping(value = "/contract/generate")
     @Log(title = "生成租客合同", operationType = OperationTypeEnum.INSERT)
     public ResponseResult<LeaseContractVO> generate(@RequestBody LeaseContractGenerateDTO query) {
@@ -167,10 +173,28 @@ public class LeaseController {
 
     @PostMapping(value = "/contract/sign/status/update")
     @Log(title = "更新租客合同签约状态", operationType = OperationTypeEnum.INSERT)
-    public ResponseResult<Boolean> updateSignStatus(@RequestBody LeaseContractSignStatusUpdateDTO query) {
-        Boolean result = leaseContractService.updateLeaseContractSignStatus(query);
+    public ResponseResult<Long> updateSignStatus(@RequestBody LeaseContractSignStatusUpdateDTO query) {
+        Long result = leaseContractService.updateLeaseContractSignStatus(query);
 
         return ResponseResult.ok(result);
+    }
+
+    @PostMapping("/contract/offline-sign")
+    @Schema(description = "租客合同线下签约")
+    public ResponseResult<Long> offlineSignContract(@RequestBody LeaseContractOfflineSignDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(leaseContractService.offlineSignLeaseContract(dto, loginUser.getId()));
+    }
+
+    @PostMapping("/contract/doc/void")
+    @Schema(description = "作废租客签约合同")
+    public ResponseResult<Long> voidContractDoc(@RequestBody LeaseContractDocVoidDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(leaseContractService.voidLeaseContractDoc(dto, loginUser.getId()));
+    }
+
+    @PostMapping("/contract/doc/restore")
+    @Schema(description = "还原租客签约合同")
+    public ResponseResult<Long> restoreContractDoc(@RequestBody LeaseContractDocIdDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(leaseContractService.restoreLeaseContractDoc(dto, loginUser.getId()));
     }
 
     // 删除租客合同
@@ -178,7 +202,8 @@ public class LeaseController {
     @Log(title = "删除租客合同", operationType = OperationTypeEnum.INSERT)
     @SaCheckPermission("tenant:contract:delete:forbidden")
     public ResponseResult<Boolean> deleteContract(@RequestBody LeaseContractDeleteDTO query) {
-        Boolean result = leaseContractService.deleteLeaseContract(query.getLeaseContractId());
+        Long docId = query.getLeaseContractDocId() != null ? query.getLeaseContractDocId() : query.getLeaseContractId();
+        Boolean result = leaseContractService.deleteLeaseContract(docId);
 
         return ResponseResult.ok(result);
     }
@@ -204,18 +229,13 @@ public class LeaseController {
      * {@code @date} 2025/11/12 17:32
      */
     @PostMapping("/contract/preview")
-    public ResponseEntity<byte @NotNull []> previewLeaseContract(@RequestBody LeaseQueryDTO query) {
-        LeaseContractVO leaseContractVO = leaseContractService.getContractByLeaseId(query.getLeaseId());
-        if (leaseContractVO == null) {
-            throw new IllegalArgumentException("Tenant Contract not found");
-        }
-
-        byte[] pdfBytes = ConvertHtml2PdfUtils.generatePdf(leaseContractVO.getContractContent());
+    public ResponseEntity<byte @NotNull []> previewLeaseContract(@RequestBody LeaseContractDocIdDTO query) {
+        byte[] pdfBytes = leaseContractService.previewContractPdf(query);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
 
-        String fileName = "tenant-preview " + query.getLeaseId() + DateUtil.date().toTimestamp() + ".pdf";
+        String fileName = "tenant-preview " + DateUtil.date().toTimestamp() + ".pdf";
 
         headers.setContentDisposition(ContentDisposition.attachment().filename(fileName).build());
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);

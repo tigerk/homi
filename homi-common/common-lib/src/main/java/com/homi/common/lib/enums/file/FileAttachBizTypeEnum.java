@@ -42,6 +42,10 @@ public enum FileAttachBizTypeEnum {
      */
     OWNER_CONTRACT_DOC("owner_contract_doc"),
     /**
+     * 租客签约合同文档
+     */
+    LEASE_CONTRACT_DOC("lease_contract_doc"),
+    /**
      * 租约资料附件
      */
     LEASE_ATTACHMENT("lease_attachment"),

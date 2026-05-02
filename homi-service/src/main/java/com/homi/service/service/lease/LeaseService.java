@@ -562,6 +562,7 @@ public class LeaseService {
         leaseDetailVO.setOtherFees(leaseOtherFeeRepo.getLeaseOtherFeeByLeaseId(leaseDetailVO.getLeaseId()));
 
         leaseDetailVO.setLeaseContract(leaseContractService.getContractByLeaseId(leaseDetailVO.getLeaseId()));
+        leaseDetailVO.setLeaseContractDocList(leaseContractService.listContractDocsByLeaseId(leaseDetailVO.getLeaseId()));
 
         List<TenantMateVO> tenantMateListByTenantId = tenantMateService.getTenantMateListByTenantId(tenant.getId());
         leaseDetailVO.setTenantMateList(tenantMateListByTenantId);

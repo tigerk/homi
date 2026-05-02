@@ -9,6 +9,7 @@ import lombok.Getter;
 @Schema(enumAsRef = true, description = "业务日志业务类型枚举")
 public enum BizOperateBizTypeEnum {
     LEASE("LEASE", "租客合同"),
+    LEASE_CONTRACT_DOC("LEASE_CONTRACT_DOC", "租客签约合同"),
     LEASE_CHECKOUT("LEASE_CHECKOUT", "租客退租单"),
     OWNER_CONTRACT("OWNER_CONTRACT", "业主合同"),
     OWNER_CONTRACT_DOC("OWNER_CONTRACT_DOC", "业主签约合同"),

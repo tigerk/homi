@@ -164,8 +164,11 @@ public class LeaseDetailVO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date updateAt;
 
-    @Schema(description = "租客合同")
+    @Schema(description = "租客合同，兼容旧字段，取当前有效签约合同")
     private LeaseContractVO leaseContract;
+
+    @Schema(description = "租客签约合同文档列表")
+    private List<LeaseContractVO> leaseContractDocList;
 
     @Schema(description = "租客账单列表")
     private List<LeaseBillListVO> leaseBillList;
