@@ -150,6 +150,6 @@ public class OwnerContractController {
     @PostMapping("/contract/doc/void")
     @Log(title = "作废业主签约合同", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Long> voidContractDoc(@RequestBody OwnerContractDocVoidDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
-        return ResponseResult.ok(ownerContractCommandService.voidOwnerContractDoc(dto, loginUser.getId(), loginUser.getNickname()));
+        return ResponseResult.ok(ownerContractCommandService.voidOwnerContractDoc(dto, loginUser.getId()));
     }
 }

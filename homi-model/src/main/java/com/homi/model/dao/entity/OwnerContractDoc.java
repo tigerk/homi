@@ -72,10 +72,6 @@ public class OwnerContractDoc implements Serializable {
     @TableField("void_by")
     private Long voidBy;
 
-    @Schema(description = "作废操作人名称")
-    @TableField("void_by_name")
-    private String voidByName;
-
     @Schema(description = "作废时间")
     @TableField("void_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

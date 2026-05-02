@@ -473,13 +473,14 @@ public class OwnerContractQueryService {
     }
 
     private List<OwnerContractDocDTO> listOwnerContractDocDTOs(OwnerContract contract) {
-        return ownerContractDocRepo.listByOwnerContractId(contract.getId())
-            .stream()
-            .map(item -> toOwnerContractDocDTO(item, contract))
+        List<OwnerContractDoc> docs = ownerContractDocRepo.listByOwnerContractId(contract.getId());
+        Map<Long, String> userNameMap = getUserNameMap(docs.stream().map(OwnerContractDoc::getVoidBy).toArray(Long[]::new));
+        return docs.stream()
+            .map(item -> toOwnerContractDocDTO(item, contract, userNameMap))
             .toList();
     }
 
-    private OwnerContractDocDTO toOwnerContractDocDTO(OwnerContractDoc doc, OwnerContract contract) {
+    private OwnerContractDocDTO toOwnerContractDocDTO(OwnerContractDoc doc, OwnerContract contract, Map<Long, String> userNameMap) {
         OwnerContractDocDTO dto = new OwnerContractDocDTO();
         dto.setId(doc.getId());
         dto.setCompanyId(doc.getCompanyId());
@@ -502,7 +503,7 @@ public class OwnerContractQueryService {
         dto.setRemark(doc.getRemark());
         dto.setVoidReason(doc.getVoidReason());
         dto.setVoidBy(doc.getVoidBy());
-        dto.setVoidByName(doc.getVoidByName());
+        dto.setVoidByName(userNameMap.get(doc.getVoidBy()));
         dto.setVoidAt(doc.getVoidAt());
         dto.setCreateBy(doc.getCreateBy());
         dto.setCreateAt(doc.getCreateAt());

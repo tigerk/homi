@@ -46,7 +46,7 @@ public class FileMeta implements Serializable {
     @TableField("file_hash")
     private String fileHash;
 
-    @Schema(description = "文件类型，如 image/png, image/jpeg")
+    @Schema(description = "文件 MIME Type，如 image/png、application/pdf、application/vnd.openxmlformats-officedocument.wordprocessingml.document")
     @TableField("file_type")
     private String fileType;
 

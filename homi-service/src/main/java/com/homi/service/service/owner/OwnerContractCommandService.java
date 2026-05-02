@@ -527,7 +527,7 @@ public class OwnerContractCommandService {
         snapshotProvider = "ownerContractDocSnapshotProvider"
     )
     @Transactional(rollbackFor = Exception.class)
-    public Long voidOwnerContractDoc(OwnerContractDocVoidDTO dto, Long updateBy, String updateByName) {
+    public Long voidOwnerContractDoc(OwnerContractDocVoidDTO dto, Long updateBy) {
         if (dto == null || dto.getOwnerContractDocId() == null) {
             throw new IllegalArgumentException("签约合同ID不能为空");
         }
@@ -553,7 +553,6 @@ public class OwnerContractCommandService {
         contractDoc.setDocStatus(OwnerContractDocStatusEnum.VOIDED.getCode());
         contractDoc.setVoidReason(CharSequenceUtil.trim(dto.getVoidReason()));
         contractDoc.setVoidBy(updateBy);
-        contractDoc.setVoidByName(updateByName);
         contractDoc.setVoidAt(now);
         contractDoc.setUpdateBy(updateBy);
         contractDoc.setUpdateAt(now);

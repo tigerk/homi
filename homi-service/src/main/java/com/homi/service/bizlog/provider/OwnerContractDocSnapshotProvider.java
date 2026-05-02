@@ -84,7 +84,6 @@ public class OwnerContractDocSnapshotProvider implements BizOperateLogSnapshotPr
             Objects.requireNonNullElse(doc.getDocStatus(), OwnerContractDocStatusEnum.ACTIVE.getCode()),
             doc.getVoidReason(),
             doc.getVoidBy(),
-            doc.getVoidByName(),
             doc.getVoidAt(),
             doc.getRemark(),
             signedAttachmentUrls
@@ -104,7 +103,6 @@ public class OwnerContractDocSnapshotProvider implements BizOperateLogSnapshotPr
         private Integer docStatus;
         private String voidReason;
         private Long voidBy;
-        private String voidByName;
         private Date voidAt;
         private String remark;
         private List<String> signedAttachmentUrls;
