@@ -152,4 +152,10 @@ public class OwnerContractController {
     public ResponseResult<Long> voidContractDoc(@RequestBody OwnerContractDocVoidDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(ownerContractCommandService.voidOwnerContractDoc(dto, loginUser.getId()));
     }
+
+    @PostMapping("/contract/doc/restore")
+    @Log(title = "还原业主签约合同", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> restoreContractDoc(@RequestBody OwnerContractDocIdDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerContractCommandService.restoreOwnerContractDoc(dto, loginUser.getId()));
+    }
 }

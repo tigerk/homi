@@ -289,7 +289,10 @@ public class OwnerContractCommandService {
         remarkExpr = "'更新业主合同附件'",
         sourceType = BizOperateSourceTypeEnum.OWNER_CONTRACT,
         sourceIdExpr = "#p0.contractId",
-        extraDataExpr = "{'contractId': #p0.contractId}"
+        extraDataExpr = "{'contractId': #p0.contractId}",
+        saveBeforeSnapshot = true,
+        saveAfterSnapshot = true,
+        snapshotProvider = "ownerContractAttachmentSnapshotProvider"
     )
     @Transactional(rollbackFor = Exception.class)
     public Long updateOwnerContractAttachments(OwnerContractAttachmentUpdateDTO dto, Long updateBy) {
@@ -554,6 +557,50 @@ public class OwnerContractCommandService {
         contractDoc.setVoidReason(CharSequenceUtil.trim(dto.getVoidReason()));
         contractDoc.setVoidBy(updateBy);
         contractDoc.setVoidAt(now);
+        contractDoc.setUpdateBy(updateBy);
+        contractDoc.setUpdateAt(now);
+        ownerContractDocRepo.updateById(contractDoc);
+
+        syncOwnerContractSignStatusFromDocs(contract, updateBy);
+        return contract.getId();
+    }
+
+    @BizOperateLog(
+        bizType = BizOperateBizTypeEnum.OWNER_CONTRACT_DOC,
+        operateType = BizOperateTypeEnum.UPDATE,
+        operateDesc = "还原业主签约合同",
+        bizIdExpr = "#p0.ownerContractDocId",
+        remarkExpr = "'将已作废签约合同还原为有效'",
+        sourceType = BizOperateSourceTypeEnum.OWNER_CONTRACT,
+        sourceIdExpr = "#result",
+        extraDataExpr = "{'ownerContractDocId': #p0.ownerContractDocId}",
+        saveBeforeSnapshot = true,
+        saveAfterSnapshot = true,
+        snapshotProvider = "ownerContractDocSnapshotProvider"
+    )
+    @Transactional(rollbackFor = Exception.class)
+    public Long restoreOwnerContractDoc(OwnerContractDocIdDTO dto, Long updateBy) {
+        if (dto == null || dto.getOwnerContractDocId() == null) {
+            throw new IllegalArgumentException("签约合同ID不能为空");
+        }
+        OwnerContractDoc contractDoc = ownerContractDocRepo.getById(dto.getOwnerContractDocId());
+        if (contractDoc == null) {
+            throw new IllegalArgumentException("业主签约合同不存在");
+        }
+        if (!OwnerContractDocStatusEnum.VOIDED.equals(OwnerContractDocStatusEnum.fromCode(contractDoc.getDocStatus()))) {
+            throw new IllegalArgumentException("该签约合同未作废，无需还原");
+        }
+        OwnerContract contract = ownerContractRepo.getById(contractDoc.getOwnerContractId());
+        if (contract == null) {
+            throw new IllegalArgumentException("业主合同不存在");
+        }
+        validateOwnerContractNotClosed(contract);
+
+        Date now = DateUtil.date();
+        contractDoc.setDocStatus(OwnerContractDocStatusEnum.ACTIVE.getCode());
+        contractDoc.setVoidReason(null);
+        contractDoc.setVoidBy(null);
+        contractDoc.setVoidAt(null);
         contractDoc.setUpdateBy(updateBy);
         contractDoc.setUpdateAt(now);
         ownerContractDocRepo.updateById(contractDoc);

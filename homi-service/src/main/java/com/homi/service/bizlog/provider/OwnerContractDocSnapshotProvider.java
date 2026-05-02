@@ -85,6 +85,7 @@ public class OwnerContractDocSnapshotProvider implements BizOperateLogSnapshotPr
             doc.getVoidReason(),
             doc.getVoidBy(),
             doc.getVoidAt(),
+            doc.getUpdateAt(),
             doc.getRemark(),
             signedAttachmentUrls
         );
@@ -104,6 +105,7 @@ public class OwnerContractDocSnapshotProvider implements BizOperateLogSnapshotPr
         private String voidReason;
         private Long voidBy;
         private Date voidAt;
+        private Date docUpdatedAt;
         private String remark;
         private List<String> signedAttachmentUrls;
     }

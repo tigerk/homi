@@ -82,6 +82,20 @@ public class FileAttachRepo extends ServiceImpl<FileAttachMapper, FileAttach> {
             .list();
     }
 
+    /**
+     * 按业务主键和业务类型读取附件，用于业务日志快照等需要比较整组附件的场景。
+     */
+    public List<FileAttach> getFileAttachListByBizIdAndBizType(Long bizId, String bizType) {
+        return lambdaQuery()
+            .eq(FileAttach::getBizId, bizId)
+            .eq(FileAttach::getBizType, bizType)
+            .orderByAsc(FileAttach::getBizSubtype)
+            .orderByAsc(FileAttach::getSortOrder)
+            .orderByAsc(FileAttach::getCreateAt)
+            .orderByAsc(FileAttach::getId)
+            .list();
+    }
+
     public void deleteByBizIdAndBizTypes(Long bizId, List<String> bizTypes) {
         LambdaQueryWrapper<FileAttach> wrapper = new LambdaQueryWrapper<FileAttach>()
             .eq(FileAttach::getBizId, bizId)
