@@ -9,6 +9,7 @@ import com.homi.model.owner.dto.OwnerContractAttachmentUpdateDTO;
 import com.homi.model.owner.dto.OwnerContractCheckoutDTO;
 import com.homi.model.owner.dto.OwnerContractDocCreateDTO;
 import com.homi.model.owner.dto.OwnerContractDocIdDTO;
+import com.homi.model.owner.dto.OwnerContractDocVoidDTO;
 import com.homi.model.owner.dto.OwnerContractGenerateDTO;
 import com.homi.model.owner.dto.OwnerContractIdDTO;
 import com.homi.model.owner.dto.OwnerContractOfflineSignDTO;
@@ -144,5 +145,11 @@ public class OwnerContractController {
     @Log(title = "业主合同线下签约", operationType = OperationTypeEnum.UPDATE)
     public ResponseResult<Long> offlineSignContract(@RequestBody OwnerContractOfflineSignDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
         return ResponseResult.ok(ownerContractCommandService.offlineSignOwnerContract(dto, loginUser.getId()));
+    }
+
+    @PostMapping("/contract/doc/void")
+    @Log(title = "作废业主签约合同", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Long> voidContractDoc(@RequestBody OwnerContractDocVoidDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        return ResponseResult.ok(ownerContractCommandService.voidOwnerContractDoc(dto, loginUser.getId(), loginUser.getNickname()));
     }
 }

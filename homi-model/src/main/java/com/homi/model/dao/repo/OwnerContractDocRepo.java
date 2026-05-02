@@ -2,6 +2,7 @@ package com.homi.model.dao.repo;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.homi.common.lib.enums.owner.OwnerContractDocStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
 import com.homi.model.dao.entity.OwnerContractDoc;
 import com.homi.model.dao.mapper.OwnerContractDocMapper;
@@ -17,6 +18,7 @@ public class OwnerContractDocRepo extends ServiceImpl<OwnerContractDocMapper, Ow
     public List<OwnerContractDoc> listByOwnerContractId(Long ownerContractId) {
         return list(new LambdaQueryWrapper<OwnerContractDoc>()
             .eq(OwnerContractDoc::getOwnerContractId, ownerContractId)
+            .orderByDesc(OwnerContractDoc::getDocStatus)
             .orderByDesc(OwnerContractDoc::getCreateAt)
             .orderByDesc(OwnerContractDoc::getId));
     }
@@ -27,6 +29,7 @@ public class OwnerContractDocRepo extends ServiceImpl<OwnerContractDocMapper, Ow
         }
         return list(new LambdaQueryWrapper<OwnerContractDoc>()
             .in(OwnerContractDoc::getOwnerContractId, ownerContractIds)
+            .orderByDesc(OwnerContractDoc::getDocStatus)
             .orderByDesc(OwnerContractDoc::getCreateAt)
             .orderByDesc(OwnerContractDoc::getId));
     }
@@ -34,6 +37,7 @@ public class OwnerContractDocRepo extends ServiceImpl<OwnerContractDocMapper, Ow
     public boolean existsSignedDoc(Long ownerContractId) {
         return listByOwnerContractId(ownerContractId)
             .stream()
+            .filter(this::isActiveDoc)
             .anyMatch(item -> Objects.equals(item.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode()));
     }
 
@@ -44,7 +48,12 @@ public class OwnerContractDocRepo extends ServiceImpl<OwnerContractDocMapper, Ow
     public Integer resolveAggregateSignStatus(List<OwnerContractDoc> docs) {
         boolean hasSignedDoc = Objects.requireNonNullElse(docs, List.<OwnerContractDoc>of())
             .stream()
+            .filter(this::isActiveDoc)
             .anyMatch(item -> Objects.equals(item.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode()));
         return hasSignedDoc ? OwnerSignStatusEnum.SIGNED.getCode() : OwnerSignStatusEnum.PENDING.getCode();
+    }
+
+    public boolean isActiveDoc(OwnerContractDoc doc) {
+        return doc != null && !Objects.equals(doc.getDocStatus(), OwnerContractDocStatusEnum.VOIDED.getCode());
     }
 }

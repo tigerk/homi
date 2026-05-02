@@ -60,6 +60,27 @@ public class OwnerContractDoc implements Serializable {
     @TableField("contract_medium")
     private String contractMedium;
 
+    @Schema(description = "文档状态：1=有效，-1=已作废")
+    @TableField("doc_status")
+    private Integer docStatus;
+
+    @Schema(description = "作废原因")
+    @TableField("void_reason")
+    private String voidReason;
+
+    @Schema(description = "作废操作人ID")
+    @TableField("void_by")
+    private Long voidBy;
+
+    @Schema(description = "作废操作人名称")
+    @TableField("void_by_name")
+    private String voidByName;
+
+    @Schema(description = "作废时间")
+    @TableField("void_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date voidAt;
+
     @Schema(description = "备注")
     @TableField("remark")
     private String remark;

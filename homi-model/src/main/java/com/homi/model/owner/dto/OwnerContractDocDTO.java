@@ -44,6 +44,9 @@ public class OwnerContractDocDTO {
     @Schema(description = "合同介质")
     private String contractMedium;
 
+    @Schema(description = "文档状态")
+    private Integer docStatus;
+
     @Schema(description = "业主合同主单状态")
     private Integer status;
 
@@ -57,6 +60,19 @@ public class OwnerContractDocDTO {
 
     @Schema(description = "备注")
     private String remark;
+
+    @Schema(description = "作废原因")
+    private String voidReason;
+
+    @Schema(description = "作废操作人ID")
+    private Long voidBy;
+
+    @Schema(description = "作废操作人名称")
+    private String voidByName;
+
+    @Schema(description = "作废时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date voidAt;
 
     @Schema(description = "创建人")
     private Long createBy;

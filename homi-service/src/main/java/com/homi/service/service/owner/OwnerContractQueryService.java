@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachSubtypeEnum;
+import com.homi.common.lib.enums.owner.OwnerContractDocStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerContractStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
 import com.homi.common.lib.enums.owner.OwnerSignStatusEnum;
@@ -361,6 +362,7 @@ public class OwnerContractQueryService {
     private Integer resolveAggregateSignStatusFromDTO(List<OwnerContractDocDTO> docs) {
         boolean hasSignedDoc = Objects.requireNonNullElse(docs, List.<OwnerContractDocDTO>of())
             .stream()
+            .filter(item -> !Objects.equals(item.getDocStatus(), OwnerContractDocStatusEnum.VOIDED.getCode()))
             .anyMatch(item -> Objects.equals(item.getSignStatus(), OwnerSignStatusEnum.SIGNED.getCode()));
         return hasSignedDoc ? OwnerSignStatusEnum.SIGNED.getCode() : OwnerSignStatusEnum.PENDING.getCode();
     }
@@ -493,10 +495,15 @@ public class OwnerContractQueryService {
         dto.setContractAttachmentGroupList(getAttachmentGroups(doc.getId(), FileAttachBizTypeEnum.OWNER_CONTRACT_DOC));
         dto.setSignStatus(doc.getSignStatus());
         dto.setContractMedium(doc.getContractMedium());
+        dto.setDocStatus(Objects.requireNonNullElse(doc.getDocStatus(), OwnerContractDocStatusEnum.ACTIVE.getCode()));
         dto.setStatus(contract.getStatus());
         dto.setContractStart(contract.getContractStart());
         dto.setContractEnd(contract.getContractEnd());
         dto.setRemark(doc.getRemark());
+        dto.setVoidReason(doc.getVoidReason());
+        dto.setVoidBy(doc.getVoidBy());
+        dto.setVoidByName(doc.getVoidByName());
+        dto.setVoidAt(doc.getVoidAt());
         dto.setCreateBy(doc.getCreateBy());
         dto.setCreateAt(doc.getCreateAt());
         dto.setUpdateBy(doc.getUpdateBy());
