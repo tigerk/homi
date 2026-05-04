@@ -18,6 +18,7 @@ import com.homi.common.lib.exception.BizException;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.utils.JsonUtils;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.booking.vo.BookingListVO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.FacilityItemDTO;
@@ -68,6 +69,9 @@ public class RoomService {
     private final LeaseRoomRepo leaseRoomRepo;
     private final RoomLockRepo roomLockRepo;
     private final UserRepo userRepo;
+    private final CommunityRepo communityRepo;
+    private final DeptRepo deptRepo;
+    private final RoomTrackRepo roomTrackRepo;
     private final PriceConfigService priceConfigService;
 
     /**
@@ -214,7 +218,9 @@ public class RoomService {
         if (Objects.isNull(room)) {
             throw new BizException("房间不存在");
         }
-        return buildRoomDetailVO(room, true);
+        RoomDetailVO roomDetail = buildRoomDetailVO(room, true);
+        enrichRoomBusinessInfo(roomDetail);
+        return roomDetail;
     }
 
     private RoomDetailVO buildRoomDetailVO(Room room, boolean includeHouse) {
@@ -250,15 +256,43 @@ public class RoomService {
             if (Objects.nonNull(house)) {
                 HouseDetailVO houseDetailVO = new HouseDetailVO();
                 BeanUtils.copyProperties(house, houseDetailVO);
+                houseDetailVO.setSalesman(userRepo.getUserLiteById(house.getSalesmanId()));
+                houseDetailVO.setCommunity(communityRepo.getCommunityById(house.getCommunityId()));
+                Dept dept = deptRepo.getById(house.getDeptId());
+                if (Objects.nonNull(dept)) {
+                    houseDetailVO.setDeptName(dept.getName());
+                }
                 if (Objects.nonNull(house.getHouseLayoutId())) {
                     HouseLayoutDTO houseLayout = houseLayoutRepo.getHouseLayoutById(house.getHouseLayoutId());
                     houseDetailVO.setHouseLayout(houseLayout);
                 }
+                List<RoomDetailVO> roomList = getRoomDetailByHouseId(house.getId());
+                roomList.forEach(this::enrichRoomBusinessInfo);
+                houseDetailVO.setRoomList(roomList);
                 roomDetailVO.setHouse(houseDetailVO);
             }
         }
 
         return roomDetailVO;
+    }
+
+    /**
+     * 补充房间详情页展示所需的当前租约、预定单和跟进记录。
+     * room/detail 是房间详情页唯一数据入口，因此这里要与 house/detail 的展示数据口径保持一致。
+     */
+    private void enrichRoomBusinessInfo(RoomDetailVO room) {
+        if (Objects.isNull(room) || Objects.isNull(room.getId())) {
+            return;
+        }
+
+        room.setLease(getDisplayLeaseByRoomId(room.getId()));
+
+        Booking currentBooking = bookingRepo.getCurrentBookingByRoomId(room.getId());
+        if (Objects.nonNull(currentBooking)) {
+            room.setBooking(BeanCopyUtils.copyBean(currentBooking, BookingListVO.class));
+        }
+
+        room.setRoomTracks(roomTrackRepo.getRoomTracksByRoomId(room.getId()));
     }
 
     public List<RoomListVO> getRoomListByRoomIds(List<Long> roomIds) {
