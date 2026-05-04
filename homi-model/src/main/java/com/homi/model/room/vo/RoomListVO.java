@@ -1,5 +1,6 @@
 package com.homi.model.room.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.homi.model.house.dto.FacilityItemDTO;
 import com.homi.model.house.dto.HouseLayoutDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -132,6 +133,7 @@ public class RoomListVO {
     private String deleteByName;
 
     @Schema(description = "删除时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date deleteAt;
 
     @Schema(description = "恢复原因")
