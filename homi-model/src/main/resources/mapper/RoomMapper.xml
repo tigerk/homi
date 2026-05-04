@@ -30,6 +30,14 @@
         <result property="occupancyStatus" column="occupancy_status"/>
         <result property="locked" column="locked"/>
         <result property="closed" column="closed"/>
+        <result property="deleted" column="deleted"/>
+        <result property="deleteReason" column="delete_reason"/>
+        <result property="deleteBy" column="delete_by"/>
+        <result property="deleteByName" column="delete_by_name"/>
+        <result property="deleteAt" column="delete_at"/>
+        <result property="restoreReason" column="restore_reason"/>
+        <result property="restoreBy" column="restore_by"/>
+        <result property="restoreAt" column="restore_at"/>
         <!-- 添加floor字段 -->
         <result property="communityId" column="community_id"/>
         <result property="building" column="building"/>
@@ -74,6 +82,14 @@
                r.occupancy_status,
                r.locked,
                r.closed,
+               r.deleted,
+               r.delete_reason,
+               r.delete_by,
+               du.nickname    AS delete_by_name,
+               r.delete_at,
+               r.restore_reason,
+               r.restore_by,
+               r.restore_at,
                r.area,
                r.direction,
                r.available_date,
@@ -91,9 +107,14 @@
                  LEFT JOIN house h ON r.house_id = h.id
                  LEFT JOIN house_layout hl ON h.house_layout_id = hl.id
                  LEFT JOIN user u ON u.id = h.salesman_id
+                 LEFT JOIN user du ON du.id = r.delete_by
                  LEFT JOIN dept d ON d.id = h.dept_id
                  LEFT JOIN community cm ON h.community_id = cm.id
-        where r.deleted = 0
+        where r.deleted =
+        <choose>
+            <when test="query.deleted != null">#{query.deleted,jdbcType=BOOLEAN}</when>
+            <otherwise>0</otherwise>
+        </choose>
         <include refid="roomListQuery"/>
         order by r.id desc
     </select>
@@ -103,7 +124,11 @@
         FROM room r
                  LEFT JOIN house h ON r.house_id = h.id
                  LEFT JOIN user u ON u.id = h.salesman_id
-        where r.deleted = 0
+        where r.deleted =
+        <choose>
+            <when test="query.deleted != null">#{query.deleted,jdbcType=BOOLEAN}</when>
+            <otherwise>0</otherwise>
+        </choose>
         <include refid="roomListQuery"/>
         group by occupancy_status
     </select>
@@ -178,7 +203,11 @@
                ROUND(SUM(IF(r.occupancy_status = 1, 1, 0)) * 100.0 / COUNT(*), 2) AS occupancyRate
         FROM room r
                  LEFT JOIN house h ON r.house_id = h.id
-        WHERE 1 = 1
+        WHERE r.deleted =
+        <choose>
+            <when test="query.deleted != null">#{query.deleted,jdbcType=BOOLEAN}</when>
+            <otherwise>0</otherwise>
+        </choose>
         <include refid="roomListQuery"/>
         GROUP BY h.lease_mode_id,
                  h.building,
@@ -233,4 +262,81 @@
                      ELSE 'vacancy_gt_15'
             END
     </select>
+
+    <select id="selectRoomByIdIncludeDeleted" resultType="com.homi.model.dao.entity.Room">
+        SELECT *
+        FROM room
+        WHERE id = #{roomId}
+        LIMIT 1
+    </select>
+
+    <select id="countActiveByHouseId" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM room
+        WHERE house_id = #{houseId}
+          AND deleted = 0
+    </select>
+
+    <select id="countActiveSameRoomNumber" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM room
+        WHERE house_id = #{houseId}
+          AND room_number = #{roomNumber}
+          AND deleted = 0
+          <if test="excludeRoomId != null">
+              AND id != #{excludeRoomId}
+          </if>
+    </select>
+
+    <select id="countActiveOwnerContractByRoom" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM owner_contract_subject s
+                 JOIN owner_contract c ON c.id = s.contract_id AND c.deleted = 0
+        WHERE s.deleted = 0
+          AND c.status IN
+          <foreach item="item" collection="statuses" open="(" separator="," close=")">
+              #{item}
+          </foreach>
+          AND (
+              (s.subject_type = 'HOUSE' AND s.subject_id = #{houseId})
+              OR (s.subject_type = 'FOCUS' AND #{leaseMode} = 1 AND s.subject_id = #{leaseModeId})
+              OR (
+                  s.subject_type = 'FOCUS_BUILDING'
+                  AND #{leaseMode} = 1
+                  AND EXISTS (
+                      SELECT 1
+                      FROM focus_building fb
+                      WHERE fb.id = s.subject_id
+                        AND fb.deleted = 0
+                        AND fb.focus_id = #{leaseModeId}
+                        AND fb.building = #{building}
+                        AND (fb.unit = #{unit} OR (fb.unit IS NULL AND #{unit} IS NULL))
+                  )
+              )
+          )
+    </select>
+
+    <update id="markDeleted">
+        UPDATE room
+        SET deleted = 1,
+            delete_reason = #{deleteReason},
+            delete_by = #{deleteBy},
+            delete_at = #{deleteAt},
+            update_by = #{deleteBy},
+            update_at = #{deleteAt}
+        WHERE id = #{roomId}
+          AND deleted = 0
+    </update>
+
+    <update id="markRestored">
+        UPDATE room
+        SET deleted = 0,
+            restore_reason = #{restoreReason},
+            restore_by = #{restoreBy},
+            restore_at = #{restoreAt},
+            update_by = #{restoreBy},
+            update_at = #{restoreAt}
+        WHERE id = #{roomId}
+          AND deleted = 1
+    </update>
 </mapper>

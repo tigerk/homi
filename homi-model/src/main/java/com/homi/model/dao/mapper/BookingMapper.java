@@ -20,4 +20,6 @@ import java.util.List;
 @Mapper
 public interface BookingMapper extends BaseMapper<Booking> {
     List<BookingTotalItemVO> getStatusTotal(@Param("query") BookingQueryDTO query);
+
+    Integer countActiveByRoomId(@Param("roomId") Long roomId, @Param("bookingStatus") Integer bookingStatus);
 }

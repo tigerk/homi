@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Date;
 
 /**
  * <p>
@@ -138,5 +139,17 @@ public class HouseRepo extends ServiceImpl<HouseMapper, House> {
         house.setApprovalStatus(bizApprovalStatus);
 
         update(house, queryWrapper);
+    }
+
+    public House getByIdIncludeDeleted(Long houseId) {
+        return getBaseMapper().selectHouseByIdIncludeDeleted(houseId);
+    }
+
+    public boolean markDeleted(Long houseId, String deleteReason, Long deleteBy, Date deleteAt) {
+        return getBaseMapper().markDeleted(houseId, deleteReason, deleteBy, deleteAt) > 0;
+    }
+
+    public boolean markRestored(Long houseId, String restoreReason, Long restoreBy, Date restoreAt) {
+        return getBaseMapper().markRestored(houseId, restoreReason, restoreBy, restoreAt) > 0;
     }
 }

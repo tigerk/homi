@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -165,5 +166,39 @@ public class RoomRepo extends ServiceImpl<RoomMapper, Room> {
 
     public List<WelcomeCountBucketVO> getWelcomeVacancyBuckets(Integer leaseMode) {
         return getBaseMapper().selectWelcomeVacancyBuckets(leaseMode);
+    }
+
+    public Room getByIdIncludeDeleted(Long roomId) {
+        return getBaseMapper().selectRoomByIdIncludeDeleted(roomId);
+    }
+
+    public int countActiveByHouseId(Long houseId) {
+        Integer count = getBaseMapper().countActiveByHouseId(houseId);
+        return count == null ? 0 : count;
+    }
+
+    public boolean existsActiveSameRoomNumber(Long houseId, String roomNumber, Long excludeRoomId) {
+        Integer count = getBaseMapper().countActiveSameRoomNumber(houseId, roomNumber, excludeRoomId);
+        return count != null && count > 0;
+    }
+
+    public boolean existsActiveOwnerContract(Room room, com.homi.model.dao.entity.House house, List<Integer> statuses) {
+        Integer count = getBaseMapper().countActiveOwnerContractByRoom(
+            room.getHouseId(),
+            house.getLeaseMode(),
+            house.getLeaseModeId(),
+            house.getBuilding(),
+            house.getUnit(),
+            statuses
+        );
+        return count != null && count > 0;
+    }
+
+    public boolean markDeleted(Long roomId, String deleteReason, Long deleteBy, Date deleteAt) {
+        return getBaseMapper().markDeleted(roomId, deleteReason, deleteBy, deleteAt) > 0;
+    }
+
+    public boolean markRestored(Long roomId, String restoreReason, Long restoreBy, Date restoreAt) {
+        return getBaseMapper().markRestored(roomId, restoreReason, restoreBy, restoreAt) > 0;
     }
 }

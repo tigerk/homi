@@ -57,4 +57,9 @@ public class BookingRepo extends ServiceImpl<BookingMapper, Booking> {
 
         return getBaseMapper().selectOne(wrapper);
     }
+
+    public boolean existsActiveByRoomId(Long roomId) {
+        Integer count = getBaseMapper().countActiveByRoomId(roomId, BookingStatusEnum.BOOKING.getCode());
+        return count != null && count > 0;
+    }
 }

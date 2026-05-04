@@ -106,6 +106,20 @@ public class RoomController {
         return ResponseResult.ok(roomService.openRoom(query));
     }
 
+    @PostMapping("/delete")
+    @Log(title = "删除房间", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Boolean> deleteRoom(@RequestBody RoomDeleteDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        dto.setUpdateBy(Objects.requireNonNull(loginUser).getId());
+        return ResponseResult.ok(roomService.deleteRoom(dto));
+    }
+
+    @PostMapping("/restore")
+    @Log(title = "恢复房间", operationType = OperationTypeEnum.UPDATE)
+    public ResponseResult<Boolean> restoreRoom(@RequestBody RoomRestoreDTO dto, @AuthenticationPrincipal UserLoginVO loginUser) {
+        dto.setUpdateBy(Objects.requireNonNull(loginUser).getId());
+        return ResponseResult.ok(roomService.restoreRoom(dto));
+    }
+
     // ==================== 单个房间租金配置 ====================
 
     /**

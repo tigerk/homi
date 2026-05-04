@@ -98,6 +98,32 @@ public class Room implements Serializable {
     @TableLogic
     private Boolean deleted;
 
+    @Schema(description = "删除原因")
+    @TableField("delete_reason")
+    private String deleteReason;
+
+    @Schema(description = "删除人ID")
+    @TableField("delete_by")
+    private Long deleteBy;
+
+    @Schema(description = "删除时间")
+    @TableField("delete_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date deleteAt;
+
+    @Schema(description = "恢复原因")
+    @TableField("restore_reason")
+    private String restoreReason;
+
+    @Schema(description = "恢复人ID")
+    @TableField("restore_by")
+    private Long restoreBy;
+
+    @Schema(description = "恢复时间")
+    @TableField("restore_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    private Date restoreAt;
+
     @Schema(description = "房间特色")
     @TableField("tags")
     private String tags;

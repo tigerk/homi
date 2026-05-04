@@ -1,4 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.homi.model.dao.mapper.HouseMapper">
+    <select id="selectHouseByIdIncludeDeleted" resultType="com.homi.model.dao.entity.House">
+        SELECT *
+        FROM house
+        WHERE id = #{houseId}
+        LIMIT 1
+    </select>
+
+    <update id="markDeleted">
+        UPDATE house
+        SET deleted = 1,
+            delete_reason = #{deleteReason},
+            delete_by = #{deleteBy},
+            delete_at = #{deleteAt},
+            update_by = #{deleteBy},
+            update_at = #{deleteAt}
+        WHERE id = #{houseId}
+          AND deleted = 0
+    </update>
+
+    <update id="markRestored">
+        UPDATE house
+        SET deleted = 0,
+            restore_reason = #{restoreReason},
+            restore_by = #{restoreBy},
+            restore_at = #{restoreAt},
+            update_by = #{restoreBy},
+            update_at = #{restoreAt}
+        WHERE id = #{houseId}
+          AND deleted = 1
+    </update>
 </mapper>

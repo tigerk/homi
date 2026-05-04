@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -117,6 +118,30 @@ public class RoomListVO {
 
     @Schema(description = "禁用状态：是否已禁用")
     private Boolean closed;
+
+    @Schema(description = "是否删除")
+    private Boolean deleted;
+
+    @Schema(description = "删除原因")
+    private String deleteReason;
+
+    @Schema(description = "删除人ID")
+    private Long deleteBy;
+
+    @Schema(description = "删除人名称")
+    private String deleteByName;
+
+    @Schema(description = "删除时间")
+    private Date deleteAt;
+
+    @Schema(description = "恢复原因")
+    private String restoreReason;
+
+    @Schema(description = "恢复人ID")
+    private Long restoreBy;
+
+    @Schema(description = "恢复时间")
+    private Date restoreAt;
 
     @Schema(description = "负责人id")
     private String salesmanId;

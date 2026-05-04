@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.Date;
+
 /**
  * <p>
  * 房源表 Mapper 接口
@@ -31,4 +33,16 @@ public interface HouseMapper extends BaseMapper<House> {
         "FROM house " +
         "WHERE lease_mode_id = #{leaseModeId} AND lease_mode = #{leaseMode}")
     Integer getTotalRentedRoomCount(@Param("leaseModeId") Long leaseModeId, @Param("leaseMode") Integer leaseMode);
+
+    House selectHouseByIdIncludeDeleted(@Param("houseId") Long houseId);
+
+    Integer markDeleted(@Param("houseId") Long houseId,
+                        @Param("deleteReason") String deleteReason,
+                        @Param("deleteBy") Long deleteBy,
+                        @Param("deleteAt") Date deleteAt);
+
+    Integer markRestored(@Param("houseId") Long houseId,
+                         @Param("restoreReason") String restoreReason,
+                         @Param("restoreBy") Long restoreBy,
+                         @Param("restoreAt") Date restoreAt);
 }

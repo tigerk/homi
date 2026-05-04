@@ -11,6 +11,7 @@ import com.homi.model.dashboard.vo.WelcomeCountBucketVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -63,4 +64,27 @@ public interface RoomMapper extends BaseMapper<Room> {
     Integer countByClosed(@Param("query") RoomQueryDTO query);
 
     List<WelcomeCountBucketVO> selectWelcomeVacancyBuckets(@Param("leaseMode") Integer leaseMode);
+
+    Room selectRoomByIdIncludeDeleted(@Param("roomId") Long roomId);
+
+    Integer countActiveByHouseId(@Param("houseId") Long houseId);
+
+    Integer countActiveSameRoomNumber(@Param("houseId") Long houseId, @Param("roomNumber") String roomNumber, @Param("excludeRoomId") Long excludeRoomId);
+
+    Integer countActiveOwnerContractByRoom(@Param("houseId") Long houseId,
+                                           @Param("leaseMode") Integer leaseMode,
+                                           @Param("leaseModeId") Long leaseModeId,
+                                           @Param("building") String building,
+                                           @Param("unit") String unit,
+                                           @Param("statuses") List<Integer> statuses);
+
+    Integer markDeleted(@Param("roomId") Long roomId,
+                        @Param("deleteReason") String deleteReason,
+                        @Param("deleteBy") Long deleteBy,
+                        @Param("deleteAt") Date deleteAt);
+
+    Integer markRestored(@Param("roomId") Long roomId,
+                         @Param("restoreReason") String restoreReason,
+                         @Param("restoreBy") Long restoreBy,
+                         @Param("restoreAt") Date restoreAt);
 }

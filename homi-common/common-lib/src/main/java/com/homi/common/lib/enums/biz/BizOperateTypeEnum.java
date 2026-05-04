@@ -14,6 +14,8 @@ public enum BizOperateTypeEnum {
     RENEW("RENEW", "续约"),
     CHECKOUT("CHECKOUT", "退房"),
     CANCEL("CANCEL", "作废"),
+    DELETE("DELETE", "删除"),
+    RESTORE("RESTORE", "恢复"),
     PAY("PAY", "付款");
 
     private final String code;

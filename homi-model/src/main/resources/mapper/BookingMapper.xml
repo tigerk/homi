@@ -10,6 +10,17 @@
         group by b.booking_status
     </select>
 
+    <select id="countActiveByRoomId" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM booking b
+        WHERE b.deleted = false
+          AND b.booking_status = #{bookingStatus}
+          AND (
+              JSON_CONTAINS(b.room_ids, CAST(#{roomId} AS JSON))
+              OR JSON_CONTAINS(b.room_ids, JSON_QUOTE(CAST(#{roomId} AS CHAR)))
+          )
+    </select>
+
     <sql id="bookingListQuery">
         <if test="query.tenantName != null and query.tenantName != ''">
             and b.tenant_name like concat('%', #{query.tenantName,jdbcType=VARCHAR}, '%')

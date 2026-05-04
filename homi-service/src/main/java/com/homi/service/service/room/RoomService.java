@@ -11,7 +11,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.StatusEnum;
+import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
+import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
+import com.homi.common.lib.enums.owner.OwnerContractStatusEnum;
 import com.homi.common.lib.enums.room.OccupancyStatusEnum;
 import com.homi.common.lib.enums.room.RoomLockReasonEnum;
 import com.homi.common.lib.exception.BizException;
@@ -28,9 +32,12 @@ import com.homi.model.room.dto.RoomIdDTO;
 import com.homi.model.room.dto.RoomLockDTO;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.dto.RoomSaveRemarkDTO;
+import com.homi.model.room.dto.RoomDeleteDTO;
+import com.homi.model.room.dto.RoomRestoreDTO;
 import com.homi.model.room.dto.price.PriceConfigDTO;
 import com.homi.model.room.vo.*;
 import com.homi.model.tenant.vo.LeaseLiteVO;
+import com.homi.service.bizlog.BizOperateLogService;
 import com.homi.service.service.price.PriceConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,6 +80,7 @@ public class RoomService {
     private final DeptRepo deptRepo;
     private final RoomTrackRepo roomTrackRepo;
     private final PriceConfigService priceConfigService;
+    private final BizOperateLogService bizOperateLogService;
 
     /**
      * 获取房间列表
@@ -214,7 +222,7 @@ public class RoomService {
     }
 
     public RoomDetailVO getRoomDetail(Long roomId) {
-        Room room = getRoomById(roomId);
+        Room room = roomRepo.getByIdIncludeDeleted(roomId);
         if (Objects.isNull(room)) {
             throw new BizException("房间不存在");
         }
@@ -252,7 +260,7 @@ public class RoomService {
         roomDetailVO.setPriceConfig(priceConfigByRoomId);
 
         if (includeHouse) {
-            House house = houseRepo.getById(room.getHouseId());
+            House house = houseRepo.getByIdIncludeDeleted(room.getHouseId());
             if (Objects.nonNull(house)) {
                 HouseDetailVO houseDetailVO = new HouseDetailVO();
                 BeanUtils.copyProperties(house, houseDetailVO);
@@ -410,6 +418,186 @@ public class RoomService {
 
     public Boolean openRoom(RoomIdDTO query) {
         return roomRepo.openRoomById(query.getRoomId());
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean deleteRoom(RoomDeleteDTO dto) {
+        if (Objects.isNull(dto) || Objects.isNull(dto.getRoomId())) {
+            throw new BizException("房间ID不能为空");
+        }
+        if (CharSequenceUtil.isBlank(dto.getDeleteReason())) {
+            throw new BizException("删除原因不能为空");
+        }
+
+        Room room = roomRepo.getByIdIncludeDeleted(dto.getRoomId());
+        if (Objects.isNull(room)) {
+            throw new BizException("房间不存在");
+        }
+        if (Boolean.TRUE.equals(room.getDeleted())) {
+            throw new BizException("房间已删除");
+        }
+
+        House house = houseRepo.getByIdIncludeDeleted(room.getHouseId());
+        if (Objects.isNull(house)) {
+            throw new BizException("房源不存在");
+        }
+
+        validateRoomCanDelete(room, house);
+
+        Date now = DateUtil.date();
+        Long operatorId = dto.getUpdateBy();
+        Map<String, Object> beforeSnapshot = buildRoomDeleteSnapshot(room, house);
+        boolean deleted = roomRepo.markDeleted(room.getId(), dto.getDeleteReason().trim(), operatorId, now);
+        if (!deleted) {
+            throw new BizException("删除房间失败，请刷新后重试");
+        }
+        Room deletedRoom = roomRepo.getByIdIncludeDeleted(room.getId());
+        saveBizOperateLog(BizOperateBizTypeEnum.ROOM, room.getId(), BizOperateTypeEnum.DELETE, "删除房间",
+            dto.getDeleteReason().trim(), beforeSnapshot, buildRoomDeleteSnapshot(deletedRoom, house),
+            room.getCompanyId(), operatorId);
+
+        if (roomRepo.countActiveByHouseId(room.getHouseId()) == 0 && !Boolean.TRUE.equals(house.getDeleted())) {
+            Map<String, Object> beforeHouseSnapshot = buildHouseDeleteSnapshot(house);
+            boolean houseDeleted = houseRepo.markDeleted(house.getId(), dto.getDeleteReason().trim(), operatorId, now);
+            if (houseDeleted) {
+                House deletedHouse = houseRepo.getByIdIncludeDeleted(house.getId());
+                saveBizOperateLog(BizOperateBizTypeEnum.HOUSE, house.getId(), BizOperateTypeEnum.DELETE, "自动删除房源",
+                    "删除最后一个房间后同步删除房源：" + dto.getDeleteReason().trim(),
+                    beforeHouseSnapshot, buildHouseDeleteSnapshot(deletedHouse), house.getCompanyId(), operatorId);
+            }
+        }
+
+        return Boolean.TRUE;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean restoreRoom(RoomRestoreDTO dto) {
+        if (Objects.isNull(dto) || Objects.isNull(dto.getRoomId())) {
+            throw new BizException("房间ID不能为空");
+        }
+
+        Room room = roomRepo.getByIdIncludeDeleted(dto.getRoomId());
+        if (Objects.isNull(room)) {
+            throw new BizException("房间不存在");
+        }
+        if (!Boolean.TRUE.equals(room.getDeleted())) {
+            throw new BizException("房间未删除，无需恢复");
+        }
+
+        House house = houseRepo.getByIdIncludeDeleted(room.getHouseId());
+        if (Objects.isNull(house)) {
+            throw new BizException("房源不存在");
+        }
+        if (roomRepo.existsActiveSameRoomNumber(room.getHouseId(), room.getRoomNumber(), room.getId())) {
+            throw new BizException("同一房源下已存在相同房号的未删除房间，无法恢复");
+        }
+
+        Date now = DateUtil.date();
+        Long operatorId = dto.getUpdateBy();
+        String restoreReason = CharSequenceUtil.blankToDefault(dto.getRestoreReason(), "恢复误删房间").trim();
+
+        if (Boolean.TRUE.equals(house.getDeleted())) {
+            Map<String, Object> beforeHouseSnapshot = buildHouseDeleteSnapshot(house);
+            boolean houseRestored = houseRepo.markRestored(house.getId(), restoreReason, operatorId, now);
+            if (houseRestored) {
+                House restoredHouse = houseRepo.getByIdIncludeDeleted(house.getId());
+                saveBizOperateLog(BizOperateBizTypeEnum.HOUSE, house.getId(), BizOperateTypeEnum.RESTORE, "自动恢复房源",
+                    "恢复房间时同步恢复房源：" + restoreReason,
+                    beforeHouseSnapshot, buildHouseDeleteSnapshot(restoredHouse), house.getCompanyId(), operatorId);
+                house = restoredHouse;
+            }
+        }
+
+        Map<String, Object> beforeSnapshot = buildRoomDeleteSnapshot(room, house);
+        boolean restored = roomRepo.markRestored(room.getId(), restoreReason, operatorId, now);
+        if (!restored) {
+            throw new BizException("恢复房间失败，请刷新后重试");
+        }
+        Room restoredRoom = roomRepo.getByIdIncludeDeleted(room.getId());
+        saveBizOperateLog(BizOperateBizTypeEnum.ROOM, room.getId(), BizOperateTypeEnum.RESTORE, "恢复房间",
+            restoreReason, beforeSnapshot, buildRoomDeleteSnapshot(restoredRoom, house), room.getCompanyId(), operatorId);
+
+        return Boolean.TRUE;
+    }
+
+    private void validateRoomCanDelete(Room room, House house) {
+        List<Integer> ownerActiveStatuses = List.of(
+            OwnerContractStatusEnum.PENDING_APPROVAL.getCode(),
+            OwnerContractStatusEnum.PENDING_SIGN.getCode(),
+            OwnerContractStatusEnum.SIGNED.getCode()
+        );
+        if (roomRepo.existsActiveOwnerContract(room, house, ownerActiveStatuses)) {
+            throw new BizException("该房间已关联业主合同，请先处理业主合同后再删除");
+        }
+        if (CollUtil.isNotEmpty(leaseRepo.listOccupyingLeasesByRoomIds(List.of(room.getId())))) {
+            throw new BizException("该房间已有租客租约，请先退租或作废租约后再删除");
+        }
+        if (bookingRepo.existsActiveByRoomId(room.getId())) {
+            throw new BizException("该房间存在预约中记录，请先取消预约后再删除");
+        }
+    }
+
+    private Map<String, Object> buildRoomDeleteSnapshot(Room room, House house) {
+        if (Objects.isNull(room)) {
+            return null;
+        }
+        Map<String, Object> snapshot = new LinkedHashMap<>();
+        snapshot.put("房间ID", room.getId());
+        snapshot.put("房源ID", room.getHouseId());
+        snapshot.put("房源名称", Objects.nonNull(house) ? house.getHouseName() : null);
+        snapshot.put("房号", room.getRoomNumber());
+        snapshot.put("删除状态", Boolean.TRUE.equals(room.getDeleted()) ? "已删除" : "正常");
+        snapshot.put("删除原因", room.getDeleteReason());
+        snapshot.put("删除人", room.getDeleteBy());
+        snapshot.put("删除时间", room.getDeleteAt());
+        snapshot.put("恢复原因", room.getRestoreReason());
+        snapshot.put("恢复人", room.getRestoreBy());
+        snapshot.put("恢复时间", room.getRestoreAt());
+        return snapshot;
+    }
+
+    private Map<String, Object> buildHouseDeleteSnapshot(House house) {
+        if (Objects.isNull(house)) {
+            return null;
+        }
+        Map<String, Object> snapshot = new LinkedHashMap<>();
+        snapshot.put("房源ID", house.getId());
+        snapshot.put("房源名称", house.getHouseName());
+        snapshot.put("房源编号", house.getHouseCode());
+        snapshot.put("删除状态", Boolean.TRUE.equals(house.getDeleted()) ? "已删除" : "正常");
+        snapshot.put("删除原因", house.getDeleteReason());
+        snapshot.put("删除人", house.getDeleteBy());
+        snapshot.put("删除时间", house.getDeleteAt());
+        snapshot.put("恢复原因", house.getRestoreReason());
+        snapshot.put("恢复人", house.getRestoreBy());
+        snapshot.put("恢复时间", house.getRestoreAt());
+        return snapshot;
+    }
+
+    private void saveBizOperateLog(BizOperateBizTypeEnum bizType, Long bizId, BizOperateTypeEnum operateType, String operateDesc,
+                                   String remark, Object beforeSnapshot, Object afterSnapshot, Long companyId, Long operatorId) {
+        User operator = Objects.nonNull(operatorId) ? userRepo.getById(operatorId) : null;
+        String operatorName = "-";
+        if (Objects.nonNull(operator)) {
+            operatorName = CharSequenceUtil.blankToDefault(operator.getRealName(), CharSequenceUtil.blankToDefault(operator.getNickname(), operator.getUsername()));
+        }
+
+        BizOperateSourceTypeEnum sourceType = BizOperateBizTypeEnum.HOUSE.equals(bizType) ? BizOperateSourceTypeEnum.HOUSE : BizOperateSourceTypeEnum.ROOM;
+        bizOperateLogService.saveLog(
+            companyId,
+            bizType.getCode(),
+            bizId,
+            operateType.getCode(),
+            operateDesc,
+            remark,
+            beforeSnapshot,
+            afterSnapshot,
+            Map.of("reason", remark),
+            sourceType.getCode(),
+            bizId,
+            operatorId,
+            operatorName
+        );
     }
 
     @Transactional(rollbackFor = Exception.class)
