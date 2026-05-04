@@ -169,6 +169,10 @@
             and h.lease_mode = #{query.leaseMode,jdbcType=INTEGER}
         </if>
 
+        <if test="query.rentalType != null">
+            and h.rental_type = #{query.rentalType,jdbcType=INTEGER}
+        </if>
+
         <if test="query.vacancyDaysMin != null">
             and r.vacancy_start_at is not null
             and DATEDIFF(CURDATE(), DATE(r.vacancy_start_at)) <![CDATA[ >= ]]> #{query.vacancyDaysMin,jdbcType=INTEGER}

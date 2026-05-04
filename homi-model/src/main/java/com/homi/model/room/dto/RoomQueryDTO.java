@@ -28,6 +28,9 @@ public class RoomQueryDTO extends PageDTO {
     @Schema(description = "房源租赁类型：1=集中式，2=分散式")
     private Integer leaseMode;
 
+    @Schema(description = "出租类型：1=整租，2=合租，参考RentalTypeEnum")
+    private Integer rentalType;
+
     @Schema(description = "模式引用ID")
     private Long leaseModeId;
 
