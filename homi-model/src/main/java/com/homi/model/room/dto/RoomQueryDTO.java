@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -37,6 +38,9 @@ public class RoomQueryDTO extends PageDTO {
     @Schema(description = "搜索关键字")
     private String keywords;
 
+    @Schema(description = "房间号")
+    private String roomNumber;
+
     // ========== 房间状态查询（三个独立维度，不可混用）==========
     @Schema(description = "出租占用状态：0=空置，1=已租，2=已预定，3=配置中。locked=true 或 closed=true 时此字段无效")
     private Integer occupancyStatus;
@@ -55,4 +59,22 @@ public class RoomQueryDTO extends PageDTO {
 
     @Schema(description = "空置天数最大值")
     private Integer vacancyDaysMax;
+
+    @Schema(description = "房屋面积最小值")
+    private BigDecimal areaMin;
+
+    @Schema(description = "房屋面积最大值")
+    private BigDecimal areaMax;
+
+    @Schema(description = "出租价格最小值")
+    private BigDecimal priceMin;
+
+    @Schema(description = "出租价格最大值")
+    private BigDecimal priceMax;
+
+    @Schema(description = "朝向")
+    private String direction;
+
+    @Schema(description = "是否有图")
+    private Boolean hasImage;
 }

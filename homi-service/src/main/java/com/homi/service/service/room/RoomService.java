@@ -23,6 +23,7 @@ import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.common.lib.utils.JsonUtils;
 import com.homi.common.lib.vo.PageVO;
 import com.homi.model.booking.vo.BookingListVO;
+import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.house.dto.FacilityItemDTO;
@@ -107,6 +108,10 @@ public class RoomService {
         pageVO.setPages(roomPage.getPages());
 
         return pageVO;
+    }
+
+    public List<CommunityDTO> getRoomCommunityOptions(RoomQueryDTO query) {
+        return roomRepo.getBaseMapper().selectRoomCommunityOptions(query);
     }
 
     public void format(RoomListVO room) {

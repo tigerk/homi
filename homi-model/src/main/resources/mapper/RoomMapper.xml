@@ -138,6 +138,10 @@
             and r.keywords like concat('%', #{query.keywords,jdbcType=VARCHAR}, '%')
         </if>
 
+        <if test="query.roomNumber != null and query.roomNumber != ''">
+            and r.room_number like concat('%', #{query.roomNumber,jdbcType=VARCHAR}, '%')
+        </if>
+
         <if test="query.roomIds != null and query.roomIds.size > 0">
             AND r.id in
             <foreach collection="query.roomIds" item="item" separator="," open="(" close=")">
@@ -183,6 +187,36 @@
             and DATEDIFF(CURDATE(), DATE(r.vacancy_start_at)) <![CDATA[ <= ]]> #{query.vacancyDaysMax,jdbcType=INTEGER}
         </if>
 
+        <if test="query.areaMin != null">
+            and r.area <![CDATA[ >= ]]> #{query.areaMin,jdbcType=DECIMAL}
+        </if>
+
+        <if test="query.areaMax != null">
+            and r.area <![CDATA[ <= ]]> #{query.areaMax,jdbcType=DECIMAL}
+        </if>
+
+        <if test="query.priceMin != null">
+            and r.price <![CDATA[ >= ]]> #{query.priceMin,jdbcType=DECIMAL}
+        </if>
+
+        <if test="query.priceMax != null">
+            and r.price <![CDATA[ <= ]]> #{query.priceMax,jdbcType=DECIMAL}
+        </if>
+
+        <if test="query.direction != null and query.direction != ''">
+            and r.direction = #{query.direction,jdbcType=VARCHAR}
+        </if>
+
+        <if test="query.hasImage != null and query.hasImage == true">
+            and r.image_list is not null
+            and r.image_list != ''
+            and r.image_list != '[]'
+        </if>
+
+        <if test="query.hasImage != null and query.hasImage == false">
+            and (r.image_list is null or r.image_list = '' or r.image_list = '[]')
+        </if>
+
         <if test="query.spatialQuery != null and query.spatialQuery.size > 0">
             AND (
             <foreach collection="query.spatialQuery" item="item" separator="OR">
@@ -196,6 +230,35 @@
             )
         </if>
     </sql>
+
+    <select id="selectRoomCommunityOptions" resultType="com.homi.model.community.dto.CommunityDTO">
+        SELECT DISTINCT
+               cm.id      AS communityId,
+               cm.name    AS name,
+               cm.address AS address
+        FROM room r
+                 LEFT JOIN house h ON r.house_id = h.id
+                 LEFT JOIN community cm ON h.community_id = cm.id
+        WHERE r.deleted = 0
+          AND cm.id IS NOT NULL
+        <if test="query.companyId != null">
+            AND h.company_id = #{query.companyId,jdbcType=BIGINT}
+        </if>
+        <if test="query.leaseMode != null">
+            AND h.lease_mode = #{query.leaseMode,jdbcType=INTEGER}
+        </if>
+        <if test="query.rentalType != null">
+            AND h.rental_type = #{query.rentalType,jdbcType=INTEGER}
+        </if>
+        <if test="query.keywords != null and query.keywords != ''">
+            AND (
+                cm.name LIKE concat('%', #{query.keywords,jdbcType=VARCHAR}, '%')
+                OR cm.address LIKE concat('%', #{query.keywords,jdbcType=VARCHAR}, '%')
+            )
+        </if>
+        ORDER BY cm.name ASC
+        LIMIT 30
+    </select>
 
     <select id="selectAggregatedRooms" resultType="com.homi.model.room.vo.grid.RoomAggregatedVO">
         SELECT h.lease_mode_id,

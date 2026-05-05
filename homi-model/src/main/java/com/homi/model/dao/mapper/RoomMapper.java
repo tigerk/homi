@@ -2,6 +2,7 @@ package com.homi.model.dao.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.Room;
 import com.homi.model.room.dto.RoomQueryDTO;
 import com.homi.model.room.vo.RoomListVO;
@@ -38,6 +39,8 @@ public interface RoomMapper extends BaseMapper<Room> {
     IPage<RoomListVO> pageRoomList(IPage<RoomListVO> page, @Param("query") RoomQueryDTO query);
 
     List<RoomOccupancyStatusTotalVO> getStatusTotal(@Param("query") RoomQueryDTO query);
+
+    List<CommunityDTO> selectRoomCommunityOptions(@Param("query") RoomQueryDTO query);
 
     /**
      * 查询小区的聚合数据

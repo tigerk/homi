@@ -5,6 +5,7 @@ import com.homi.common.lib.annotation.Log;
 import com.homi.common.lib.enums.OperationTypeEnum;
 import com.homi.common.lib.response.ResponseResult;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.community.dto.CommunityDTO;
 import com.homi.model.dao.entity.Room;
 import com.homi.model.room.dto.*;
 import com.homi.model.room.dto.grid.RoomGridDTO;
@@ -62,6 +63,12 @@ public class RoomController {
     public ResponseResult<RoomTotalVO> getRoomTotal(@RequestBody RoomQueryDTO query) {
         RoomTotalVO roomStatusTotal = roomService.getRoomStatusTotal(query);
         return ResponseResult.ok(roomStatusTotal);
+    }
+
+    @PostMapping("/community/options")
+    public ResponseResult<List<CommunityDTO>> getRoomCommunityOptions(@RequestBody RoomQueryDTO query, @AuthenticationPrincipal UserLoginVO loginUser) {
+        query.setCompanyId(Objects.requireNonNull(loginUser).getCurCompanyId());
+        return ResponseResult.ok(roomService.getRoomCommunityOptions(query));
     }
 
     @PostMapping("/reset/keyword")
