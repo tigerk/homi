@@ -5,6 +5,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
+import com.homi.common.lib.enums.finance.FinanceFlowSourceTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowTypeEnum;
 import com.homi.model.dao.entity.FinanceFlow;
@@ -59,6 +60,9 @@ public class FinanceFlowService {
         financeFlow.setFlowNo(generateFinanceFlowNo());
         financeFlow.setCompanyId(command.bill().getCompanyId());
         financeFlow.setPaymentFlowId(null);
+        financeFlow.setSourceType(FinanceFlowSourceTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode());
+        financeFlow.setSourceId(command.payment().getId());
+        financeFlow.setSourceNo(command.payment().getPaymentNo());
         financeFlow.setBizType(FinanceBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode());
         financeFlow.setBizId(command.payment().getId());
         financeFlow.setBizNo(command.payment().getPaymentNo());
@@ -92,6 +96,9 @@ public class FinanceFlowService {
         financeFlow.setFlowNo(generateFinanceFlowNo());
         financeFlow.setCompanyId(command.paymentFlow().getCompanyId());
         financeFlow.setPaymentFlowId(command.paymentFlow().getId());
+        financeFlow.setSourceType(FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode());
+        financeFlow.setSourceId(command.paymentFlow().getId());
+        financeFlow.setSourceNo(command.paymentFlow().getPaymentNo());
         financeFlow.setBizType(FinanceBizTypeEnum.LEASE_BILL_FEE.getCode());
         financeFlow.setBizId(item.getLeaseBillFeeId());
         financeFlow.setBizNo(String.valueOf(item.getLeaseBillFeeId()));

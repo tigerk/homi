@@ -40,6 +40,9 @@ public class FinanceFlowFinanceService {
     private final LeaseRoomRepo leaseRoomRepo;
     private final PaymentFlowRepo paymentFlowRepo;
     private final TenantRepo tenantRepo;
+    private final OwnerPayableBillPaymentRepo ownerPayableBillPaymentRepo;
+    private final OwnerPayableBillRepo ownerPayableBillRepo;
+    private final OwnerRepo ownerRepo;
     private final RoomRepo roomRepo;
     private final RoomService roomService;
 
@@ -61,7 +64,7 @@ public class FinanceFlowFinanceService {
 
     public FinanceFlowFinanceItemVO detail(Long id) {
         FinanceFlow financeFlow = financeFlowRepo.getById(id);
-        if (financeFlow == null || !Objects.equals(financeFlow.getBizType(), FinanceBizTypeEnum.LEASE_BILL_FEE.getCode())) {
+        if (financeFlow == null) {
             return null;
         }
         return toItems(List.of(financeFlow)).stream().findFirst().orElse(null);
@@ -150,7 +153,7 @@ public class FinanceFlowFinanceService {
 
     private LambdaQueryWrapper<FinanceFlow> buildWrapper(FinanceFlowFinanceQueryDTO query, FilterContext filterContext) {
         LambdaQueryWrapper<FinanceFlow> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(FinanceFlow::getBizType, FinanceBizTypeEnum.LEASE_BILL_FEE.getCode());
+        wrapper.eq(filterContext.feeIds() != null, FinanceFlow::getBizType, FinanceBizTypeEnum.LEASE_BILL_FEE.getCode());
         wrapper.eq(query.getStatus() != null, FinanceFlow::getStatus, query.getStatus());
         wrapper.eq(CharSequenceUtil.isNotBlank(query.getFlowType()), FinanceFlow::getFlowType, query.getFlowType());
         wrapper.in(CollUtil.isNotEmpty(filterContext.feeIds()), FinanceFlow::getBizId, filterContext.feeIds());
@@ -164,30 +167,57 @@ public class FinanceFlowFinanceService {
         if (CollUtil.isEmpty(financeFlows)) {
             return List.of();
         }
-        Map<Long, LeaseBillFee> feeMap = leaseBillFeeRepo.getByIds(financeFlows.stream()
+        List<Long> leaseFeeIds = financeFlows.stream()
+            .filter(item -> Objects.equals(item.getBizType(), FinanceBizTypeEnum.LEASE_BILL_FEE.getCode()))
+            .map(FinanceFlow::getBizId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, LeaseBillFee> feeMap = CollUtil.isEmpty(leaseFeeIds) ? Map.of() : leaseBillFeeRepo.getByIds(leaseFeeIds).stream()
+            .collect(Collectors.toMap(LeaseBillFee::getId, item -> item, (left, right) -> left));
+        List<Long> billIds = feeMap.values().stream()
+            .map(LeaseBillFee::getBillId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, LeaseBill> billMap = CollUtil.isEmpty(billIds) ? Map.of() : leaseBillRepo.listByIds(billIds).stream()
+            .collect(Collectors.toMap(LeaseBill::getId, item -> item, (left, right) -> left));
+        List<Long> tenantIds = billMap.values().stream()
+            .map(LeaseBill::getTenantId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, Tenant> tenantMap = CollUtil.isEmpty(tenantIds) ? Map.of() : tenantRepo.listByIds(tenantIds).stream()
+            .collect(Collectors.toMap(Tenant::getId, item -> item, (left, right) -> left));
+        List<Long> paymentFlowIds = financeFlows.stream()
+            .map(FinanceFlow::getPaymentFlowId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, PaymentFlow> paymentFlowMap = CollUtil.isEmpty(paymentFlowIds) ? Map.of() : paymentFlowRepo.listByIds(paymentFlowIds).stream()
+            .collect(Collectors.toMap(PaymentFlow::getId, item -> item, (left, right) -> left));
+        List<Long> ownerPaymentIds = financeFlows.stream()
+            .filter(item -> Objects.equals(item.getBizType(), FinanceBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode()))
                 .map(FinanceFlow::getBizId)
                 .filter(Objects::nonNull)
                 .distinct()
-                .toList()).stream()
-            .collect(Collectors.toMap(LeaseBillFee::getId, item -> item));
-        Map<Long, LeaseBill> billMap = leaseBillRepo.listByIds(feeMap.values().stream()
-                .map(LeaseBillFee::getBillId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList()).stream()
-            .collect(Collectors.toMap(LeaseBill::getId, item -> item));
-        Map<Long, Tenant> tenantMap = tenantRepo.listByIds(billMap.values().stream()
-                .map(LeaseBill::getTenantId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList()).stream()
-            .collect(Collectors.toMap(Tenant::getId, item -> item));
-        Map<Long, PaymentFlow> paymentFlowMap = paymentFlowRepo.listByIds(financeFlows.stream()
-                .map(FinanceFlow::getPaymentFlowId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList()).stream()
-            .collect(Collectors.toMap(PaymentFlow::getId, item -> item));
+            .toList();
+        Map<Long, OwnerPayableBillPayment> ownerPaymentMap = CollUtil.isEmpty(ownerPaymentIds) ? Map.of() : ownerPayableBillPaymentRepo.listByIds(ownerPaymentIds).stream()
+            .collect(Collectors.toMap(OwnerPayableBillPayment::getId, item -> item, (left, right) -> left));
+        List<Long> ownerBillIds = ownerPaymentMap.values().stream()
+            .map(OwnerPayableBillPayment::getBillId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, OwnerPayableBill> ownerBillMap = CollUtil.isEmpty(ownerBillIds) ? Map.of() : ownerPayableBillRepo.listByIds(ownerBillIds).stream()
+            .collect(Collectors.toMap(OwnerPayableBill::getId, item -> item, (left, right) -> left));
+        List<Long> ownerIds = ownerBillMap.values().stream()
+            .map(OwnerPayableBill::getOwnerId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, Owner> ownerMap = CollUtil.isEmpty(ownerIds) ? Map.of() : ownerRepo.listByIds(ownerIds).stream()
+            .collect(Collectors.toMap(Owner::getId, item -> item, (left, right) -> left));
         Map<Long, String> roomAddressMap = buildRoomAddressMap(billMap.values().stream().toList());
 
         return financeFlows.stream().map(item -> {
@@ -224,6 +254,36 @@ public class FinanceFlowFinanceService {
                 vo.setPaymentVoucherUrl(paymentFlow.getPaymentVoucherUrl());
                 vo.setPaymentRemark(paymentFlow.getRemark());
                 vo.setPayAt(paymentFlow.getPayAt());
+            }
+            OwnerPayableBillPayment ownerPayment = ownerPaymentMap.get(item.getBizId());
+            OwnerPayableBill ownerBill = ownerPayment == null ? null : ownerBillMap.get(ownerPayment.getBillId());
+            Owner owner = ownerBill == null ? null : ownerMap.get(ownerBill.getOwnerId());
+            if (ownerPayment != null) {
+                vo.setPaymentNo(ownerPayment.getPaymentNo());
+                vo.setPaymentChannel(ownerPayment.getPayChannel());
+                vo.setPaymentApprovalStatus(ownerPayment.getApprovalStatus());
+                vo.setPaymentStatus(ownerPayment.getPaymentStatus());
+                vo.setThirdTradeNo(ownerPayment.getThirdTradeNo());
+                vo.setPaymentRemark(ownerPayment.getRemark());
+                vo.setPayAt(ownerPayment.getPayAt());
+            }
+            if (ownerBill != null) {
+                vo.setBillId(ownerBill.getId());
+                vo.setOwnerPayableBillId(ownerBill.getId());
+                vo.setOwnerPayableBillNo(ownerBill.getBillNo());
+                vo.setOwnerPayableBillSubjectName(ownerBill.getSubjectNameSnapshot());
+                vo.setDueDate(ownerBill.getDueDate());
+                vo.setBillStart(ownerBill.getBillStartDate());
+                vo.setBillEnd(ownerBill.getBillEndDate());
+                vo.setRoomAddress(ownerBill.getSubjectNameSnapshot());
+                if (CharSequenceUtil.isBlank(vo.getFeeName())) {
+                    vo.setFeeName("包租应付付款");
+                }
+            }
+            if (owner != null) {
+                vo.setOwnerId(owner.getId());
+                vo.setOwnerName(owner.getOwnerName());
+                vo.setOwnerPhone(owner.getOwnerPhone());
             }
             return vo;
         }).toList();

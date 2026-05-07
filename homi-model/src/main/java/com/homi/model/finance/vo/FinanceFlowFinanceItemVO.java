@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
-@Schema(description = "租客财务流水列表项")
+@Schema(description = "财务流水列表项")
 public class FinanceFlowFinanceItemVO {
     @Schema(description = "财务流水ID")
     private Long id;
@@ -16,8 +16,17 @@ public class FinanceFlowFinanceItemVO {
     @Schema(description = "财务流水号")
     private String flowNo;
 
-    @Schema(description = "支付流水ID")
+    @Schema(description = "租客支付流水ID（租客收款场景）")
     private Long paymentFlowId;
+
+    @Schema(description = "来源类型")
+    private String sourceType;
+
+    @Schema(description = "来源单据ID")
+    private Long sourceId;
+
+    @Schema(description = "来源单据编号")
+    private String sourceNo;
 
     @Schema(description = "业务类型")
     private String bizType;
@@ -55,8 +64,26 @@ public class FinanceFlowFinanceItemVO {
     @Schema(description = "租客电话")
     private String tenantPhone;
 
+    @Schema(description = "业主ID")
+    private Long ownerId;
+
+    @Schema(description = "业主姓名")
+    private String ownerName;
+
+    @Schema(description = "业主电话")
+    private String ownerPhone;
+
     @Schema(description = "账单ID")
     private Long billId;
+
+    @Schema(description = "包租应付单ID")
+    private Long ownerPayableBillId;
+
+    @Schema(description = "包租应付单号")
+    private String ownerPayableBillNo;
+
+    @Schema(description = "包租应付单房源")
+    private String ownerPayableBillSubjectName;
 
     @Schema(description = "租约ID")
     private Long leaseId;
