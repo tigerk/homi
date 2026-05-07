@@ -16,9 +16,6 @@ public class FinanceFlowFinanceItemVO {
     @Schema(description = "财务流水号")
     private String flowNo;
 
-    @Schema(description = "租客支付流水ID（租客收款场景）")
-    private Long paymentFlowId;
-
     @Schema(description = "来源类型")
     private String sourceType;
 
@@ -46,8 +43,14 @@ public class FinanceFlowFinanceItemVO {
     @Schema(description = "金额")
     private BigDecimal amount;
 
+    @Schema(description = "币种")
+    private String currency;
+
     @Schema(description = "状态")
     private Integer status;
+
+    @Schema(description = "扩展字段")
+    private String extJson;
 
     @Schema(description = "费用类型")
     private String feeType;

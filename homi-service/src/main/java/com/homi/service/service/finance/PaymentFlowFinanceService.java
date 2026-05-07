@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.homi.common.lib.enums.finance.FinanceFlowSourceTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowStatusEnum;
 import com.homi.common.lib.utils.BeanCopyUtils;
@@ -84,7 +85,10 @@ public class PaymentFlowFinanceService {
         if (detail == null) {
             return null;
         }
-        List<com.homi.model.dao.entity.FinanceFlow> financeFlows = financeFlowService.getListByPaymentFlowId(id);
+        List<com.homi.model.dao.entity.FinanceFlow> financeFlows = financeFlowService.getListBySource(
+            FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode(),
+            id
+        );
         Map<Long, LeaseBillFee> feeMap = leaseBillFeeRepo.getByIds(financeFlows.stream()
                 .map(com.homi.model.dao.entity.FinanceFlow::getBizId)
                 .filter(Objects::nonNull)

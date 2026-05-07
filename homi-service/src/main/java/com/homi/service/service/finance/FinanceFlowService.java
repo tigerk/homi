@@ -36,8 +36,8 @@ public class FinanceFlowService {
         return financeFlowRepo.getListByBizIds(bizType, bizIds);
     }
 
-    public List<FinanceFlow> getListByPaymentFlowId(Long paymentFlowId) {
-        return financeFlowRepo.getListByPaymentFlowId(paymentFlowId);
+    public List<FinanceFlow> getListBySource(String sourceType, Long sourceId) {
+        return financeFlowRepo.getListBySource(sourceType, sourceId);
     }
 
     public boolean existsByBizIds(String bizType, List<Long> bizIds) {
@@ -59,7 +59,6 @@ public class FinanceFlowService {
         FinanceFlow financeFlow = new FinanceFlow();
         financeFlow.setFlowNo(generateFinanceFlowNo());
         financeFlow.setCompanyId(command.bill().getCompanyId());
-        financeFlow.setPaymentFlowId(null);
         financeFlow.setSourceType(FinanceFlowSourceTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode());
         financeFlow.setSourceId(command.payment().getId());
         financeFlow.setSourceNo(command.payment().getPaymentNo());
@@ -95,7 +94,6 @@ public class FinanceFlowService {
         FinanceFlow financeFlow = new FinanceFlow();
         financeFlow.setFlowNo(generateFinanceFlowNo());
         financeFlow.setCompanyId(command.paymentFlow().getCompanyId());
-        financeFlow.setPaymentFlowId(command.paymentFlow().getId());
         financeFlow.setSourceType(FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode());
         financeFlow.setSourceId(command.paymentFlow().getId());
         financeFlow.setSourceNo(command.paymentFlow().getPaymentNo());

@@ -1,5 +1,5 @@
 -- 财务流水改为通用来源结构。
--- payment_flow_id 保留用于兼容租客收款链路，新业务统一写 source_type/source_id/source_no。
+-- payment_flow_id 只作为本次迁移的旧字段来源，后续统一使用 source_type/source_id/source_no。
 
 ALTER TABLE `finance_flow`
   MODIFY COLUMN `payment_flow_id` bigint DEFAULT NULL COMMENT '关联支付流水ID（租客收款场景）',
@@ -22,3 +22,6 @@ WHERE ff.`source_type` = 'PAYMENT_FLOW'
 ALTER TABLE `finance_flow`
   ADD KEY `idx_finance_flow_source` (`source_type`, `source_id`),
   ADD KEY `idx_finance_flow_biz_type_status` (`biz_type`, `status`);
+
+ALTER TABLE `finance_flow`
+  DROP COLUMN `payment_flow_id`;

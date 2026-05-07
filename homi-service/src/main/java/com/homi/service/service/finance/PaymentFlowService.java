@@ -3,6 +3,7 @@ package com.homi.service.service.finance;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
+import com.homi.common.lib.enums.finance.FinanceFlowSourceTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
@@ -178,7 +179,10 @@ public class PaymentFlowService {
         paymentFlow.setUpdateAt(now);
         paymentFlowRepo.updateById(paymentFlow);
 
-        List<FinanceFlow> financeFlows = financeFlowRepo.getListByPaymentFlowIdForUpdate(paymentFlowId);
+        List<FinanceFlow> financeFlows = financeFlowRepo.getListBySourceForUpdate(
+            FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode(),
+            paymentFlowId
+        );
         if (!financeFlows.isEmpty()) {
             for (FinanceFlow financeFlow : financeFlows) {
                 financeFlow.setStatus(FinanceFlowStatusEnum.VOIDED.getCode());
@@ -222,7 +226,10 @@ public class PaymentFlowService {
         paymentFlow.setUpdateAt(now);
         paymentFlowRepo.updateById(paymentFlow);
 
-        List<FinanceFlow> financeFlows = financeFlowRepo.getListByPaymentFlowIdForUpdate(paymentFlowId);
+        List<FinanceFlow> financeFlows = financeFlowRepo.getListBySourceForUpdate(
+            FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode(),
+            paymentFlowId
+        );
         if (!financeFlows.isEmpty()) {
             for (FinanceFlow financeFlow : financeFlows) {
                 financeFlow.setStatus(FinanceFlowStatusEnum.VOIDED.getCode());

@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
+import com.homi.common.lib.enums.finance.FinanceFlowSourceTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
 import com.homi.common.lib.utils.TimeUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -190,7 +191,8 @@ public class FinanceFlowFinanceService {
         Map<Long, Tenant> tenantMap = CollUtil.isEmpty(tenantIds) ? Map.of() : tenantRepo.listByIds(tenantIds).stream()
             .collect(Collectors.toMap(Tenant::getId, item -> item, (left, right) -> left));
         List<Long> paymentFlowIds = financeFlows.stream()
-            .map(FinanceFlow::getPaymentFlowId)
+            .filter(item -> Objects.equals(item.getSourceType(), FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode()))
+            .map(FinanceFlow::getSourceId)
             .filter(Objects::nonNull)
             .distinct()
             .toList();
@@ -198,9 +200,9 @@ public class FinanceFlowFinanceService {
             .collect(Collectors.toMap(PaymentFlow::getId, item -> item, (left, right) -> left));
         List<Long> ownerPaymentIds = financeFlows.stream()
             .filter(item -> Objects.equals(item.getBizType(), FinanceBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode()))
-                .map(FinanceFlow::getBizId)
-                .filter(Objects::nonNull)
-                .distinct()
+            .map(FinanceFlow::getBizId)
+            .filter(Objects::nonNull)
+            .distinct()
             .toList();
         Map<Long, OwnerPayableBillPayment> ownerPaymentMap = CollUtil.isEmpty(ownerPaymentIds) ? Map.of() : ownerPayableBillPaymentRepo.listByIds(ownerPaymentIds).stream()
             .collect(Collectors.toMap(OwnerPayableBillPayment::getId, item -> item, (left, right) -> left));
@@ -226,7 +228,9 @@ public class FinanceFlowFinanceService {
             LeaseBillFee fee = feeMap.get(item.getBizId());
             LeaseBill bill = fee == null ? null : billMap.get(fee.getBillId());
             Tenant tenant = bill == null ? null : tenantMap.get(bill.getTenantId());
-            PaymentFlow paymentFlow = paymentFlowMap.get(item.getPaymentFlowId());
+            PaymentFlow paymentFlow = Objects.equals(item.getSourceType(), FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode())
+                ? paymentFlowMap.get(item.getSourceId())
+                : null;
             if (fee != null) {
                 vo.setFeeType(fee.getFeeType());
                 vo.setFeeName(fee.getFeeName());
