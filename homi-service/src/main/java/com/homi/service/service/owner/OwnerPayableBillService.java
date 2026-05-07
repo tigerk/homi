@@ -6,18 +6,23 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
+import com.homi.common.lib.enums.approval.ApprovalBizTypeEnum;
+import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerBillSceneEnum;
+import com.homi.common.lib.enums.owner.OwnerPayableBillPaymentRecordStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillPaymentStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillStatusEnum;
 import com.homi.common.lib.vo.PageVO;
+import com.homi.model.approval.dto.ApprovalSubmitDTO;
 import com.homi.model.dao.entity.*;
 import com.homi.model.dao.repo.*;
 import com.homi.model.owner.dto.*;
 import com.homi.model.owner.vo.*;
+import com.homi.service.service.approval.ApprovalTemplate;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -39,6 +44,8 @@ public class OwnerPayableBillService {
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
     private final FileAttachRepo fileAttachRepo;
     private final BizOperateLogRepo bizOperateLogRepo;
+    private final ApprovalTemplate approvalTemplate;
+    private final OwnerPayableBillPaymentApprovalService ownerPayableBillPaymentApprovalService;
 
     public PageVO<OwnerPayableBillListVO> page(OwnerPayableBillQueryDTO query) {
         Page<OwnerPayableBill> page = new Page<>(query.getCurrentPage(), query.getPageSize());
@@ -309,6 +316,9 @@ public class OwnerPayableBillService {
         if (Objects.equals(bill.getBillStatus(), OwnerPayableBillStatusEnum.VOIDED.getCode())) {
             throw new IllegalArgumentException("已作废账单不可登记付款");
         }
+        if (hasPendingPaymentRecord(bill.getId())) {
+            throw new IllegalArgumentException("存在待审核付款记录，请先处理后再登记付款");
+        }
         if (dto.getPayAmount().compareTo(defaultZero(bill.getUnpaidAmount())) > 0) {
             throw new IllegalArgumentException("付款金额不能超过未付金额");
         }
@@ -322,6 +332,8 @@ public class OwnerPayableBillService {
         payment.setPayChannel(dto.getPayChannel());
         payment.setThirdTradeNo(dto.getThirdTradeNo());
         payment.setRemark(dto.getRemark());
+        payment.setPaymentStatus(OwnerPayableBillPaymentRecordStatusEnum.PENDING_APPROVAL.getCode());
+        payment.setApprovalStatus(BizApprovalStatusEnum.PENDING.getCode());
         payment.setCreateBy(operatorId);
         payment.setCreateAt(now);
         payment.setUpdateBy(operatorId);
@@ -330,12 +342,7 @@ public class OwnerPayableBillService {
         if (dto.getVoucherUrls() != null && !dto.getVoucherUrls().isEmpty()) {
             fileAttachRepo.recreateFileAttachList(payment.getId(), FileAttachBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT_VOUCHER.getBizType(), dto.getVoucherUrls());
         }
-        bill.setPaidAmount(defaultZero(bill.getPaidAmount()).add(dto.getPayAmount()));
-        bill.setUnpaidAmount(defaultZero(bill.getPayableAmount()).subtract(defaultZero(bill.getPaidAmount())).max(BigDecimal.ZERO));
-        bill.setPaymentStatus(resolvePaymentStatus(bill));
-        bill.setUpdateBy(operatorId);
-        bill.setUpdateAt(now);
-        ownerPayableBillRepo.updateById(bill);
+        submitPaymentApproval(payment, bill, dto, operatorId);
         return payment.getId();
     }
 
@@ -403,7 +410,7 @@ public class OwnerPayableBillService {
         if (!Objects.equals(bill.getBillStatus(), OwnerPayableBillStatusEnum.NORMAL.getCode())) {
             throw new IllegalArgumentException("已作废账单不可修改");
         }
-        if (ownerPayableBillPaymentRepo.lambdaQuery().eq(OwnerPayableBillPayment::getBillId, bill.getId()).count() > 0
+        if (hasActivePaymentRecord(bill.getId())
             || defaultZero(bill.getPaidAmount()).compareTo(BigDecimal.ZERO) > 0
             || !Objects.equals(bill.getPaymentStatus(), OwnerPayableBillPaymentStatusEnum.UNPAID.getCode())) {
             throw new IllegalArgumentException("已有付款记录的账单不可直接修改");
@@ -414,11 +421,66 @@ public class OwnerPayableBillService {
         if (!Objects.equals(bill.getBillStatus(), OwnerPayableBillStatusEnum.NORMAL.getCode())) {
             throw new IllegalArgumentException("账单已作废");
         }
-        if (ownerPayableBillPaymentRepo.lambdaQuery().eq(OwnerPayableBillPayment::getBillId, bill.getId()).count() > 0
+        if (hasActivePaymentRecord(bill.getId())
             || defaultZero(bill.getPaidAmount()).compareTo(BigDecimal.ZERO) > 0
             || !Objects.equals(bill.getPaymentStatus(), OwnerPayableBillPaymentStatusEnum.UNPAID.getCode())) {
             throw new IllegalArgumentException("仅未付款账单允许作废");
         }
+    }
+
+    private void submitPaymentApproval(OwnerPayableBillPayment payment, OwnerPayableBill bill, OwnerPayableBillPaymentCreateDTO dto, Long operatorId) {
+        approvalTemplate.submitIfNeed(
+            ApprovalSubmitDTO.builder()
+                .companyId(bill.getCompanyId())
+                .bizType(ApprovalBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode())
+                .bizId(payment.getId())
+                .title("包租应付付款审批 - " + bill.getBillNo())
+                .applicantId(operatorId)
+                .remark(dto.getRemark())
+                .build(),
+            bizId -> updatePaymentApprovalStatus(
+                bizId,
+                BizApprovalStatusEnum.PENDING.getCode(),
+                OwnerPayableBillPaymentRecordStatusEnum.PENDING_APPROVAL.getCode(),
+                operatorId
+            ),
+            bizId -> {
+                updatePaymentApprovalStatus(
+                    bizId,
+                    BizApprovalStatusEnum.APPROVED.getCode(),
+                    OwnerPayableBillPaymentRecordStatusEnum.PENDING_APPROVAL.getCode(),
+                    operatorId
+                );
+                ownerPayableBillPaymentApprovalService.completePayment(bizId);
+            }
+        );
+    }
+
+    private void updatePaymentApprovalStatus(Long paymentId, Integer approvalStatus, Integer paymentStatus, Long operatorId) {
+        OwnerPayableBillPayment payment = new OwnerPayableBillPayment();
+        payment.setId(paymentId);
+        payment.setApprovalStatus(approvalStatus);
+        payment.setPaymentStatus(paymentStatus);
+        payment.setUpdateBy(operatorId);
+        payment.setUpdateAt(new Date());
+        ownerPayableBillPaymentRepo.updateById(payment);
+    }
+
+    private boolean hasPendingPaymentRecord(Long billId) {
+        return ownerPayableBillPaymentRepo.lambdaQuery()
+            .eq(OwnerPayableBillPayment::getBillId, billId)
+            .eq(OwnerPayableBillPayment::getPaymentStatus, OwnerPayableBillPaymentRecordStatusEnum.PENDING_APPROVAL.getCode())
+            .count() > 0;
+    }
+
+    private boolean hasActivePaymentRecord(Long billId) {
+        return ownerPayableBillPaymentRepo.lambdaQuery()
+            .eq(OwnerPayableBillPayment::getBillId, billId)
+            .and(wrapper -> wrapper
+                .isNull(OwnerPayableBillPayment::getPaymentStatus)
+                .or()
+                .ne(OwnerPayableBillPayment::getPaymentStatus, OwnerPayableBillPaymentRecordStatusEnum.CLOSED.getCode()))
+            .count() > 0;
     }
 
     private OwnerPayableBill buildBill(OwnerPayableBillCreateDTO dto, OwnerContract contract, Long operatorId, Long billId) {
@@ -475,16 +537,6 @@ public class OwnerPayableBillService {
 
     private BigDecimal calcFeeTotal(List<OwnerPayableBillFeeDTO> feeList) {
         return feeList.stream().map(OwnerPayableBillFeeDTO::getAmount).filter(Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private Integer resolvePaymentStatus(OwnerPayableBill bill) {
-        if (defaultZero(bill.getUnpaidAmount()).compareTo(BigDecimal.ZERO) <= 0) {
-            return OwnerPayableBillPaymentStatusEnum.PAID.getCode();
-        }
-        if (defaultZero(bill.getPaidAmount()).compareTo(BigDecimal.ZERO) > 0) {
-            return OwnerPayableBillPaymentStatusEnum.PART_PAID.getCode();
-        }
-        return OwnerPayableBillPaymentStatusEnum.UNPAID.getCode();
     }
 
     private Map<Long, List<OwnerPayableBillFeeVO>> buildFeeListMap(Collection<Long> billIds) {
@@ -590,6 +642,9 @@ public class OwnerPayableBillService {
         vo.setPayChannel(item.getPayChannel());
         vo.setThirdTradeNo(item.getThirdTradeNo());
         vo.setRemark(item.getRemark());
+        vo.setPaymentStatus(item.getPaymentStatus());
+        vo.setApprovalStatus(item.getApprovalStatus());
+        vo.setFinanceFlowId(item.getFinanceFlowId());
         vo.setVoucherUrls(voucherUrls == null ? Collections.emptyList() : voucherUrls);
         vo.setCreateAt(item.getCreateAt());
         return vo;

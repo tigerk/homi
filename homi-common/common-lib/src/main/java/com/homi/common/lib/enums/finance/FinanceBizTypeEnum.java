@@ -6,7 +6,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum FinanceBizTypeEnum {
-    LEASE_BILL_FEE("LEASE_BILL_FEE", "租客账单费用项");
+    LEASE_BILL_FEE("LEASE_BILL_FEE", "租客账单费用项"),
+    OWNER_PAYABLE_BILL_PAYMENT("OWNER_PAYABLE_BILL_PAYMENT", "包租应付付款");
 
     private final String code;
     private final String label;

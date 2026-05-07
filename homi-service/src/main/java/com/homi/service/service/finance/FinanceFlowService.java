@@ -2,12 +2,15 @@ package com.homi.service.service.finance;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowTypeEnum;
 import com.homi.model.dao.entity.FinanceFlow;
 import com.homi.model.dao.entity.LeaseBillFee;
+import com.homi.model.dao.entity.OwnerPayableBill;
+import com.homi.model.dao.entity.OwnerPayableBillPayment;
 import com.homi.model.dao.entity.PaymentFlow;
 import com.homi.model.dao.repo.FinanceFlowRepo;
 import com.homi.model.tenant.dto.LeaseBillCollectDTO;
@@ -51,6 +54,39 @@ public class FinanceFlowService {
         financeFlowRepo.saveBatch(financeFlows);
     }
 
+    public FinanceFlow createOwnerPayableBillPayFlow(OwnerPayableBillPayCommand command) {
+        FinanceFlow financeFlow = new FinanceFlow();
+        financeFlow.setFlowNo(generateFinanceFlowNo());
+        financeFlow.setCompanyId(command.bill().getCompanyId());
+        financeFlow.setPaymentFlowId(null);
+        financeFlow.setBizType(FinanceBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode());
+        financeFlow.setBizId(command.payment().getId());
+        financeFlow.setBizNo(command.payment().getPaymentNo());
+        financeFlow.setFlowType(FinanceFlowTypeEnum.PAY.getCode());
+        financeFlow.setFlowDirection(FinanceFlowDirectionEnum.OUT.getCode());
+        financeFlow.setAmount(defaultZero(command.payment().getPayAmount()).abs());
+        financeFlow.setCurrency("CNY");
+        financeFlow.setStatus(FinanceFlowStatusEnum.SUCCESS.getCode());
+        financeFlow.setFlowAt(command.payment().getPayAt());
+        financeFlow.setPayerName("平台");
+        financeFlow.setReceiverName(command.ownerName());
+        financeFlow.setOperatorId(command.operatorId());
+        financeFlow.setOperatorName(command.operatorName());
+        financeFlow.setRemark(command.remark());
+        financeFlow.setExtJson(JSONUtil.createObj()
+            .set("billId", command.bill().getId())
+            .set("billNo", command.bill().getBillNo())
+            .set("ownerId", command.bill().getOwnerId())
+            .set("contractId", command.bill().getContractId())
+            .toString());
+        financeFlow.setCreateBy(command.operatorId());
+        financeFlow.setCreateAt(command.now());
+        financeFlow.setUpdateBy(command.operatorId());
+        financeFlow.setUpdateAt(command.now());
+        financeFlowRepo.save(financeFlow);
+        return financeFlow;
+    }
+
     private FinanceFlow buildFinanceFlow(CreateCommand command, LeaseBillFee fee, LeaseBillCollectDTO.Item item) {
         FinanceFlow financeFlow = new FinanceFlow();
         financeFlow.setFlowNo(generateFinanceFlowNo());
@@ -83,6 +119,10 @@ public class FinanceFlowService {
         return "FL" + IdUtil.getSnowflakeNextIdStr();
     }
 
+    private BigDecimal defaultZero(BigDecimal amount) {
+        return amount == null ? BigDecimal.ZERO : amount;
+    }
+
     @Builder
     public record CreateCommand(
         PaymentFlow paymentFlow,
@@ -93,6 +133,18 @@ public class FinanceFlowService {
         String operatorName,
         String payerName,
         String payerPhone,
+        String remark,
+        DateTime now
+    ) {
+    }
+
+    @Builder
+    public record OwnerPayableBillPayCommand(
+        OwnerPayableBill bill,
+        OwnerPayableBillPayment payment,
+        String ownerName,
+        Long operatorId,
+        String operatorName,
         String remark,
         DateTime now
     ) {

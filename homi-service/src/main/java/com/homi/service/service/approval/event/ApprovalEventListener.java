@@ -16,6 +16,7 @@ import com.homi.model.dao.repo.LeaseCheckoutRepo;
 import com.homi.model.dao.repo.LeaseRepo;
 import com.homi.model.dao.repo.OwnerContractRepo;
 import com.homi.service.service.lease.bill.PaymentApprovalService;
+import com.homi.service.service.owner.OwnerPayableBillPaymentApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.modulith.events.ApplicationModuleListener;
@@ -44,6 +45,7 @@ public class ApprovalEventListener {
     private final HouseRepo houseRepo;
     private final OwnerContractRepo ownerContractRepo;
     private final PaymentApprovalService paymentApprovalService;
+    private final OwnerPayableBillPaymentApprovalService ownerPayableBillPaymentApprovalService;
 
     /**
      * 监听审批状态变更事件
@@ -80,6 +82,7 @@ public class ApprovalEventListener {
                 case TENANT_CHECKOUT -> handleLeaseCheckout(bizId, approvalStatus, bizApprovalStatus);
                 case HOUSE_CREATE -> handleHouseCreate(bizId, approvalStatus, bizApprovalStatus);
                 case PAYMENT_FLOW -> handlePaymentFlow(bizId, approvalStatus, bizApprovalStatus);
+                case OWNER_PAYABLE_BILL_PAYMENT -> handleOwnerPayableBillPayment(bizId, approvalStatus, bizApprovalStatus);
                 default -> handleDefaultBiz(bizType, bizId, approvalStatus, bizApprovalStatus);
             }
 
@@ -223,6 +226,20 @@ public class ApprovalEventListener {
             || ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
             paymentApprovalService.closePaymentFlowCollection(paymentFlowId, bizApprovalStatus);
             log.info("账单收款审批结束并关闭支付流水: paymentFlowId={}, approvalStatus={}", paymentFlowId, approvalStatus);
+        }
+    }
+
+    private void handleOwnerPayableBillPayment(Long paymentId, Integer approvalStatus, Integer bizApprovalStatus) {
+        if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
+            ownerPayableBillPaymentApprovalService.completePayment(paymentId);
+            log.info("包租应付付款审批通过: paymentId={}", paymentId);
+            return;
+        }
+
+        if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)
+            || ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
+            ownerPayableBillPaymentApprovalService.closePayment(paymentId, bizApprovalStatus);
+            log.info("包租应付付款审批结束并关闭付款记录: paymentId={}, approvalStatus={}", paymentId, approvalStatus);
         }
     }
 

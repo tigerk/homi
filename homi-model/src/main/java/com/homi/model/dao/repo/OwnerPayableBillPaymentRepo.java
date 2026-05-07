@@ -7,4 +7,13 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class OwnerPayableBillPaymentRepo extends ServiceImpl<OwnerPayableBillPaymentMapper, OwnerPayableBillPayment> {
+    public OwnerPayableBillPayment getByIdForUpdate(Long id) {
+        if (id == null) {
+            return null;
+        }
+        return lambdaQuery()
+            .eq(OwnerPayableBillPayment::getId, id)
+            .last("for update")
+            .one();
+    }
 }

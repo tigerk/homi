@@ -62,6 +62,18 @@ public class OwnerPayableBillPayment implements Serializable {
     @TableField("remark")
     private String remark;
 
+    @Schema(description = "付款记录状态")
+    @TableField("payment_status")
+    private Integer paymentStatus;
+
+    @Schema(description = "审批状态")
+    @TableField("approval_status")
+    private Integer approvalStatus;
+
+    @Schema(description = "财务流水ID")
+    @TableField("finance_flow_id")
+    private Long financeFlowId;
+
     @Schema(description = "是否删除：0=否，1=是")
     @TableField("deleted")
     @TableLogic
