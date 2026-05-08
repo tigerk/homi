@@ -11,6 +11,7 @@ import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
+import com.homi.common.lib.enums.finance.PaymentFlowStatusEnum;
 import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
 import com.homi.common.lib.enums.owner.*;
@@ -56,6 +57,8 @@ public class OwnerBillingGenerateService {
     private final OwnerAccountRepo ownerAccountRepo;
     private final OwnerAccountFlowRepo ownerAccountFlowRepo;
     private final LeaseRepo leaseRepo;
+    private final LeaseBillRepo leaseBillRepo;
+    private final LeaseBillFeeRepo leaseBillFeeRepo;
     private final LeaseRoomRepo leaseRoomRepo;
     private final RoomRepo roomRepo;
 
@@ -96,16 +99,28 @@ public class OwnerBillingGenerateService {
      * - 同一支付流水重复回调，通过支付流水来源明细防重
      */
     @Transactional(rollbackFor = Exception.class)
-    public void generateRealtimeSettlementBillByPaymentFlow(PaymentFlow paymentFlow, LeaseBill bill,
-                                                            Map<Long, LeaseBillFee> feeMap, LeaseBillCollectDTO dto, Long operatorId, Date now) {
+    public int generateRealtimeSettlementBillByPaymentFlow(PaymentFlow paymentFlow, LeaseBill bill,
+                                                           Map<Long, LeaseBillFee> feeMap, LeaseBillCollectDTO dto, Long operatorId, Date now) {
+        return generateRealtimeSettlementBillByPaymentFlow(paymentFlow, bill, feeMap, dto, operatorId, now, null);
+    }
+
+    private int generateRealtimeSettlementBillByPaymentFlow(PaymentFlow paymentFlow, LeaseBill bill,
+                                                            Map<Long, LeaseBillFee> feeMap, LeaseBillCollectDTO dto, Long operatorId, Date now,
+                                                            Long expectedContractId) {
         if (paymentFlow == null || bill == null || feeMap == null || feeMap.isEmpty() || dto == null || dto.getItems() == null || dto.getItems().isEmpty()) {
-            return;
+            return 0;
         }
 
-        Date billDate = DateUtil.beginOfDay(ObjectUtil.defaultIfNull(dto.getPayAt(), paymentFlow.getPayAt()));
+        Date paymentDate = ObjectUtil.defaultIfNull(dto.getPayAt(), paymentFlow.getPayAt());
+        paymentDate = ObjectUtil.defaultIfNull(paymentDate, ObjectUtil.defaultIfNull(paymentFlow.getUpdateAt(), now));
+        if (paymentDate == null) {
+            return 0;
+        }
+        Date billDate = DateUtil.beginOfDay(paymentDate);
         Map<Long, RealtimeSettlementContext> contextCache = new HashMap<>();
         Map<Long, RealtimeSettlementContext> contextMap = new LinkedHashMap<>();
         Map<Long, List<LeaseBillCollectDTO.Item>> groupedItems = new LinkedHashMap<>();
+        int generatedCount = 0;
 
         for (LeaseBillCollectDTO.Item item : dto.getItems()) {
             LeaseBillFee leaseBillFee = feeMap.get(item.getLeaseBillFeeId());
@@ -117,7 +132,8 @@ public class OwnerBillingGenerateService {
                 log.warn("实时分账跳过未绑定房间的账单费用, leaseBillFeeId={}", leaseBillFee.getId());
                 continue;
             }
-            RealtimeSettlementContext context = contextCache.computeIfAbsent(leaseBillFee.getRoomId(), this::resolveRealtimeSettlementContextByRoomId);
+            RealtimeSettlementContext context = contextCache.computeIfAbsent(leaseBillFee.getRoomId(),
+                roomId -> resolveRealtimeSettlementContextByRoomId(roomId, expectedContractId));
             if (context == null) {
                 continue;
             }
@@ -210,7 +226,167 @@ public class OwnerBillingGenerateService {
             if (delta.compareTo(BigDecimal.ZERO) != 0) {
                 adjustOwnerAccountAmount(contract, settlementBill, delta, now);
             }
+            generatedCount++;
         }
+        return generatedCount;
+    }
+
+    /**
+     * 补偿轻托管“租客支付实时分账”历史收款。
+     *
+     * <p>用于业主合同后签字、定时兜底和手动触发。补偿只处理已经支付成功的租客账单支付流水，
+     * 并复用实时分账生成逻辑中的 PAYMENT_FLOW 来源防重。
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Integer compensateRealtimeSettlementBills(Long companyId, Long contractId, Long operatorId) {
+        List<OwnerContract> contractList = listRealtimeCompensationContracts(companyId, contractId);
+        int generatedCount = 0;
+        for (OwnerContract contract : contractList) {
+            try {
+                generatedCount += compensateRealtimeSettlementBillsByContract(contract, operatorId, DateUtil.date());
+            } catch (Exception e) {
+                log.error("补偿实时分账失败, contractId={}", contract.getId(), e);
+            }
+        }
+        return generatedCount;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Integer compensateRealtimeSettlementBillsByContract(Long contractId, Long operatorId) {
+        OwnerContract contract = ownerContractRepo.getById(contractId);
+        if (contract == null) {
+            return 0;
+        }
+        return compensateRealtimeSettlementBillsByContract(contract, operatorId, DateUtil.date());
+    }
+
+    private List<OwnerContract> listRealtimeCompensationContracts(Long companyId, Long contractId) {
+        LambdaQueryWrapper<OwnerContract> wrapper = new LambdaQueryWrapper<OwnerContract>()
+            .eq(contractId != null, OwnerContract::getId, contractId)
+            .eq(companyId != null, OwnerContract::getCompanyId, companyId)
+            .eq(OwnerContract::getCooperationMode, OwnerCooperationModeEnum.LIGHT_MANAGED.name())
+            .eq(OwnerContract::getStatus, OwnerContractStatusEnum.SIGNED.getCode())
+            .eq(OwnerContract::getApprovalStatus, BizApprovalStatusEnum.APPROVED.getCode())
+            .orderByAsc(OwnerContract::getId);
+        return ownerContractRepo.list(wrapper).stream()
+            .filter(item -> hasSignedOwnerContractDoc(item.getId()))
+            .toList();
+    }
+
+    private int compensateRealtimeSettlementBillsByContract(OwnerContract contract, Long operatorId, Date now) {
+        if (contract == null || !isLeaseStartBillContract(contract)) {
+            return 0;
+        }
+        List<Long> roomIds = resolveRealtimeCompensationRoomIds(contract.getId());
+        if (roomIds.isEmpty()) {
+            return 0;
+        }
+
+        List<Long> billIds = leaseBillFeeRepo.lambdaQuery()
+            .in(LeaseBillFee::getRoomId, roomIds)
+            .list()
+            .stream()
+            .map(LeaseBillFee::getBillId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        if (billIds.isEmpty()) {
+            return 0;
+        }
+
+        List<PaymentFlow> paymentFlows = paymentFlowRepo.lambdaQuery()
+            .eq(PaymentFlow::getCompanyId, contract.getCompanyId())
+            .eq(PaymentFlow::getBizType, PaymentFlowBizTypeEnum.LEASE_BILL.getCode())
+            .eq(PaymentFlow::getStatus, PaymentFlowStatusEnum.SUCCESS.getCode())
+            .in(PaymentFlow::getBizId, billIds)
+            .orderByAsc(PaymentFlow::getPayAt)
+            .orderByAsc(PaymentFlow::getId)
+            .list();
+        if (paymentFlows.isEmpty()) {
+            return 0;
+        }
+
+        Long finalOperatorId = ObjectUtil.defaultIfNull(operatorId, ObjectUtil.defaultIfNull(contract.getUpdateBy(), contract.getCreateBy()));
+        int generatedCount = 0;
+        for (PaymentFlow paymentFlow : paymentFlows) {
+            try {
+                generatedCount += compensateRealtimeSettlementBillByPaymentFlow(contract, paymentFlow, finalOperatorId, now);
+            } catch (Exception e) {
+                log.error("补偿实时分账支付流水失败, contractId={}, paymentFlowId={}", contract.getId(), paymentFlow.getId(), e);
+            }
+        }
+        return generatedCount;
+    }
+
+    private int compensateRealtimeSettlementBillByPaymentFlow(OwnerContract contract, PaymentFlow paymentFlow, Long operatorId, Date now) {
+        LeaseBillCollectDTO dto = parseLeaseBillCollectDTO(paymentFlow);
+        if (dto == null || dto.getItems() == null || dto.getItems().isEmpty()) {
+            return 0;
+        }
+        LeaseBill bill = leaseBillRepo.getById(paymentFlow.getBizId());
+        if (bill == null) {
+            return 0;
+        }
+        dto.setId(bill.getId());
+
+        List<Long> feeIds = dto.getItems().stream()
+            .map(LeaseBillCollectDTO.Item::getLeaseBillFeeId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        if (feeIds.isEmpty()) {
+            return 0;
+        }
+        Map<Long, LeaseBillFee> feeMap = leaseBillFeeRepo.getByIds(feeIds).stream()
+            .collect(Collectors.toMap(LeaseBillFee::getId, Function.identity(), (left, right) -> left));
+        if (feeMap.isEmpty()) {
+            return 0;
+        }
+        return generateRealtimeSettlementBillByPaymentFlow(
+            paymentFlow,
+            bill,
+            feeMap,
+            dto,
+            operatorId,
+            now,
+            contract.getId()
+        );
+    }
+
+    private LeaseBillCollectDTO parseLeaseBillCollectDTO(PaymentFlow paymentFlow) {
+        if (paymentFlow == null || StrUtil.isBlank(paymentFlow.getExtJson())) {
+            return null;
+        }
+        try {
+            return JSONUtil.toBean(paymentFlow.getExtJson(), LeaseBillCollectDTO.class);
+        } catch (Exception e) {
+            log.warn("补偿实时分账解析收款明细失败, paymentFlowId={}", paymentFlow.getId(), e);
+            return null;
+        }
+    }
+
+    private List<Long> resolveRealtimeCompensationRoomIds(Long contractId) {
+        List<Long> houseIds = ownerContractSubjectRepo.lambdaQuery()
+            .eq(OwnerContractSubject::getContractId, contractId)
+            .eq(OwnerContractSubject::getSubjectType, OwnerContractSubjectTypeEnum.HOUSE.getCode())
+            .eq(OwnerContractSubject::getStatus, StatusEnum.ACTIVE.getValue())
+            .list()
+            .stream()
+            .map(OwnerContractSubject::getSubjectId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        if (houseIds.isEmpty()) {
+            return List.of();
+        }
+        return roomRepo.lambdaQuery()
+            .in(Room::getHouseId, houseIds)
+            .list()
+            .stream()
+            .map(Room::getId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
     }
 
     /**
@@ -1005,9 +1181,14 @@ public class OwnerBillingGenerateService {
     }
 
     private OwnerContractSubject resolveRealtimeContractSubject(Long houseId) {
+        return resolveRealtimeContractSubject(houseId, null);
+    }
+
+    private OwnerContractSubject resolveRealtimeContractSubject(Long houseId, Long expectedContractId) {
         List<OwnerContractSubject> subjectList = ownerContractSubjectRepo.lambdaQuery()
             .eq(OwnerContractSubject::getSubjectType, OwnerContractSubjectTypeEnum.HOUSE.getCode())
             .eq(OwnerContractSubject::getSubjectId, houseId)
+            .eq(expectedContractId != null, OwnerContractSubject::getContractId, expectedContractId)
             .eq(OwnerContractSubject::getStatus, StatusEnum.ACTIVE.getValue())
             .list();
         if (subjectList.isEmpty()) {
@@ -1093,12 +1274,16 @@ public class OwnerBillingGenerateService {
     }
 
     private RealtimeSettlementContext resolveRealtimeSettlementContextByRoomId(Long roomId) {
+        return resolveRealtimeSettlementContextByRoomId(roomId, null);
+    }
+
+    private RealtimeSettlementContext resolveRealtimeSettlementContextByRoomId(Long roomId, Long expectedContractId) {
         Room room = roomRepo.getById(roomId);
         if (room == null || room.getHouseId() == null) {
             return null;
         }
 
-        OwnerContractSubject contractSubject = resolveRealtimeContractSubject(room.getHouseId());
+        OwnerContractSubject contractSubject = resolveRealtimeContractSubject(room.getHouseId(), expectedContractId);
         if (contractSubject == null) {
             return null;
         }

@@ -28,6 +28,7 @@ import com.homi.service.service.approval.ApprovalResult;
 import com.homi.service.service.approval.ApprovalTemplate;
 import com.homi.service.service.file.FileAttachGroupResolver;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class OwnerContractCommandService {
     private final OwnerRepo ownerRepo;
@@ -101,6 +103,9 @@ public class OwnerContractCommandService {
             ownerBillingGenerateService.rebuildMasterLeasePayableBillsByContract(contract.getId());
         }
         initOwnerAccount(dto.getOwnerContract().getCompanyId(), ownerId, now);
+        if (!approvalResult.isNeedApproval() && OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode())) {
+            compensateRealtimeSettlementIfSigned(contract.getId(), dto.getCreateBy());
+        }
         return contract.getId();
     }
 
@@ -203,6 +208,7 @@ public class OwnerContractCommandService {
         List<OwnerContractSubject> contractSubjects = saveContractSubjects(toCreateDTO(dto), contract.getId(), now);
         if (OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode())) {
             saveLightManagedRules(toCreateDTO(dto), contract, contractSubjects, now);
+            compensateRealtimeSettlementIfSigned(contract.getId(), dto.getUpdateBy());
         } else {
             saveMasterLeaseRules(toCreateDTO(dto), contract.getId(), now);
             if (shouldRebuildMasterLeaseBills) {
@@ -243,6 +249,9 @@ public class OwnerContractCommandService {
             ownerBillingGenerateService.rebuildMasterLeasePayableBillsByContract(contract.getId());
         }
         initOwnerAccount(dto.getOwnerContract().getCompanyId(), ownerId, now);
+        if (!approvalResult.isNeedApproval() && OwnerCooperationModeEnum.LIGHT_MANAGED.name().equals(contract.getCooperationMode())) {
+            compensateRealtimeSettlementIfSigned(contract.getId(), dto.getCreateBy());
+        }
         return contract.getId();
     }
 
@@ -457,6 +466,9 @@ public class OwnerContractCommandService {
         contractDoc.setUpdateAt(DateUtil.date());
         ownerContractDocRepo.updateById(contractDoc);
         syncOwnerContractSignStatusFromDocs(contract, updateBy);
+        if (OwnerSignStatusEnum.SIGNED.equals(signStatus)) {
+            compensateRealtimeSettlementIfSigned(contract.getId(), updateBy);
+        }
         return contract.getId();
     }
 
@@ -513,6 +525,7 @@ public class OwnerContractCommandService {
         contractDoc.setUpdateAt(DateUtil.date());
         ownerContractDocRepo.updateById(contractDoc);
         syncOwnerContractSignStatusFromDocs(contract, updateBy);
+        compensateRealtimeSettlementIfSigned(contract.getId(), updateBy);
         return contract.getId();
     }
 
@@ -1202,6 +1215,17 @@ public class OwnerContractCommandService {
         contract.setUpdateBy(updateBy);
         contract.setUpdateAt(DateUtil.date());
         ownerContractRepo.updateById(contract);
+    }
+
+    private void compensateRealtimeSettlementIfSigned(Long contractId, Long operatorId) {
+        if (contractId == null) {
+            return;
+        }
+        try {
+            ownerBillingGenerateService.compensateRealtimeSettlementBillsByContract(contractId, operatorId);
+        } catch (Exception e) {
+            log.error("业主合同签字后补偿实时分账失败, contractId={}", contractId, e);
+        }
     }
 
     private Integer resolveInitialDocSignStatus(OwnerContract contract, OwnerContractDTO contractDTO) {

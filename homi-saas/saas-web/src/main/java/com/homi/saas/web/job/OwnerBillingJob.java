@@ -36,4 +36,21 @@ public class OwnerBillingJob {
             log.error("自动生成轻托管业主结算单失败", e);
         }
     }
+
+    /**
+     * 补偿轻托管租客支付实时分账
+     * 每天凌晨 1:30 执行一次
+     */
+    @Scheduled(cron = "0 30 1 * * ?")
+    @SchedulerLock(name = "ownerBillingJob.compensateRealtimeSettlementBillTask", lockAtMostFor = "PT30M", lockAtLeastFor = "PT30S")
+    public void compensateRealtimeSettlementBillTask() {
+        try {
+            Integer count = ownerBillingGenerateService.compensateRealtimeSettlementBills(null, null, null);
+            if (count > 0) {
+                log.info("补偿轻托管租客支付实时分账成功，数量={}", count);
+            }
+        } catch (Exception e) {
+            log.error("补偿轻托管租客支付实时分账失败", e);
+        }
+    }
 }

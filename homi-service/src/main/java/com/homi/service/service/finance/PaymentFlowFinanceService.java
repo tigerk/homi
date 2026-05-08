@@ -167,16 +167,36 @@ public class PaymentFlowFinanceService {
     }
 
     private FilterContext resolveFilterContext(PaymentFlowFinanceQueryDTO query) {
+        String bizType = query.getBizType();
+        boolean searchLeaseBill = CharSequenceUtil.isBlank(bizType)
+            || Objects.equals(bizType, PaymentFlowBizTypeEnum.LEASE_BILL.getCode());
+        boolean searchOwnerPayableBill = CharSequenceUtil.isBlank(bizType)
+            || Objects.equals(bizType, PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode());
+        boolean hasObjectFilter = CharSequenceUtil.isNotBlank(query.getTenantName())
+            || CharSequenceUtil.isNotBlank(query.getTenantPhone());
+        boolean hasRoomFilter = CharSequenceUtil.isNotBlank(query.getRoomKeyword());
+
         List<Long> tenantIds = null;
-        if (CharSequenceUtil.isNotBlank(query.getTenantName()) || CharSequenceUtil.isNotBlank(query.getTenantPhone())) {
+        if (searchLeaseBill && hasObjectFilter) {
             tenantIds = tenantRepo.getTenantList(query.getTenantName(), query.getTenantPhone(), null).stream()
                 .map(Tenant::getId)
                 .distinct()
                 .toList();
         }
 
+        List<Long> ownerIds = null;
+        if (searchOwnerPayableBill && hasObjectFilter) {
+            LambdaQueryWrapper<Owner> ownerWrapper = new LambdaQueryWrapper<>();
+            ownerWrapper.like(CharSequenceUtil.isNotBlank(query.getTenantName()), Owner::getOwnerName, query.getTenantName());
+            ownerWrapper.like(CharSequenceUtil.isNotBlank(query.getTenantPhone()), Owner::getOwnerPhone, query.getTenantPhone());
+            ownerIds = ownerRepo.list(ownerWrapper).stream()
+                .map(Owner::getId)
+                .distinct()
+                .toList();
+        }
+
         List<Long> leaseIds = null;
-        if (CharSequenceUtil.isNotBlank(query.getRoomKeyword())) {
+        if (searchLeaseBill && hasRoomFilter) {
             RoomQueryDTO roomQueryDTO = new RoomQueryDTO();
             roomQueryDTO.setKeywords(query.getRoomKeyword());
             List<Long> roomIds = roomRepo.pageRoomGridList(roomQueryDTO).getRecords().stream()
@@ -185,20 +205,21 @@ public class PaymentFlowFinanceService {
                 .distinct()
                 .toList();
             if (CollUtil.isEmpty(roomIds)) {
-                return new FilterContext(List.of(), true);
-            }
-            leaseIds = leaseRoomRepo.getListByRoomIds(roomIds).stream()
-                .map(LeaseRoom::getLeaseId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList();
-            if (CollUtil.isEmpty(leaseIds)) {
-                return new FilterContext(List.of(), true);
+                leaseIds = List.of();
+            } else {
+                leaseIds = leaseRoomRepo.getListByRoomIds(roomIds).stream()
+                    .map(LeaseRoom::getLeaseId)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+                if (CollUtil.isEmpty(leaseIds)) {
+                    leaseIds = List.of();
+                }
             }
         }
 
-        List<Long> billIds = null;
-        if (tenantIds != null || leaseIds != null) {
+        List<Long> leaseBillIds = null;
+        if (searchLeaseBill && (tenantIds != null || leaseIds != null)) {
             LambdaQueryWrapper<LeaseBill> billWrapper = new LambdaQueryWrapper<>();
             if (CollUtil.isNotEmpty(tenantIds)) {
                 billWrapper.in(LeaseBill::getTenantId, tenantIds);
@@ -206,28 +227,95 @@ public class PaymentFlowFinanceService {
             if (CollUtil.isNotEmpty(leaseIds)) {
                 billWrapper.in(LeaseBill::getLeaseId, leaseIds);
             }
-            billIds = leaseBillRepo.list(billWrapper).stream().map(LeaseBill::getId).distinct().toList();
+            leaseBillIds = (CollUtil.isEmpty(tenantIds) && tenantIds != null) || (CollUtil.isEmpty(leaseIds) && leaseIds != null)
+                ? List.of()
+                : leaseBillRepo.list(billWrapper).stream().map(LeaseBill::getId).distinct().toList();
         }
 
-        boolean emptyResult = (tenantIds != null && tenantIds.isEmpty())
-            || (leaseIds != null && leaseIds.isEmpty())
-            || (billIds != null && billIds.isEmpty());
-        return new FilterContext(billIds, emptyResult);
+        List<Long> ownerBillIds = null;
+        if (searchOwnerPayableBill && (ownerIds != null || hasRoomFilter)) {
+            LambdaQueryWrapper<OwnerPayableBill> ownerBillWrapper = new LambdaQueryWrapper<>();
+            if (CollUtil.isNotEmpty(ownerIds)) {
+                ownerBillWrapper.in(OwnerPayableBill::getOwnerId, ownerIds);
+            }
+            if (hasRoomFilter) {
+                ownerBillWrapper.and(wrapper -> wrapper
+                    .like(OwnerPayableBill::getSubjectNameSnapshot, query.getRoomKeyword())
+                    .or()
+                    .like(OwnerPayableBill::getBillNo, query.getRoomKeyword()));
+            }
+            ownerBillIds = CollUtil.isEmpty(ownerIds) && ownerIds != null
+                ? List.of()
+                : ownerPayableBillRepo.list(ownerBillWrapper).stream().map(OwnerPayableBill::getId).distinct().toList();
+        }
+
+        boolean emptyResult = isPaymentFilterEmpty(bizType, hasObjectFilter || hasRoomFilter, leaseBillIds, ownerBillIds);
+        return new FilterContext(leaseBillIds, ownerBillIds, emptyResult);
     }
 
     private LambdaQueryWrapper<PaymentFlow> buildWrapper(PaymentFlowFinanceQueryDTO query, FilterContext filterContext) {
         LambdaQueryWrapper<PaymentFlow> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(filterContext.billIds() != null, PaymentFlow::getBizType, PaymentFlowBizTypeEnum.LEASE_BILL.getCode());
+        if (CharSequenceUtil.isNotBlank(query.getBizType())) {
+            wrapper.eq(PaymentFlow::getBizType, query.getBizType());
+            if (Objects.equals(query.getBizType(), PaymentFlowBizTypeEnum.LEASE_BILL.getCode())
+                && CollUtil.isNotEmpty(filterContext.leaseBillIds())) {
+                wrapper.in(PaymentFlow::getBizId, filterContext.leaseBillIds());
+            }
+            if (Objects.equals(query.getBizType(), PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode())
+                && CollUtil.isNotEmpty(filterContext.ownerBillIds())) {
+                wrapper.in(PaymentFlow::getBizId, filterContext.ownerBillIds());
+            }
+        } else {
+            applyPaymentBizFilter(wrapper, filterContext);
+        }
         if (query.getStatus() != null) {
             wrapper.eq(PaymentFlow::getStatus, query.getStatus());
-        }
-        if (CollUtil.isNotEmpty(filterContext.billIds())) {
-            wrapper.in(PaymentFlow::getBizId, filterContext.billIds());
         }
         wrapper.orderByAsc(PaymentFlow::getStatus);
         wrapper.orderByDesc(PaymentFlow::getCreateAt);
         wrapper.orderByDesc(PaymentFlow::getId);
         return wrapper;
+    }
+
+    private void applyPaymentBizFilter(LambdaQueryWrapper<PaymentFlow> wrapper, FilterContext filterContext) {
+        boolean hasLeaseBillFilter = CollUtil.isNotEmpty(filterContext.leaseBillIds());
+        boolean hasOwnerBillFilter = CollUtil.isNotEmpty(filterContext.ownerBillIds());
+        if (hasLeaseBillFilter && hasOwnerBillFilter) {
+            wrapper.and(item -> item
+                .eq(PaymentFlow::getBizType, PaymentFlowBizTypeEnum.LEASE_BILL.getCode())
+                .in(PaymentFlow::getBizId, filterContext.leaseBillIds())
+                .or()
+                .eq(PaymentFlow::getBizType, PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode())
+                .in(PaymentFlow::getBizId, filterContext.ownerBillIds()));
+            return;
+        }
+        if (hasLeaseBillFilter) {
+            wrapper.eq(PaymentFlow::getBizType, PaymentFlowBizTypeEnum.LEASE_BILL.getCode());
+            wrapper.in(PaymentFlow::getBizId, filterContext.leaseBillIds());
+            return;
+        }
+        if (hasOwnerBillFilter) {
+            wrapper.eq(PaymentFlow::getBizType, PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode());
+            wrapper.in(PaymentFlow::getBizId, filterContext.ownerBillIds());
+        }
+    }
+
+    private boolean isPaymentFilterEmpty(String bizType, boolean hasBizFilter, List<Long> leaseBillIds, List<Long> ownerBillIds) {
+        if (!hasBizFilter) {
+            return false;
+        }
+        if (Objects.equals(bizType, PaymentFlowBizTypeEnum.LEASE_BILL.getCode())) {
+            return leaseBillIds != null && leaseBillIds.isEmpty();
+        }
+        if (Objects.equals(bizType, PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode())) {
+            return ownerBillIds != null && ownerBillIds.isEmpty();
+        }
+        if (CharSequenceUtil.isNotBlank(bizType)) {
+            return false;
+        }
+        boolean leaseEmpty = leaseBillIds == null || leaseBillIds.isEmpty();
+        boolean ownerEmpty = ownerBillIds == null || ownerBillIds.isEmpty();
+        return leaseEmpty && ownerEmpty;
     }
 
     private List<PaymentFlowFinanceItemVO> toItems(List<PaymentFlow> paymentFlows) {
@@ -362,6 +450,6 @@ public class PaymentFlowFinanceService {
             .build();
     }
 
-    private record FilterContext(List<Long> billIds, boolean emptyResult) {
+    private record FilterContext(List<Long> leaseBillIds, List<Long> ownerBillIds, boolean emptyResult) {
     }
 }
