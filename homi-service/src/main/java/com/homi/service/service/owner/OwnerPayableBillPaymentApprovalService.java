@@ -11,11 +11,13 @@ import com.homi.model.dao.entity.FinanceFlow;
 import com.homi.model.dao.entity.Owner;
 import com.homi.model.dao.entity.OwnerPayableBill;
 import com.homi.model.dao.entity.OwnerPayableBillPayment;
+import com.homi.model.dao.entity.PaymentFlow;
 import com.homi.model.dao.repo.OwnerPayableBillPaymentRepo;
 import com.homi.model.dao.repo.OwnerPayableBillRepo;
 import com.homi.model.dao.repo.OwnerRepo;
 import com.homi.model.dao.repo.UserRepo;
 import com.homi.service.service.finance.FinanceFlowService;
+import com.homi.service.service.finance.PaymentFlowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ public class OwnerPayableBillPaymentApprovalService {
     private final OwnerRepo ownerRepo;
     private final UserRepo userRepo;
     private final FinanceFlowService financeFlowService;
+    private final PaymentFlowService paymentFlowService;
 
     /**
      * 审批通过或无需审批时执行真实付款入账。
@@ -60,14 +63,30 @@ public class OwnerPayableBillPaymentApprovalService {
         }
 
         DateTime now = DateUtil.date();
+        String ownerName = resolveOwnerName(bill.getOwnerId());
+        Long operatorId = payment.getCreateBy();
+        String operatorName = userRepo.getUserNicknameById(operatorId);
+        String remark = "包租应付单付款：" + bill.getBillNo();
+        PaymentFlow paymentFlow = paymentFlowService.createOwnerPayableBillPaymentFlow(
+            PaymentFlowService.CreateOwnerPayableBillPaymentCommand.builder()
+                .bill(bill)
+                .payment(payment)
+                .ownerName(ownerName)
+                .operatorId(operatorId)
+                .operatorName(operatorName)
+                .remark(remark)
+                .now(now)
+                .build()
+        );
         FinanceFlow financeFlow = financeFlowService.createOwnerPayableBillPayFlow(
             FinanceFlowService.OwnerPayableBillPayCommand.builder()
                 .bill(bill)
                 .payment(payment)
-                .ownerName(resolveOwnerName(bill.getOwnerId()))
-                .operatorId(payment.getCreateBy())
-                .operatorName(userRepo.getUserNicknameById(payment.getCreateBy()))
-                .remark("包租应付单付款：" + bill.getBillNo())
+                .paymentFlowId(paymentFlow.getId())
+                .ownerName(ownerName)
+                .operatorId(operatorId)
+                .operatorName(operatorName)
+                .remark(remark)
                 .now(now)
                 .build()
         );

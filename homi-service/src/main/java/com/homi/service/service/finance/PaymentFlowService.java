@@ -3,7 +3,7 @@ package com.homi.service.service.finance;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
-import com.homi.common.lib.enums.finance.FinanceFlowSourceTypeEnum;
+import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
@@ -14,6 +14,8 @@ import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.entity.FinanceFlow;
 import com.homi.model.dao.entity.LeaseCheckout;
 import com.homi.model.dao.entity.LeaseBill;
+import com.homi.model.dao.entity.OwnerPayableBill;
+import com.homi.model.dao.entity.OwnerPayableBillPayment;
 import com.homi.model.dao.entity.PaymentFlow;
 import com.homi.model.dao.repo.FinanceFlowRepo;
 import com.homi.model.dao.repo.LeaseCheckoutRepo;
@@ -57,6 +59,7 @@ public class PaymentFlowService {
         paymentFlow.setCompanyId(bill.getCompanyId());
         paymentFlow.setBizType(PaymentFlowBizTypeEnum.LEASE_BILL.getCode());
         paymentFlow.setBizId(bill.getId());
+        paymentFlow.setBizNo(String.valueOf(bill.getId()));
         paymentFlow.setChannel(resolvePaymentChannel(command.payChannel()));
         paymentFlow.setThirdTradeNo(command.thirdTradeNo());
         paymentFlow.setPaymentVoucherUrl(command.paymentVoucherUrl());
@@ -91,6 +94,7 @@ public class PaymentFlowService {
         paymentFlow.setCompanyId(checkout.getCompanyId());
         paymentFlow.setBizType(PaymentFlowBizTypeEnum.TENANT_CHECKOUT.getCode());
         paymentFlow.setBizId(checkout.getId());
+        paymentFlow.setBizNo(checkout.getCheckoutCode());
         paymentFlow.setChannel(resolvePaymentChannel(command.payChannel()));
         paymentFlow.setThirdTradeNo(command.thirdTradeNo());
         paymentFlow.setPaymentVoucherUrl(command.paymentVoucherUrl());
@@ -103,6 +107,39 @@ public class PaymentFlowService {
         paymentFlow.setPayAt(command.payAt());
         paymentFlow.setPayerName(command.payerName());
         paymentFlow.setPayerPhone(command.payerPhone());
+        paymentFlow.setOperatorId(command.operatorId());
+        paymentFlow.setOperatorName(command.operatorName());
+        paymentFlow.setRemark(command.remark());
+        paymentFlow.setExtJson(command.extJson());
+        paymentFlow.setCreateBy(command.operatorId());
+        paymentFlow.setCreateAt(command.now());
+        paymentFlow.setUpdateBy(command.operatorId());
+        paymentFlow.setUpdateAt(command.now());
+        paymentFlowRepo.save(paymentFlow);
+        return paymentFlow;
+    }
+
+    public PaymentFlow createOwnerPayableBillPaymentFlow(CreateOwnerPayableBillPaymentCommand command) {
+        OwnerPayableBill bill = command.bill();
+        OwnerPayableBillPayment payment = command.payment();
+        PaymentFlow paymentFlow = new PaymentFlow();
+        paymentFlow.setPaymentNo(generatePaymentNo());
+        paymentFlow.setCompanyId(bill.getCompanyId());
+        paymentFlow.setBizType(PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode());
+        paymentFlow.setBizId(payment.getId());
+        paymentFlow.setBizNo(payment.getPaymentNo());
+        paymentFlow.setChannel(resolvePaymentChannel(payment.getPayChannel()));
+        paymentFlow.setThirdTradeNo(payment.getThirdTradeNo());
+        BigDecimal amount = payment.getPayAmount() == null ? BigDecimal.ZERO : payment.getPayAmount();
+        paymentFlow.setAmount(amount.abs());
+        paymentFlow.setCurrency("CNY");
+        paymentFlow.setRefundedAmount(BigDecimal.ZERO);
+        paymentFlow.setFlowDirection(PaymentFlowDirectionEnum.OUT.getCode());
+        paymentFlow.setStatus(PaymentFlowStatusEnum.SUCCESS.getCode());
+        paymentFlow.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
+        paymentFlow.setPayAt(payment.getPayAt());
+        paymentFlow.setPayerName("平台");
+        paymentFlow.setReceiverName(command.ownerName());
         paymentFlow.setOperatorId(command.operatorId());
         paymentFlow.setOperatorName(command.operatorName());
         paymentFlow.setRemark(command.remark());
@@ -179,10 +216,7 @@ public class PaymentFlowService {
         paymentFlow.setUpdateAt(now);
         paymentFlowRepo.updateById(paymentFlow);
 
-        List<FinanceFlow> financeFlows = financeFlowRepo.getListBySourceForUpdate(
-            FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode(),
-            paymentFlowId
-        );
+        List<FinanceFlow> financeFlows = financeFlowRepo.getListByPaymentFlowIdForUpdate(paymentFlowId);
         if (!financeFlows.isEmpty()) {
             for (FinanceFlow financeFlow : financeFlows) {
                 financeFlow.setStatus(FinanceFlowStatusEnum.VOIDED.getCode());
@@ -226,10 +260,7 @@ public class PaymentFlowService {
         paymentFlow.setUpdateAt(now);
         paymentFlowRepo.updateById(paymentFlow);
 
-        List<FinanceFlow> financeFlows = financeFlowRepo.getListBySourceForUpdate(
-            FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode(),
-            paymentFlowId
-        );
+        List<FinanceFlow> financeFlows = financeFlowRepo.getListByPaymentFlowIdForUpdate(paymentFlowId);
         if (!financeFlows.isEmpty()) {
             for (FinanceFlow financeFlow : financeFlows) {
                 financeFlow.setStatus(FinanceFlowStatusEnum.VOIDED.getCode());
@@ -275,6 +306,10 @@ public class PaymentFlowService {
         };
     }
 
+    private String resolvePaymentChannel(String payChannel) {
+        return CharSequenceUtil.blankToDefault(CharSequenceUtil.trim(payChannel), PaymentFlowChannelEnum.OTHER.getCode());
+    }
+
     @Builder
     public record CreateCommand(
         LeaseBill bill,
@@ -310,6 +345,19 @@ public class PaymentFlowService {
         String remark,
         Integer status,
         Integer approvalStatus,
+        String extJson,
+        DateTime now
+    ) {
+    }
+
+    @Builder
+    public record CreateOwnerPayableBillPaymentCommand(
+        OwnerPayableBill bill,
+        OwnerPayableBillPayment payment,
+        String ownerName,
+        Long operatorId,
+        String operatorName,
+        String remark,
         String extJson,
         DateTime now
     ) {

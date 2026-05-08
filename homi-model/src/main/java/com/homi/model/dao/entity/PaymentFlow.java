@@ -44,6 +44,10 @@ public class PaymentFlow implements Serializable {
     @TableField("biz_id")
     private Long bizId;
 
+    @Schema(description = "业务单据编号")
+    @TableField("biz_no")
+    private String bizNo;
+
     @Schema(description = "支付渠道")
     @TableField("channel")
     private String channel;

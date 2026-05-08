@@ -5,7 +5,6 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
-import com.homi.common.lib.enums.finance.FinanceFlowSourceTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowTypeEnum;
 import com.homi.model.dao.entity.FinanceFlow;
@@ -36,8 +35,8 @@ public class FinanceFlowService {
         return financeFlowRepo.getListByBizIds(bizType, bizIds);
     }
 
-    public List<FinanceFlow> getListBySource(String sourceType, Long sourceId) {
-        return financeFlowRepo.getListBySource(sourceType, sourceId);
+    public List<FinanceFlow> getListByPaymentFlowId(Long paymentFlowId) {
+        return financeFlowRepo.getListByPaymentFlowId(paymentFlowId);
     }
 
     public boolean existsByBizIds(String bizType, List<Long> bizIds) {
@@ -59,9 +58,7 @@ public class FinanceFlowService {
         FinanceFlow financeFlow = new FinanceFlow();
         financeFlow.setFlowNo(generateFinanceFlowNo());
         financeFlow.setCompanyId(command.bill().getCompanyId());
-        financeFlow.setSourceType(FinanceFlowSourceTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode());
-        financeFlow.setSourceId(command.payment().getId());
-        financeFlow.setSourceNo(command.payment().getPaymentNo());
+        financeFlow.setPaymentFlowId(command.paymentFlowId());
         financeFlow.setBizType(FinanceBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode());
         financeFlow.setBizId(command.payment().getId());
         financeFlow.setBizNo(command.payment().getPaymentNo());
@@ -94,9 +91,7 @@ public class FinanceFlowService {
         FinanceFlow financeFlow = new FinanceFlow();
         financeFlow.setFlowNo(generateFinanceFlowNo());
         financeFlow.setCompanyId(command.paymentFlow().getCompanyId());
-        financeFlow.setSourceType(FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode());
-        financeFlow.setSourceId(command.paymentFlow().getId());
-        financeFlow.setSourceNo(command.paymentFlow().getPaymentNo());
+        financeFlow.setPaymentFlowId(command.paymentFlow().getId());
         financeFlow.setBizType(FinanceBizTypeEnum.LEASE_BILL_FEE.getCode());
         financeFlow.setBizId(item.getLeaseBillFeeId());
         financeFlow.setBizNo(String.valueOf(item.getLeaseBillFeeId()));
@@ -147,6 +142,7 @@ public class FinanceFlowService {
     public record OwnerPayableBillPayCommand(
         OwnerPayableBill bill,
         OwnerPayableBillPayment payment,
+        Long paymentFlowId,
         String ownerName,
         Long operatorId,
         String operatorName,

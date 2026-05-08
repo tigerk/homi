@@ -16,14 +16,8 @@ public class FinanceFlowFinanceItemVO {
     @Schema(description = "财务流水号")
     private String flowNo;
 
-    @Schema(description = "来源类型")
-    private String sourceType;
-
-    @Schema(description = "来源单据ID")
-    private Long sourceId;
-
-    @Schema(description = "来源单据编号")
-    private String sourceNo;
+    @Schema(description = "关联通用支付流水ID")
+    private Long paymentFlowId;
 
     @Schema(description = "业务类型")
     private String bizType;

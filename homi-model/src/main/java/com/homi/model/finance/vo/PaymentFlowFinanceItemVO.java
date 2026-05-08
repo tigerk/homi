@@ -11,13 +11,25 @@ import java.util.List;
 import com.homi.model.tenant.vo.bill.FinanceFlowVO;
 
 @Data
-@Schema(description = "租客支付流水列表项")
+@Schema(description = "支付流水列表项")
 public class PaymentFlowFinanceItemVO {
     @Schema(description = "支付流水ID")
     private Long id;
 
     @Schema(description = "支付流水号")
     private String paymentNo;
+
+    @Schema(description = "业务类型")
+    private String bizType;
+
+    @Schema(description = "业务单据ID")
+    private Long bizId;
+
+    @Schema(description = "业务单据编号")
+    private String bizNo;
+
+    @Schema(description = "资金方向")
+    private String flowDirection;
 
     @Schema(description = "账单ID")
     private Long billId;
@@ -37,6 +49,24 @@ public class PaymentFlowFinanceItemVO {
     @Schema(description = "租客电话")
     private String tenantPhone;
 
+    @Schema(description = "业主ID")
+    private Long ownerId;
+
+    @Schema(description = "业主姓名")
+    private String ownerName;
+
+    @Schema(description = "业主电话")
+    private String ownerPhone;
+
+    @Schema(description = "包租应付单ID")
+    private Long ownerPayableBillId;
+
+    @Schema(description = "包租应付单号")
+    private String ownerPayableBillNo;
+
+    @Schema(description = "包租应付单房源")
+    private String ownerPayableBillSubjectName;
+
     @Schema(description = "房源信息")
     private String roomAddress;
 
@@ -45,6 +75,9 @@ public class PaymentFlowFinanceItemVO {
 
     @Schema(description = "付款人电话")
     private String payerPhone;
+
+    @Schema(description = "收款方名称")
+    private String receiverName;
 
     @Schema(description = "支付方式")
     private String channel;

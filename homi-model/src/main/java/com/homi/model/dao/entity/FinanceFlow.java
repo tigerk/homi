@@ -36,17 +36,9 @@ public class FinanceFlow implements Serializable {
     @TableField("company_id")
     private Long companyId;
 
-    @Schema(description = "来源类型")
-    @TableField("source_type")
-    private String sourceType;
-
-    @Schema(description = "来源单据ID")
-    @TableField("source_id")
-    private Long sourceId;
-
-    @Schema(description = "来源单据编号")
-    @TableField("source_no")
-    private String sourceNo;
+    @Schema(description = "关联通用支付流水ID")
+    @TableField("payment_flow_id")
+    private Long paymentFlowId;
 
     @Schema(description = "业务类型")
     @TableField("biz_type")

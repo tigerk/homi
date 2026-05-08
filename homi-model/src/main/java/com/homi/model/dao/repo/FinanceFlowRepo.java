@@ -31,25 +31,23 @@ public class FinanceFlowRepo extends ServiceImpl<FinanceFlowMapper, FinanceFlow>
         return list(wrapper);
     }
 
-    public List<FinanceFlow> getListBySource(String sourceType, Long sourceId) {
-        if (sourceType == null || sourceType.isBlank() || sourceId == null) {
+    public List<FinanceFlow> getListByPaymentFlowId(Long paymentFlowId) {
+        if (paymentFlowId == null) {
             return List.of();
         }
         LambdaQueryWrapper<FinanceFlow> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(FinanceFlow::getSourceType, sourceType);
-        wrapper.eq(FinanceFlow::getSourceId, sourceId);
+        wrapper.eq(FinanceFlow::getPaymentFlowId, paymentFlowId);
         wrapper.orderByDesc(FinanceFlow::getFlowAt);
         wrapper.orderByDesc(FinanceFlow::getCreateAt);
         return list(wrapper);
     }
 
-    public List<FinanceFlow> getListBySourceForUpdate(String sourceType, Long sourceId) {
-        if (sourceType == null || sourceType.isBlank() || sourceId == null) {
+    public List<FinanceFlow> getListByPaymentFlowIdForUpdate(Long paymentFlowId) {
+        if (paymentFlowId == null) {
             return List.of();
         }
         LambdaQueryWrapper<FinanceFlow> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(FinanceFlow::getSourceType, sourceType);
-        wrapper.eq(FinanceFlow::getSourceId, sourceId);
+        wrapper.eq(FinanceFlow::getPaymentFlowId, paymentFlowId);
         wrapper.last("for update");
         return list(wrapper);
     }

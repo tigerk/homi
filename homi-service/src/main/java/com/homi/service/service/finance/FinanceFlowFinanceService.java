@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.finance.FinanceBizTypeEnum;
-import com.homi.common.lib.enums.finance.FinanceFlowSourceTypeEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
 import com.homi.common.lib.utils.TimeUtils;
 import com.homi.common.lib.vo.PageVO;
@@ -191,8 +190,7 @@ public class FinanceFlowFinanceService {
         Map<Long, Tenant> tenantMap = CollUtil.isEmpty(tenantIds) ? Map.of() : tenantRepo.listByIds(tenantIds).stream()
             .collect(Collectors.toMap(Tenant::getId, item -> item, (left, right) -> left));
         List<Long> paymentFlowIds = financeFlows.stream()
-            .filter(item -> Objects.equals(item.getSourceType(), FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode()))
-            .map(FinanceFlow::getSourceId)
+            .map(FinanceFlow::getPaymentFlowId)
             .filter(Objects::nonNull)
             .distinct()
             .toList();
@@ -228,9 +226,7 @@ public class FinanceFlowFinanceService {
             LeaseBillFee fee = feeMap.get(item.getBizId());
             LeaseBill bill = fee == null ? null : billMap.get(fee.getBillId());
             Tenant tenant = bill == null ? null : tenantMap.get(bill.getTenantId());
-            PaymentFlow paymentFlow = Objects.equals(item.getSourceType(), FinanceFlowSourceTypeEnum.PAYMENT_FLOW.getCode())
-                ? paymentFlowMap.get(item.getSourceId())
-                : null;
+            PaymentFlow paymentFlow = item.getPaymentFlowId() == null ? null : paymentFlowMap.get(item.getPaymentFlowId());
             if (fee != null) {
                 vo.setFeeType(fee.getFeeType());
                 vo.setFeeName(fee.getFeeName());
