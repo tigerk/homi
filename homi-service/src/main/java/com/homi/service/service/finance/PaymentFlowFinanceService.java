@@ -95,15 +95,17 @@ public class PaymentFlowFinanceService {
             return null;
         }
         List<FinanceFlow> financeFlows = financeFlowService.getListByPaymentFlowId(id);
-        Map<Long, LeaseBillFee> feeMap = leaseBillFeeRepo.getByIds(financeFlows.stream()
-                .filter(item -> Objects.equals(item.getBizType(), FinanceBizTypeEnum.LEASE_BILL_FEE.getCode()))
-                .map(FinanceFlow::getBizId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList()).stream()
-            .collect(Collectors.toMap(LeaseBillFee::getId, item -> item));
+        List<Long> feeIds = financeFlows.stream()
+            .filter(item -> Objects.equals(item.getBizType(), FinanceBizTypeEnum.LEASE_BILL_FEE.getCode()))
+            .map(FinanceFlow::getBizId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, LeaseBillFee> feeMap = feeIds.isEmpty() ? Map.of() : leaseBillFeeRepo.getByIds(feeIds).stream()
+            .collect(Collectors.toMap(LeaseBillFee::getId, item -> item, (left, right) -> left));
         detail.setFinanceFlowList(financeFlows.stream().map(item -> {
             FinanceFlowVO vo = BeanCopyUtils.copyBean(item, FinanceFlowVO.class);
+            assert vo != null;
             LeaseBillFee fee = feeMap.get(item.getBizId());
             if (fee != null) {
                 vo.setFeeType(fee.getFeeType());
@@ -220,14 +222,15 @@ public class PaymentFlowFinanceService {
             .filter(Objects::nonNull)
             .distinct()
             .toList();
-        Map<Long, LeaseBill> billMap = leaseBillRepo.listByIds(billIds).stream()
-            .collect(Collectors.toMap(LeaseBill::getId, item -> item));
-        Map<Long, Tenant> tenantMap = tenantRepo.listByIds(billMap.values().stream()
-                .map(LeaseBill::getTenantId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList()).stream()
-            .collect(Collectors.toMap(Tenant::getId, item -> item));
+        Map<Long, LeaseBill> billMap = billIds.isEmpty() ? Map.of() : leaseBillRepo.listByIds(billIds).stream()
+            .collect(Collectors.toMap(LeaseBill::getId, item -> item, (left, right) -> left));
+        List<Long> tenantIds = billMap.values().stream()
+            .map(LeaseBill::getTenantId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, Tenant> tenantMap = tenantIds.isEmpty() ? Map.of() : tenantRepo.listByIds(tenantIds).stream()
+            .collect(Collectors.toMap(Tenant::getId, item -> item, (left, right) -> left));
         Map<Long, String> roomAddressMap = buildRoomAddressMap(billMap.values().stream().toList());
         List<Long> ownerPaymentIds = paymentFlows.stream()
             .filter(item -> Objects.equals(item.getBizType(), PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode()))
@@ -306,12 +309,13 @@ public class PaymentFlowFinanceService {
         if (bills.isEmpty()) {
             return Map.of();
         }
-        Map<Long, Lease> leaseMap = leaseRepo.listByIds(bills.stream()
-                .map(LeaseBill::getLeaseId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .toList()).stream()
-            .collect(Collectors.toMap(Lease::getId, item -> item));
+        List<Long> leaseIds = bills.stream()
+            .map(LeaseBill::getLeaseId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        Map<Long, Lease> leaseMap = leaseIds.isEmpty() ? Map.of() : leaseRepo.listByIds(leaseIds).stream()
+            .collect(Collectors.toMap(Lease::getId, item -> item, (left, right) -> left));
 
         return bills.stream().collect(Collectors.toMap(
             LeaseBill::getId,
