@@ -10,8 +10,10 @@ import com.homi.common.lib.exception.BizException;
 import com.homi.model.dao.entity.FinanceFlow;
 import com.homi.model.dao.entity.Owner;
 import com.homi.model.dao.entity.OwnerPayableBill;
+import com.homi.model.dao.entity.OwnerPayableBillFee;
 import com.homi.model.dao.entity.OwnerPayableBillPayment;
 import com.homi.model.dao.entity.PaymentFlow;
+import com.homi.model.dao.repo.OwnerPayableBillFeeRepo;
 import com.homi.model.dao.repo.OwnerPayableBillPaymentRepo;
 import com.homi.model.dao.repo.OwnerPayableBillRepo;
 import com.homi.model.dao.repo.OwnerRepo;
@@ -23,12 +25,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class OwnerPayableBillPaymentApprovalService {
     private final OwnerPayableBillRepo ownerPayableBillRepo;
+    private final OwnerPayableBillFeeRepo ownerPayableBillFeeRepo;
     private final OwnerPayableBillPaymentRepo ownerPayableBillPaymentRepo;
     private final OwnerRepo ownerRepo;
     private final UserRepo userRepo;
@@ -61,6 +65,10 @@ public class OwnerPayableBillPaymentApprovalService {
         if (defaultZero(payment.getPayAmount()).compareTo(defaultZero(bill.getUnpaidAmount())) > 0) {
             throw new BizException("付款金额不能超过未付金额");
         }
+        List<OwnerPayableBillFee> feeList = ownerPayableBillFeeRepo.getByBillIdForUpdate(bill.getId());
+        if (feeList.isEmpty()) {
+            throw new BizException("包租应付单费用明细不存在");
+        }
 
         DateTime now = DateUtil.date();
         String ownerName = resolveOwnerName(bill.getOwnerId());
@@ -78,10 +86,11 @@ public class OwnerPayableBillPaymentApprovalService {
                 .now(now)
                 .build()
         );
-        FinanceFlow financeFlow = financeFlowService.createOwnerPayableBillPayFlow(
+        List<FinanceFlow> financeFlows = financeFlowService.createOwnerPayableBillPayFlows(
             FinanceFlowService.OwnerPayableBillPayCommand.builder()
                 .bill(bill)
                 .payment(payment)
+                .feeList(feeList)
                 .paymentFlowId(paymentFlow.getId())
                 .ownerName(ownerName)
                 .operatorId(operatorId)
@@ -90,6 +99,9 @@ public class OwnerPayableBillPaymentApprovalService {
                 .now(now)
                 .build()
         );
+        if (financeFlows.isEmpty()) {
+            throw new BizException("包租应付付款财务流水生成失败");
+        }
 
         BigDecimal paidAmount = defaultZero(bill.getPaidAmount()).add(defaultZero(payment.getPayAmount()));
         bill.setPaidAmount(paidAmount);
@@ -101,7 +113,7 @@ public class OwnerPayableBillPaymentApprovalService {
 
         payment.setPaymentStatus(OwnerPayableBillPaymentRecordStatusEnum.SUCCESS.getCode());
         payment.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
-        payment.setFinanceFlowId(financeFlow.getId());
+        payment.setFinanceFlowId(financeFlows.get(0).getId());
         payment.setUpdateBy(payment.getCreateBy());
         payment.setUpdateAt(now);
         ownerPayableBillPaymentRepo.updateById(payment);
