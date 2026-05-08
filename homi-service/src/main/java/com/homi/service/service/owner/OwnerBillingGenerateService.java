@@ -224,7 +224,11 @@ public class OwnerBillingGenerateService {
             BigDecimal currentWithdrawable = ObjectUtil.defaultIfNull(settlementBill.getWithdrawableAmount(), BigDecimal.ZERO);
             BigDecimal delta = currentWithdrawable.subtract(previousWithdrawable);
             if (delta.compareTo(BigDecimal.ZERO) != 0) {
-                adjustOwnerAccountAmount(contract, settlementBill, delta, now);
+                if (adjustOwnerAccountAmount(contract, settlementBill, delta, now)) {
+                    markOwnerSettlementBillSettled(settlementBill, now, operatorId);
+                }
+            } else if (created && ObjectUtil.defaultIfNull(settlementBill.getPayableAmount(), BigDecimal.ZERO).compareTo(BigDecimal.ZERO) == 0) {
+                markOwnerSettlementBillSettled(settlementBill, now, operatorId);
             }
             generatedCount++;
         }
@@ -556,7 +560,9 @@ public class OwnerBillingGenerateService {
         fee.setFormulaSnapshot("ownerCheckoutPenalty");
         fee.setCreateAt(now);
         ownerSettlementBillFeeRepo.save(fee);
-        adjustOwnerAccountAmount(contract, bill, negativeAmount, now);
+        if (adjustOwnerAccountAmount(contract, bill, negativeAmount, now)) {
+            markOwnerSettlementBillSettled(bill, now, operatorId);
+        }
     }
 
     /**
@@ -707,7 +713,11 @@ public class OwnerBillingGenerateService {
             ownerSettlementBillFeeRepo.saveBatch(feeList);
 
             if (withdrawableAmount.compareTo(BigDecimal.ZERO) > 0) {
-                increaseOwnerAccountAmount(contract, ownerBill, withdrawableAmount, now);
+                if (increaseOwnerAccountAmount(contract, ownerBill, withdrawableAmount, now)) {
+                    markOwnerSettlementBillSettled(ownerBill, now, contract.getCreateBy());
+                }
+            } else if (payableAmount.compareTo(BigDecimal.ZERO) == 0) {
+                markOwnerSettlementBillSettled(ownerBill, now, contract.getCreateBy());
             }
             created = true;
         }
@@ -1592,18 +1602,18 @@ public class OwnerBillingGenerateService {
         }
     }
 
-    private void increaseOwnerAccountAmount(OwnerContract contract, OwnerSettlementBill ownerBill, BigDecimal amount, Date now) {
-        adjustOwnerAccountAmount(contract, ownerBill, amount, now);
+    private boolean increaseOwnerAccountAmount(OwnerContract contract, OwnerSettlementBill ownerBill, BigDecimal amount, Date now) {
+        return adjustOwnerAccountAmount(contract, ownerBill, amount, now);
     }
 
-    private void adjustOwnerAccountAmount(OwnerContract contract, OwnerSettlementBill ownerBill, BigDecimal amount, Date now) {
+    private boolean adjustOwnerAccountAmount(OwnerContract contract, OwnerSettlementBill ownerBill, BigDecimal amount, Date now) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) == 0) {
-            return;
+            return false;
         }
         OwnerAccount account = ownerAccountRepo.getByOwnerId(contract.getOwnerId());
         if (account == null) {
             log.warn("业主账户不存在，跳过账户入账, ownerId={}, contractId={}", contract.getOwnerId(), contract.getId());
-            return;
+            return false;
         }
 
         BigDecimal availableBefore = ObjectUtil.defaultIfNull(account.getAvailableAmount(), BigDecimal.ZERO);
@@ -1635,6 +1645,18 @@ public class OwnerBillingGenerateService {
         flow.setCreateBy(contract.getCreateBy());
         flow.setCreateAt(now);
         ownerAccountFlowRepo.save(flow);
+        return true;
+    }
+
+    private void markOwnerSettlementBillSettled(OwnerSettlementBill bill, Date now, Long operatorId) {
+        if (bill == null || bill.getId() == null) {
+            return;
+        }
+        bill.setSettledAmount(ObjectUtil.defaultIfNull(bill.getPayableAmount(), BigDecimal.ZERO));
+        bill.setSettlementStatus(OwnerSettlementStatusEnum.SETTLED.getCode());
+        bill.setUpdateBy(operatorId);
+        bill.setUpdateAt(ObjectUtil.defaultIfNull(now, DateUtil.date()));
+        ownerSettlementBillRepo.updateById(bill);
     }
 
     private String generateOwnerSettlementBillNo() {
