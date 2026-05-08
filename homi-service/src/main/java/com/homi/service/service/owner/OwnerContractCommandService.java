@@ -16,7 +16,9 @@ import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.contract.OwnerParamsEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachSubtypeEnum;
+import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
 import com.homi.common.lib.enums.house.LeaseModeEnum;
+import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
 import com.homi.common.lib.enums.owner.*;
 import com.homi.common.lib.utils.BeanCopyUtils;
 import com.homi.model.dao.entity.*;
@@ -836,7 +838,7 @@ public class OwnerContractCommandService {
     }
 
     private void validateCreateDTO(OwnerCreateDTO dto) {
-        if (dto.getOwnerContract() == null) {
+        if (dto == null || dto.getOwnerContract() == null) {
             throw new IllegalArgumentException("业主合同信息不能为空");
         }
         if (dto.getContractSubjectList() == null || dto.getContractSubjectList().isEmpty()) {
@@ -849,6 +851,7 @@ public class OwnerContractCommandService {
         if (OwnerCooperationModeEnum.MASTER_LEASE.getCode().equals(mode) && dto.getOwnerLeaseRule() == null) {
             throw new IllegalArgumentException("包租规则不能为空");
         }
+        validateLightManagedRealtimeSettlementRules(mode, dto.getContractSubjectList());
     }
 
     private void validateUpdateDTO(OwnerUpdateDTO dto) {
@@ -865,6 +868,41 @@ public class OwnerContractCommandService {
         if (OwnerCooperationModeEnum.MASTER_LEASE.getCode().equals(mode) && dto.getOwnerLeaseRule() == null) {
             throw new IllegalArgumentException("包租规则不能为空");
         }
+        validateLightManagedRealtimeSettlementRules(mode, dto.getContractSubjectList());
+    }
+
+    private void validateLightManagedRealtimeSettlementRules(String mode, List<OwnerContractSubjectDTO> subjectList) {
+        if (!OwnerCooperationModeEnum.LIGHT_MANAGED.getCode().equals(mode)) {
+            return;
+        }
+        if (CollUtil.isEmpty(subjectList)) {
+            return;
+        }
+        for (OwnerContractSubjectDTO subject : subjectList) {
+            OwnerSettlementRuleDTO rule = subject == null ? null : subject.getSettlementRule();
+            if (rule == null) {
+                throw new IllegalArgumentException("轻托管结算规则不能为空");
+            }
+            if (!OwnerSettlementTimingEnum.TENANT_PAYMENT_REALTIME.getCode().equals(rule.getSettlementTiming())) {
+                continue;
+            }
+            if (!hasRealtimeRentSettlementItem(rule.getSettlementItemList())) {
+                throw new IllegalArgumentException("轻托管租客支付实时分账需要配置租金收入分账费用科目（收/租金/转给比例大于0），管理费比例只用于扣减管理费");
+            }
+        }
+    }
+
+    private boolean hasRealtimeRentSettlementItem(List<OwnerSettlementFeeDTO> items) {
+        if (CollUtil.isEmpty(items)) {
+            return false;
+        }
+        return items.stream()
+            .filter(Objects::nonNull)
+            .anyMatch(item -> Boolean.TRUE.equals(item.getTransferEnabled())
+                && FinanceFlowDirectionEnum.IN.getCode().equals(item.getFeeDirection())
+                && LeaseBillFeeTypeEnum.RENTAL.getCode().equals(item.getFeeType())
+                && item.getTransferRatio() != null
+                && item.getTransferRatio().compareTo(BigDecimal.ZERO) > 0);
     }
 
     private List<OwnerContractSubject> saveContractSubjects(OwnerCreateDTO dto, Long contractId, Date now) {
