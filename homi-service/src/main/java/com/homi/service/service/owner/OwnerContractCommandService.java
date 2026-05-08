@@ -886,23 +886,17 @@ public class OwnerContractCommandService {
             if (!OwnerSettlementTimingEnum.TENANT_PAYMENT_REALTIME.getCode().equals(rule.getSettlementTiming())) {
                 continue;
             }
-            if (!hasRealtimeRentSettlementItem(rule.getSettlementItemList())) {
-                throw new IllegalArgumentException("轻托管租客支付实时分账需要配置租金收入分账费用科目（收/租金/转给比例大于0），管理费比例只用于扣减管理费");
-            }
+            validateRealtimeRentCommissionValue(rule.getCommissionValue());
         }
     }
 
-    private boolean hasRealtimeRentSettlementItem(List<OwnerSettlementFeeDTO> items) {
-        if (CollUtil.isEmpty(items)) {
-            return false;
+    private void validateRealtimeRentCommissionValue(BigDecimal commissionValue) {
+        if (commissionValue == null || commissionValue.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("轻托管租客支付实时分账的业主分成比例必须大于0");
         }
-        return items.stream()
-            .filter(Objects::nonNull)
-            .anyMatch(item -> Boolean.TRUE.equals(item.getTransferEnabled())
-                && FinanceFlowDirectionEnum.IN.getCode().equals(item.getFeeDirection())
-                && LeaseBillFeeTypeEnum.RENTAL.getCode().equals(item.getFeeType())
-                && item.getTransferRatio() != null
-                && item.getTransferRatio().compareTo(BigDecimal.ZERO) > 0);
+        if (commissionValue.compareTo(BigDecimal.valueOf(100)) > 0) {
+            throw new IllegalArgumentException("轻托管租客支付实时分账的业主分成比例不能超过100%");
+        }
     }
 
     private List<OwnerContractSubject> saveContractSubjects(OwnerCreateDTO dto, Long contractId, Date now) {
@@ -962,7 +956,7 @@ public class OwnerContractCommandService {
                 rule.setUpdateBy(dto.getCreateBy());
                 rule.setUpdateAt(now);
                 ownerSettlementRuleRepo.save(rule);
-                saveSettlementItems(dto, contract, subject, settlementRuleDTO.getSettlementItemList(), now);
+                saveSettlementItems(dto, contract, subject, settlementRuleDTO, now);
             }
             OwnerRentFreeRuleDTO rentFreeRuleDTO = subjectDTO.getRentFreeRule();
             if (rentFreeRuleDTO != null) {
@@ -1476,8 +1470,9 @@ public class OwnerContractCommandService {
         return value instanceof Enum<?> item ? item.name() : String.valueOf(value);
     }
 
-    private void saveSettlementItems(OwnerCreateDTO dto, OwnerContract contract, OwnerContractSubject subject, List<OwnerSettlementFeeDTO> items, Date now) {
-        if (items == null || items.isEmpty()) {
+    private void saveSettlementItems(OwnerCreateDTO dto, OwnerContract contract, OwnerContractSubject subject, OwnerSettlementRuleDTO settlementRuleDTO, Date now) {
+        List<OwnerSettlementFeeDTO> items = buildSettlementItems(settlementRuleDTO);
+        if (CollUtil.isEmpty(items)) {
             return;
         }
         List<OwnerSettlementFee> records = items.stream().map(item -> {
@@ -1501,6 +1496,36 @@ public class OwnerContractCommandService {
             return record;
         }).toList();
         ownerSettlementFeeRepo.saveBatch(records);
+    }
+
+    private List<OwnerSettlementFeeDTO> buildSettlementItems(OwnerSettlementRuleDTO settlementRuleDTO) {
+        List<OwnerSettlementFeeDTO> result = new ArrayList<>();
+        if (settlementRuleDTO == null) {
+            return result;
+        }
+        if (OwnerSettlementTimingEnum.TENANT_PAYMENT_REALTIME.getCode().equals(settlementRuleDTO.getSettlementTiming())) {
+            result.add(buildRealtimeRentSettlementItem(settlementRuleDTO));
+        }
+        if (CollUtil.isNotEmpty(settlementRuleDTO.getSettlementItemList())) {
+            settlementRuleDTO.getSettlementItemList().stream()
+                .filter(Objects::nonNull)
+                .filter(item -> !LeaseBillFeeTypeEnum.RENTAL.getCode().equals(item.getFeeType()))
+                .forEach(result::add);
+        }
+        return result;
+    }
+
+    private OwnerSettlementFeeDTO buildRealtimeRentSettlementItem(OwnerSettlementRuleDTO settlementRuleDTO) {
+        OwnerSettlementFeeDTO rentItem = new OwnerSettlementFeeDTO();
+        rentItem.setFeeDirection(FinanceFlowDirectionEnum.IN.getCode());
+        rentItem.setFeeType(LeaseBillFeeTypeEnum.RENTAL.getCode());
+        rentItem.setDictDataId(null);
+        rentItem.setFeeName(LeaseBillFeeTypeEnum.RENTAL.getLabel());
+        rentItem.setTransferEnabled(Boolean.TRUE);
+        rentItem.setTransferRatio(settlementRuleDTO.getCommissionValue());
+        rentItem.setSortOrder(-100);
+        rentItem.setRemark("系统内置租金分账规则");
+        return rentItem;
     }
 
     private String resolveSubjectName(OwnerContractSubjectTypeEnum subjectType, Long subjectId, String fallbackName) {

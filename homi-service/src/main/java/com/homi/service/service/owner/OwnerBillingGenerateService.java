@@ -1312,11 +1312,54 @@ public class OwnerBillingGenerateService {
             .orderByAsc(OwnerSettlementFee::getSortOrder)
             .orderByAsc(OwnerSettlementFee::getId)
             .list();
+        settlementFeeList = ensureRealtimeRentSettlementFee(contract, contractSubject, settlementRule, settlementFeeList);
         if (settlementFeeList.isEmpty()) {
             return null;
         }
 
         return new RealtimeSettlementContext(contract, contractSubject, settlementRule, settlementFeeList);
+    }
+
+    private List<OwnerSettlementFee> ensureRealtimeRentSettlementFee(OwnerContract contract, OwnerContractSubject contractSubject,
+                                                                     OwnerSettlementRule settlementRule, List<OwnerSettlementFee> settlementFeeList) {
+        BigDecimal commissionValue = ObjectUtil.defaultIfNull(settlementRule.getCommissionValue(), BigDecimal.ZERO);
+        if (commissionValue.compareTo(BigDecimal.ZERO) <= 0 || commissionValue.compareTo(BigDecimal.valueOf(100)) > 0) {
+            return settlementFeeList;
+        }
+        List<OwnerSettlementFee> result = new ArrayList<>(settlementFeeList == null ? List.of() : settlementFeeList);
+        OwnerSettlementFee rentFee = result.stream()
+            .filter(item -> LeaseBillFeeTypeEnum.RENTAL.getCode().equals(item.getFeeType()))
+            .findFirst()
+            .orElse(null);
+        Date now = DateUtil.date();
+        Long operatorId = ObjectUtil.defaultIfNull(contract.getUpdateBy(), contract.getCreateBy());
+        boolean created = rentFee == null;
+        if (created) {
+            rentFee = new OwnerSettlementFee();
+            rentFee.setCompanyId(contract.getCompanyId());
+            rentFee.setContractId(contract.getId());
+            rentFee.setContractSubjectId(contractSubject.getId());
+            rentFee.setCreateBy(operatorId);
+            rentFee.setCreateAt(now);
+        }
+        rentFee.setFeeDirection(FinanceFlowDirectionEnum.IN.getCode());
+        rentFee.setFeeType(LeaseBillFeeTypeEnum.RENTAL.getCode());
+        rentFee.setDictDataId(null);
+        rentFee.setFeeName(LeaseBillFeeTypeEnum.RENTAL.getLabel());
+        rentFee.setTransferEnabled(Boolean.TRUE);
+        rentFee.setTransferRatio(commissionValue);
+        rentFee.setSortOrder(-100);
+        rentFee.setRemark("系统内置租金分账规则");
+        rentFee.setStatus(StatusEnum.ACTIVE.getValue());
+        rentFee.setUpdateBy(operatorId);
+        rentFee.setUpdateAt(now);
+        if (created) {
+            ownerSettlementFeeRepo.save(rentFee);
+            result.add(rentFee);
+        } else {
+            ownerSettlementFeeRepo.updateById(rentFee);
+        }
+        return result;
     }
 
     private OwnerSettlementFee matchSettlementFeeRule(LeaseBillFee leaseBillFee, List<OwnerSettlementFee> settlementFeeList) {

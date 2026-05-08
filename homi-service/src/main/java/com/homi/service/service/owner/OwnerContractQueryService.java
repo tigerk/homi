@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachSubtypeEnum;
+import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
 import com.homi.common.lib.enums.owner.OwnerContractDocStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerContractStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerCooperationModeEnum;
@@ -601,9 +602,10 @@ public class OwnerContractQueryService {
         dto.setSettlementTiming(rule.getSettlementTiming());
         dto.setRentFreeEnabled(Objects.requireNonNullElse(rule.getRentFreeEnabled(), Boolean.FALSE));
         dto.setSettlementItemList(ownerSettlementFeeRepo.list(new LambdaQueryWrapper<OwnerSettlementFee>()
-                .eq(OwnerSettlementFee::getContractId, rule.getContractId())
-                .eq(OwnerSettlementFee::getContractSubjectId, rule.getContractSubjectId()))
+            .eq(OwnerSettlementFee::getContractId, rule.getContractId())
+            .eq(OwnerSettlementFee::getContractSubjectId, rule.getContractSubjectId()))
             .stream()
+            .filter(item -> !LeaseBillFeeTypeEnum.RENTAL.getCode().equals(item.getFeeType()))
             .map(this::toOwnerSettlementFeeDTO)
             .toList());
         dto.setEffectiveStart(rule.getEffectiveStart());
