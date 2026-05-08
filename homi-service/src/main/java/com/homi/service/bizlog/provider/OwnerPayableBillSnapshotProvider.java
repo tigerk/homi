@@ -1,12 +1,13 @@
 package com.homi.service.bizlog.provider;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.model.dao.entity.OwnerPayableBill;
 import com.homi.model.dao.entity.OwnerPayableBillFee;
-import com.homi.model.dao.entity.OwnerPayableBillPayment;
+import com.homi.model.dao.entity.PaymentFlow;
 import com.homi.model.dao.repo.OwnerPayableBillFeeRepo;
-import com.homi.model.dao.repo.OwnerPayableBillPaymentRepo;
 import com.homi.model.dao.repo.OwnerPayableBillRepo;
+import com.homi.model.dao.repo.PaymentFlowRepo;
 import com.homi.service.bizlog.BizOperateLogSnapshotProvider;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,7 +25,7 @@ import java.util.Objects;
 public class OwnerPayableBillSnapshotProvider implements BizOperateLogSnapshotProvider {
     private final OwnerPayableBillRepo ownerPayableBillRepo;
     private final OwnerPayableBillFeeRepo ownerPayableBillFeeRepo;
-    private final OwnerPayableBillPaymentRepo ownerPayableBillPaymentRepo;
+    private final PaymentFlowRepo paymentFlowRepo;
 
     @Override
     public Object getBeforeSnapshot(Object[] args) {
@@ -86,16 +87,17 @@ public class OwnerPayableBillSnapshotProvider implements BizOperateLogSnapshotPr
                 item.getRemark()
             ))
             .toList();
-        List<OwnerPayableBillPaymentSnapshot> paymentList = ownerPayableBillPaymentRepo.list(new LambdaQueryWrapper<OwnerPayableBillPayment>()
-                .eq(OwnerPayableBillPayment::getBillId, billId)
-                .orderByAsc(OwnerPayableBillPayment::getId))
+        List<OwnerPayableBillPaymentSnapshot> paymentList = paymentFlowRepo.list(new LambdaQueryWrapper<PaymentFlow>()
+                .eq(PaymentFlow::getBizType, PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode())
+                .eq(PaymentFlow::getBizId, billId)
+                .orderByAsc(PaymentFlow::getId))
             .stream()
             .map(item -> new OwnerPayableBillPaymentSnapshot(
                 item.getId(),
                 item.getPaymentNo(),
-                item.getPayAmount(),
+                item.getAmount(),
                 item.getPayAt(),
-                item.getPayChannel(),
+                item.getChannel(),
                 item.getThirdTradeNo(),
                 item.getRemark()
             ))

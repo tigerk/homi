@@ -229,17 +229,17 @@ public class ApprovalEventListener {
         }
     }
 
-    private void handleOwnerPayableBillPayment(Long paymentId, Integer approvalStatus, Integer bizApprovalStatus) {
+    private void handleOwnerPayableBillPayment(Long paymentFlowId, Integer approvalStatus, Integer bizApprovalStatus) {
         if (ApprovalInstanceStatusEnum.APPROVED.getCode().equals(approvalStatus)) {
-            ownerPayableBillPaymentApprovalService.completePayment(paymentId);
-            log.info("包租应付付款审批通过: paymentId={}", paymentId);
+            ownerPayableBillPaymentApprovalService.completePayment(paymentFlowId);
+            log.info("包租应付付款审批通过: paymentFlowId={}", paymentFlowId);
             return;
         }
 
         if (ApprovalInstanceStatusEnum.REJECTED.getCode().equals(approvalStatus)
             || ApprovalInstanceStatusEnum.WITHDRAWN.getCode().equals(approvalStatus)) {
-            ownerPayableBillPaymentApprovalService.closePayment(paymentId, bizApprovalStatus);
-            log.info("包租应付付款审批结束并关闭付款记录: paymentId={}, approvalStatus={}", paymentId, approvalStatus);
+            ownerPayableBillPaymentApprovalService.closePayment(paymentFlowId, bizApprovalStatus);
+            log.info("包租应付付款审批结束并关闭支付流水: paymentFlowId={}, approvalStatus={}", paymentFlowId, approvalStatus);
         }
     }
 

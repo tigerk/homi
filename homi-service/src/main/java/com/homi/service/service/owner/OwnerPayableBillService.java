@@ -3,6 +3,7 @@ package com.homi.service.service.owner;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
@@ -12,8 +13,9 @@ import com.homi.common.lib.enums.biz.BizOperateBizTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateSourceTypeEnum;
 import com.homi.common.lib.enums.biz.BizOperateTypeEnum;
 import com.homi.common.lib.enums.file.FileAttachBizTypeEnum;
+import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
+import com.homi.common.lib.enums.finance.PaymentFlowStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerBillSceneEnum;
-import com.homi.common.lib.enums.owner.OwnerPayableBillPaymentRecordStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillPaymentStatusEnum;
 import com.homi.common.lib.enums.owner.OwnerPayableBillStatusEnum;
 import com.homi.common.lib.vo.PageVO;
@@ -23,6 +25,8 @@ import com.homi.model.dao.repo.*;
 import com.homi.model.owner.dto.*;
 import com.homi.model.owner.vo.*;
 import com.homi.service.service.approval.ApprovalTemplate;
+import com.homi.service.service.finance.FinanceFlowService;
+import com.homi.service.service.finance.PaymentFlowService;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -38,7 +42,7 @@ import java.util.stream.Collectors;
 public class OwnerPayableBillService {
     private final OwnerPayableBillRepo ownerPayableBillRepo;
     private final OwnerPayableBillFeeRepo ownerPayableBillFeeRepo;
-    private final OwnerPayableBillPaymentRepo ownerPayableBillPaymentRepo;
+    private final PaymentFlowRepo paymentFlowRepo;
     private final OwnerRepo ownerRepo;
     private final OwnerContractRepo ownerContractRepo;
     private final OwnerContractSubjectRepo ownerContractSubjectRepo;
@@ -46,6 +50,8 @@ public class OwnerPayableBillService {
     private final BizOperateLogRepo bizOperateLogRepo;
     private final ApprovalTemplate approvalTemplate;
     private final OwnerPayableBillPaymentApprovalService ownerPayableBillPaymentApprovalService;
+    private final FinanceFlowService financeFlowService;
+    private final PaymentFlowService paymentFlowService;
 
     public PageVO<OwnerPayableBillListVO> page(OwnerPayableBillQueryDTO query) {
         Page<OwnerPayableBill> page = new Page<>(query.getCurrentPage(), query.getPageSize());
@@ -322,28 +328,30 @@ public class OwnerPayableBillService {
         if (dto.getPayAmount().compareTo(defaultZero(bill.getUnpaidAmount())) > 0) {
             throw new IllegalArgumentException("付款金额不能超过未付金额");
         }
-        Date now = new Date();
-        OwnerPayableBillPayment payment = new OwnerPayableBillPayment();
-        payment.setCompanyId(bill.getCompanyId());
-        payment.setBillId(bill.getId());
-        payment.setPaymentNo(generatePaymentNo());
-        payment.setPayAmount(dto.getPayAmount());
-        payment.setPayAt(dto.getPayAt());
-        payment.setPayChannel(dto.getPayChannel());
-        payment.setThirdTradeNo(dto.getThirdTradeNo());
-        payment.setRemark(dto.getRemark());
-        payment.setPaymentStatus(OwnerPayableBillPaymentRecordStatusEnum.PENDING_APPROVAL.getCode());
-        payment.setApprovalStatus(BizApprovalStatusEnum.PENDING.getCode());
-        payment.setCreateBy(operatorId);
-        payment.setCreateAt(now);
-        payment.setUpdateBy(operatorId);
-        payment.setUpdateAt(now);
-        ownerPayableBillPaymentRepo.save(payment);
+        cn.hutool.core.date.DateTime now = DateUtil.date();
+        PaymentFlow paymentFlow = paymentFlowService.createOwnerPayableBillPaymentFlow(
+            PaymentFlowService.CreateOwnerPayableBillPaymentCommand.builder()
+                .bill(bill)
+                .totalAmount(dto.getPayAmount())
+                .payChannel(dto.getPayChannel())
+                .thirdTradeNo(dto.getThirdTradeNo())
+                .paymentVoucherUrl(firstVoucherUrl(dto.getVoucherUrls()))
+                .payAt(dto.getPayAt())
+                .ownerName(resolveOwnerName(bill.getOwnerId()))
+                .operatorId(operatorId)
+                .operatorName(operatorName)
+                .remark(dto.getRemark())
+                .status(PaymentFlowStatusEnum.PENDING_APPROVAL.getCode())
+                .approvalStatus(BizApprovalStatusEnum.PENDING.getCode())
+                .extJson(buildOwnerPayableBillPaymentExtJson(bill))
+                .now(now)
+                .build()
+        );
         if (dto.getVoucherUrls() != null && !dto.getVoucherUrls().isEmpty()) {
-            fileAttachRepo.recreateFileAttachList(payment.getId(), FileAttachBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT_VOUCHER.getBizType(), dto.getVoucherUrls());
+            fileAttachRepo.recreateFileAttachList(paymentFlow.getId(), FileAttachBizTypeEnum.PAYMENT_FLOW_VOUCHER.getBizType(), dto.getVoucherUrls());
         }
-        submitPaymentApproval(payment, bill, dto, operatorId);
-        return payment.getId();
+        submitPaymentApproval(paymentFlow, bill, dto, operatorId);
+        return paymentFlow.getId();
     }
 
     private void validateSaveDto(OwnerPayableBillCreateDTO dto) {
@@ -428,12 +436,12 @@ public class OwnerPayableBillService {
         }
     }
 
-    private void submitPaymentApproval(OwnerPayableBillPayment payment, OwnerPayableBill bill, OwnerPayableBillPaymentCreateDTO dto, Long operatorId) {
+    private void submitPaymentApproval(PaymentFlow paymentFlow, OwnerPayableBill bill, OwnerPayableBillPaymentCreateDTO dto, Long operatorId) {
         approvalTemplate.submitIfNeed(
             ApprovalSubmitDTO.builder()
                 .companyId(bill.getCompanyId())
                 .bizType(ApprovalBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode())
-                .bizId(payment.getId())
+                .bizId(paymentFlow.getId())
                 .title("包租应付付款审批 - " + bill.getBillNo())
                 .applicantId(operatorId)
                 .remark(dto.getRemark())
@@ -441,45 +449,40 @@ public class OwnerPayableBillService {
             bizId -> updatePaymentApprovalStatus(
                 bizId,
                 BizApprovalStatusEnum.PENDING.getCode(),
-                OwnerPayableBillPaymentRecordStatusEnum.PENDING_APPROVAL.getCode(),
+                PaymentFlowStatusEnum.PENDING_APPROVAL.getCode(),
                 operatorId
             ),
             bizId -> {
-                updatePaymentApprovalStatus(
-                    bizId,
-                    BizApprovalStatusEnum.APPROVED.getCode(),
-                    OwnerPayableBillPaymentRecordStatusEnum.PENDING_APPROVAL.getCode(),
-                    operatorId
-                );
                 ownerPayableBillPaymentApprovalService.completePayment(bizId);
             }
         );
     }
 
     private void updatePaymentApprovalStatus(Long paymentId, Integer approvalStatus, Integer paymentStatus, Long operatorId) {
-        OwnerPayableBillPayment payment = new OwnerPayableBillPayment();
-        payment.setId(paymentId);
-        payment.setApprovalStatus(approvalStatus);
-        payment.setPaymentStatus(paymentStatus);
-        payment.setUpdateBy(operatorId);
-        payment.setUpdateAt(new Date());
-        ownerPayableBillPaymentRepo.updateById(payment);
+        PaymentFlow paymentFlow = new PaymentFlow();
+        paymentFlow.setId(paymentId);
+        paymentFlow.setApprovalStatus(approvalStatus);
+        paymentFlow.setStatus(paymentStatus);
+        paymentFlow.setUpdateBy(operatorId);
+        paymentFlow.setUpdateAt(new Date());
+        paymentFlowRepo.updateById(paymentFlow);
     }
 
     private boolean hasPendingPaymentRecord(Long billId) {
-        return ownerPayableBillPaymentRepo.lambdaQuery()
-            .eq(OwnerPayableBillPayment::getBillId, billId)
-            .eq(OwnerPayableBillPayment::getPaymentStatus, OwnerPayableBillPaymentRecordStatusEnum.PENDING_APPROVAL.getCode())
+        return paymentFlowRepo.lambdaQuery()
+            .eq(PaymentFlow::getBizType, PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode())
+            .eq(PaymentFlow::getBizId, billId)
+            .eq(PaymentFlow::getStatus, PaymentFlowStatusEnum.PENDING_APPROVAL.getCode())
             .count() > 0;
     }
 
     private boolean hasActivePaymentRecord(Long billId) {
-        return ownerPayableBillPaymentRepo.lambdaQuery()
-            .eq(OwnerPayableBillPayment::getBillId, billId)
-            .and(wrapper -> wrapper
-                .isNull(OwnerPayableBillPayment::getPaymentStatus)
-                .or()
-                .ne(OwnerPayableBillPayment::getPaymentStatus, OwnerPayableBillPaymentRecordStatusEnum.CLOSED.getCode()))
+        return paymentFlowRepo.lambdaQuery()
+            .eq(PaymentFlow::getBizType, PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode())
+            .eq(PaymentFlow::getBizId, billId)
+            .in(PaymentFlow::getStatus,
+                PaymentFlowStatusEnum.PENDING_APPROVAL.getCode(),
+                PaymentFlowStatusEnum.SUCCESS.getCode())
             .count() > 0;
     }
 
@@ -558,26 +561,30 @@ public class OwnerPayableBillService {
         if (CollectionUtils.isEmpty(billIds)) {
             return Collections.emptyMap();
         }
-        List<OwnerPayableBillPayment> list = ownerPayableBillPaymentRepo.lambdaQuery()
-            .in(OwnerPayableBillPayment::getBillId, billIds)
-            .orderByDesc(OwnerPayableBillPayment::getPayAt)
-            .orderByDesc(OwnerPayableBillPayment::getId)
+        List<PaymentFlow> list = paymentFlowRepo.lambdaQuery()
+            .eq(PaymentFlow::getBizType, PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode())
+            .in(PaymentFlow::getBizId, billIds)
+            .orderByDesc(PaymentFlow::getPayAt)
+            .orderByDesc(PaymentFlow::getId)
             .list();
         if (list.isEmpty()) {
             return Collections.emptyMap();
         }
-        List<Long> ids = list.stream().map(OwnerPayableBillPayment::getId).toList();
+        List<Long> ids = list.stream().map(PaymentFlow::getId).toList();
         Map<Long, List<String>> voucherMap = fileAttachRepo.lambdaQuery()
             .in(FileAttach::getBizId, ids)
-            .eq(FileAttach::getBizType, FileAttachBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT_VOUCHER.getBizType())
+            .eq(FileAttach::getBizType, FileAttachBizTypeEnum.PAYMENT_FLOW_VOUCHER.getBizType())
             .orderByAsc(FileAttach::getSortOrder)
             .list()
             .stream()
             .collect(Collectors.groupingBy(FileAttach::getBizId, Collectors.mapping(FileAttach::getFileUrl, Collectors.toList())));
+        Map<Long, Long> financeFlowIdMap = financeFlowService.getListByPaymentFlowIds(ids).stream()
+            .filter(item -> item.getPaymentFlowId() != null)
+            .collect(Collectors.toMap(FinanceFlow::getPaymentFlowId, FinanceFlow::getId, (left, right) -> left));
         return list.stream()
             .collect(Collectors.groupingBy(
-                OwnerPayableBillPayment::getBillId,
-                Collectors.mapping(item -> toPaymentVO(item, voucherMap.get(item.getId())), Collectors.toList())
+                PaymentFlow::getBizId,
+                Collectors.mapping(item -> toPaymentVO(item, voucherMap.get(item.getId()), financeFlowIdMap.get(item.getId())), Collectors.toList())
             ));
     }
 
@@ -633,18 +640,18 @@ public class OwnerPayableBillService {
         return vo;
     }
 
-    private OwnerPayableBillPaymentVO toPaymentVO(OwnerPayableBillPayment item, List<String> voucherUrls) {
+    private OwnerPayableBillPaymentVO toPaymentVO(PaymentFlow item, List<String> voucherUrls, Long financeFlowId) {
         OwnerPayableBillPaymentVO vo = new OwnerPayableBillPaymentVO();
         vo.setPaymentId(item.getId());
         vo.setPaymentNo(item.getPaymentNo());
-        vo.setPayAmount(item.getPayAmount());
+        vo.setPayAmount(item.getAmount());
         vo.setPayAt(item.getPayAt());
-        vo.setPayChannel(item.getPayChannel());
+        vo.setPayChannel(item.getChannel());
         vo.setThirdTradeNo(item.getThirdTradeNo());
         vo.setRemark(item.getRemark());
-        vo.setPaymentStatus(item.getPaymentStatus());
+        vo.setPaymentStatus(item.getStatus());
         vo.setApprovalStatus(item.getApprovalStatus());
-        vo.setFinanceFlowId(item.getFinanceFlowId());
+        vo.setFinanceFlowId(financeFlowId);
         vo.setVoucherUrls(voucherUrls == null ? Collections.emptyList() : voucherUrls);
         vo.setCreateAt(item.getCreateAt());
         return vo;
@@ -654,8 +661,25 @@ public class OwnerPayableBillService {
         return "OPB" + IdUtil.getSnowflakeNextIdStr();
     }
 
-    private String generatePaymentNo() {
-        return "OPP" + DateUtil.format(new Date(), "yyyyMMddHHmmss") + IdUtil.fastSimpleUUID().substring(0, 6).toUpperCase();
+    private String firstVoucherUrl(List<String> voucherUrls) {
+        return voucherUrls == null || voucherUrls.isEmpty() ? null : voucherUrls.get(0);
+    }
+
+    private String resolveOwnerName(Long ownerId) {
+        if (ownerId == null) {
+            return null;
+        }
+        Owner owner = ownerRepo.getById(ownerId);
+        return owner == null ? null : owner.getOwnerName();
+    }
+
+    private String buildOwnerPayableBillPaymentExtJson(OwnerPayableBill bill) {
+        return JSONUtil.createObj()
+            .set("billId", bill.getId())
+            .set("billNo", bill.getBillNo())
+            .set("ownerId", bill.getOwnerId())
+            .set("contractId", bill.getContractId())
+            .toString();
     }
 
     private String buildContractSubjectSummary(Long contractId) {

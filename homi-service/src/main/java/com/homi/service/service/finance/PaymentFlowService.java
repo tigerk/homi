@@ -3,7 +3,6 @@ package com.homi.service.service.finance;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.util.IdUtil;
-import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowStatusEnum;
 import com.homi.common.lib.enums.checkout.CheckoutPaymentStatusEnum;
 import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
@@ -15,7 +14,6 @@ import com.homi.model.dao.entity.FinanceFlow;
 import com.homi.model.dao.entity.LeaseCheckout;
 import com.homi.model.dao.entity.LeaseBill;
 import com.homi.model.dao.entity.OwnerPayableBill;
-import com.homi.model.dao.entity.OwnerPayableBillPayment;
 import com.homi.model.dao.entity.PaymentFlow;
 import com.homi.model.dao.repo.FinanceFlowRepo;
 import com.homi.model.dao.repo.LeaseCheckoutRepo;
@@ -46,6 +44,10 @@ public class PaymentFlowService {
 
     public List<PaymentFlow> listByBiz(String bizType, Long bizId) {
         return paymentFlowRepo.listByBiz(bizType, bizId);
+    }
+
+    public List<PaymentFlow> listByBizIds(String bizType, List<Long> bizIds) {
+        return paymentFlowRepo.listByBizIds(bizType, bizIds);
     }
 
     public PaymentFlow getById(Long id) {
@@ -121,23 +123,23 @@ public class PaymentFlowService {
 
     public PaymentFlow createOwnerPayableBillPaymentFlow(CreateOwnerPayableBillPaymentCommand command) {
         OwnerPayableBill bill = command.bill();
-        OwnerPayableBillPayment payment = command.payment();
         PaymentFlow paymentFlow = new PaymentFlow();
         paymentFlow.setPaymentNo(generatePaymentNo());
         paymentFlow.setCompanyId(bill.getCompanyId());
         paymentFlow.setBizType(PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode());
-        paymentFlow.setBizId(payment.getId());
-        paymentFlow.setBizNo(payment.getPaymentNo());
-        paymentFlow.setChannel(resolvePaymentChannel(payment.getPayChannel()));
-        paymentFlow.setThirdTradeNo(payment.getThirdTradeNo());
-        BigDecimal amount = payment.getPayAmount() == null ? BigDecimal.ZERO : payment.getPayAmount();
+        paymentFlow.setBizId(bill.getId());
+        paymentFlow.setBizNo(bill.getBillNo());
+        paymentFlow.setChannel(resolvePaymentChannel(command.payChannel()));
+        paymentFlow.setThirdTradeNo(command.thirdTradeNo());
+        paymentFlow.setPaymentVoucherUrl(command.paymentVoucherUrl());
+        BigDecimal amount = command.totalAmount() == null ? BigDecimal.ZERO : command.totalAmount();
         paymentFlow.setAmount(amount.abs());
         paymentFlow.setCurrency("CNY");
         paymentFlow.setRefundedAmount(BigDecimal.ZERO);
         paymentFlow.setFlowDirection(PaymentFlowDirectionEnum.OUT.getCode());
-        paymentFlow.setStatus(PaymentFlowStatusEnum.SUCCESS.getCode());
-        paymentFlow.setApprovalStatus(BizApprovalStatusEnum.APPROVED.getCode());
-        paymentFlow.setPayAt(payment.getPayAt());
+        paymentFlow.setStatus(command.status());
+        paymentFlow.setApprovalStatus(command.approvalStatus());
+        paymentFlow.setPayAt(command.payAt());
         paymentFlow.setPayerName("平台");
         paymentFlow.setReceiverName(command.ownerName());
         paymentFlow.setOperatorId(command.operatorId());
@@ -353,11 +355,17 @@ public class PaymentFlowService {
     @Builder
     public record CreateOwnerPayableBillPaymentCommand(
         OwnerPayableBill bill,
-        OwnerPayableBillPayment payment,
+        BigDecimal totalAmount,
+        String payChannel,
+        String thirdTradeNo,
+        String paymentVoucherUrl,
+        Date payAt,
         String ownerName,
         Long operatorId,
         String operatorName,
         String remark,
+        Integer status,
+        Integer approvalStatus,
         String extJson,
         DateTime now
     ) {

@@ -75,12 +75,19 @@ JOIN `lease_checkout` lc
 SET pf.`biz_no` = lc.`checkout_code`
 WHERE pf.`biz_no` IS NULL OR pf.`biz_no` = '';
 
-UPDATE `payment_flow` pf
-JOIN `owner_payable_bill_payment` opbp
-  ON pf.`biz_type` = 'OWNER_PAYABLE_BILL_PAYMENT'
- AND pf.`biz_id` = opbp.`id`
-SET pf.`biz_no` = opbp.`payment_no`
-WHERE pf.`biz_no` IS NULL OR pf.`biz_no` = '';
+SET @sql = (
+  SELECT IF(
+    COUNT(*) > 0,
+    'UPDATE `payment_flow` pf JOIN `owner_payable_bill_payment` opbp ON pf.`biz_type` = ''OWNER_PAYABLE_BILL_PAYMENT'' AND pf.`biz_id` = opbp.`id` SET pf.`biz_no` = opbp.`payment_no` WHERE pf.`biz_no` IS NULL OR pf.`biz_no` = ''''',
+    'SELECT 1'
+  )
+  FROM information_schema.TABLES
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'owner_payable_bill_payment'
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- 删除旧 source_* 索引和字段。
 SET @sql = (

@@ -67,7 +67,6 @@ public class MyBatisGenerator {
                 "owner_lease_rule",
                 "owner_payable_bill",
                 "owner_payable_bill_fee",
-                "owner_payable_bill_payment",
                 "owner_personal",
                 "owner_rent_free_rule",
                 "owner_settlement_bill",

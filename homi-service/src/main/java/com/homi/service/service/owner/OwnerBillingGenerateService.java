@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.homi.common.lib.enums.StatusEnum;
 import com.homi.common.lib.enums.approval.BizApprovalStatusEnum;
 import com.homi.common.lib.enums.finance.FinanceFlowDirectionEnum;
+import com.homi.common.lib.enums.finance.PaymentFlowBizTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseBillFeeTypeEnum;
 import com.homi.common.lib.enums.lease.LeaseRentDueTypeEnum;
 import com.homi.common.lib.enums.owner.*;
@@ -51,7 +52,7 @@ public class OwnerBillingGenerateService {
     private final OwnerSettlementBillReductionRepo ownerSettlementBillReductionRepo;
     private final OwnerPayableBillRepo ownerPayableBillRepo;
     private final OwnerPayableBillFeeRepo ownerPayableBillFeeRepo;
-    private final OwnerPayableBillPaymentRepo ownerPayableBillPaymentRepo;
+    private final PaymentFlowRepo paymentFlowRepo;
     private final OwnerAccountRepo ownerAccountRepo;
     private final OwnerAccountFlowRepo ownerAccountFlowRepo;
     private final LeaseRepo leaseRepo;
@@ -405,8 +406,9 @@ public class OwnerBillingGenerateService {
             return true;
         }
         List<Long> billIds = billList.stream().map(OwnerPayableBill::getId).toList();
-        return ownerPayableBillPaymentRepo.lambdaQuery()
-            .in(OwnerPayableBillPayment::getBillId, billIds)
+        return paymentFlowRepo.lambdaQuery()
+            .eq(PaymentFlow::getBizType, PaymentFlowBizTypeEnum.OWNER_PAYABLE_BILL_PAYMENT.getCode())
+            .in(PaymentFlow::getBizId, billIds)
             .count() > 0;
     }
 

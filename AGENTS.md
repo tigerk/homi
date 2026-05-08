@@ -75,6 +75,7 @@ Java 命名：
 - 包名保持小写，遵循现有 `com.homi.<module>.<domain>` 结构。
 - DTO 用于请求参数，VO 用于返回视图，Entity 对应数据库实体。
 - 枚举统一放在 `com.homi.common.lib.enums` 及其领域子包下。
+- DTO、VO、Entity 中不能把 enum 作为字段变量类型；字段应使用后端接口和数据库约定的基础类型，如 `Integer`、`String` 等，并通过枚举类做取值解释和校验。
 - 金额字段使用 `BigDecimal`，不要用 `double` 或 `float`。
 - 时间字段按语义使用 `LocalDate`、`LocalDateTime` 或已有项目约定，避免用字符串传递时间。
 

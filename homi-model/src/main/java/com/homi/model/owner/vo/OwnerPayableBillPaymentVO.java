@@ -33,13 +33,13 @@ public class OwnerPayableBillPaymentVO {
     @Schema(description = "备注")
     private String remark;
 
-    @Schema(description = "付款记录状态")
+    @Schema(description = "支付流水状态")
     private Integer paymentStatus;
 
     @Schema(description = "审批状态")
     private Integer approvalStatus;
 
-    @Schema(description = "财务流水ID")
+    @Schema(description = "首条关联财务流水ID")
     private Long financeFlowId;
 
     @Schema(description = "凭证地址")

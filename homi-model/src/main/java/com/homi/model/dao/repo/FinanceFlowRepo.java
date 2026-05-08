@@ -42,6 +42,17 @@ public class FinanceFlowRepo extends ServiceImpl<FinanceFlowMapper, FinanceFlow>
         return list(wrapper);
     }
 
+    public List<FinanceFlow> getListByPaymentFlowIds(List<Long> paymentFlowIds) {
+        if (paymentFlowIds == null || paymentFlowIds.isEmpty()) {
+            return List.of();
+        }
+        LambdaQueryWrapper<FinanceFlow> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(FinanceFlow::getPaymentFlowId, paymentFlowIds);
+        wrapper.orderByDesc(FinanceFlow::getFlowAt);
+        wrapper.orderByDesc(FinanceFlow::getCreateAt);
+        return list(wrapper);
+    }
+
     public List<FinanceFlow> getListByPaymentFlowIdForUpdate(Long paymentFlowId) {
         if (paymentFlowId == null) {
             return List.of();
